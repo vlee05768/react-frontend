@@ -222,11 +222,11 @@ export default function StorageList() {
         </Space>
       ),
     },
-    { title: '編號', dataIndex: 'code', key: 'code' },
-    { title: '名稱', dataIndex: 'name', key: 'name' },
-    { title: '類型', dataIndex: 'type', key: 'type' },
-    { title: '儲位位置', dataIndex: 'location', key: 'location' },
-    { title: '狀態', dataIndex: 'isActive', key: 'isActive', render: (v: boolean) => <Tag color={v ? 'green' : 'red'}>{v ? '啟用' : '停用'}</Tag> },
+    { title: '編號', dataIndex: 'code', key: 'code', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '名稱', dataIndex: 'name', key: 'name', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '類型', dataIndex: 'type', key: 'type', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '儲位位置', dataIndex: 'location', key: 'location', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '狀態', dataIndex: 'isActive', key: 'isActive', align: 'center', render: (v: boolean) => <Tag color={v ? 'green' : 'red'}>{v ? '啟用' : '停用'}</Tag> },
   ];
 
   const handleSearch = (values: any) => {
@@ -244,7 +244,6 @@ export default function StorageList() {
   const handleSearchReset = () => {
     searchForm.resetFields();
     resetParams();
-    setIsSearchModalOpen(false);
   };
 
 
@@ -311,7 +310,7 @@ export default function StorageList() {
                     <Switch />
                   </Form.Item>
                 </Col>
-                <Col span={12}>
+                <Col span={24}>
                   <Form.Item name="notes" label="備註">
                     <Input.TextArea placeholder="請輸入備註" rows={3} />
                   </Form.Item>
@@ -338,7 +337,7 @@ export default function StorageList() {
           </div>
         }
         extra={
-          <Space split={<Divider type="vertical" />}>
+          <Space separator={<Divider orientation="vertical" />}>
             <Button
               type="default"
               icon={<SearchOutlined />}

@@ -8,6 +8,8 @@
   - 表格的「操作」欄位 (檢視、編輯、刪除按鈕) 必須置於最左側 (`fixed: 'left'`)，寬度預設 `120px`。
   - 使用 `<Space>` 包覆 Icon Buttons。
   - 表格必須設定水平捲動 (`scroll={{ x: 1200 }}`) 以防止小螢幕跑版。
+- **表格欄位對齊 (Table Column Alignment)**：
+  - Table 的欄位名稱 (Header) 一律置中排列 (`align: 'center'`)。
 - **頁面標題與暗色模式 (Theming & Typography)**：
   - 模組標題應包含左側藍色飾條 (Width: 4px, Height: 24px, Color: `#1677ff`)。
   - 避免使用 `<Typography.Title>` 以防被 Tailwind 覆蓋樣式。文字顏色應依賴 CSS 變數動態適應主題 (`color: 'var(--ant-color-text, inherit)'`)，嚴禁寫死 `#262626` 或 `#000`。
@@ -62,3 +64,10 @@
 - **權限控管 (RBAC)**：
   - 依賴 `useAuthStore().hasPermission` 進行元件層級的渲染控制。
   - 權限 Key 必須與後端嚴格對齊。特別注意，後端「修改」的權限 Action 慣例為 `.Update` (如 `System.Users.Update`)，不可誤用 `.Edit`。
+
+## 5. Ant Design v5 升級與警告防範 (Antd V5 Migration)
+
+專案已升級至 Ant Design v5，嚴禁在元件中使用已棄用 (Deprecated) 的屬性。開發時若發現 Console 拋出警告，必須立即修正：
+- **Space 元件**：禁用 `split` 屬性，必須改用 `separator` 屬性來加入分隔線。
+- **Divider 元件**：禁用 `type` 屬性，必須改用 `orientation` 屬性 (例如：`<Divider orientation="vertical" />`)。
+- **Spin 元件**：禁用 `tip` 屬性，必須改用 `description` 屬性。

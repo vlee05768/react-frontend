@@ -222,11 +222,11 @@ export default function MoldList() {
         </Space>
       ),
     },
-    { title: '編號', dataIndex: 'code', key: 'code' },
-    { title: '名稱', dataIndex: 'name', key: 'name' },
-    { title: '類型', dataIndex: 'type', key: 'type' },
-    { title: '供應商編號', dataIndex: 'supplierCode', key: 'supplierCode' },
-    { title: '形狀', dataIndex: 'shape', key: 'shape' },
+    { title: '編號', dataIndex: 'code', key: 'code', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '名稱', dataIndex: 'name', key: 'name', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '類型', dataIndex: 'type', key: 'type', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '供應商編號', dataIndex: 'supplierCode', key: 'supplierCode', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '形狀', dataIndex: 'shape', key: 'shape', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
   ];
 
   const handleSearch = (values: any) => {
@@ -244,7 +244,6 @@ export default function MoldList() {
   const handleSearchReset = () => {
     searchForm.resetFields();
     resetParams();
-    setIsSearchModalOpen(false);
   };
 
 
@@ -322,12 +321,12 @@ export default function MoldList() {
                     <Switch />
                   </Form.Item>
                 </Col>
-                <Col span={12}>
+                <Col span={24}>
                   <Form.Item name="description" label="描述">
                     <Input.TextArea placeholder="請輸入描述" rows={3} />
                   </Form.Item>
                 </Col>
-                <Col span={12}>
+                <Col span={24}>
                   <Form.Item name="notes" label="備註">
                     <Input.TextArea placeholder="請輸入備註" rows={3} />
                   </Form.Item>
@@ -354,7 +353,7 @@ export default function MoldList() {
           </div>
         }
         extra={
-          <Space split={<Divider type="vertical" />}>
+          <Space separator={<Divider orientation="vertical" />}>
             <Button
               type="default"
               icon={<SearchOutlined />}

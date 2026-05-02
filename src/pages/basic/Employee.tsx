@@ -234,12 +234,14 @@ export default function EmployeeList() {
         </Space>
       ),
     },
-    { title: '員工編號', dataIndex: 'employeeNo', key: 'employeeNo' },
-    { title: '姓名', dataIndex: 'name', key: 'name' },
-    { title: '部門名稱', dataIndex: 'departmentName', key: 'departmentName' },
-    { title: '聯絡電話', dataIndex: 'phone', key: 'phone' },
-    { title: '到職日期', dataIndex: 'hireDate', key: 'hireDate', render: (v: string) => v ? v.substring(0, 10) : '-' },
-    { title: '狀態', dataIndex: 'status', key: 'status', render: (v: number) => <Tag color={v === 1 ? 'green' : 'red'}>{v === 1 ? '在職' : '離職'}</Tag> },
+    { title: '員工編號', dataIndex: 'employeeNo', key: 'employeeNo', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '姓名', dataIndex: 'name', key: 'name', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '部門名稱', dataIndex: 'departmentName', key: 'departmentName', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '聯絡電話', dataIndex: 'phone', key: 'phone', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '到職日期', dataIndex: 'hireDate', key: 'hireDate', align: 'center', render: (v: string) => v ? v.substring(0, 10) : '-' },
+    { title: '離職日期', dataIndex: 'resignDate', key: 'resignDate', align: 'center', render: (v: string) => v ? v.substring(0, 10) : '-' },
+    { title: '狀態', dataIndex: 'status', key: 'status', align: 'center', render: (v: number) => <Tag color={v === 1 ? 'green' : 'red'}>{v === 1 ? '在職' : '離職'}</Tag> },
+    { title: '備註', dataIndex: 'notes', key: 'notes', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
   ];
 
   const handleSearch = (values: any) => {
@@ -257,12 +259,11 @@ export default function EmployeeList() {
   const handleSearchReset = () => {
     searchForm.resetFields();
     resetParams();
-    setIsSearchModalOpen(false);
   };
 
 
   const renderSearchTags = () => {
-    const searchKeys = ['employeeNo', 'name', 'phone', 'status', 'departmentCode'];
+    const searchKeys = ['employeeNo', 'name', 'status', 'departmentCode'];
     const activeFilters: React.ReactNode[] = [];
     
     searchKeys.forEach(key => {
@@ -271,7 +272,6 @@ export default function EmployeeList() {
         let valueStr = String(params[key]);
         if (key === 'employeeNo') label = '員工編號';
         if (key === 'name') label = '姓名';
-        if (key === 'phone') label = '聯絡電話';
         if (key === 'status') valueStr = params[key] === 1 ? '在職' : (params[key] === 2 ? '離職' : String(params[key]));
         if (key === 'status') label = '狀態';
         if (key === 'departmentCode') valueStr = departmentOptions?.find((o: any) => o.value === params[key])?.label || String(params[key]);
@@ -337,7 +337,7 @@ export default function EmployeeList() {
                     <Input type="date" style={{ width: '100%' }} />
                   </Form.Item>
                 </Col>
-                <Col span={12}>
+                <Col span={24}>
                   <Form.Item name="notes" label="備註">
                     <Input.TextArea placeholder="請輸入備註" rows={3} />
                   </Form.Item>
@@ -364,7 +364,7 @@ export default function EmployeeList() {
           </div>
         }
         extra={
-          <Space split={<Divider type="vertical" />}>
+          <Space separator={<Divider orientation="vertical" />}>
             <Button
               type="default"
               icon={<SearchOutlined />}
@@ -450,11 +450,6 @@ export default function EmployeeList() {
             <Col span={12}>
               <Form.Item name="name" label="姓名">
                 <Input placeholder="請輸入姓名" allowClear />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="phone" label="聯絡電話">
-                <Input placeholder="請輸入聯絡電話" allowClear />
               </Form.Item>
             </Col>
             <Col span={12}>

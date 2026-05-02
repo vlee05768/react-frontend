@@ -222,10 +222,10 @@ export default function UserList() {
         </Space>
       ),
     },
-    { title: '使用者名稱', dataIndex: 'userName', key: 'userName' },
-    { title: '名稱', dataIndex: 'name', key: 'name' },
-    { title: '電子郵件', dataIndex: 'email', key: 'email' },
-    { title: '狀態', dataIndex: 'isActive', key: 'isActive', render: (v: boolean) => <Tag color={v ? 'green' : 'red'}>{v ? '啟用' : '停用'}</Tag> },
+    { title: '使用者名稱', dataIndex: 'userName', key: 'userName', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '名稱', dataIndex: 'name', key: 'name', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '電子郵件', dataIndex: 'email', key: 'email', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '狀態', dataIndex: 'isActive', key: 'isActive', align: 'center', render: (v: boolean) => <Tag color={v ? 'green' : 'red'}>{v ? '啟用' : '停用'}</Tag> },
   ];
 
   const handleSearch = (values: any) => {
@@ -243,7 +243,6 @@ export default function UserList() {
   const handleSearchReset = () => {
     searchForm.resetFields();
     resetParams();
-    setIsSearchModalOpen(false);
   };
 
 
@@ -321,7 +320,7 @@ export default function UserList() {
           </div>
         }
         extra={
-          <Space split={<Divider type="vertical" />}>
+          <Space separator={<Divider orientation="vertical" />}>
             <Button
               type="default"
               icon={<SearchOutlined />}

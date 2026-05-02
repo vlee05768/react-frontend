@@ -222,9 +222,9 @@ export default function RoleList() {
         </Space>
       ),
     },
-    { title: '名稱', dataIndex: 'name', key: 'name' },
-    { title: '角色標題', dataIndex: 'caption', key: 'caption' },
-    { title: '描述', dataIndex: 'description', key: 'description' },
+    { title: '名稱', dataIndex: 'name', key: 'name', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '角色標題', dataIndex: 'caption', key: 'caption', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '描述', dataIndex: 'description', key: 'description', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
   ];
 
   const handleSearch = (values: any) => {
@@ -242,7 +242,6 @@ export default function RoleList() {
   const handleSearchReset = () => {
     searchForm.resetFields();
     resetParams();
-    setIsSearchModalOpen(false);
   };
 
 
@@ -283,7 +282,7 @@ export default function RoleList() {
                     <Input placeholder="請輸入角色標題" />
                   </Form.Item>
                 </Col>
-                <Col span={12}>
+                <Col span={24}>
                   <Form.Item name="description" label="描述">
                     <Input.TextArea placeholder="請輸入描述" rows={3} />
                   </Form.Item>
@@ -310,7 +309,7 @@ export default function RoleList() {
           </div>
         }
         extra={
-          <Space split={<Divider type="vertical" />}>
+          <Space separator={<Divider orientation="vertical" />}>
             <Button
               type="default"
               icon={<SearchOutlined />}

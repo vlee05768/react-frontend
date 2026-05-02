@@ -256,7 +256,6 @@ export default function {Entity}List() {
   const handleSearchReset = () => {
     searchForm.resetFields();
     resetParams();
-    setIsSearchModalOpen(false);
   };
 
 
@@ -310,7 +309,7 @@ export default function {Entity}List() {
           </div>
         }
         extra={
-          <Space split={<Divider type="vertical" />}>
+          <Space separator={<Divider orientation="vertical" />}>
             <Button
               type="default"
               icon={<SearchOutlined />}
@@ -493,8 +492,8 @@ entities = [
     {
         "Entity": "Employee", "entity": "employee", "TitleStr": "員工基本檔", "PermKey": "BasicData.Employees",
         "IdKeyC": "Id", "idKey": "id", "StoreFile": "employeeStore", "RoutePath": "/employee",
-        "cols": ["employeeNo", "name", "departmentName", "phone", "hireDate", "status"],
-        "search": ["employeeNo", "name", "phone", "status", "departmentCode"],
+        "cols": ["employeeNo", "name", "departmentName", "phone", "hireDate", "resignDate", "status", "notes"],
+        "search": ["employeeNo", "name", "status", "departmentCode"],
         "fields": ["employeeNo", "name", "status", "departmentCode", "phone", "email", "hireDate", "resignDate", "notes"]
     }
 ]
@@ -506,12 +505,13 @@ def t(c, is_employee=False):
 
 def make_col(c, is_employee=False):
     if c == 'isActive':
-        return f"    {{ title: '{t(c, is_employee)}', dataIndex: '{c}', key: '{c}', render: (v: boolean) => <Tag color={{v ? 'green' : 'red'}}>{{v ? '啟用' : '停用'}}</Tag> }},"
+        return f"    {{ title: '{t(c, is_employee)}', dataIndex: '{c}', key: '{c}', align: 'center', render: (v: boolean) => <Tag color={{v ? 'green' : 'red'}}>{{v ? '啟用' : '停用'}}</Tag> }},"
     if c == 'status':
-        return f"    {{ title: '{t(c, is_employee)}', dataIndex: '{c}', key: '{c}', render: (v: number) => <Tag color={{v === 1 ? 'green' : 'red'}}>{{v === 1 ? '在職' : '離職'}}</Tag> }},"
+        return f"    {{ title: '{t(c, is_employee)}', dataIndex: '{c}', key: '{c}', align: 'center', render: (v: number) => <Tag color={{v === 1 ? 'green' : 'red'}}>{{v === 1 ? '在職' : '離職'}}</Tag> }},"
     if 'Date' in c:
-        return f"    {{ title: '{t(c, is_employee)}', dataIndex: '{c}', key: '{c}', render: (v: string) => v ? v.substring(0, 10) : '-' }},"
-    return f"    {{ title: '{t(c, is_employee)}', dataIndex: '{c}', key: '{c}' }},"
+        return f"    {{ title: '{t(c, is_employee)}', dataIndex: '{c}', key: '{c}', align: 'center', render: (v: string) => v ? v.substring(0, 10) : '-' }},"
+    return f"    {{ title: '{t(c, is_employee)}', dataIndex: '{c}', key: '{c}', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v }},"
+
 
 def make_search(c, is_employee=False):
     if c == 'status':
@@ -575,7 +575,7 @@ def make_form(c, is_employee=False):
                   </Form.Item>
                 </Col>"""
     if c == 'notes' or c == 'description':
-        return f"""                <Col span={{12}}>
+        return f"""                <Col span={{24}}>
                   <Form.Item name="{c}" label="{t(c, is_employee)}">
                     <Input.TextArea placeholder="請輸入{t(c, is_employee)}" rows={{3}} />
                   </Form.Item>
