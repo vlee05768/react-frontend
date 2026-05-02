@@ -159,7 +159,14 @@ export default function StorageList() {
 
   const startEditMode = () => {
     if (viewData) {
-      crudForm.setFieldsValue(viewData);
+      const formattedData = { ...viewData };
+      // 將 API 傳回的 ISO Date 截斷為 YYYY-MM-DD 供 <Input type="date"> 使用
+      Object.keys(formattedData).forEach(key => {
+        if (key.toLowerCase().includes('date') && formattedData[key] && typeof formattedData[key] === 'string') {
+          formattedData[key] = formattedData[key].substring(0, 10);
+        }
+      });
+      crudForm.setFieldsValue(formattedData);
       setIsDrawerEditing(true);
     }
   };
