@@ -108,35 +108,37 @@ export default function MainLayout() {
     const mapNodes = (nodes: any[]): any[] => {
       return nodes
         .filter(node => node.active) // 僅顯示有權限的模組
+        .filter(node => {
+          // ERP 導覽層級固定為 2 層 (Level 1: 模組 0個點, Level 2: 頁面 1個點)
+          // 權限 Key 中有 2 個點以上的 (如 BasicData.Employees.View) 是動作權限，不應出現在選單
+          const dotCount = (node.key.match(/\./g) || []).length;
+          return dotCount < 2;
+        })
         .map(node => {
-          // 如果沒有定義特定的路由映射，就不把它當作可點擊的葉節點 (維持 null)
-          // 若有子節點，則遞迴解析
-          const routePath = ROUTE_MAPPING[node.key];
+          const dotCount = (node.key.match(/\./g) || []).length;
           
-          // 若它有子節點，且子節點中包含 View, Create 等「動作權限」，則該節點視為一個實際的「頁面」
-          // (例如: BasicData.Employees 底下是 BasicData.Employees.View)
-          // 這裡我們簡單判斷：如果底下只有動作權限 (沒有以該節點 key 為 prefix 的深層選單)，就視為葉節點
-          const hasPageChildren = node.children?.some((child: any) => 
-             // 如果子節點也有它的子節點，那它就不是動作權限而是目錄
-             child.children && child.children.length > 0
-          );
-
-          if (node.children && node.children.length > 0 && hasPageChildren) {
-             return {
-                key: node.key,
-                icon: ICON_MAPPING[node.key],
-                label: node.title,
-                children: mapNodes(node.children)
-             };
+          if (dotCount === 0) {
+            // Level 1: 模組 (資料夾)
+            const children = node.children ? mapNodes(node.children) : [];
+            // 如果該模組下沒有任何有權限的子頁面，就不顯示該模組
+            if (children.length === 0) return null;
+            return {
+               key: node.key,
+               icon: ICON_MAPPING[node.key],
+               label: node.title,
+               children: children
+            };
           } else {
-             // 葉節點：這是一個模組頁面
-             return {
-                key: routePath || node.key, // 如果尚未實作對應頁面，仍可顯示(但點擊可能無效或404)
-                icon: ICON_MAPPING[node.key],
-                label: node.title,
-             };
+            // Level 2: 頁面 (葉節點)
+            const routePath = ROUTE_MAPPING[node.key] || node.key;
+            return {
+               key: routePath,
+               icon: ICON_MAPPING[node.key],
+               label: node.title,
+            };
           }
-        });
+        })
+        .filter(Boolean); // 過濾掉為 null 的模組
     };
 
     items.push(...mapNodes(permissionTree));
