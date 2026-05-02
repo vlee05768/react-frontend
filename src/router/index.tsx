@@ -10,6 +10,11 @@ import Forbidden from '@/pages/exception/403';
 import Dashboard from '@/pages/Dashboard';
 import MainLayout from '@/layouts/MainLayout';
 import Employee from '@/pages/basic/Employee';
+import UserList from '@/pages/system/UserList';
+import RoleList from '@/pages/system/RoleList';
+import StorageList from '@/pages/warehouse/StorageList';
+import MoldList from '@/pages/production/MoldList';
+import MachineList from '@/pages/production/MachineList';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 // 路由守衛
@@ -39,7 +44,12 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Dashboard /> },
-      { path: 'employee/:viewId?', element: <Employee /> }
+      { path: 'employee/:viewId?', element: <Employee /> },
+      { path: 'system/users/:viewId?', element: <UserList /> },
+      { path: 'system/roles/:viewId?', element: <RoleList /> },
+      { path: 'warehouse/storages/:viewId?', element: <StorageList /> },
+      { path: 'production-quality/molds/:viewId?', element: <MoldList /> },
+      { path: 'production-quality/machines/:viewId?', element: <MachineList /> }
     ]
   },
   { path: ROUTES.FORBIDDEN, element: <Forbidden /> },

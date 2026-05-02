@@ -33,11 +33,21 @@ const ICON_MAPPING: Record<string, React.ReactNode> = {
 // 將後端權限 Key 映射到前端路由路徑
 const ROUTE_MAPPING: Record<string, string> = {
   'BasicData.Employees': '/employee',
+  'System.Users': '/system/users',
+  'System.Roles': '/system/roles',
+  'Warehouse.Storages': '/warehouse/storages',
+  'ProductionQuality.Molds': '/production-quality/molds',
+  'ProductionQuality.Machines': '/production-quality/machines',
 };
 
 // 路由權限對照表 (Path -> Required Permission Key)
 const ROUTE_PERMISSION_MAP: Record<string, string> = {
   '/employee': 'BasicData.Employees.View',
+  '/system/users': 'System.Users.View',
+  '/system/roles': 'System.Roles.View',
+  '/warehouse/storages': 'Warehouse.Storages.View',
+  '/production-quality/molds': 'ProductionQuality.Molds.View',
+  '/production-quality/machines': 'ProductionQuality.Machines.View',
 };
 
 export default function MainLayout() {
