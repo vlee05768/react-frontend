@@ -281,7 +281,7 @@ export default function MachineList() {
               backgroundColor: '#1677ff',
               borderRadius: '2px'
             }} />
-            <div style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: '#262626', lineHeight: '24px' }}>
+            <div style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: 'var(--ant-color-text, inherit)', lineHeight: '24px' }}>
               機台管理
             </div>
           </div>
