@@ -214,10 +214,10 @@ export default function StorageList() {
         </Space>
       ),
     },
-    { title: 'code', dataIndex: 'code', key: 'code' },
-    { title: 'name', dataIndex: 'name', key: 'name' },
-    { title: 'type', dataIndex: 'type', key: 'type' },
-    { title: 'location', dataIndex: 'location', key: 'location' },
+    { title: '編號', dataIndex: 'code', key: 'code' },
+    { title: '名稱', dataIndex: 'name', key: 'name' },
+    { title: '類型', dataIndex: 'type', key: 'type' },
+    { title: '位置', dataIndex: 'location', key: 'location' },
     { title: '狀態', dataIndex: 'isActive', key: 'isActive', render: (v: boolean) => <Tag color={v ? 'green' : 'red'}>{v ? '啟用' : '停用'}</Tag> },
   ];
 
@@ -247,43 +247,43 @@ export default function StorageList() {
   const renderFormFields = (isEdit: boolean) => (
     <Row gutter={16}>
                 <Col span={12}>
-                  <Form.Item name="code" label="code" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入code" ref={firstInputRef} />
+                  <Form.Item name="code" label="編號" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入編號" ref={firstInputRef} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="name" label="name" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入name" />
+                  <Form.Item name="name" label="名稱" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入名稱" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="type" label="type" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入type" />
+                  <Form.Item name="type" label="類型" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入類型" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="location" label="location" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入location" />
+                  <Form.Item name="location" label="位置" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入位置" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="area" label="area" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入area" />
+                  <Form.Item name="area" label="區域" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入區域" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="isCalculateInventory" label="isCalculateInventory" valuePropName="checked">
+                  <Form.Item name="isCalculateInventory" label="計算庫存" valuePropName="checked">
                     <Switch />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="isActive" label="isActive" valuePropName="checked">
+                  <Form.Item name="isActive" label="狀態" valuePropName="checked">
                     <Switch />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="notes" label="notes" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入notes" />
+                  <Form.Item name="notes" label="備註" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入備註" />
                   </Form.Item>
                 </Col>
     </Row>
@@ -384,11 +384,11 @@ export default function StorageList() {
           onFinish={handleSearch}
         >
           <Row gutter={16}>
-          <Form.Item name="CodeOrName" label="CodeOrName">
-            <Input placeholder="請輸入CodeOrName" allowClear />
+          <Form.Item name="CodeOrName" label="編號或名稱">
+            <Input placeholder="請輸入編號或名稱" allowClear />
           </Form.Item>
-          <Form.Item name="Type" label="Type">
-            <Input placeholder="請輸入Type" allowClear />
+          <Form.Item name="Type" label="類型">
+            <Input placeholder="請輸入類型" allowClear />
           </Form.Item>
           </Row>
         </Form>
@@ -445,14 +445,14 @@ export default function StorageList() {
             </Form>
           ) : (
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="code">{viewData?.code}</Descriptions.Item>
-              <Descriptions.Item label="name">{viewData?.name}</Descriptions.Item>
-              <Descriptions.Item label="type">{viewData?.type}</Descriptions.Item>
-              <Descriptions.Item label="location">{viewData?.location}</Descriptions.Item>
-              <Descriptions.Item label="area">{viewData?.area}</Descriptions.Item>
-              <Descriptions.Item label="isCalculateInventory">{viewData?.isCalculateInventory ? '是' : '否'}</Descriptions.Item>
-              <Descriptions.Item label="isActive">{viewData?.isActive ? '是' : '否'}</Descriptions.Item>
-              <Descriptions.Item label="notes">{viewData?.notes}</Descriptions.Item>
+              <Descriptions.Item label="編號">{viewData?.code}</Descriptions.Item>
+              <Descriptions.Item label="名稱">{viewData?.name}</Descriptions.Item>
+              <Descriptions.Item label="類型">{viewData?.type}</Descriptions.Item>
+              <Descriptions.Item label="位置">{viewData?.location}</Descriptions.Item>
+              <Descriptions.Item label="區域">{viewData?.area}</Descriptions.Item>
+              <Descriptions.Item label="計算庫存">{viewData?.isCalculateInventory ? '是' : '否'}</Descriptions.Item>
+              <Descriptions.Item label="狀態">{viewData?.isActive ? '是' : '否'}</Descriptions.Item>
+              <Descriptions.Item label="備註">{viewData?.notes}</Descriptions.Item>
             </Descriptions>
           )}
         </Spin>

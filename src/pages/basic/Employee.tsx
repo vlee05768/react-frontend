@@ -214,9 +214,9 @@ export default function EmployeeList() {
         </Space>
       ),
     },
-    { title: 'employeeCode', dataIndex: 'employeeCode', key: 'employeeCode' },
-    { title: 'name', dataIndex: 'name', key: 'name' },
-    { title: 'department', dataIndex: 'department', key: 'department' },
+    { title: '員工編號', dataIndex: 'employeeCode', key: 'employeeCode' },
+    { title: '名稱', dataIndex: 'name', key: 'name' },
+    { title: '部門', dataIndex: 'department', key: 'department' },
     { title: '狀態', dataIndex: 'isActive', key: 'isActive', render: (v: boolean) => <Tag color={v ? 'green' : 'red'}>{v ? '啟用' : '停用'}</Tag> },
   ];
 
@@ -246,32 +246,32 @@ export default function EmployeeList() {
   const renderFormFields = (isEdit: boolean) => (
     <Row gutter={16}>
                 <Col span={12}>
-                  <Form.Item name="employeeCode" label="employeeCode" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入employeeCode" ref={firstInputRef} />
+                  <Form.Item name="employeeCode" label="員工編號" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入員工編號" ref={firstInputRef} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="name" label="name" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入name" />
+                  <Form.Item name="name" label="名稱" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入名稱" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="department" label="department" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入department" />
+                  <Form.Item name="department" label="部門" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入部門" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="mobile" label="mobile" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入mobile" />
+                  <Form.Item name="mobile" label="手機" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入手機" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="email" label="email" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入email" />
+                  <Form.Item name="email" label="電子信箱" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入電子信箱" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="isActive" label="isActive" valuePropName="checked">
+                  <Form.Item name="isActive" label="狀態" valuePropName="checked">
                     <Switch />
                   </Form.Item>
                 </Col>
@@ -373,11 +373,11 @@ export default function EmployeeList() {
           onFinish={handleSearch}
         >
           <Row gutter={16}>
-          <Form.Item name="employeeNo" label="employeeNo">
-            <Input placeholder="請輸入employeeNo" allowClear />
+          <Form.Item name="employeeNo" label="員工編號">
+            <Input placeholder="請輸入員工編號" allowClear />
           </Form.Item>
-          <Form.Item name="name" label="name">
-            <Input placeholder="請輸入name" allowClear />
+          <Form.Item name="name" label="名稱">
+            <Input placeholder="請輸入名稱" allowClear />
           </Form.Item>
           </Row>
         </Form>
@@ -434,12 +434,12 @@ export default function EmployeeList() {
             </Form>
           ) : (
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="employeeCode">{viewData?.employeeCode}</Descriptions.Item>
-              <Descriptions.Item label="name">{viewData?.name}</Descriptions.Item>
-              <Descriptions.Item label="department">{viewData?.department}</Descriptions.Item>
-              <Descriptions.Item label="mobile">{viewData?.mobile}</Descriptions.Item>
-              <Descriptions.Item label="email">{viewData?.email}</Descriptions.Item>
-              <Descriptions.Item label="isActive">{viewData?.isActive ? '是' : '否'}</Descriptions.Item>
+              <Descriptions.Item label="員工編號">{viewData?.employeeCode}</Descriptions.Item>
+              <Descriptions.Item label="名稱">{viewData?.name}</Descriptions.Item>
+              <Descriptions.Item label="部門">{viewData?.department}</Descriptions.Item>
+              <Descriptions.Item label="手機">{viewData?.mobile}</Descriptions.Item>
+              <Descriptions.Item label="電子信箱">{viewData?.email}</Descriptions.Item>
+              <Descriptions.Item label="狀態">{viewData?.isActive ? '是' : '否'}</Descriptions.Item>
             </Descriptions>
           )}
         </Spin>

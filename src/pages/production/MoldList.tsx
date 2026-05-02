@@ -214,11 +214,11 @@ export default function MoldList() {
         </Space>
       ),
     },
-    { title: 'code', dataIndex: 'code', key: 'code' },
-    { title: 'name', dataIndex: 'name', key: 'name' },
-    { title: 'type', dataIndex: 'type', key: 'type' },
-    { title: 'supplierCode', dataIndex: 'supplierCode', key: 'supplierCode' },
-    { title: 'shape', dataIndex: 'shape', key: 'shape' },
+    { title: '編號', dataIndex: 'code', key: 'code' },
+    { title: '名稱', dataIndex: 'name', key: 'name' },
+    { title: '類型', dataIndex: 'type', key: 'type' },
+    { title: '供應商編號', dataIndex: 'supplierCode', key: 'supplierCode' },
+    { title: '形狀', dataIndex: 'shape', key: 'shape' },
   ];
 
   const handleSearch = (values: any) => {
@@ -247,58 +247,58 @@ export default function MoldList() {
   const renderFormFields = (isEdit: boolean) => (
     <Row gutter={16}>
                 <Col span={12}>
-                  <Form.Item name="code" label="code" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入code" ref={firstInputRef} />
+                  <Form.Item name="code" label="編號" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入編號" ref={firstInputRef} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="name" label="name" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入name" />
+                  <Form.Item name="name" label="名稱" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入名稱" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="type" label="type" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入type" />
+                  <Form.Item name="type" label="類型" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入類型" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="supplierCode" label="supplierCode" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入supplierCode" />
+                  <Form.Item name="supplierCode" label="供應商編號" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入供應商編號" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="shape" label="shape" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入shape" />
+                  <Form.Item name="shape" label="形狀" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入形狀" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="dimensionLMm" label="dimensionLMm" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入dimensionLMm" />
+                  <Form.Item name="dimensionLMm" label="長度 (mm)" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入長度 (mm)" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="dimensionWMm" label="dimensionWMm" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入dimensionWMm" />
+                  <Form.Item name="dimensionWMm" label="寬度 (mm)" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入寬度 (mm)" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="dimensionHMm" label="dimensionHMm" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入dimensionHMm" />
+                  <Form.Item name="dimensionHMm" label="高度 (mm)" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入高度 (mm)" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="isShareable" label="isShareable" valuePropName="checked">
+                  <Form.Item name="isShareable" label="可共用" valuePropName="checked">
                     <Switch />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="description" label="description" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入description" />
+                  <Form.Item name="description" label="描述" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入描述" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="notes" label="notes" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入notes" />
+                  <Form.Item name="notes" label="備註" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入備註" />
                   </Form.Item>
                 </Col>
     </Row>
@@ -399,14 +399,14 @@ export default function MoldList() {
           onFinish={handleSearch}
         >
           <Row gutter={16}>
-          <Form.Item name="CodeOrName" label="CodeOrName">
-            <Input placeholder="請輸入CodeOrName" allowClear />
+          <Form.Item name="CodeOrName" label="編號或名稱">
+            <Input placeholder="請輸入編號或名稱" allowClear />
           </Form.Item>
-          <Form.Item name="Type" label="Type">
-            <Input placeholder="請輸入Type" allowClear />
+          <Form.Item name="Type" label="類型">
+            <Input placeholder="請輸入類型" allowClear />
           </Form.Item>
-          <Form.Item name="SupplierCode" label="SupplierCode">
-            <Input placeholder="請輸入SupplierCode" allowClear />
+          <Form.Item name="SupplierCode" label="供應商編號">
+            <Input placeholder="請輸入供應商編號" allowClear />
           </Form.Item>
           </Row>
         </Form>
@@ -463,17 +463,17 @@ export default function MoldList() {
             </Form>
           ) : (
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="code">{viewData?.code}</Descriptions.Item>
-              <Descriptions.Item label="name">{viewData?.name}</Descriptions.Item>
-              <Descriptions.Item label="type">{viewData?.type}</Descriptions.Item>
-              <Descriptions.Item label="supplierCode">{viewData?.supplierCode}</Descriptions.Item>
-              <Descriptions.Item label="shape">{viewData?.shape}</Descriptions.Item>
-              <Descriptions.Item label="dimensionLMm">{viewData?.dimensionLMm}</Descriptions.Item>
-              <Descriptions.Item label="dimensionWMm">{viewData?.dimensionWMm}</Descriptions.Item>
-              <Descriptions.Item label="dimensionHMm">{viewData?.dimensionHMm}</Descriptions.Item>
-              <Descriptions.Item label="isShareable">{viewData?.isShareable ? '是' : '否'}</Descriptions.Item>
-              <Descriptions.Item label="description">{viewData?.description}</Descriptions.Item>
-              <Descriptions.Item label="notes">{viewData?.notes}</Descriptions.Item>
+              <Descriptions.Item label="編號">{viewData?.code}</Descriptions.Item>
+              <Descriptions.Item label="名稱">{viewData?.name}</Descriptions.Item>
+              <Descriptions.Item label="類型">{viewData?.type}</Descriptions.Item>
+              <Descriptions.Item label="供應商編號">{viewData?.supplierCode}</Descriptions.Item>
+              <Descriptions.Item label="形狀">{viewData?.shape}</Descriptions.Item>
+              <Descriptions.Item label="長度 (mm)">{viewData?.dimensionLMm}</Descriptions.Item>
+              <Descriptions.Item label="寬度 (mm)">{viewData?.dimensionWMm}</Descriptions.Item>
+              <Descriptions.Item label="高度 (mm)">{viewData?.dimensionHMm}</Descriptions.Item>
+              <Descriptions.Item label="可共用">{viewData?.isShareable ? '是' : '否'}</Descriptions.Item>
+              <Descriptions.Item label="描述">{viewData?.description}</Descriptions.Item>
+              <Descriptions.Item label="備註">{viewData?.notes}</Descriptions.Item>
             </Descriptions>
           )}
         </Spin>

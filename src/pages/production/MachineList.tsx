@@ -214,10 +214,10 @@ export default function MachineList() {
         </Space>
       ),
     },
-    { title: 'code', dataIndex: 'code', key: 'code' },
-    { title: 'name', dataIndex: 'name', key: 'name' },
-    { title: 'type', dataIndex: 'type', key: 'type' },
-    { title: 'capacity', dataIndex: 'capacity', key: 'capacity' },
+    { title: '編號', dataIndex: 'code', key: 'code' },
+    { title: '名稱', dataIndex: 'name', key: 'name' },
+    { title: '類型', dataIndex: 'type', key: 'type' },
+    { title: '產能', dataIndex: 'capacity', key: 'capacity' },
   ];
 
   const handleSearch = (values: any) => {
@@ -246,23 +246,23 @@ export default function MachineList() {
   const renderFormFields = (isEdit: boolean) => (
     <Row gutter={16}>
                 <Col span={12}>
-                  <Form.Item name="code" label="code" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入code" ref={firstInputRef} />
+                  <Form.Item name="code" label="編號" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入編號" ref={firstInputRef} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="name" label="name" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入name" />
+                  <Form.Item name="name" label="名稱" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入名稱" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="type" label="type" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入type" />
+                  <Form.Item name="type" label="類型" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入類型" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="capacity" label="capacity" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入capacity" />
+                  <Form.Item name="capacity" label="產能" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入產能" />
                   </Form.Item>
                 </Col>
     </Row>
@@ -363,8 +363,8 @@ export default function MachineList() {
           onFinish={handleSearch}
         >
           <Row gutter={16}>
-          <Form.Item name="CodeOrName" label="CodeOrName">
-            <Input placeholder="請輸入CodeOrName" allowClear />
+          <Form.Item name="CodeOrName" label="編號或名稱">
+            <Input placeholder="請輸入編號或名稱" allowClear />
           </Form.Item>
           </Row>
         </Form>
@@ -421,10 +421,10 @@ export default function MachineList() {
             </Form>
           ) : (
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="code">{viewData?.code}</Descriptions.Item>
-              <Descriptions.Item label="name">{viewData?.name}</Descriptions.Item>
-              <Descriptions.Item label="type">{viewData?.type}</Descriptions.Item>
-              <Descriptions.Item label="capacity">{viewData?.capacity}</Descriptions.Item>
+              <Descriptions.Item label="編號">{viewData?.code}</Descriptions.Item>
+              <Descriptions.Item label="名稱">{viewData?.name}</Descriptions.Item>
+              <Descriptions.Item label="類型">{viewData?.type}</Descriptions.Item>
+              <Descriptions.Item label="產能">{viewData?.capacity}</Descriptions.Item>
             </Descriptions>
           )}
         </Spin>

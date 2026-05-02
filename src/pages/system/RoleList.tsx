@@ -214,9 +214,9 @@ export default function RoleList() {
         </Space>
       ),
     },
-    { title: 'name', dataIndex: 'name', key: 'name' },
-    { title: 'caption', dataIndex: 'caption', key: 'caption' },
-    { title: 'description', dataIndex: 'description', key: 'description' },
+    { title: '名稱', dataIndex: 'name', key: 'name' },
+    { title: '顯示名稱', dataIndex: 'caption', key: 'caption' },
+    { title: '描述', dataIndex: 'description', key: 'description' },
   ];
 
   const handleSearch = (values: any) => {
@@ -245,18 +245,18 @@ export default function RoleList() {
   const renderFormFields = (isEdit: boolean) => (
     <Row gutter={16}>
                 <Col span={12}>
-                  <Form.Item name="name" label="name" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入name" ref={firstInputRef} />
+                  <Form.Item name="name" label="名稱" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入名稱" ref={firstInputRef} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="caption" label="caption" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入caption" />
+                  <Form.Item name="caption" label="顯示名稱" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入顯示名稱" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="description" label="description" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入description" />
+                  <Form.Item name="description" label="描述" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入描述" />
                   </Form.Item>
                 </Col>
     </Row>
@@ -413,9 +413,9 @@ export default function RoleList() {
             </Form>
           ) : (
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="name">{viewData?.name}</Descriptions.Item>
-              <Descriptions.Item label="caption">{viewData?.caption}</Descriptions.Item>
-              <Descriptions.Item label="description">{viewData?.description}</Descriptions.Item>
+              <Descriptions.Item label="名稱">{viewData?.name}</Descriptions.Item>
+              <Descriptions.Item label="顯示名稱">{viewData?.caption}</Descriptions.Item>
+              <Descriptions.Item label="描述">{viewData?.description}</Descriptions.Item>
             </Descriptions>
           )}
         </Spin>
