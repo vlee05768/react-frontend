@@ -426,11 +426,11 @@ export default function UserList() {
             </Form>
           ) : (
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="userName">{detail?.userName}</Descriptions.Item>
-              <Descriptions.Item label="name">{detail?.name}</Descriptions.Item>
-              <Descriptions.Item label="email">{detail?.email}</Descriptions.Item>
-              <Descriptions.Item label="isActive">{detail?.isActive ? '是' : '否'}</Descriptions.Item>
-              <Descriptions.Item label="employeeCode">{detail?.employeeCode}</Descriptions.Item>
+              <Descriptions.Item label="userName">{viewData?.userName}</Descriptions.Item>
+              <Descriptions.Item label="name">{viewData?.name}</Descriptions.Item>
+              <Descriptions.Item label="email">{viewData?.email}</Descriptions.Item>
+              <Descriptions.Item label="isActive">{viewData?.isActive ? '是' : '否'}</Descriptions.Item>
+              <Descriptions.Item label="employeeCode">{viewData?.employeeCode}</Descriptions.Item>
             </Descriptions>
           )}
         </Spin>

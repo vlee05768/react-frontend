@@ -413,9 +413,9 @@ export default function RoleList() {
             </Form>
           ) : (
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="name">{detail?.name}</Descriptions.Item>
-              <Descriptions.Item label="caption">{detail?.caption}</Descriptions.Item>
-              <Descriptions.Item label="description">{detail?.description}</Descriptions.Item>
+              <Descriptions.Item label="name">{viewData?.name}</Descriptions.Item>
+              <Descriptions.Item label="caption">{viewData?.caption}</Descriptions.Item>
+              <Descriptions.Item label="description">{viewData?.description}</Descriptions.Item>
             </Descriptions>
           )}
         </Spin>

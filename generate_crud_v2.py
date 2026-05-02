@@ -467,8 +467,8 @@ def make_search(c):
 
 def make_desc(c):
     if c == 'isActive' or c == 'isCalculateInventory' or c == 'isShareable':
-        return f"              <Descriptions.Item label=\"{c}\">{{detail?.{c} ? '是' : '否'}}</Descriptions.Item>"
-    return f"              <Descriptions.Item label=\"{c}\">{{detail?.{c}}}</Descriptions.Item>"
+        return f"              <Descriptions.Item label=\"{c}\">{{viewData?.{c} ? '是' : '否'}}</Descriptions.Item>"
+    return f"              <Descriptions.Item label=\"{c}\">{{viewData?.{c}}}</Descriptions.Item>"
 
 def make_form(c):
     if c == 'isActive' or c == 'isCalculateInventory' or c == 'isShareable':
@@ -519,7 +519,10 @@ os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/production',
 os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/employee', exist_ok=True)
 
 for e in entities:
-    path = f"/home/hermes/git_projects/erp-frontend-react/src/pages/{e['StoreFile'].replace('Store','')}/{e['Entity']}List.tsx"
+    if e['Entity'] == 'Employee':
+        path = '/home/hermes/git_projects/erp-frontend-react/src/pages/basic/Employee.tsx'
+    else:
+        path = f"/home/hermes/git_projects/erp-frontend-react/src/pages/{e['StoreFile'].replace('Store','')}/{e['Entity']}List.tsx"
     with open(path, 'w') as f:
         f.write(build(e))
     print(f"Generated {path}")

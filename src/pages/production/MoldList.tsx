@@ -463,17 +463,17 @@ export default function MoldList() {
             </Form>
           ) : (
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="code">{detail?.code}</Descriptions.Item>
-              <Descriptions.Item label="name">{detail?.name}</Descriptions.Item>
-              <Descriptions.Item label="type">{detail?.type}</Descriptions.Item>
-              <Descriptions.Item label="supplierCode">{detail?.supplierCode}</Descriptions.Item>
-              <Descriptions.Item label="shape">{detail?.shape}</Descriptions.Item>
-              <Descriptions.Item label="dimensionLMm">{detail?.dimensionLMm}</Descriptions.Item>
-              <Descriptions.Item label="dimensionWMm">{detail?.dimensionWMm}</Descriptions.Item>
-              <Descriptions.Item label="dimensionHMm">{detail?.dimensionHMm}</Descriptions.Item>
-              <Descriptions.Item label="isShareable">{detail?.isShareable ? '是' : '否'}</Descriptions.Item>
-              <Descriptions.Item label="description">{detail?.description}</Descriptions.Item>
-              <Descriptions.Item label="notes">{detail?.notes}</Descriptions.Item>
+              <Descriptions.Item label="code">{viewData?.code}</Descriptions.Item>
+              <Descriptions.Item label="name">{viewData?.name}</Descriptions.Item>
+              <Descriptions.Item label="type">{viewData?.type}</Descriptions.Item>
+              <Descriptions.Item label="supplierCode">{viewData?.supplierCode}</Descriptions.Item>
+              <Descriptions.Item label="shape">{viewData?.shape}</Descriptions.Item>
+              <Descriptions.Item label="dimensionLMm">{viewData?.dimensionLMm}</Descriptions.Item>
+              <Descriptions.Item label="dimensionWMm">{viewData?.dimensionWMm}</Descriptions.Item>
+              <Descriptions.Item label="dimensionHMm">{viewData?.dimensionHMm}</Descriptions.Item>
+              <Descriptions.Item label="isShareable">{viewData?.isShareable ? '是' : '否'}</Descriptions.Item>
+              <Descriptions.Item label="description">{viewData?.description}</Descriptions.Item>
+              <Descriptions.Item label="notes">{viewData?.notes}</Descriptions.Item>
             </Descriptions>
           )}
         </Spin>

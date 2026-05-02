@@ -421,10 +421,10 @@ export default function MachineList() {
             </Form>
           ) : (
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="code">{detail?.code}</Descriptions.Item>
-              <Descriptions.Item label="name">{detail?.name}</Descriptions.Item>
-              <Descriptions.Item label="type">{detail?.type}</Descriptions.Item>
-              <Descriptions.Item label="capacity">{detail?.capacity}</Descriptions.Item>
+              <Descriptions.Item label="code">{viewData?.code}</Descriptions.Item>
+              <Descriptions.Item label="name">{viewData?.name}</Descriptions.Item>
+              <Descriptions.Item label="type">{viewData?.type}</Descriptions.Item>
+              <Descriptions.Item label="capacity">{viewData?.capacity}</Descriptions.Item>
             </Descriptions>
           )}
         </Spin>

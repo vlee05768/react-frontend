@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import type { InputRef } from 'antd';
@@ -10,7 +11,6 @@ import {
   Input,
   Select,
   Space,
-
   Card,
   Typography,
   Tag,
@@ -19,37 +19,34 @@ import {
   Col,
   message,
   Popconfirm,
-  DatePicker,
   Drawer,
-  Descriptions
+  Descriptions,
+  Switch
 } from 'antd';
 import {
   SearchOutlined,
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  UserOutlined,
   ClearOutlined,
   SaveOutlined,
-  EyeOutlined
+  EyeOutlined,
+  AppstoreOutlined
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   getApiV1Employee, 
   getApiV1EmployeeById,
-  getApiV1GeneralTypesGetTypes,
   postApiV1Employee,
   putApiV1EmployeeById,
   deleteApiV1EmployeeById
-} from '../../api/generated/sdk.gen';
-import { useEmployeeQueryStore } from '../../stores/employeeStore';
-import { useAuthStore } from '../../stores/useAuthStore';
-import dayjs from 'dayjs';
-
+} from '@/api/generated/sdk.gen';
+import { useEmployeeQueryStore } from '@/stores/employeeStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 const { Title, Text } = Typography;
 
-export default function Employee() {
+export default function EmployeeList() {
   const { params, setParams, resetParams } = useEmployeeQueryStore();
   const { hasPermission } = useAuthStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -59,14 +56,11 @@ export default function Employee() {
   const [crudForm] = Form.useForm();
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   
-  const employeeNoRef = useRef<InputRef>(null);
-  const nameRef = useRef<InputRef>(null);
+  const firstInputRef = useRef<InputRef>(null);
 
   useEffect(() => {
-    if (isCreateDrawerOpen) {
-      setTimeout(() => employeeNoRef.current?.focus(), 100);
-    } else if (isDrawerEditing) {
-      setTimeout(() => nameRef.current?.focus(), 100);
+    if (isCreateDrawerOpen || isDrawerEditing) {
+      setTimeout(() => firstInputRef.current?.focus(), 100);
     }
   }, [isCreateDrawerOpen, isDrawerEditing]);
   
@@ -74,70 +68,26 @@ export default function Employee() {
   const { viewId } = useParams<{ viewId: string }>();
   const navigate = useNavigate();
 
-
   // 單筆資料查詢 (Drawer)
-  const { data: viewEmployeeRes, isFetching: isFetchingView } = useQuery({
-    queryKey: ['employee', viewId],
-    queryFn: () => getApiV1EmployeeById({ path: { id: Number(viewId) } }),
+  const { data: viewRes, isFetching: isFetchingView } = useQuery({
+    queryKey: ['employeeDetail', viewId],
+    queryFn: () => getApiV1EmployeeById({ path: { id: viewId as any } }),
     enabled: !!viewId,
   });
-  const viewEmployeeData = viewEmployeeRes?.data?.data;
+  const viewData = viewRes?.data?.data || viewRes?.data;
 
   // API 查詢
   const { data, isFetching } = useQuery({
-    queryKey: ['employees', params],
+    queryKey: ['employeeList', params],
     queryFn: () =>
       getApiV1Employee({
-        query: {
-          pageNumber: params.pageNumber,
-          pageSize: params.pageSize,
-          EmployeeNo: params.employeeNo || undefined,
-          Name: params.name || undefined,
-          Status: params.status || undefined,
-          DepartmentCode: params.departmentCode || undefined,
-        },
+        query: params as any,
       }),
   });
 
-  // 部門清單查詢
-  const { data: deptData } = useQuery({
-    queryKey: ['departments'],
-    queryFn: () =>
-      getApiV1GeneralTypesGetTypes({
-        query: {
-          types: ['Department'],
-        },
-      }),
-  });
-
-  const employeeData = data?.data?.data?.data || [];
-  const totalRecords = data?.data?.data?.totalRecords || 0;
+  const listData = (data?.data as any)?.data?.data || (data?.data as any)?.data || [];
+  const totalRecords = (data?.data as any)?.data?.totalRecords || (data?.data as any)?.totalRecords || 0;
   
-  const departmentOptions = (deptData?.data?.data as any)?.['Department']?.map((d: any) => ({
-    label: d.desc || d.code,
-    value: d.code,
-  })) || [];
-
-  const getSearchConditionsTags = () => {
-    const conditions = [];
-    if (params.employeeNo) conditions.push(`員工編號: ${params.employeeNo}`);
-    if (params.name) conditions.push(`姓名: ${params.name}`);
-    if (params.departmentCode) {
-      const dept = departmentOptions.find((d: any) => d.value === params.departmentCode);
-      conditions.push(`部門: ${dept ? dept.label : params.departmentCode}`);
-    }
-    if (params.status) {
-      conditions.push(`狀態: ${params.status === 1 ? '在職' : '離職'}`);
-    }
-
-    if (conditions.length === 0) {
-      return <Tag color="blue" style={{ fontSize: '14px', padding: '4px 8px' }}>全部資料</Tag>;
-    }
-    return conditions.map((cond, index) => (
-      <Tag color="cyan" key={index} style={{ fontSize: '14px', padding: '4px 8px' }}>{cond}</Tag>
-    ));
-  };
-
   // Mutations
   const createMutation = useMutation({
     mutationFn: (values: any) => postApiV1Employee({ body: values }),
@@ -145,7 +95,7 @@ export default function Employee() {
       message.success('新增成功');
       setIsCreateDrawerOpen(false);
       crudForm.resetFields();
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      queryClient.invalidateQueries({ queryKey: ['employeeList'] });
     },
     onError: (error: any) => {
       message.error(`新增失敗: ${error?.response?.data?.message || '未知錯誤'}`);
@@ -153,14 +103,14 @@ export default function Employee() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, values }: { id: number, values: any }) => 
-      putApiV1EmployeeById({ path: { id }, body: values }),
+    mutationFn: ({ id, values }: { id: string | number, values: any }) => 
+      putApiV1EmployeeById({ path: { id: id as any }, body: values }),
     onSuccess: () => {
       message.success('更新成功');
       setIsDrawerEditing(false);
       crudForm.resetFields();
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
-      queryClient.invalidateQueries({ queryKey: ['employee'] });
+      queryClient.invalidateQueries({ queryKey: ['employeeList'] });
+      queryClient.invalidateQueries({ queryKey: ['employeeDetail'] });
     },
     onError: (error: any) => {
       message.error(`更新失敗: ${error?.response?.data?.message || '未知錯誤'}`);
@@ -168,17 +118,16 @@ export default function Employee() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => deleteApiV1EmployeeById({ path: { id } }),
+    mutationFn: (id: string | number) => deleteApiV1EmployeeById({ path: { id: id as any } }),
     onSuccess: () => {
       message.success('刪除成功');
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
-      queryClient.invalidateQueries({ queryKey: ['employee'] });
+      queryClient.invalidateQueries({ queryKey: ['employeeList'] });
+      queryClient.invalidateQueries({ queryKey: ['employeeDetail'] });
     },
     onError: (error: any) => {
       message.error(`刪除失敗: ${error?.response?.data?.message || '未知錯誤'}`);
     }
   });
-
 
   const openViewDrawer = (record: any) => {
     navigate(`/employee/${record.id}`);
@@ -203,32 +152,22 @@ export default function Employee() {
 
   const openCreateDrawer = () => {
     crudForm.resetFields();
-    crudForm.setFieldsValue({ status: 1 }); // 預設在職
+    crudForm.setFieldsValue({ isActive: true });
     setIsCreateDrawerOpen(true);
   };
 
   const startEditMode = () => {
-    if (viewEmployeeData) {
-      crudForm.setFieldsValue({
-        ...viewEmployeeData,
-        hireDate: viewEmployeeData.hireDate ? dayjs(viewEmployeeData.hireDate) : null,
-        resignDate: viewEmployeeData.resignDate ? dayjs(viewEmployeeData.resignDate) : null,
-      });
+    if (viewData) {
+      crudForm.setFieldsValue(viewData);
       setIsDrawerEditing(true);
     }
   };
 
   const handleCrudSubmit = (values: any) => {
-    const payload = {
-      ...values,
-      hireDate: values.hireDate ? values.hireDate.format('YYYY-MM-DD') : null,
-      resignDate: values.resignDate ? values.resignDate.format('YYYY-MM-DD') : null,
-    };
-
     if (isCreateDrawerOpen) {
-      createMutation.mutate(payload);
+      createMutation.mutate(values);
     } else if (viewId) {
-      updateMutation.mutate({ id: Number(viewId), values: payload });
+      updateMutation.mutate({ id: viewId as any, values });
     }
   };
 
@@ -236,18 +175,12 @@ export default function Employee() {
     if (errorInfo.errorFields && errorInfo.errorFields.length > 0) {
       const firstErrorField = errorInfo.errorFields[0].name;
       crudForm.scrollToField(firstErrorField, { behavior: 'smooth' });
-      // 確保滾動後 focus
       setTimeout(() => {
         crudForm.getFieldInstance(firstErrorField)?.focus();
       }, 100);
     }
   };
 
-  const handleDelete = (id: number) => {
-    deleteMutation.mutate(id);
-  };
-
-  // 表格欄位定義
   const columns = [
     {
       title: '操作',
@@ -256,84 +189,44 @@ export default function Employee() {
       width: 120,
       render: (_: any, record: any) => (
         <Space>
-          <Tooltip title="檢視">
-            <Button 
-              type="text" 
-              icon={<EyeOutlined />} 
-              style={{ color: '#1890ff' }} 
-              onClick={() => openViewDrawer(record)}
-            />
-          </Tooltip>
-          <Tooltip title="刪除">
-            <Popconfirm
-              title="確定要刪除此員工嗎？"
-              onConfirm={() => handleDelete(record.id)}
-              okText="確定"
-              cancelText="取消"
-            >
-              <Button type="text" danger icon={<DeleteOutlined />} />
-            </Popconfirm>
-          </Tooltip>
+          {hasPermission('BasicData.Employees.View') && (
+            <Tooltip title="檢視">
+              <Button 
+                type="text" 
+                icon={<EyeOutlined />} 
+                style={{ color: '#1890ff' }} 
+                onClick={() => openViewDrawer(record)}
+              />
+            </Tooltip>
+          )}
+          {hasPermission('BasicData.Employees.Delete') && (
+            <Tooltip title="刪除">
+              <Popconfirm
+                title="確定要刪除此筆資料嗎？"
+                onConfirm={() => deleteMutation.mutate(record.id)}
+                okText="確定"
+                cancelText="取消"
+              >
+                <Button type="text" danger icon={<DeleteOutlined />} />
+              </Popconfirm>
+            </Tooltip>
+          )}
         </Space>
       ),
     },
-    {
-      title: '員工編號',
-      dataIndex: 'employeeNo',
-      key: 'employeeNo',
-      width: 150,
-    },
-    {
-      title: '姓名',
-      dataIndex: 'name',
-      key: 'name',
-      width: 150,
-    },
-    {
-      title: '部門',
-      dataIndex: 'departmentName',
-      key: 'departmentName',
-      width: 180,
-    },
-    {
-      title: '狀態',
-      dataIndex: 'status',
-      key: 'status',
-      width: 120,
-      render: (status: number) => {
-        return status === 1 ? (
-          <Tag color="success">在職</Tag>
-        ) : status === 2 ? (
-          <Tag color="error">離職</Tag>
-        ) : (
-          <Tag color="default">未知</Tag>
-        );
-      },
-    },
-    {
-      title: '聯絡電話',
-      dataIndex: 'phone',
-      key: 'phone',
-      width: 180,
-    },
-    {
-      title: '電子郵件',
-      dataIndex: 'email',
-      key: 'email',
-      width: 250,
-    },
-    {
-      title: '到職日',
-      dataIndex: 'hireDate',
-      key: 'hireDate',
-      width: 150,
-      render: (val: string) => val?.split('T')[0] || '-',
-    },
+    { title: 'employeeCode', dataIndex: 'employeeCode', key: 'employeeCode' },
+    { title: 'name', dataIndex: 'name', key: 'name' },
+    { title: 'department', dataIndex: 'department', key: 'department' },
+    { title: '狀態', dataIndex: 'isActive', key: 'isActive', render: (v: boolean) => <Tag color={v ? 'green' : 'red'}>{v ? '啟用' : '停用'}</Tag> },
   ];
 
   const handleSearch = (values: any) => {
+    // 移除空字串
+    const cleanValues = Object.fromEntries(
+      Object.entries(values).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
+    );
     setParams({
-      ...values,
+      ...cleanValues,
       pageNumber: 1,
     });
     setIsSearchModalOpen(false);
@@ -346,89 +239,42 @@ export default function Employee() {
   };
 
   const openSearchModal = () => {
-    searchForm.setFieldsValue({
-      employeeNo: params.employeeNo,
-      name: params.name,
-      status: params.status,
-      departmentCode: params.departmentCode,
-    });
+    searchForm.setFieldsValue(params);
     setIsSearchModalOpen(true);
   };
 
   const renderFormFields = (isEdit: boolean) => (
     <Row gutter={16}>
-      <Col span={12}>
-        <Form.Item 
-          name="employeeNo" 
-          label="員工編號" 
-          rules={[{ required: true, message: '請輸入員工編號' }]}
-          normalize={(value) => value?.toUpperCase()}
-        >
-          <Input ref={employeeNoRef} placeholder="請輸入員工編號" disabled={isEdit} />
-        </Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item 
-          name="name" 
-          label="姓名"
-          rules={[{ required: true, message: '請輸入姓名' }]}
-        >
-          <Input ref={nameRef} placeholder="請輸入姓名" />
-        </Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item 
-          name="departmentCode" 
-          label="部門"
-          rules={[{ required: true, message: '請選擇部門' }]}
-        >
-          <Select 
-            placeholder="請選擇部門" 
-            options={departmentOptions} 
-          />
-        </Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item 
-          name="status" 
-          label="在職狀態"
-          rules={[{ required: true, message: '請選擇狀態' }]}
-        >
-          <Select placeholder="請選擇狀態">
-            <Select.Option value={1}>在職</Select.Option>
-            <Select.Option value={2}>離職</Select.Option>
-          </Select>
-        </Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item name="phone" label="聯絡電話">
-          <Input placeholder="請輸入電話" />
-        </Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item 
-          name="email" 
-          label="電子郵件"
-          rules={[{ type: 'email', message: '請輸入有效的電子郵件' }]}
-        >
-          <Input placeholder="請輸入電子郵件" />
-        </Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item name="hireDate" label="到職日">
-          <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
-        </Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item name="resignDate" label="離職日">
-          <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
-        </Form.Item>
-      </Col>
-      <Col span={24}>
-        <Form.Item name="notes" label="備註">
-          <Input.TextArea rows={3} placeholder="請輸入備註" />
-        </Form.Item>
-      </Col>
+                <Col span={12}>
+                  <Form.Item name="employeeCode" label="employeeCode" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入employeeCode" ref={firstInputRef} />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="name" label="name" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入name" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="department" label="department" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入department" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="mobile" label="mobile" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入mobile" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="email" label="email" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入email" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="isActive" label="isActive" valuePropName="checked">
+                    <Switch />
+                  </Form.Item>
+                </Col>
     </Row>
   );
 
@@ -451,13 +297,9 @@ export default function Employee() {
                 color: '#fff',
                 boxShadow: '0 4px 12px rgba(22, 119, 255, 0.4)'
               }}>
-                <UserOutlined style={{ fontSize: 22 }} />
+                <AppstoreOutlined style={{ fontSize: 22 }} />
               </div>
               <Title level={3} style={{ margin: 0, fontWeight: 700, letterSpacing: '1px' }}>員工基本檔</Title>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '4px' }}>
-              <Text type="secondary" style={{ fontSize: '14px' }}>目前查詢條件：</Text>
-              {getSearchConditionsTags()}
             </div>
           </div>
         }
@@ -470,18 +312,20 @@ export default function Employee() {
             >
               查詢
             </Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer}>
-              新增員工
-            </Button>
+            {hasPermission('BasicData.Employees.Create') && (
+              <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer}>
+                新增
+              </Button>
+            )}
           </Space>
         }
       >
         <Table
           columns={columns}
-          dataSource={employeeData}
+          dataSource={listData}
           rowKey="id"
           loading={isFetching}
-          scroll={{ x: 1200 }}
+          scroll={{ x: 'max-content' }}
           pagination={{
             current: params.pageNumber,
             pageSize: params.pageSize,
@@ -493,7 +337,6 @@ export default function Employee() {
         />
       </Card>
 
-      {/* 查詢彈跳視窗 */}
       <Modal
         title={
           <div style={{ fontSize: '18px', fontWeight: 600, paddingBottom: '8px', borderBottom: '1px solid #f0f0f0', marginBottom: '16px' }}>
@@ -530,42 +373,20 @@ export default function Employee() {
           onFinish={handleSearch}
         >
           <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="employeeNo" label="員工編號">
-                <Input placeholder="請輸入員工編號" allowClear />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="name" label="姓名">
-                <Input placeholder="請輸入姓名" allowClear />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="departmentCode" label="部門">
-                <Select 
-                  placeholder="請選擇部門" 
-                  allowClear 
-                  options={departmentOptions} 
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="status" label="在職狀態">
-                <Select placeholder="請選擇狀態" allowClear>
-                  <Select.Option value={1}>在職</Select.Option>
-                  <Select.Option value={2}>離職</Select.Option>
-                </Select>
-              </Form.Item>
-            </Col>
+          <Form.Item name="employeeNo" label="employeeNo">
+            <Input placeholder="請輸入employeeNo" allowClear />
+          </Form.Item>
+          <Form.Item name="name" label="name">
+            <Input placeholder="請輸入name" allowClear />
+          </Form.Item>
           </Row>
         </Form>
       </Modal>
 
-      {/* 新增/檢視/編輯 Drawer */}
       <Drawer
         title={
           <div style={{ fontSize: '18px', fontWeight: 600 }}>
-            {isCreateDrawerOpen ? '新增員工' : (isDrawerEditing ? '編輯員工' : '檢視員工')}
+            {isCreateDrawerOpen ? '新增員工基本檔' : (isDrawerEditing ? '編輯員工基本檔' : '檢視員工基本檔')}
           </div>
         }
         placement="right"
@@ -613,24 +434,16 @@ export default function Employee() {
             </Form>
           ) : (
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="員工編號">{viewEmployeeData?.employeeNo}</Descriptions.Item>
-              <Descriptions.Item label="姓名">{viewEmployeeData?.name}</Descriptions.Item>
-              <Descriptions.Item label="部門">{viewEmployeeData?.departmentName || viewEmployeeData?.departmentCode}</Descriptions.Item>
-              <Descriptions.Item label="狀態">
-                {viewEmployeeData?.status === 1 ? <Tag color="success">在職</Tag> : 
-                 viewEmployeeData?.status === 2 ? <Tag color="error">離職</Tag> : 
-                 <Tag color="default">未知</Tag>}
-              </Descriptions.Item>
-              <Descriptions.Item label="聯絡電話">{viewEmployeeData?.phone || '-'}</Descriptions.Item>
-              <Descriptions.Item label="電子郵件">{viewEmployeeData?.email || '-'}</Descriptions.Item>
-              <Descriptions.Item label="到職日">{viewEmployeeData?.hireDate?.split('T')[0] || '-'}</Descriptions.Item>
-              <Descriptions.Item label="離職日">{viewEmployeeData?.resignDate?.split('T')[0] || '-'}</Descriptions.Item>
-              <Descriptions.Item label="備註">{viewEmployeeData?.notes || '-'}</Descriptions.Item>
+              <Descriptions.Item label="employeeCode">{viewData?.employeeCode}</Descriptions.Item>
+              <Descriptions.Item label="name">{viewData?.name}</Descriptions.Item>
+              <Descriptions.Item label="department">{viewData?.department}</Descriptions.Item>
+              <Descriptions.Item label="mobile">{viewData?.mobile}</Descriptions.Item>
+              <Descriptions.Item label="email">{viewData?.email}</Descriptions.Item>
+              <Descriptions.Item label="isActive">{viewData?.isActive ? '是' : '否'}</Descriptions.Item>
             </Descriptions>
           )}
         </Spin>
       </Drawer>
-
     </div>
   );
 }

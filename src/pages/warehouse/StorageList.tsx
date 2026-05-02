@@ -445,14 +445,14 @@ export default function StorageList() {
             </Form>
           ) : (
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="code">{detail?.code}</Descriptions.Item>
-              <Descriptions.Item label="name">{detail?.name}</Descriptions.Item>
-              <Descriptions.Item label="type">{detail?.type}</Descriptions.Item>
-              <Descriptions.Item label="location">{detail?.location}</Descriptions.Item>
-              <Descriptions.Item label="area">{detail?.area}</Descriptions.Item>
-              <Descriptions.Item label="isCalculateInventory">{detail?.isCalculateInventory ? '是' : '否'}</Descriptions.Item>
-              <Descriptions.Item label="isActive">{detail?.isActive ? '是' : '否'}</Descriptions.Item>
-              <Descriptions.Item label="notes">{detail?.notes}</Descriptions.Item>
+              <Descriptions.Item label="code">{viewData?.code}</Descriptions.Item>
+              <Descriptions.Item label="name">{viewData?.name}</Descriptions.Item>
+              <Descriptions.Item label="type">{viewData?.type}</Descriptions.Item>
+              <Descriptions.Item label="location">{viewData?.location}</Descriptions.Item>
+              <Descriptions.Item label="area">{viewData?.area}</Descriptions.Item>
+              <Descriptions.Item label="isCalculateInventory">{viewData?.isCalculateInventory ? '是' : '否'}</Descriptions.Item>
+              <Descriptions.Item label="isActive">{viewData?.isActive ? '是' : '否'}</Descriptions.Item>
+              <Descriptions.Item label="notes">{viewData?.notes}</Descriptions.Item>
             </Descriptions>
           )}
         </Spin>

@@ -173,7 +173,7 @@ export default function MainLayout() {
   if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-[#141414]">
-        <Spin size="large" tip="載入使用者設定中..." />
+        <Spin size="large" description="載入使用者設定中..." />
       </div>
     );
   }
