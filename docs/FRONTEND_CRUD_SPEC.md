@@ -45,6 +45,9 @@
 - **分頁處理 (Pagination)**：
   - 絕對禁止前端假分頁。
   - `<Table pagination>` 必須嚴格綁定後端 API 回傳的 `data.pageNumber`、`data.pageSize` 與 `data.totalRecords`。
+- **數字顯示格式化 (Number Formatting)**：
+  - 所有數字欄位的顯示，必須格式化為千分位 (例如：`1,234,567`)。
+  - 小數點處理原則：有小數才顯示，沒有小數則不顯示 (不強制補零)。可使用 `Intl.NumberFormat` 或 `Number().toLocaleString()` 來實作。
 
 ## 4. 系統架構與穩定性 (Architecture & Core)
 
