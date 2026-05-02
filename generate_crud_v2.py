@@ -1,4 +1,7 @@
-// @ts-nocheck
+import os
+import re
+
+TEMPLATE = """// @ts-nocheck
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import type { InputRef } from 'antd';
@@ -35,19 +38,19 @@ import {
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
-  getApiV1Machine, 
-  getApiV1MachineByCode,
-  postApiV1Machine,
-  putApiV1MachineByCode,
-  deleteApiV1MachineByCode
+  getApiV1{Entity}, 
+  getApiV1{Entity}By{IdKeyC},
+  postApiV1{Entity},
+  putApiV1{Entity}By{IdKeyC},
+  deleteApiV1{Entity}By{IdKeyC}
 } from '@/api/generated/sdk.gen';
-import { useMachineQueryStore } from '@/stores/productionStore';
+import { use{Entity}QueryStore } from '@/stores/{StoreFile}';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 const { Title, Text } = Typography;
 
-export default function MachineList() {
-  const { params, setParams, resetParams } = useMachineQueryStore();
+export default function {Entity}List() {
+  const { params, setParams, resetParams } = use{Entity}QueryStore();
   const { hasPermission } = useAuthStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
@@ -70,17 +73,17 @@ export default function MachineList() {
 
   // 單筆資料查詢 (Drawer)
   const { data: viewRes, isFetching: isFetchingView } = useQuery({
-    queryKey: ['machineDetail', viewId],
-    queryFn: () => getApiV1MachineByCode({ path: { code: viewId as any } }),
+    queryKey: ['{entity}Detail', viewId],
+    queryFn: () => getApiV1{Entity}By{IdKeyC}({ path: { {idKey}: viewId as any } }),
     enabled: !!viewId,
   });
   const viewData = viewRes?.data?.data || viewRes?.data;
 
   // API 查詢
   const { data, isFetching } = useQuery({
-    queryKey: ['machineList', params],
+    queryKey: ['{entity}List', params],
     queryFn: () =>
-      getApiV1Machine({
+      getApiV1{Entity}({
         query: params as any,
       }),
   });
@@ -90,12 +93,12 @@ export default function MachineList() {
   
   // Mutations
   const createMutation = useMutation({
-    mutationFn: (values: any) => postApiV1Machine({ body: values }),
+    mutationFn: (values: any) => postApiV1{Entity}({ body: values }),
     onSuccess: () => {
       message.success('新增成功');
       setIsCreateDrawerOpen(false);
       crudForm.resetFields();
-      queryClient.invalidateQueries({ queryKey: ['machineList'] });
+      queryClient.invalidateQueries({ queryKey: ['{entity}List'] });
     },
     onError: (error: any) => {
       message.error(`新增失敗: ${error?.response?.data?.message || '未知錯誤'}`);
@@ -103,14 +106,14 @@ export default function MachineList() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ code, values }: { code: string | number, values: any }) => 
-      putApiV1MachineByCode({ path: { code: code as any }, body: values }),
+    mutationFn: ({ {idKey}, values }: { {idKey}: string | number, values: any }) => 
+      putApiV1{Entity}By{IdKeyC}({ path: { {idKey}: {idKey} as any }, body: values }),
     onSuccess: () => {
       message.success('更新成功');
       setIsDrawerEditing(false);
       crudForm.resetFields();
-      queryClient.invalidateQueries({ queryKey: ['machineList'] });
-      queryClient.invalidateQueries({ queryKey: ['machineDetail'] });
+      queryClient.invalidateQueries({ queryKey: ['{entity}List'] });
+      queryClient.invalidateQueries({ queryKey: ['{entity}Detail'] });
     },
     onError: (error: any) => {
       message.error(`更新失敗: ${error?.response?.data?.message || '未知錯誤'}`);
@@ -118,11 +121,11 @@ export default function MachineList() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (code: string | number) => deleteApiV1MachineByCode({ path: { code: code as any } }),
+    mutationFn: ({idKey}: string | number) => deleteApiV1{Entity}By{IdKeyC}({ path: { {idKey}: {idKey} as any } }),
     onSuccess: () => {
       message.success('刪除成功');
-      queryClient.invalidateQueries({ queryKey: ['machineList'] });
-      queryClient.invalidateQueries({ queryKey: ['machineDetail'] });
+      queryClient.invalidateQueries({ queryKey: ['{entity}List'] });
+      queryClient.invalidateQueries({ queryKey: ['{entity}Detail'] });
     },
     onError: (error: any) => {
       message.error(`刪除失敗: ${error?.response?.data?.message || '未知錯誤'}`);
@@ -130,14 +133,14 @@ export default function MachineList() {
   });
 
   const openViewDrawer = (record: any) => {
-    navigate(`/production-quality/machines/${record.code}`);
+    navigate(`{RoutePath}/${record.{idKey}}`);
   };
 
   const closeViewDrawer = () => {
     setIsCreateDrawerOpen(false);
     setIsDrawerEditing(false);
     if (viewId) {
-      navigate('/production-quality/machines');
+      navigate('{RoutePath}');
     }
   };
 
@@ -167,7 +170,7 @@ export default function MachineList() {
     if (isCreateDrawerOpen) {
       createMutation.mutate(values);
     } else if (viewId) {
-      updateMutation.mutate({ code: viewId as any, values });
+      updateMutation.mutate({ {idKey}: viewId as any, values });
     }
   };
 
@@ -189,7 +192,7 @@ export default function MachineList() {
       width: 120,
       render: (_: any, record: any) => (
         <Space>
-          {hasPermission('ProductionQuality.Machines.View') && (
+          {hasPermission('{PermKey}.View') && (
             <Tooltip title="檢視">
               <Button 
                 type="text" 
@@ -199,11 +202,11 @@ export default function MachineList() {
               />
             </Tooltip>
           )}
-          {hasPermission('ProductionQuality.Machines.Delete') && (
+          {hasPermission('{PermKey}.Delete') && (
             <Tooltip title="刪除">
               <Popconfirm
                 title="確定要刪除此筆資料嗎？"
-                onConfirm={() => deleteMutation.mutate(record.code)}
+                onConfirm={() => deleteMutation.mutate(record.{idKey})}
                 okText="確定"
                 cancelText="取消"
               >
@@ -214,10 +217,7 @@ export default function MachineList() {
         </Space>
       ),
     },
-    { title: 'code', dataIndex: 'code', key: 'code' },
-    { title: 'name', dataIndex: 'name', key: 'name' },
-    { title: 'type', dataIndex: 'type', key: 'type' },
-    { title: 'capacity', dataIndex: 'capacity', key: 'capacity' },
+{ColumnsStr}
   ];
 
   const handleSearch = (values: any) => {
@@ -245,26 +245,7 @@ export default function MachineList() {
 
   const renderFormFields = (isEdit: boolean) => (
     <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item name="code" label="code" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入code" ref={firstInputRef} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="name" label="name" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入name" />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="type" label="type" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入type" />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="capacity" label="capacity" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入capacity" />
-                  </Form.Item>
-                </Col>
+{EditFormStr}
     </Row>
   );
 
@@ -289,7 +270,7 @@ export default function MachineList() {
               }}>
                 <AppstoreOutlined style={{ fontSize: 22 }} />
               </div>
-              <Title level={3} style={{ margin: 0, fontWeight: 700, letterSpacing: '1px' }}>機台管理</Title>
+              <Title level={3} style={{ margin: 0, fontWeight: 700, letterSpacing: '1px' }}>{TitleStr}</Title>
             </div>
           </div>
         }
@@ -302,7 +283,7 @@ export default function MachineList() {
             >
               查詢
             </Button>
-            {hasPermission('ProductionQuality.Machines.Create') && (
+            {hasPermission('{PermKey}.Create') && (
               <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer}>
                 新增
               </Button>
@@ -313,7 +294,7 @@ export default function MachineList() {
         <Table
           columns={columns}
           dataSource={listData}
-          rowKey="code"
+          rowKey="{idKey}"
           loading={isFetching}
           scroll={{ x: 'max-content' }}
           pagination={{
@@ -363,9 +344,7 @@ export default function MachineList() {
           onFinish={handleSearch}
         >
           <Row gutter={16}>
-          <Form.Item name="CodeOrName" label="CodeOrName">
-            <Input placeholder="請輸入CodeOrName" allowClear />
-          </Form.Item>
+{SearchFormStr}
           </Row>
         </Form>
       </Modal>
@@ -373,7 +352,7 @@ export default function MachineList() {
       <Drawer
         title={
           <div style={{ fontSize: '18px', fontWeight: 600 }}>
-            {isCreateDrawerOpen ? '新增機台管理' : (isDrawerEditing ? '編輯機台管理' : '檢視機台管理')}
+            {isCreateDrawerOpen ? '新增{TitleStr}' : (isDrawerEditing ? '編輯{TitleStr}' : '檢視{TitleStr}')}
           </div>
         }
         placement="right"
@@ -381,7 +360,7 @@ export default function MachineList() {
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={
-          (!isDrawerEditing && !isCreateDrawerOpen && hasPermission('ProductionQuality.Machines.Update')) && (
+          (!isDrawerEditing && !isCreateDrawerOpen && hasPermission('{PermKey}.Update')) && (
             <Button 
               type="primary" 
               icon={<EditOutlined />} 
@@ -421,10 +400,7 @@ export default function MachineList() {
             </Form>
           ) : (
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="code">{detail?.code}</Descriptions.Item>
-              <Descriptions.Item label="name">{detail?.name}</Descriptions.Item>
-              <Descriptions.Item label="type">{detail?.type}</Descriptions.Item>
-              <Descriptions.Item label="capacity">{detail?.capacity}</Descriptions.Item>
+{ViewDescriptionsStr}
             </Descriptions>
           )}
         </Spin>
@@ -432,3 +408,119 @@ export default function MachineList() {
     </div>
   );
 }
+"""
+
+entities = [
+    {
+        "Entity": "User", "entity": "user", "TitleStr": "用戶管理", "PermKey": "System.Users",
+        "IdKeyC": "Id", "idKey": "id", "StoreFile": "systemStore", "RoutePath": "/system/users",
+        "cols": ["userName", "name", "email", "isActive"],
+        "search": ["name"],
+        "fields": ["userName", "name", "email", "isActive", "employeeCode"]
+    },
+    {
+        "Entity": "Role", "entity": "role", "TitleStr": "角色管理", "PermKey": "System.Roles",
+        "IdKeyC": "Id", "idKey": "id", "StoreFile": "systemStore", "RoutePath": "/system/roles",
+        "cols": ["name", "caption", "description"],
+        "search": [],
+        "fields": ["name", "caption", "description"]
+    },
+    {
+        "Entity": "Storage", "entity": "storage", "TitleStr": "儲位管理", "PermKey": "Warehouse.Storages",
+        "IdKeyC": "Code", "idKey": "code", "StoreFile": "warehouseStore", "RoutePath": "/warehouse/storages",
+        "cols": ["code", "name", "type", "location", "isActive"],
+        "search": ["CodeOrName", "Type"],
+        "fields": ["code", "name", "type", "location", "area", "isCalculateInventory", "isActive", "notes"]
+    },
+    {
+        "Entity": "Mold", "entity": "mold", "TitleStr": "模具管理", "PermKey": "ProductionQuality.Molds",
+        "IdKeyC": "Code", "idKey": "code", "StoreFile": "productionStore", "RoutePath": "/production-quality/molds",
+        "cols": ["code", "name", "type", "supplierCode", "shape"],
+        "search": ["CodeOrName", "Type", "SupplierCode"],
+        "fields": ["code", "name", "type", "supplierCode", "shape", "dimensionLMm", "dimensionWMm", "dimensionHMm", "isShareable", "description", "notes"]
+    },
+    {
+        "Entity": "Machine", "entity": "machine", "TitleStr": "機台管理", "PermKey": "ProductionQuality.Machines",
+        "IdKeyC": "Code", "idKey": "code", "StoreFile": "productionStore", "RoutePath": "/production-quality/machines",
+        "cols": ["code", "name", "type", "capacity"],
+        "search": ["CodeOrName"],
+        "fields": ["code", "name", "type", "capacity"]
+    },
+    {
+        "Entity": "Employee", "entity": "employee", "TitleStr": "員工基本檔", "PermKey": "BasicData.Employees",
+        "IdKeyC": "Id", "idKey": "id", "StoreFile": "employeeStore", "RoutePath": "/employee",
+        "cols": ["employeeCode", "name", "department", "isActive"],
+        "search": ["employeeNo", "name"],
+        "fields": ["employeeCode", "name", "department", "mobile", "email", "isActive"]
+    }
+]
+
+def make_col(c):
+    if c == 'isActive':
+        return f"    {{ title: '狀態', dataIndex: '{c}', key: '{c}', render: (v: boolean) => <Tag color={{v ? 'green' : 'red'}}>{{v ? '啟用' : '停用'}}</Tag> }},"
+    return f"    {{ title: '{c}', dataIndex: '{c}', key: '{c}' }},"
+
+def make_search(c):
+    return f"""          <Form.Item name="{c}" label="{c}">
+            <Input placeholder="請輸入{c}" allowClear />
+          </Form.Item>"""
+
+def make_desc(c):
+    if c == 'isActive' or c == 'isCalculateInventory' or c == 'isShareable':
+        return f"              <Descriptions.Item label=\"{c}\">{{detail?.{c} ? '是' : '否'}}</Descriptions.Item>"
+    return f"              <Descriptions.Item label=\"{c}\">{{detail?.{c}}}</Descriptions.Item>"
+
+def make_form(c):
+    if c == 'isActive' or c == 'isCalculateInventory' or c == 'isShareable':
+        return f"""                <Col span={{12}}>
+                  <Form.Item name="{c}" label="{c}" valuePropName="checked">
+                    <Switch />
+                  </Form.Item>
+                </Col>"""
+    return f"""                <Col span={{12}}>
+                  <Form.Item name="{c}" label="{c}" rules={{[{{ required: {str(c in ['code', 'name', 'userName']).lower()}, message: '必填欄位' }}]}}>
+                    <Input placeholder="請輸入{c}" />
+                  </Form.Item>
+                </Col>"""
+
+def build(e):
+    cols_str = "\n".join(make_col(c) for c in e["cols"])
+    search_str = "\n".join(make_search(c) for c in e["search"])
+    desc_str = "\n".join(make_desc(c) for c in e["fields"])
+    form_str = "\n".join(make_form(c) for c in e["fields"])
+    
+    code = TEMPLATE.replace("{Entity}", e["Entity"])
+    code = code.replace("{entity}", e["entity"])
+    code = code.replace("{TitleStr}", e["TitleStr"])
+    code = code.replace("{PermKey}", e["PermKey"])
+    code = code.replace("{IdKeyC}", e["IdKeyC"])
+    code = code.replace("{idKey}", e["idKey"])
+    code = code.replace("{StoreFile}", e["StoreFile"])
+    code = code.replace("{RoutePath}", e["RoutePath"])
+    code = code.replace("{ColumnsStr}", cols_str)
+    code = code.replace("{SearchFormStr}", search_str)
+    code = code.replace("{ViewDescriptionsStr}", desc_str)
+    code = code.replace("{EditFormStr}", form_str)
+    
+    if e["Entity"] == "User":
+        code = code.replace('<Input placeholder="請輸入userName" />', '<Input placeholder="請輸入userName" ref={firstInputRef} />')
+    elif e["Entity"] == "Role":
+        code = code.replace('<Input placeholder="請輸入name" />', '<Input placeholder="請輸入name" ref={firstInputRef} />')
+    elif e["Entity"] == "Employee":
+        code = code.replace('<Input placeholder="請輸入employeeCode" />', '<Input placeholder="請輸入employeeCode" ref={firstInputRef} />')
+    else:
+        code = code.replace('<Input placeholder="請輸入code" />', '<Input placeholder="請輸入code" ref={firstInputRef} />')
+        
+    return code
+
+os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/system', exist_ok=True)
+os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/warehouse', exist_ok=True)
+os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/production', exist_ok=True)
+os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/employee', exist_ok=True)
+
+for e in entities:
+    path = f"/home/hermes/git_projects/erp-frontend-react/src/pages/{e['StoreFile'].replace('Store','')}/{e['Entity']}List.tsx"
+    with open(path, 'w') as f:
+        f.write(build(e))
+    print(f"Generated {path}")
+

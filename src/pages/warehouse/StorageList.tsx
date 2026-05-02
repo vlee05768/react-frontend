@@ -9,8 +9,11 @@ import {
   Modal,
   Form,
   Input,
+  Select,
   Space,
+  Card,
   Typography,
+  Tag,
   Tooltip,
   Row,
   Col,
@@ -18,7 +21,6 @@ import {
   Popconfirm,
   Drawer,
   Descriptions,
-  Tag,
   Switch
 } from 'antd';
 import {
@@ -28,7 +30,8 @@ import {
   DeleteOutlined,
   ClearOutlined,
   SaveOutlined,
-  EyeOutlined
+  EyeOutlined,
+  AppstoreOutlined
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -38,28 +41,43 @@ import {
   putApiV1StorageByCode,
   deleteApiV1StorageByCode
 } from '@/api/generated/sdk.gen';
-import type { StorageDto } from '@/api/generated/types.gen';
 import { useStorageQueryStore } from '@/stores/warehouseStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 export default function StorageList() {
-  const { viewId } = useParams();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const { params, setParams, resetParams } = useStorageQueryStore();
   const { hasPermission } = useAuthStore();
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+
+  const [searchForm] = Form.useForm();
+  const [crudForm] = Form.useForm();
+  const [isDrawerEditing, setIsDrawerEditing] = useState(false);
+  
   const firstInputRef = useRef<InputRef>(null);
 
-  const { params, setParams, resetParams } = useStorageQueryStore();
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const [searchForm] = Form.useForm();
+  useEffect(() => {
+    if (isCreateDrawerOpen || isDrawerEditing) {
+      setTimeout(() => firstInputRef.current?.focus(), 100);
+    }
+  }, [isCreateDrawerOpen, isDrawerEditing]);
   
-  const [isDrawerOpen, setIsDrawerOpen] = useState(!!viewId);
-  const [drawerMode, setDrawerMode] = useState<'view' | 'edit' | 'create'>(viewId ? 'view' : 'create');
-  const [form] = Form.useForm();
+  const queryClient = useQueryClient();
+  const { viewId } = useParams<{ viewId: string }>();
+  const navigate = useNavigate();
 
-  const { data, isLoading } = useQuery({
+  // 單筆資料查詢 (Drawer)
+  const { data: viewRes, isFetching: isFetchingView } = useQuery({
+    queryKey: ['storageDetail', viewId],
+    queryFn: () => getApiV1StorageByCode({ path: { code: viewId as any } }),
+    enabled: !!viewId,
+  });
+  const viewData = viewRes?.data?.data || viewRes?.data;
+
+  // API 查詢
+  const { data, isFetching } = useQuery({
     queryKey: ['storageList', params],
     queryFn: () =>
       getApiV1Storage({
@@ -67,49 +85,36 @@ export default function StorageList() {
       }),
   });
 
-  const { data: detailData, isLoading: detailLoading } = useQuery({
-    queryKey: ['storageDetail', viewId],
-    queryFn: () => getApiV1StorageByCode({ path: { code: viewId as any } }),
-    enabled: !!viewId,
-  });
-
   const listData = (data?.data as any)?.data?.data || (data?.data as any)?.data || [];
   const totalRecords = (data?.data as any)?.data?.totalRecords || (data?.data as any)?.totalRecords || 0;
-  const detail = (detailData?.data as any)?.data || detailData?.data;
-
-  useEffect(() => {
-    setIsDrawerOpen(!!viewId);
-    if (viewId && drawerMode === 'create') {
-      setDrawerMode('view');
-    }
-  }, [viewId]);
-
-  useEffect(() => {
-    if (isDrawerOpen && detail && drawerMode !== 'create') {
-      form.setFieldsValue(detail);
-    }
-  }, [detail, isDrawerOpen, drawerMode, form]);
-
+  
+  // Mutations
   const createMutation = useMutation({
     mutationFn: (values: any) => postApiV1Storage({ body: values }),
     onSuccess: () => {
       message.success('新增成功');
+      setIsCreateDrawerOpen(false);
+      crudForm.resetFields();
       queryClient.invalidateQueries({ queryKey: ['storageList'] });
-      closeDrawer();
     },
-    onError: () => message.error('新增失敗'),
+    onError: (error: any) => {
+      message.error(`新增失敗: ${error?.response?.data?.message || '未知錯誤'}`);
+    }
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ code, values }: { code: string | number; values: any }) =>
+    mutationFn: ({ code, values }: { code: string | number, values: any }) => 
       putApiV1StorageByCode({ path: { code: code as any }, body: values }),
     onSuccess: () => {
       message.success('更新成功');
+      setIsDrawerEditing(false);
+      crudForm.resetFields();
       queryClient.invalidateQueries({ queryKey: ['storageList'] });
-      queryClient.invalidateQueries({ queryKey: ['storageDetail', viewId] });
-      setDrawerMode('view');
+      queryClient.invalidateQueries({ queryKey: ['storageDetail'] });
     },
-    onError: () => message.error('更新失敗'),
+    onError: (error: any) => {
+      message.error(`更新失敗: ${error?.response?.data?.message || '未知錯誤'}`);
+    }
   });
 
   const deleteMutation = useMutation({
@@ -117,58 +122,61 @@ export default function StorageList() {
     onSuccess: () => {
       message.success('刪除成功');
       queryClient.invalidateQueries({ queryKey: ['storageList'] });
+      queryClient.invalidateQueries({ queryKey: ['storageDetail'] });
     },
-    onError: () => message.error('刪除失敗'),
+    onError: (error: any) => {
+      message.error(`刪除失敗: ${error?.response?.data?.message || '未知錯誤'}`);
+    }
   });
 
-  const handleSearch = (values: any) => {
-    setParams({ ...values, pageNumber: 1 });
-    setIsSearchModalOpen(false);
+  const openViewDrawer = (record: any) => {
+    navigate(`/warehouse/storages/${record.code}`);
   };
 
-  const handleSearchReset = () => {
-    searchForm.resetFields();
-    resetParams();
-    setIsSearchModalOpen(false);
+  const closeViewDrawer = () => {
+    setIsCreateDrawerOpen(false);
+    setIsDrawerEditing(false);
+    if (viewId) {
+      navigate('/warehouse/storages');
+    }
   };
 
-  const openCreate = () => {
-    navigate('/warehouse/storages/new');
-    setDrawerMode('create');
-    form.resetFields();
-    setIsDrawerOpen(true);
-    setTimeout(() => firstInputRef.current?.focus(), 100);
+  const handleCancel = () => {
+    if (isDrawerEditing) {
+      setIsDrawerEditing(false);
+      crudForm.resetFields();
+    } else if (isCreateDrawerOpen) {
+      closeViewDrawer();
+    }
   };
 
-  const openView = (code: string | number) => {
-    navigate(`/warehouse/storages/${code}`);
-    setDrawerMode('view');
+  const openCreateDrawer = () => {
+    crudForm.resetFields();
+    crudForm.setFieldsValue({ isActive: true });
+    setIsCreateDrawerOpen(true);
   };
 
-  const openEdit = (code: string | number) => {
-    navigate(`/warehouse/storages/${code}`);
-    setDrawerMode('edit');
-    setTimeout(() => firstInputRef.current?.focus(), 100);
+  const startEditMode = () => {
+    if (viewData) {
+      crudForm.setFieldsValue(viewData);
+      setIsDrawerEditing(true);
+    }
   };
 
-  const closeDrawer = () => {
-    navigate('/warehouse/storages');
-    setIsDrawerOpen(false);
-    form.resetFields();
+  const handleCrudSubmit = (values: any) => {
+    if (isCreateDrawerOpen) {
+      createMutation.mutate(values);
+    } else if (viewId) {
+      updateMutation.mutate({ code: viewId as any, values });
+    }
   };
 
-  const handleSave = async () => {
-    try {
-      const values = await form.validateFields();
-      if (drawerMode === 'create') {
-        createMutation.mutate(values);
-      } else {
-        updateMutation.mutate({ code: viewId as any, values });
-      }
-    } catch (error) {
+  const handleFinishFailed = (errorInfo: any) => {
+    if (errorInfo.errorFields && errorInfo.errorFields.length > 0) {
+      const firstErrorField = errorInfo.errorFields[0].name;
+      crudForm.scrollToField(firstErrorField, { behavior: 'smooth' });
       setTimeout(() => {
-        const firstErrorNode = document.querySelector('.ant-form-item-has-error input') as HTMLElement;
-        firstErrorNode?.focus();
+        crudForm.getFieldInstance(firstErrorField)?.focus();
       }, 100);
     }
   };
@@ -176,34 +184,28 @@ export default function StorageList() {
   const columns = [
     {
       title: '操作',
-      key: 'action',
-      width: 120,
+      key: 'actions',
       fixed: 'left' as const,
-      render: (_: any, record: StorageDto) => (
-        <Space size="small">
-          <Tooltip title="檢視">
-            <Button
-              type="text"
-              icon={<EyeOutlined />}
-              onClick={() => openView(record.code as any)}
-              className="text-blue-500"
-            />
-          </Tooltip>
-          {hasPermission('Warehouse.Storages.Update') && (
-            <Tooltip title="編輯">
-              <Button
-                type="text"
-                icon={<EditOutlined />}
-                onClick={() => openEdit(record.code as any)}
-                className="text-orange-500"
+      width: 120,
+      render: (_: any, record: any) => (
+        <Space>
+          {hasPermission('Warehouse.Storages.View') && (
+            <Tooltip title="檢視">
+              <Button 
+                type="text" 
+                icon={<EyeOutlined />} 
+                style={{ color: '#1890ff' }} 
+                onClick={() => openViewDrawer(record)}
               />
             </Tooltip>
           )}
           {hasPermission('Warehouse.Storages.Delete') && (
             <Tooltip title="刪除">
               <Popconfirm
-                title="確定要刪除此筆資料？"
-                onConfirm={() => deleteMutation.mutate(record.code as any)}
+                title="確定要刪除此筆資料嗎？"
+                onConfirm={() => deleteMutation.mutate(record.code)}
+                okText="確定"
+                cancelText="取消"
               >
                 <Button type="text" danger icon={<DeleteOutlined />} />
               </Popconfirm>
@@ -219,115 +221,31 @@ export default function StorageList() {
     { title: '狀態', dataIndex: 'isActive', key: 'isActive', render: (v: boolean) => <Tag color={v ? 'green' : 'red'}>{v ? '啟用' : '停用'}</Tag> },
   ];
 
-  return (
-    <div className="flex flex-col h-full bg-[#141414] p-4 rounded-lg">
-      <div className="flex justify-between items-center mb-4">
-        <Title level={3} className="!m-0 text-gray-100">儲位管理</Title>
-        <Space>
-          <Button
-            type="default"
-            icon={<SearchOutlined />}
-            onClick={() => setIsSearchModalOpen(true)}
-          >
-            查詢
-          </Button>
-          {hasPermission('Warehouse.Storages.Create') && (
-            <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
-              新增
-            </Button>
-          )}
-        </Space>
-      </div>
+  const handleSearch = (values: any) => {
+    // 移除空字串
+    const cleanValues = Object.fromEntries(
+      Object.entries(values).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
+    );
+    setParams({
+      ...cleanValues,
+      pageNumber: 1,
+    });
+    setIsSearchModalOpen(false);
+  };
 
-      <div className="flex-1 overflow-hidden">
-        <Table
-          columns={columns}
-          dataSource={listData}
-          rowKey="code"
-          loading={isLoading}
-          scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
-          pagination={{
-            current: params.pageNumber,
-            pageSize: params.pageSize,
-            total: totalRecords,
-            showSizeChanger: true,
-            onChange: (page, pageSize) => setParams({ pageNumber: page, pageSize }),
-          }}
-          className="h-full border border-gray-800 rounded-md"
-        />
-      </div>
+  const handleSearchReset = () => {
+    searchForm.resetFields();
+    resetParams();
+    setIsSearchModalOpen(false);
+  };
 
-      <Modal
-        title="查詢條件"
-        open={isSearchModalOpen}
-        onCancel={() => setIsSearchModalOpen(false)}
-        footer={[
-          <Button key="clear" icon={<ClearOutlined />} onClick={handleSearchReset}>
-            清除
-          </Button>,
-          <Button key="search" type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
-            搜尋
-          </Button>,
-        ]}
-      >
-        <Form form={searchForm} layout="vertical" onFinish={handleSearch} initialValues={params}>
-          <Form.Item name="CodeOrName" label="CodeOrName">
-            <Input placeholder="請輸入CodeOrName" allowClear />
-          </Form.Item>
-          <Form.Item name="Type" label="Type">
-            <Input placeholder="請輸入Type" allowClear />
-          </Form.Item>
-        </Form>
-      </Modal>
+  const openSearchModal = () => {
+    searchForm.setFieldsValue(params);
+    setIsSearchModalOpen(true);
+  };
 
-      <Drawer
-        title={drawerMode === 'create' ? '新增儲位管理' : drawerMode === 'edit' ? '編輯儲位管理' : '檢視儲位管理'}
-        width={720}
-        size="large"
-        onClose={closeDrawer}
-        open={isDrawerOpen}
-        extra={
-          <Space>
-            {drawerMode === 'view' ? (
-              hasPermission('Warehouse.Storages.Update') && (
-                <Button type="primary" icon={<EditOutlined />} onClick={() => { setDrawerMode('edit'); setTimeout(() => firstInputRef.current?.focus(), 100); }}>
-                  編輯
-                </Button>
-              )
-            ) : (
-              <>
-                <Button onClick={() => {
-                  if (drawerMode === 'create') closeDrawer();
-                  else {
-                    setDrawerMode('view');
-                    form.setFieldsValue(detail);
-                  }
-                }}>
-                  取消
-                </Button>
-                <Button type="primary" icon={<SaveOutlined />} onClick={handleSave} loading={createMutation.isPending || updateMutation.isPending}>
-                  儲存
-                </Button>
-              </>
-            )}
-          </Space>
-        }
-      >
-        <Spin spinning={detailLoading && drawerMode !== 'create'}>
-          {drawerMode === 'view' ? (
-            <Descriptions bordered column={2} size="small" labelStyle={{ width: '120px', backgroundColor: '#1f1f1f', color: '#e5e7eb' }} contentStyle={{ backgroundColor: '#141414', color: '#d1d5db' }}>
-              <Descriptions.Item label="code">{detail?.code}</Descriptions.Item>
-              <Descriptions.Item label="name">{detail?.name}</Descriptions.Item>
-              <Descriptions.Item label="type">{detail?.type}</Descriptions.Item>
-              <Descriptions.Item label="location">{detail?.location}</Descriptions.Item>
-              <Descriptions.Item label="area">{detail?.area}</Descriptions.Item>
-              <Descriptions.Item label="isCalculateInventory">{detail?.isCalculateInventory ? '是' : '否'}</Descriptions.Item>
-              <Descriptions.Item label="isActive">{detail?.isActive ? '是' : '否'}</Descriptions.Item>
-              <Descriptions.Item label="notes">{detail?.notes}</Descriptions.Item>
-            </Descriptions>
-          ) : (
-            <Form form={form} layout="vertical" initialValues={{ isActive: true }}>
-              <Row gutter={16}>
+  const renderFormFields = (isEdit: boolean) => (
+    <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item name="code" label="code" rules={[{ required: true, message: '必填欄位' }]}>
                     <Input placeholder="請輸入code" ref={firstInputRef} />
@@ -368,8 +286,174 @@ export default function StorageList() {
                     <Input placeholder="請輸入notes" />
                   </Form.Item>
                 </Col>
-              </Row>
+    </Row>
+  );
+
+  return (
+    <div style={{ padding: '24px' }}>
+      <Card
+        variant="borderless"
+        styles={{ header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' } }}
+        title={
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 40,
+                height: 40,
+                background: 'linear-gradient(135deg, #1677ff 0%, #1677ff40 100%)',
+                borderRadius: '10px',
+                color: '#fff',
+                boxShadow: '0 4px 12px rgba(22, 119, 255, 0.4)'
+              }}>
+                <AppstoreOutlined style={{ fontSize: 22 }} />
+              </div>
+              <Title level={3} style={{ margin: 0, fontWeight: 700, letterSpacing: '1px' }}>儲位管理</Title>
+            </div>
+          </div>
+        }
+        extra={
+          <Space>
+            <Button
+              type="default"
+              icon={<SearchOutlined />}
+              onClick={openSearchModal}
+            >
+              查詢
+            </Button>
+            {hasPermission('Warehouse.Storages.Create') && (
+              <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer}>
+                新增
+              </Button>
+            )}
+          </Space>
+        }
+      >
+        <Table
+          columns={columns}
+          dataSource={listData}
+          rowKey="code"
+          loading={isFetching}
+          scroll={{ x: 'max-content' }}
+          pagination={{
+            current: params.pageNumber,
+            pageSize: params.pageSize,
+            total: totalRecords,
+            showSizeChanger: true,
+            showTotal: (total) => `共 ${total} 筆資料`,
+            onChange: (page, pageSize) => setParams({ pageNumber: page, pageSize }),
+          }}
+        />
+      </Card>
+
+      <Modal
+        title={
+          <div style={{ fontSize: '18px', fontWeight: 600, paddingBottom: '8px', borderBottom: '1px solid #f0f0f0', marginBottom: '16px' }}>
+            查詢條件
+          </div>
+        }
+        open={isSearchModalOpen}
+        onCancel={() => setIsSearchModalOpen(false)}
+        footer={
+          <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+            <Space>
+              <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
+                重置
+              </Button>
+              <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
+                執行查詢
+              </Button>
+            </Space>
+          </div>
+        }
+        width="min(800px, 50vw)"
+        style={{ top: 100 }}
+        styles={{
+          body: {
+            overflow: 'hidden',
+            paddingTop: '24px'
+          }
+        }}
+        closeIcon={true}
+      >
+        <Form
+          form={searchForm}
+          layout="vertical"
+          onFinish={handleSearch}
+        >
+          <Row gutter={16}>
+          <Form.Item name="CodeOrName" label="CodeOrName">
+            <Input placeholder="請輸入CodeOrName" allowClear />
+          </Form.Item>
+          <Form.Item name="Type" label="Type">
+            <Input placeholder="請輸入Type" allowClear />
+          </Form.Item>
+          </Row>
+        </Form>
+      </Modal>
+
+      <Drawer
+        title={
+          <div style={{ fontSize: '18px', fontWeight: 600 }}>
+            {isCreateDrawerOpen ? '新增儲位管理' : (isDrawerEditing ? '編輯儲位管理' : '檢視儲位管理')}
+          </div>
+        }
+        placement="right"
+        size="large"
+        onClose={closeViewDrawer}
+        open={!!viewId || isCreateDrawerOpen}
+        extra={
+          (!isDrawerEditing && !isCreateDrawerOpen && hasPermission('Warehouse.Storages.Update')) && (
+            <Button 
+              type="primary" 
+              icon={<EditOutlined />} 
+              onClick={startEditMode}
+            >
+              編輯
+            </Button>
+          )
+        }
+        footer={
+          (isDrawerEditing || isCreateDrawerOpen) && (
+            <div style={{ textAlign: 'right', padding: '8px 0' }}>
+              <Space>
+                <Button onClick={handleCancel}>取消</Button>
+                <Button 
+                  type="primary" 
+                  icon={<SaveOutlined />} 
+                  onClick={() => crudForm.submit()}
+                  loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
+                >
+                  儲存
+                </Button>
+              </Space>
+            </div>
+          )
+        }
+      >
+        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+          {(isDrawerEditing || isCreateDrawerOpen) ? (
+            <Form
+              form={crudForm}
+              layout="vertical"
+              onFinish={handleCrudSubmit}
+              onFinishFailed={handleFinishFailed}
+            >
+              {renderFormFields(isDrawerEditing)}
             </Form>
+          ) : (
+            <Descriptions column={1} bordered>
+              <Descriptions.Item label="code">{detail?.code}</Descriptions.Item>
+              <Descriptions.Item label="name">{detail?.name}</Descriptions.Item>
+              <Descriptions.Item label="type">{detail?.type}</Descriptions.Item>
+              <Descriptions.Item label="location">{detail?.location}</Descriptions.Item>
+              <Descriptions.Item label="area">{detail?.area}</Descriptions.Item>
+              <Descriptions.Item label="isCalculateInventory">{detail?.isCalculateInventory ? '是' : '否'}</Descriptions.Item>
+              <Descriptions.Item label="isActive">{detail?.isActive ? '是' : '否'}</Descriptions.Item>
+              <Descriptions.Item label="notes">{detail?.notes}</Descriptions.Item>
+            </Descriptions>
           )}
         </Spin>
       </Drawer>
