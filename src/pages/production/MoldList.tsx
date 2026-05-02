@@ -291,14 +291,14 @@ export default function MoldList() {
                     <Switch />
                   </Form.Item>
                 </Col>
-                <Col span={12}>
-                  <Form.Item name="description" label="描述" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入描述" />
+                <Col span={24}>
+                  <Form.Item name="description" label="描述">
+                    <Input.TextArea placeholder="請輸入描述" rows={3} />
                   </Form.Item>
                 </Col>
-                <Col span={12}>
-                  <Form.Item name="notes" label="備註" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入備註" />
+                <Col span={24}>
+                  <Form.Item name="notes" label="備註">
+                    <Input.TextArea placeholder="請輸入備註" rows={3} />
                   </Form.Item>
                 </Col>
     </Row>

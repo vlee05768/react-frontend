@@ -2,7 +2,7 @@ import os
 import re
 
 I18N_MAP = {
-    'userName': '使用者名稱', 'name': '姓名', 'email': '電子郵件', 'isActive': '狀態',
+    'userName': '使用者名稱', 'name': '名稱', 'email': '電子郵件', 'isActive': '狀態',
     'employeeCode': '員工編號', 'employeeNo': '員工編號', 'caption': '角色標題',
     'description': '描述', 'code': '編號', 'type': '類型', 'location': '儲位位置',
     'area': '區域', 'isCalculateInventory': '計算庫存', 'notes': '備註',
@@ -466,54 +466,56 @@ entities = [
     }
 ]
 
-def t(c):
+def t(c, is_employee=False):
+    if is_employee and c == 'name':
+        return '姓名'
     return I18N_MAP.get(c, c)
 
-def make_col(c):
+def make_col(c, is_employee=False):
     if c == 'isActive':
-        return f"    {{ title: '{t(c)}', dataIndex: '{c}', key: '{c}', render: (v: boolean) => <Tag color={{v ? 'green' : 'red'}}>{{v ? '啟用' : '停用'}}</Tag> }},"
+        return f"    {{ title: '{t(c, is_employee)}', dataIndex: '{c}', key: '{c}', render: (v: boolean) => <Tag color={{v ? 'green' : 'red'}}>{{v ? '啟用' : '停用'}}</Tag> }},"
     if c == 'status':
-        return f"    {{ title: '{t(c)}', dataIndex: '{c}', key: '{c}', render: (v: number) => <Tag color={{v === 1 ? 'green' : 'red'}}>{{v === 1 ? '在職' : '離職'}}</Tag> }},"
+        return f"    {{ title: '{t(c, is_employee)}', dataIndex: '{c}', key: '{c}', render: (v: number) => <Tag color={{v === 1 ? 'green' : 'red'}}>{{v === 1 ? '在職' : '離職'}}</Tag> }},"
     if 'Date' in c:
-        return f"    {{ title: '{t(c)}', dataIndex: '{c}', key: '{c}', render: (v: string) => v ? v.substring(0, 10) : '-' }},"
-    return f"    {{ title: '{t(c)}', dataIndex: '{c}', key: '{c}' }},"
+        return f"    {{ title: '{t(c, is_employee)}', dataIndex: '{c}', key: '{c}', render: (v: string) => v ? v.substring(0, 10) : '-' }},"
+    return f"    {{ title: '{t(c, is_employee)}', dataIndex: '{c}', key: '{c}' }},"
 
-def make_search(c):
+def make_search(c, is_employee=False):
     if c == 'status':
         return f"""            <Col span={{24}}>
-              <Form.Item name="{c}" label="{t(c)}">
-                <Select placeholder="請選擇{t(c)}" allowClear>
+              <Form.Item name="{c}" label="{t(c, is_employee)}">
+                <Select placeholder="請選擇{t(c, is_employee)}" allowClear>
                   <Select.Option value={{1}}>在職</Select.Option>
                   <Select.Option value={{2}}>離職</Select.Option>
                 </Select>
               </Form.Item>
             </Col>"""
     return f"""            <Col span={{24}}>
-              <Form.Item name="{c}" label="{t(c)}">
-                <Input placeholder="請輸入{t(c)}" allowClear />
+              <Form.Item name="{c}" label="{t(c, is_employee)}">
+                <Input placeholder="請輸入{t(c, is_employee)}" allowClear />
               </Form.Item>
             </Col>"""
 
-def make_desc(c):
+def make_desc(c, is_employee=False):
     if c == 'isActive' or c == 'isCalculateInventory' or c == 'isShareable':
-        return f"              <Descriptions.Item label=\"{t(c)}\">{{viewData?.{c} ? '是' : '否'}}</Descriptions.Item>"
+        return f"              <Descriptions.Item label=\"{t(c, is_employee)}\">{{viewData?.{c} ? '是' : '否'}}</Descriptions.Item>"
     if c == 'status':
-        return f"              <Descriptions.Item label=\"{t(c)}\">{{viewData?.{c} === 1 ? '在職' : '離職'}}</Descriptions.Item>"
+        return f"              <Descriptions.Item label=\"{t(c, is_employee)}\">{{viewData?.{c} === 1 ? '在職' : '離職'}}</Descriptions.Item>"
     if 'Date' in c:
-        return f"              <Descriptions.Item label=\"{t(c)}\">{{viewData?.{c} ? viewData.{c}.substring(0,10) : '-'}}</Descriptions.Item>"
-    return f"              <Descriptions.Item label=\"{t(c)}\">{{viewData?.{c}}}</Descriptions.Item>"
+        return f"              <Descriptions.Item label=\"{t(c, is_employee)}\">{{viewData?.{c} ? viewData.{c}.substring(0,10) : '-'}}</Descriptions.Item>"
+    return f"              <Descriptions.Item label=\"{t(c, is_employee)}\">{{viewData?.{c}}}</Descriptions.Item>"
 
-def make_form(c):
+def make_form(c, is_employee=False):
     if c == 'isActive' or c == 'isCalculateInventory' or c == 'isShareable':
         return f"""                <Col span={{12}}>
-                  <Form.Item name="{c}" label="{t(c)}" valuePropName="checked">
+                  <Form.Item name="{c}" label="{t(c, is_employee)}" valuePropName="checked">
                     <Switch />
                   </Form.Item>
                 </Col>"""
     if c == 'status':
         return f"""                <Col span={{12}}>
-                  <Form.Item name="{c}" label="{t(c)}" rules={{[{{ required: true, message: '必填欄位' }}]}}>
-                    <Select placeholder="請選擇{t(c)}">
+                  <Form.Item name="{c}" label="{t(c, is_employee)}" rules={{[{{ required: true, message: '必填欄位' }}]}}>
+                    <Select placeholder="請選擇{t(c, is_employee)}">
                       <Select.Option value={{1}}>在職</Select.Option>
                       <Select.Option value={{2}}>離職</Select.Option>
                     </Select>
@@ -521,27 +523,28 @@ def make_form(c):
                 </Col>"""
     if 'Date' in c:
         return f"""                <Col span={{12}}>
-                  <Form.Item name="{c}" label="{t(c)}">
+                  <Form.Item name="{c}" label="{t(c, is_employee)}">
                     <Input type="date" />
                   </Form.Item>
                 </Col>"""
     if c == 'notes' or c == 'description':
         return f"""                <Col span={{24}}>
-                  <Form.Item name="{c}" label="{t(c)}">
-                    <Input.TextArea placeholder="請輸入{t(c)}" rows={{3}} />
+                  <Form.Item name="{c}" label="{t(c, is_employee)}">
+                    <Input.TextArea placeholder="請輸入{t(c, is_employee)}" rows={{3}} />
                   </Form.Item>
                 </Col>"""
     return f"""                <Col span={{12}}>
-                  <Form.Item name="{c}" label="{t(c)}" rules={{[{{ required: {str(c in ['code', 'name', 'userName', 'employeeNo', 'departmentCode']).lower()}, message: '必填欄位' }}]}}>
-                    <Input placeholder="請輸入{t(c)}" />
+                  <Form.Item name="{c}" label="{t(c, is_employee)}" rules={{[{{ required: {str(c in ['code', 'name', 'userName', 'employeeNo', 'departmentCode']).lower()}, message: '必填欄位' }}]}}>
+                    <Input placeholder="請輸入{t(c, is_employee)}" />
                   </Form.Item>
                 </Col>"""
 
 def build(e):
-    cols_str = "\n".join(make_col(c) for c in e["cols"])
-    search_str = "\n".join(make_search(c) for c in e["search"])
-    desc_str = "\n".join(make_desc(c) for c in e["fields"])
-    form_str = "\n".join(make_form(c) for c in e["fields"])
+    is_emp = e["Entity"] == "Employee"
+    cols_str = "\n".join(make_col(c, is_emp) for c in e["cols"])
+    search_str = "\n".join(make_search(c, is_emp) for c in e["search"])
+    desc_str = "\n".join(make_desc(c, is_emp) for c in e["fields"])
+    form_str = "\n".join(make_form(c, is_emp) for c in e["fields"])
     
     code = TEMPLATE.replace("{Entity}", e["Entity"])
     code = code.replace("{entity}", e["entity"])

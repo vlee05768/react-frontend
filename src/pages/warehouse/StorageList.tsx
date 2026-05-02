@@ -281,9 +281,9 @@ export default function StorageList() {
                     <Switch />
                   </Form.Item>
                 </Col>
-                <Col span={12}>
-                  <Form.Item name="notes" label="備註" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入備註" />
+                <Col span={24}>
+                  <Form.Item name="notes" label="備註">
+                    <Input.TextArea placeholder="請輸入備註" rows={3} />
                   </Form.Item>
                 </Col>
     </Row>
