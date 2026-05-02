@@ -43,6 +43,7 @@ import {
   deleteApiV1EmployeeById
 } from '../../api/generated/sdk.gen';
 import { useEmployeeQueryStore } from '../../stores/employeeStore';
+import { useAuthStore } from '../../stores/useAuthStore';
 import dayjs from 'dayjs';
 
 
@@ -50,6 +51,7 @@ const { Title, Text } = Typography;
 
 export default function Employee() {
   const { params, setParams, resetParams } = useEmployeeQueryStore();
+  const hasPermission = useAuthStore(state => state.hasPermission);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
@@ -262,16 +264,18 @@ export default function Employee() {
               onClick={() => openViewDrawer(record)}
             />
           </Tooltip>
-          <Tooltip title="刪除">
-            <Popconfirm
-              title="確定要刪除此員工嗎？"
-              onConfirm={() => handleDelete(record.id)}
-              okText="確定"
-              cancelText="取消"
-            >
-              <Button type="text" danger icon={<DeleteOutlined />} />
-            </Popconfirm>
-          </Tooltip>
+          {hasPermission('BasicData.Employees.Delete') && (
+            <Tooltip title="刪除">
+              <Popconfirm
+                title="確定要刪除此員工嗎？"
+                onConfirm={() => handleDelete(record.id)}
+                okText="確定"
+                cancelText="取消"
+              >
+                <Button type="text" danger icon={<DeleteOutlined />} />
+              </Popconfirm>
+            </Tooltip>
+          )}
         </Space>
       ),
     },
@@ -468,9 +472,11 @@ export default function Employee() {
             >
               查詢
             </Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer}>
-              新增員工
-            </Button>
+            {hasPermission('BasicData.Employees.Create') && (
+              <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer}>
+                新增員工
+              </Button>
+            )}
           </Space>
         }
       >
@@ -571,7 +577,7 @@ export default function Employee() {
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={
-          (!isDrawerEditing && !isCreateDrawerOpen) && (
+          (!isDrawerEditing && !isCreateDrawerOpen && hasPermission('BasicData.Employees.Update')) && (
             <Button 
               type="primary" 
               icon={<EditOutlined />} 
