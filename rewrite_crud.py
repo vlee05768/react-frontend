@@ -1,4 +1,18 @@
-// @ts-nocheck
+import os
+import re
+
+I18N_MAP = {
+    'userName': '使用者名稱', 'name': '名稱', 'email': '電子郵件', 'isActive': '狀態',
+    'employeeCode': '員工編號', 'employeeNo': '員工編號', 'caption': '角色標題',
+    'description': '描述', 'code': '編號', 'type': '類型', 'location': '儲位位置',
+    'area': '區域', 'isCalculateInventory': '計算庫存', 'notes': '備註',
+    'supplierCode': '供應商編號', 'shape': '形狀', 'dimensionLMm': '長度 (mm)',
+    'dimensionWMm': '寬度 (mm)', 'dimensionHMm': '高度 (mm)', 'isShareable': '可共用',
+    'capacity': '產能', 'department': '部門', 'mobile': '手機',
+    'CodeOrName': '編號或名稱', 'Type': '類型', 'SupplierCode': '供應商編號'
+}
+
+TEMPLATE = """// @ts-nocheck
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import type { InputRef } from 'antd';
@@ -36,19 +50,19 @@ import {
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
-  getApiV1Role, 
-  getApiV1RoleById,
-  postApiV1Role,
-  putApiV1RoleById,
-  deleteApiV1RoleById
+  getApiV1{Entity}, 
+  getApiV1{Entity}By{IdKeyC},
+  postApiV1{Entity},
+  putApiV1{Entity}By{IdKeyC},
+  deleteApiV1{Entity}By{IdKeyC}
 } from '@/api/generated/sdk.gen';
-import { useRoleQueryStore } from '@/stores/systemStore';
+import { use{Entity}QueryStore } from '@/stores/{StoreFile}';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 const { Title, Text } = Typography;
 
-export default function RoleList() {
-  const { params, setParams, resetParams } = useRoleQueryStore();
+export default function {Entity}List() {
+  const { params, setParams, resetParams } = use{Entity}QueryStore();
   const { hasPermission } = useAuthStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
@@ -71,17 +85,17 @@ export default function RoleList() {
 
   // 單筆資料查詢 (Drawer)
   const { data: viewRes, isFetching: isFetchingView } = useQuery({
-    queryKey: ['roleDetail', viewId],
-    queryFn: () => getApiV1RoleById({ path: { id: viewId as any } }),
+    queryKey: ['{entity}Detail', viewId],
+    queryFn: () => getApiV1{Entity}By{IdKeyC}({ path: { {idKey}: viewId as any } }),
     enabled: !!viewId,
   });
   const viewData = viewRes?.data?.data || viewRes?.data;
 
   // API 查詢
   const { data, isFetching } = useQuery({
-    queryKey: ['roleList', params],
+    queryKey: ['{entity}List', params],
     queryFn: () =>
-      getApiV1Role({
+      getApiV1{Entity}({
         query: params as any,
       }),
   });
@@ -93,12 +107,12 @@ export default function RoleList() {
   
   // Mutations
   const createMutation = useMutation({
-    mutationFn: (values: any) => postApiV1Role({ body: values }),
+    mutationFn: (values: any) => postApiV1{Entity}({ body: values }),
     onSuccess: () => {
       message.success('新增成功');
       setIsCreateDrawerOpen(false);
       crudForm.resetFields();
-      queryClient.invalidateQueries({ queryKey: ['roleList'] });
+      queryClient.invalidateQueries({ queryKey: ['{entity}List'] });
     },
     onError: (error: any) => {
       message.error(`新增失敗: ${error?.response?.data?.message || '未知錯誤'}`);
@@ -106,14 +120,14 @@ export default function RoleList() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, values }: { id: string | number, values: any }) => 
-      putApiV1RoleById({ path: { id: id as any }, body: values }),
+    mutationFn: ({ {idKey}, values }: { {idKey}: string | number, values: any }) => 
+      putApiV1{Entity}By{IdKeyC}({ path: { {idKey}: {idKey} as any }, body: values }),
     onSuccess: () => {
       message.success('更新成功');
       setIsDrawerEditing(false);
       crudForm.resetFields();
-      queryClient.invalidateQueries({ queryKey: ['roleList'] });
-      queryClient.invalidateQueries({ queryKey: ['roleDetail'] });
+      queryClient.invalidateQueries({ queryKey: ['{entity}List'] });
+      queryClient.invalidateQueries({ queryKey: ['{entity}Detail'] });
     },
     onError: (error: any) => {
       message.error(`更新失敗: ${error?.response?.data?.message || '未知錯誤'}`);
@@ -121,11 +135,11 @@ export default function RoleList() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string | number) => deleteApiV1RoleById({ path: { id: id as any } }),
+    mutationFn: ({idKey}: string | number) => deleteApiV1{Entity}By{IdKeyC}({ path: { {idKey}: {idKey} as any } }),
     onSuccess: () => {
       message.success('刪除成功');
-      queryClient.invalidateQueries({ queryKey: ['roleList'] });
-      queryClient.invalidateQueries({ queryKey: ['roleDetail'] });
+      queryClient.invalidateQueries({ queryKey: ['{entity}List'] });
+      queryClient.invalidateQueries({ queryKey: ['{entity}Detail'] });
     },
     onError: (error: any) => {
       message.error(`刪除失敗: ${error?.response?.data?.message || '未知錯誤'}`);
@@ -133,14 +147,14 @@ export default function RoleList() {
   });
 
   const openViewDrawer = (record: any) => {
-    navigate(`/system/roles/${record.id}`);
+    navigate(`{RoutePath}/${record.{idKey}}`);
   };
 
   const closeViewDrawer = () => {
     setIsCreateDrawerOpen(false);
     setIsDrawerEditing(false);
     if (viewId) {
-      navigate('/system/roles');
+      navigate('{RoutePath}');
     }
   };
 
@@ -170,7 +184,7 @@ export default function RoleList() {
     if (isCreateDrawerOpen) {
       createMutation.mutate(values);
     } else if (viewId) {
-      updateMutation.mutate({ id: viewId as any, values });
+      updateMutation.mutate({ {idKey}: viewId as any, values });
     }
   };
 
@@ -192,7 +206,7 @@ export default function RoleList() {
       width: 120,
       render: (_: any, record: any) => (
         <Space>
-          {hasPermission('System.Roles.View') && (
+          {hasPermission('{PermKey}.View') && (
             <Tooltip title="檢視">
               <Button 
                 type="text" 
@@ -202,11 +216,11 @@ export default function RoleList() {
               />
             </Tooltip>
           )}
-          {hasPermission('System.Roles.Delete') && (
+          {hasPermission('{PermKey}.Delete') && (
             <Tooltip title="刪除">
               <Popconfirm
                 title="確定要刪除此筆資料嗎？"
-                onConfirm={() => deleteMutation.mutate(record.id)}
+                onConfirm={() => deleteMutation.mutate(record.{idKey})}
                 okText="確定"
                 cancelText="取消"
               >
@@ -217,9 +231,7 @@ export default function RoleList() {
         </Space>
       ),
     },
-    { title: '名稱', dataIndex: 'name', key: 'name' },
-    { title: '角色標題', dataIndex: 'caption', key: 'caption' },
-    { title: '描述', dataIndex: 'description', key: 'description' },
+{ColumnsStr}
   ];
 
   const handleSearch = (values: any) => {
@@ -247,21 +259,7 @@ export default function RoleList() {
 
   const renderFormFields = (isEdit: boolean) => (
     <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item name="name" label="名稱" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入名稱" ref={firstInputRef} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="caption" label="角色標題" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入角色標題" />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="description" label="描述" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入描述" />
-                  </Form.Item>
-                </Col>
+{EditFormStr}
     </Row>
   );
 
@@ -279,7 +277,7 @@ export default function RoleList() {
               borderRadius: '2px'
             }} />
             <Title level={4} style={{ margin: 0, fontWeight: 600, color: '#262626' }}>
-              角色管理
+              {TitleStr}
             </Title>
           </div>
         }
@@ -293,7 +291,7 @@ export default function RoleList() {
             >
               進階查詢
             </Button>
-            {hasPermission('System.Roles.Create') && (
+            {hasPermission('{PermKey}.Create') && (
               <Button 
                 type="primary" 
                 icon={<PlusOutlined />} 
@@ -309,7 +307,7 @@ export default function RoleList() {
         <Table
           columns={columns}
           dataSource={listData}
-          rowKey="id"
+          rowKey="{idKey}"
           loading={isFetching}
           scroll={{ x: 1200 }}
           pagination={{
@@ -358,7 +356,7 @@ export default function RoleList() {
           onFinish={handleSearch}
         >
           <Row gutter={16}>
-
+{SearchFormStr}
           </Row>
         </Form>
       </Modal>
@@ -366,7 +364,7 @@ export default function RoleList() {
       <Drawer
         title={
           <div style={{ fontSize: '18px', fontWeight: 600 }}>
-            {isCreateDrawerOpen ? '新增角色管理' : (isDrawerEditing ? '編輯角色管理' : '檢視角色管理')}
+            {isCreateDrawerOpen ? '新增{TitleStr}' : (isDrawerEditing ? '編輯{TitleStr}' : '檢視{TitleStr}')}
           </div>
         }
         placement="right"
@@ -374,7 +372,7 @@ export default function RoleList() {
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={
-          (!isDrawerEditing && !isCreateDrawerOpen && hasPermission('System.Roles.Update')) && (
+          (!isDrawerEditing && !isCreateDrawerOpen && hasPermission('{PermKey}.Update')) && (
             <Button 
               type="primary" 
               icon={<EditOutlined />} 
@@ -414,9 +412,7 @@ export default function RoleList() {
             </Form>
           ) : (
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="名稱">{viewData?.name}</Descriptions.Item>
-              <Descriptions.Item label="角色標題">{viewData?.caption}</Descriptions.Item>
-              <Descriptions.Item label="描述">{viewData?.description}</Descriptions.Item>
+{ViewDescriptionsStr}
             </Descriptions>
           )}
         </Spin>
@@ -424,3 +420,127 @@ export default function RoleList() {
     </div>
   );
 }
+"""
+
+entities = [
+    {
+        "Entity": "User", "entity": "user", "TitleStr": "用戶管理", "PermKey": "System.Users",
+        "IdKeyC": "Id", "idKey": "id", "StoreFile": "systemStore", "RoutePath": "/system/users",
+        "cols": ["userName", "name", "email", "isActive"],
+        "search": ["name"],
+        "fields": ["userName", "name", "email", "isActive", "employeeCode"]
+    },
+    {
+        "Entity": "Role", "entity": "role", "TitleStr": "角色管理", "PermKey": "System.Roles",
+        "IdKeyC": "Id", "idKey": "id", "StoreFile": "systemStore", "RoutePath": "/system/roles",
+        "cols": ["name", "caption", "description"],
+        "search": [],
+        "fields": ["name", "caption", "description"]
+    },
+    {
+        "Entity": "Storage", "entity": "storage", "TitleStr": "儲位管理", "PermKey": "Warehouse.Storages",
+        "IdKeyC": "Code", "idKey": "code", "StoreFile": "warehouseStore", "RoutePath": "/warehouse/storages",
+        "cols": ["code", "name", "type", "location", "isActive"],
+        "search": ["CodeOrName", "Type"],
+        "fields": ["code", "name", "type", "location", "area", "isCalculateInventory", "isActive", "notes"]
+    },
+    {
+        "Entity": "Mold", "entity": "mold", "TitleStr": "模具管理", "PermKey": "ProductionQuality.Molds",
+        "IdKeyC": "Code", "idKey": "code", "StoreFile": "productionStore", "RoutePath": "/production-quality/molds",
+        "cols": ["code", "name", "type", "supplierCode", "shape"],
+        "search": ["CodeOrName", "Type", "SupplierCode"],
+        "fields": ["code", "name", "type", "supplierCode", "shape", "dimensionLMm", "dimensionWMm", "dimensionHMm", "isShareable", "description", "notes"]
+    },
+    {
+        "Entity": "Machine", "entity": "machine", "TitleStr": "機台管理", "PermKey": "ProductionQuality.Machines",
+        "IdKeyC": "Code", "idKey": "code", "StoreFile": "productionStore", "RoutePath": "/production-quality/machines",
+        "cols": ["code", "name", "type", "capacity"],
+        "search": ["CodeOrName"],
+        "fields": ["code", "name", "type", "capacity"]
+    },
+    {
+        "Entity": "Employee", "entity": "employee", "TitleStr": "員工基本檔", "PermKey": "BasicData.Employees",
+        "IdKeyC": "Id", "idKey": "id", "StoreFile": "employeeStore", "RoutePath": "/employee",
+        "cols": ["employeeCode", "name", "department", "isActive"],
+        "search": ["employeeNo", "name"],
+        "fields": ["employeeCode", "name", "department", "mobile", "email", "isActive"]
+    }
+]
+
+def t(c):
+    return I18N_MAP.get(c, c)
+
+def make_col(c):
+    if c == 'isActive':
+        return f"    {{ title: '{t(c)}', dataIndex: '{c}', key: '{c}', render: (v: boolean) => <Tag color={{v ? 'green' : 'red'}}>{{v ? '啟用' : '停用'}}</Tag> }},"
+    return f"    {{ title: '{t(c)}', dataIndex: '{c}', key: '{c}' }},"
+
+def make_search(c):
+    return f"""            <Col span={{24}}>
+              <Form.Item name="{c}" label="{t(c)}">
+                <Input placeholder="請輸入{t(c)}" allowClear />
+              </Form.Item>
+            </Col>"""
+
+def make_desc(c):
+    if c == 'isActive' or c == 'isCalculateInventory' or c == 'isShareable':
+        return f"              <Descriptions.Item label=\"{t(c)}\">{{viewData?.{c} ? '是' : '否'}}</Descriptions.Item>"
+    return f"              <Descriptions.Item label=\"{t(c)}\">{{viewData?.{c}}}</Descriptions.Item>"
+
+def make_form(c):
+    if c == 'isActive' or c == 'isCalculateInventory' or c == 'isShareable':
+        return f"""                <Col span={{12}}>
+                  <Form.Item name="{c}" label="{t(c)}" valuePropName="checked">
+                    <Switch />
+                  </Form.Item>
+                </Col>"""
+    return f"""                <Col span={{12}}>
+                  <Form.Item name="{c}" label="{t(c)}" rules={{[{{ required: {str(c in ['code', 'name', 'userName']).lower()}, message: '必填欄位' }}]}}>
+                    <Input placeholder="請輸入{t(c)}" />
+                  </Form.Item>
+                </Col>"""
+
+def build(e):
+    cols_str = "\n".join(make_col(c) for c in e["cols"])
+    search_str = "\n".join(make_search(c) for c in e["search"])
+    desc_str = "\n".join(make_desc(c) for c in e["fields"])
+    form_str = "\n".join(make_form(c) for c in e["fields"])
+    
+    code = TEMPLATE.replace("{Entity}", e["Entity"])
+    code = code.replace("{entity}", e["entity"])
+    code = code.replace("{TitleStr}", e["TitleStr"])
+    code = code.replace("{PermKey}", e["PermKey"])
+    code = code.replace("{IdKeyC}", e["IdKeyC"])
+    code = code.replace("{idKey}", e["idKey"])
+    code = code.replace("{StoreFile}", e["StoreFile"])
+    code = code.replace("{RoutePath}", e["RoutePath"])
+    code = code.replace("{ColumnsStr}", cols_str)
+    code = code.replace("{SearchFormStr}", search_str)
+    code = code.replace("{ViewDescriptionsStr}", desc_str)
+    code = code.replace("{EditFormStr}", form_str)
+    
+    # inject ref to first input
+    if e["Entity"] == "User":
+        code = code.replace(f'<Input placeholder="請輸入{t("userName")}" />', f'<Input placeholder="請輸入{t("userName")}" ref={{firstInputRef}} />')
+    elif e["Entity"] == "Role":
+        code = code.replace(f'<Input placeholder="請輸入{t("name")}" />', f'<Input placeholder="請輸入{t("name")}" ref={{firstInputRef}} />')
+    elif e["Entity"] == "Employee":
+        code = code.replace(f'<Input placeholder="請輸入{t("employeeCode")}" />', f'<Input placeholder="請輸入{t("employeeCode")}" ref={{firstInputRef}} />')
+    else:
+        code = code.replace(f'<Input placeholder="請輸入{t("code")}" />', f'<Input placeholder="請輸入{t("code")}" ref={{firstInputRef}} />')
+        
+    return code
+
+os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/system', exist_ok=True)
+os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/warehouse', exist_ok=True)
+os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/production', exist_ok=True)
+os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/basic', exist_ok=True)
+
+for e in entities:
+    if e['Entity'] == 'Employee':
+        path = '/home/hermes/git_projects/erp-frontend-react/src/pages/basic/Employee.tsx'
+    else:
+        path = f"/home/hermes/git_projects/erp-frontend-react/src/pages/{e['StoreFile'].replace('Store','')}/{e['Entity']}List.tsx"
+    with open(path, 'w') as f:
+        f.write(build(e))
+    print(f"Generated {path}")

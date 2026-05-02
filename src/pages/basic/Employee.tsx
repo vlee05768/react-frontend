@@ -21,7 +21,8 @@ import {
   Popconfirm,
   Drawer,
   Descriptions,
-  Switch
+  Switch,
+  Divider
 } from 'antd';
 import {
   SearchOutlined,
@@ -87,6 +88,8 @@ export default function EmployeeList() {
 
   const listData = (data?.data as any)?.data?.data || (data?.data as any)?.data || [];
   const totalRecords = (data?.data as any)?.data?.totalRecords || (data?.data as any)?.totalRecords || 0;
+  const currentPage = (data?.data as any)?.data?.pageNumber || params.pageNumber;
+  const currentPageSize = (data?.data as any)?.data?.pageSize || params.pageSize;
   
   // Mutations
   const createMutation = useMutation({
@@ -246,7 +249,7 @@ export default function EmployeeList() {
   const renderFormFields = (isEdit: boolean) => (
     <Row gutter={16}>
                 <Col span={12}>
-                  <Form.Item name="employeeCode" label="員工編號" rules={[{ required: true, message: '必填欄位' }]}>
+                  <Form.Item name="employeeCode" label="員工編號" rules={[{ required: false, message: '必填欄位' }]}>
                     <Input placeholder="請輸入員工編號" ref={firstInputRef} />
                   </Form.Item>
                 </Col>
@@ -266,8 +269,8 @@ export default function EmployeeList() {
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="email" label="電子信箱" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入電子信箱" />
+                  <Form.Item name="email" label="電子郵件" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入電子郵件" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -284,37 +287,36 @@ export default function EmployeeList() {
         variant="borderless"
         styles={{ header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' } }}
         title={
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 40,
-                height: 40,
-                background: 'linear-gradient(135deg, #1677ff 0%, #1677ff40 100%)',
-                borderRadius: '10px',
-                color: '#fff',
-                boxShadow: '0 4px 12px rgba(22, 119, 255, 0.4)'
-              }}>
-                <AppstoreOutlined style={{ fontSize: 22 }} />
-              </div>
-              <Title level={3} style={{ margin: 0, fontWeight: 700, letterSpacing: '1px' }}>員工基本檔</Title>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '4px',
+              height: '24px',
+              backgroundColor: '#1677ff',
+              borderRadius: '2px'
+            }} />
+            <Title level={4} style={{ margin: 0, fontWeight: 600, color: '#262626' }}>
+              員工基本檔
+            </Title>
           </div>
         }
         extra={
-          <Space>
+          <Space split={<Divider type="vertical" />}>
             <Button
               type="default"
               icon={<SearchOutlined />}
               onClick={openSearchModal}
+              style={{ fontWeight: 500 }}
             >
-              查詢
+              進階查詢
             </Button>
             {hasPermission('BasicData.Employees.Create') && (
-              <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer}>
-                新增
+              <Button 
+                type="primary" 
+                icon={<PlusOutlined />} 
+                onClick={openCreateDrawer}
+                style={{ fontWeight: 500 }}
+              >
+                新增資料
               </Button>
             )}
           </Space>
@@ -325,10 +327,10 @@ export default function EmployeeList() {
           dataSource={listData}
           rowKey="id"
           loading={isFetching}
-          scroll={{ x: 'max-content' }}
+          scroll={{ x: 1200 }}
           pagination={{
-            current: params.pageNumber,
-            pageSize: params.pageSize,
+            current: currentPage,
+            pageSize: currentPageSize,
             total: totalRecords,
             showSizeChanger: true,
             showTotal: (total) => `共 ${total} 筆資料`,
@@ -339,30 +341,29 @@ export default function EmployeeList() {
 
       <Modal
         title={
-          <div style={{ fontSize: '18px', fontWeight: 600, paddingBottom: '8px', borderBottom: '1px solid #f0f0f0', marginBottom: '16px' }}>
-            查詢條件
+          <div style={{ fontSize: '18px', fontWeight: 600, paddingBottom: '12px', borderBottom: '1px solid #f0f0f0', marginBottom: '8px' }}>
+            查詢條件設定
           </div>
         }
         open={isSearchModalOpen}
         onCancel={() => setIsSearchModalOpen(false)}
         footer={
-          <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
-            <Space>
-              <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
-                重置
-              </Button>
-              <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
-                執行查詢
-              </Button>
-            </Space>
+          <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+            <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
+              清空重置
+            </Button>
+            <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
+              執行查詢
+            </Button>
           </div>
         }
-        width="min(800px, 50vw)"
-        style={{ top: 100 }}
+        width={600}
+        style={{ top: 50 }}
         styles={{
           body: {
-            overflow: 'hidden',
-            paddingTop: '24px'
+            height: '400px',
+            overflowY: 'auto',
+            padding: '24px 24px 0 24px'
           }
         }}
         closeIcon={true}
@@ -373,12 +374,16 @@ export default function EmployeeList() {
           onFinish={handleSearch}
         >
           <Row gutter={16}>
-          <Form.Item name="employeeNo" label="員工編號">
-            <Input placeholder="請輸入員工編號" allowClear />
-          </Form.Item>
-          <Form.Item name="name" label="名稱">
-            <Input placeholder="請輸入名稱" allowClear />
-          </Form.Item>
+            <Col span={24}>
+              <Form.Item name="employeeNo" label="員工編號">
+                <Input placeholder="請輸入員工編號" allowClear />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item name="name" label="名稱">
+                <Input placeholder="請輸入名稱" allowClear />
+              </Form.Item>
+            </Col>
           </Row>
         </Form>
       </Modal>
@@ -438,7 +443,7 @@ export default function EmployeeList() {
               <Descriptions.Item label="名稱">{viewData?.name}</Descriptions.Item>
               <Descriptions.Item label="部門">{viewData?.department}</Descriptions.Item>
               <Descriptions.Item label="手機">{viewData?.mobile}</Descriptions.Item>
-              <Descriptions.Item label="電子信箱">{viewData?.email}</Descriptions.Item>
+              <Descriptions.Item label="電子郵件">{viewData?.email}</Descriptions.Item>
               <Descriptions.Item label="狀態">{viewData?.isActive ? '是' : '否'}</Descriptions.Item>
             </Descriptions>
           )}
