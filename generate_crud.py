@@ -361,6 +361,13 @@ entities = [
         "cols": ["code", "name", "type", "capacity"],
         "search": ["CodeOrName"],
         "fields": ["code", "name", "type", "capacity"]
+    },
+    {
+        "Entity": "Employee", "entity": "employee", "TitleStr": "員工基本檔", "PermKey": "BasicData.Employees",
+        "IdKeyC": "Id", "idKey": "id", "StoreFile": "employeeStore", "RoutePath": "/employee",
+        "cols": ["employeeCode", "name", "department", "isActive"],
+        "search": ["employeeNo", "name"],
+        "fields": ["employeeCode", "name", "department", "mobile", "email", "isActive"]
     }
 ]
 
@@ -415,6 +422,8 @@ def build(e):
         code = code.replace('<Input placeholder="請輸入userName" />', '<Input placeholder="請輸入userName" ref={firstInputRef} />')
     elif e["Entity"] == "Role":
         code = code.replace('<Input placeholder="請輸入name" />', '<Input placeholder="請輸入name" ref={firstInputRef} />')
+    elif e["Entity"] == "Employee":
+        code = code.replace('<Input placeholder="請輸入employeeCode" />', '<Input placeholder="請輸入employeeCode" ref={firstInputRef} />')
     else:
         code = code.replace('<Input placeholder="請輸入code" />', '<Input placeholder="請輸入code" ref={firstInputRef} />')
         
@@ -423,6 +432,7 @@ def build(e):
 os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/system', exist_ok=True)
 os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/warehouse', exist_ok=True)
 os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/production', exist_ok=True)
+os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/employee', exist_ok=True)
 
 for e in entities:
     path = f"/home/hermes/git_projects/erp-frontend-react/src/pages/{e['StoreFile'].replace('Store','')}/{e['Entity']}List.tsx"
