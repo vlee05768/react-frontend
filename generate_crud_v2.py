@@ -291,10 +291,14 @@ export default function {Entity}List() {
   );
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
       <Card
         variant="borderless"
-        styles={{ header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' } }}
+        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        styles={{ 
+          header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
+          body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
+        }}
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
@@ -331,25 +335,38 @@ export default function {Entity}List() {
           </Space>
         }
       >
-        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', padding: '12px 16px', borderRadius: '6px' }}>
+        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
           <span style={{ fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
           {renderSearchTags()}
         </div>
-        <Table
-          columns={columns}
-          dataSource={listData}
-          rowKey="{idKey}"
-          loading={isFetching}
-          scroll={{ x: 1200 }}
-          pagination={{
-            current: currentPage,
-            pageSize: currentPageSize,
-            total: totalRecords,
-            showSizeChanger: true,
-            showTotal: (total) => `共 ${total} 筆資料`,
-            onChange: (page, pageSize) => setParams({ pageNumber: page, pageSize }),
-          }}
-        />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <style>{`
+            .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
+            .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-spin-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
+            .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
+          `}</style>
+          <Table
+            style={{ flex: 1 }}
+            columns={columns}
+            dataSource={listData}
+            rowKey="{idKey}"
+            loading={isFetching}
+            scroll={{ x: 1200, y: 300 }}
+            pagination={{
+              current: currentPage,
+              pageSize: currentPageSize,
+              total: totalRecords,
+              showSizeChanger: true,
+              showTotal: (total) => `共 ${total} 筆資料`,
+              onChange: (page, pageSize) => setParams({ pageNumber: page, pageSize }),
+            }}
+          />
+        </div>
       </Card>
 
       <Modal

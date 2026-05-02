@@ -71,3 +71,9 @@
 - **Space 元件**：禁用 `split` 屬性，必須改用 `separator` 屬性來加入分隔線。
 - **Divider 元件**：禁用 `type` 屬性，必須改用 `orientation` 屬性 (例如：`<Divider orientation="vertical" />`)。
 - **Spin 元件**：禁用 `tip` 屬性，必須改用 `description` 屬性。
+\n### 12. 分頁底部對齊與佈局限制 (Sticky Pagination)\n- 整個頁面容器高度設置為 `calc(100vh - 64px)`。\n- 透過 Flexbox 配合 `flex: 1` 與 `overflow: hidden` 使表格主體彈性填滿。\n- 使用內聯 CSS 覆寫 `.ant-table-wrapper` 相關的 flex 屬性，並設定 `.ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }`，確保**不論表格資料多寡，分頁器永遠貼齊在頁面底部（約 10px 間距）**。
+- **Ant Design Table 深度 Flexbox 覆寫 (Deep CSS Override)**：
+  - 由於 Ant Design `<Table>` 元件內部包含多層未展開的 DOM 節點 (`.ant-table-wrapper`, `.ant-spin-nested-loading`, `.ant-spin-container`, `.ant-table`, `.ant-table-container`)，單純在外層設定 Flexbox 無法真正撐滿剩餘高度。
+  - 必須在元件層級注入 `<style>`，強制將上述所有內部 Wrapper 設為 `flex: 1; display: flex; flex-direction: column; overflow: hidden;`。
+  - 並且將 `.ant-table-body` 設為 `flex: 1; overflow-y: auto !important; max-height: none !important;`。
+  - 透過這套組合技，才能徹底消除 Antd Table 內部的版面死角，完美將 `.ant-table-pagination` 推擠至畫面最底部。
