@@ -238,6 +238,27 @@ export default function RoleList() {
     setIsSearchModalOpen(false);
   };
 
+
+  const renderSearchTags = () => {
+    const searchKeys = [];
+    const activeFilters: React.ReactNode[] = [];
+    
+    searchKeys.forEach(key => {
+      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+        let label = key;
+        let valueStr = String(params[key]);
+
+        activeFilters.push(<Tag color="blue" key={key} style={{ fontSize: '13px', padding: '2px 8px' }}>{label}: {valueStr}</Tag>);
+      }
+    });
+
+    if (activeFilters.length === 0) {
+      return <Tag color="default" style={{ margin: 0, fontSize: '13px', padding: '2px 8px' }}>【全部資料】</Tag>;
+    }
+    
+    return <Space size={[0, 8]} wrap>{activeFilters}</Space>;
+  };
+
   const openSearchModal = () => {
     searchForm.setFieldsValue(params);
     setIsSearchModalOpen(true);
@@ -304,6 +325,10 @@ export default function RoleList() {
           </Space>
         }
       >
+        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', padding: '12px 16px', borderRadius: '6px' }}>
+          <span style={{ fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
+          {renderSearchTags()}
+        </div>
         <Table
           columns={columns}
           dataSource={listData}

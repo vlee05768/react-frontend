@@ -252,6 +252,27 @@ export default function {Entity}List() {
     setIsSearchModalOpen(false);
   };
 
+
+  const renderSearchTags = () => {
+    const searchKeys = {SearchKeysArray};
+    const activeFilters: React.ReactNode[] = [];
+    
+    searchKeys.forEach(key => {
+      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+        let label = key;
+        let valueStr = String(params[key]);
+{SearchTagsMappingStr}
+        activeFilters.push(<Tag color="blue" key={key} style={{ fontSize: '13px', padding: '2px 8px' }}>{label}: {valueStr}</Tag>);
+      }
+    });
+
+    if (activeFilters.length === 0) {
+      return <Tag color="default" style={{ margin: 0, fontSize: '13px', padding: '2px 8px' }}>【全部資料】</Tag>;
+    }
+    
+    return <Space size={[0, 8]} wrap>{activeFilters}</Space>;
+  };
+
   const openSearchModal = () => {
     searchForm.setFieldsValue(params);
     setIsSearchModalOpen(true);
@@ -304,6 +325,10 @@ export default function {Entity}List() {
           </Space>
         }
       >
+        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', padding: '12px 16px', borderRadius: '6px' }}>
+          <span style={{ fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
+          {renderSearchTags()}
+        </div>
         <Table
           columns={columns}
           dataSource={listData}
@@ -554,7 +579,21 @@ def make_form(c, is_employee=False):
                   </Form.Item>
                 </Col>"""
 
+
+def make_search_tags(e):
+    is_emp = e["Entity"] == "Employee"
+    lines = []
+    for c in e["search"]:
+        lbl = t(c, is_emp)
+        if c == 'status':
+            lines.append(f"        if (key === '{c}') valueStr = params[key] === 1 ? '在職' : (params[key] === 2 ? '離職' : String(params[key]));")
+        elif c == 'departmentCode' and is_emp:
+            lines.append(f"        if (key === '{c}') valueStr = departmentOptions?.find((o: any) => o.value === params[key])?.label || String(params[key]);")
+        lines.append(f"        if (key === '{c}') label = '{lbl}';")
+    return "\n".join(lines)
+
 def build(e):
+
     is_emp = e["Entity"] == "Employee"
     cols_str = "\n".join(make_col(c, is_emp) for c in e["cols"])
     search_str = "\n".join(make_search(c, is_emp) for c in e["search"])
@@ -571,7 +610,13 @@ def build(e):
     code = code.replace("{RoutePath}", e["RoutePath"])
     code = code.replace("{ColumnsStr}", cols_str)
     code = code.replace("{SearchFormStr}", search_str)
+
     code = code.replace("{ViewDescriptionsStr}", desc_str)
+    
+    search_keys_arr = str(e["search"])
+    code = code.replace("{SearchKeysArray}", search_keys_arr)
+    code = code.replace("{SearchTagsMappingStr}", make_search_tags(e))
+
     
     extra_imports = ""
     extra_hooks = ""

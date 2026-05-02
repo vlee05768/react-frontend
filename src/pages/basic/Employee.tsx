@@ -253,6 +253,33 @@ export default function EmployeeList() {
     setIsSearchModalOpen(false);
   };
 
+
+  const renderSearchTags = () => {
+    const searchKeys = ['employeeNo', 'name', 'phone', 'status', 'departmentCode'];
+    const activeFilters: React.ReactNode[] = [];
+    
+    searchKeys.forEach(key => {
+      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+        let label = key;
+        let valueStr = String(params[key]);
+        if (key === 'employeeNo') label = '員工編號';
+        if (key === 'name') label = '姓名';
+        if (key === 'phone') label = '聯絡電話';
+        if (key === 'status') valueStr = params[key] === 1 ? '在職' : (params[key] === 2 ? '離職' : String(params[key]));
+        if (key === 'status') label = '狀態';
+        if (key === 'departmentCode') valueStr = departmentOptions?.find((o: any) => o.value === params[key])?.label || String(params[key]);
+        if (key === 'departmentCode') label = '部門代碼';
+        activeFilters.push(<Tag color="blue" key={key} style={{ fontSize: '13px', padding: '2px 8px' }}>{label}: {valueStr}</Tag>);
+      }
+    });
+
+    if (activeFilters.length === 0) {
+      return <Tag color="default" style={{ margin: 0, fontSize: '13px', padding: '2px 8px' }}>【全部資料】</Tag>;
+    }
+    
+    return <Space size={[0, 8]} wrap>{activeFilters}</Space>;
+  };
+
   const openSearchModal = () => {
     searchForm.setFieldsValue(params);
     setIsSearchModalOpen(true);
@@ -352,6 +379,10 @@ export default function EmployeeList() {
           </Space>
         }
       >
+        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', padding: '12px 16px', borderRadius: '6px' }}>
+          <span style={{ fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
+          {renderSearchTags()}
+        </div>
         <Table
           columns={columns}
           dataSource={listData}
