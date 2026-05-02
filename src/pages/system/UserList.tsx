@@ -12,7 +12,6 @@ import {
   Select,
   Space,
   Card,
-  Typography,
   Tag,
   Tooltip,
   Row,
@@ -44,8 +43,6 @@ import {
 } from '@/api/generated/sdk.gen';
 import { useUserQueryStore } from '@/stores/systemStore';
 import { useAuthStore } from '@/stores/useAuthStore';
-
-const { Title, Text } = Typography;
 
 export default function UserList() {
   const { params, setParams, resetParams } = useUserQueryStore();
@@ -289,9 +286,9 @@ export default function UserList() {
               backgroundColor: '#1677ff',
               borderRadius: '2px'
             }} />
-            <Title level={4} style={{ margin: 0, fontWeight: 600, color: '#262626' }}>
+            <div style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: '#262626', lineHeight: '24px' }}>
               用戶管理
-            </Title>
+            </div>
           </div>
         }
         extra={

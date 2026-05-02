@@ -1,6 +1,17 @@
 import os
 import re
 
+I18N_MAP = {
+    'userName': '使用者名稱', 'name': '名稱', 'email': '電子郵件', 'isActive': '狀態',
+    'employeeCode': '員工編號', 'employeeNo': '員工編號', 'caption': '角色標題',
+    'description': '描述', 'code': '編號', 'type': '類型', 'location': '儲位位置',
+    'area': '區域', 'isCalculateInventory': '計算庫存', 'notes': '備註',
+    'supplierCode': '供應商編號', 'shape': '形狀', 'dimensionLMm': '長度 (mm)',
+    'dimensionWMm': '寬度 (mm)', 'dimensionHMm': '高度 (mm)', 'isShareable': '可共用',
+    'capacity': '產能', 'department': '部門', 'mobile': '手機',
+    'CodeOrName': '編號或名稱', 'Type': '類型', 'SupplierCode': '供應商編號'
+}
+
 TEMPLATE = """// @ts-nocheck
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
@@ -15,7 +26,6 @@ import {
   Select,
   Space,
   Card,
-  Typography,
   Tag,
   Tooltip,
   Row,
@@ -24,7 +34,8 @@ import {
   Popconfirm,
   Drawer,
   Descriptions,
-  Switch
+  Switch,
+  Divider
 } from 'antd';
 import {
   SearchOutlined,
@@ -46,8 +57,6 @@ import {
 } from '@/api/generated/sdk.gen';
 import { use{Entity}QueryStore } from '@/stores/{StoreFile}';
 import { useAuthStore } from '@/stores/useAuthStore';
-
-const { Title, Text } = Typography;
 
 export default function {Entity}List() {
   const { params, setParams, resetParams } = use{Entity}QueryStore();
@@ -90,6 +99,8 @@ export default function {Entity}List() {
 
   const listData = (data?.data as any)?.data?.data || (data?.data as any)?.data || [];
   const totalRecords = (data?.data as any)?.data?.totalRecords || (data?.data as any)?.totalRecords || 0;
+  const currentPage = (data?.data as any)?.data?.pageNumber || params.pageNumber;
+  const currentPageSize = (data?.data as any)?.data?.pageSize || params.pageSize;
   
   // Mutations
   const createMutation = useMutation({
@@ -255,37 +266,36 @@ export default function {Entity}List() {
         variant="borderless"
         styles={{ header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' } }}
         title={
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 40,
-                height: 40,
-                background: 'linear-gradient(135deg, #1677ff 0%, #1677ff40 100%)',
-                borderRadius: '10px',
-                color: '#fff',
-                boxShadow: '0 4px 12px rgba(22, 119, 255, 0.4)'
-              }}>
-                <AppstoreOutlined style={{ fontSize: 22 }} />
-              </div>
-              <Title level={3} style={{ margin: 0, fontWeight: 700, letterSpacing: '1px' }}>{TitleStr}</Title>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '4px',
+              height: '24px',
+              backgroundColor: '#1677ff',
+              borderRadius: '2px'
+            }} />
+            <div style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: '#262626', lineHeight: '24px' }}>
+              {TitleStr}
             </div>
           </div>
         }
         extra={
-          <Space>
+          <Space split={<Divider type="vertical" />}>
             <Button
               type="default"
               icon={<SearchOutlined />}
               onClick={openSearchModal}
+              style={{ fontWeight: 500 }}
             >
-              查詢
+              進階查詢
             </Button>
             {hasPermission('{PermKey}.Create') && (
-              <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer}>
-                新增
+              <Button 
+                type="primary" 
+                icon={<PlusOutlined />} 
+                onClick={openCreateDrawer}
+                style={{ fontWeight: 500 }}
+              >
+                新增資料
               </Button>
             )}
           </Space>
@@ -296,10 +306,10 @@ export default function {Entity}List() {
           dataSource={listData}
           rowKey="{idKey}"
           loading={isFetching}
-          scroll={{ x: 'max-content' }}
+          scroll={{ x: 1200 }}
           pagination={{
-            current: params.pageNumber,
-            pageSize: params.pageSize,
+            current: currentPage,
+            pageSize: currentPageSize,
             total: totalRecords,
             showSizeChanger: true,
             showTotal: (total) => `共 ${total} 筆資料`,
@@ -310,30 +320,29 @@ export default function {Entity}List() {
 
       <Modal
         title={
-          <div style={{ fontSize: '18px', fontWeight: 600, paddingBottom: '8px', borderBottom: '1px solid #f0f0f0', marginBottom: '16px' }}>
-            查詢條件
+          <div style={{ fontSize: '18px', fontWeight: 600, paddingBottom: '12px', borderBottom: '1px solid #f0f0f0', marginBottom: '8px' }}>
+            查詢條件設定
           </div>
         }
         open={isSearchModalOpen}
         onCancel={() => setIsSearchModalOpen(false)}
         footer={
-          <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
-            <Space>
-              <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
-                重置
-              </Button>
-              <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
-                執行查詢
-              </Button>
-            </Space>
+          <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+            <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
+              清空重置
+            </Button>
+            <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
+              執行查詢
+            </Button>
           </div>
         }
-        width="min(800px, 50vw)"
-        style={{ top: 100 }}
+        width={600}
+        style={{ top: 50 }}
         styles={{
           body: {
-            overflow: 'hidden',
-            paddingTop: '24px'
+            height: '400px',
+            overflowY: 'auto',
+            padding: '24px 24px 0 24px'
           }
         }}
         closeIcon={true}
@@ -455,31 +464,36 @@ entities = [
     }
 ]
 
+def t(c):
+    return I18N_MAP.get(c, c)
+
 def make_col(c):
     if c == 'isActive':
-        return f"    {{ title: '狀態', dataIndex: '{c}', key: '{c}', render: (v: boolean) => <Tag color={{v ? 'green' : 'red'}}>{{v ? '啟用' : '停用'}}</Tag> }},"
-    return f"    {{ title: '{c}', dataIndex: '{c}', key: '{c}' }},"
+        return f"    {{ title: '{t(c)}', dataIndex: '{c}', key: '{c}', render: (v: boolean) => <Tag color={{v ? 'green' : 'red'}}>{{v ? '啟用' : '停用'}}</Tag> }},"
+    return f"    {{ title: '{t(c)}', dataIndex: '{c}', key: '{c}' }},"
 
 def make_search(c):
-    return f"""          <Form.Item name="{c}" label="{c}">
-            <Input placeholder="請輸入{c}" allowClear />
-          </Form.Item>"""
+    return f"""            <Col span={{24}}>
+              <Form.Item name="{c}" label="{t(c)}">
+                <Input placeholder="請輸入{t(c)}" allowClear />
+              </Form.Item>
+            </Col>"""
 
 def make_desc(c):
     if c == 'isActive' or c == 'isCalculateInventory' or c == 'isShareable':
-        return f"              <Descriptions.Item label=\"{c}\">{{viewData?.{c} ? '是' : '否'}}</Descriptions.Item>"
-    return f"              <Descriptions.Item label=\"{c}\">{{viewData?.{c}}}</Descriptions.Item>"
+        return f"              <Descriptions.Item label=\"{t(c)}\">{{viewData?.{c} ? '是' : '否'}}</Descriptions.Item>"
+    return f"              <Descriptions.Item label=\"{t(c)}\">{{viewData?.{c}}}</Descriptions.Item>"
 
 def make_form(c):
     if c == 'isActive' or c == 'isCalculateInventory' or c == 'isShareable':
         return f"""                <Col span={{12}}>
-                  <Form.Item name="{c}" label="{c}" valuePropName="checked">
+                  <Form.Item name="{c}" label="{t(c)}" valuePropName="checked">
                     <Switch />
                   </Form.Item>
                 </Col>"""
     return f"""                <Col span={{12}}>
-                  <Form.Item name="{c}" label="{c}" rules={{[{{ required: {str(c in ['code', 'name', 'userName']).lower()}, message: '必填欄位' }}]}}>
-                    <Input placeholder="請輸入{c}" />
+                  <Form.Item name="{c}" label="{t(c)}" rules={{[{{ required: {str(c in ['code', 'name', 'userName']).lower()}, message: '必填欄位' }}]}}>
+                    <Input placeholder="請輸入{t(c)}" />
                   </Form.Item>
                 </Col>"""
 
@@ -502,21 +516,22 @@ def build(e):
     code = code.replace("{ViewDescriptionsStr}", desc_str)
     code = code.replace("{EditFormStr}", form_str)
     
+    # inject ref to first input
     if e["Entity"] == "User":
-        code = code.replace('<Input placeholder="請輸入userName" />', '<Input placeholder="請輸入userName" ref={firstInputRef} />')
+        code = code.replace(f'<Input placeholder="請輸入{t("userName")}" />', f'<Input placeholder="請輸入{t("userName")}" ref={{firstInputRef}} />')
     elif e["Entity"] == "Role":
-        code = code.replace('<Input placeholder="請輸入name" />', '<Input placeholder="請輸入name" ref={firstInputRef} />')
+        code = code.replace(f'<Input placeholder="請輸入{t("name")}" />', f'<Input placeholder="請輸入{t("name")}" ref={{firstInputRef}} />')
     elif e["Entity"] == "Employee":
-        code = code.replace('<Input placeholder="請輸入employeeCode" />', '<Input placeholder="請輸入employeeCode" ref={firstInputRef} />')
+        code = code.replace(f'<Input placeholder="請輸入{t("employeeCode")}" />', f'<Input placeholder="請輸入{t("employeeCode")}" ref={{firstInputRef}} />')
     else:
-        code = code.replace('<Input placeholder="請輸入code" />', '<Input placeholder="請輸入code" ref={firstInputRef} />')
+        code = code.replace(f'<Input placeholder="請輸入{t("code")}" />', f'<Input placeholder="請輸入{t("code")}" ref={{firstInputRef}} />')
         
     return code
 
 os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/system', exist_ok=True)
 os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/warehouse', exist_ok=True)
 os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/production', exist_ok=True)
-os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/employee', exist_ok=True)
+os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/basic', exist_ok=True)
 
 for e in entities:
     if e['Entity'] == 'Employee':
@@ -526,4 +541,3 @@ for e in entities:
     with open(path, 'w') as f:
         f.write(build(e))
     print(f"Generated {path}")
-
