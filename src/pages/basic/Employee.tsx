@@ -214,10 +214,12 @@ export default function EmployeeList() {
         </Space>
       ),
     },
-    { title: '員工編號', dataIndex: 'employeeCode', key: 'employeeCode' },
-    { title: '名稱', dataIndex: 'name', key: 'name' },
-    { title: '部門', dataIndex: 'department', key: 'department' },
-    { title: '狀態', dataIndex: 'isActive', key: 'isActive', render: (v: boolean) => <Tag color={v ? 'green' : 'red'}>{v ? '啟用' : '停用'}</Tag> },
+    { title: '員工編號', dataIndex: 'employeeNo', key: 'employeeNo' },
+    { title: '姓名', dataIndex: 'name', key: 'name' },
+    { title: '部門名稱', dataIndex: 'departmentName', key: 'departmentName' },
+    { title: '聯絡電話', dataIndex: 'phone', key: 'phone' },
+    { title: '到職日期', dataIndex: 'hireDate', key: 'hireDate', render: (v: string) => v ? v.substring(0, 10) : '-' },
+    { title: '狀態', dataIndex: 'status', key: 'status', render: (v: number) => <Tag color={v === 1 ? 'green' : 'red'}>{v === 1 ? '在職' : '離職'}</Tag> },
   ];
 
   const handleSearch = (values: any) => {
@@ -246,23 +248,31 @@ export default function EmployeeList() {
   const renderFormFields = (isEdit: boolean) => (
     <Row gutter={16}>
                 <Col span={12}>
-                  <Form.Item name="employeeCode" label="員工編號" rules={[{ required: false, message: '必填欄位' }]}>
+                  <Form.Item name="employeeNo" label="員工編號" rules={[{ required: true, message: '必填欄位' }]}>
                     <Input placeholder="請輸入員工編號" ref={firstInputRef} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="name" label="名稱" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入名稱" />
+                  <Form.Item name="name" label="姓名" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入姓名" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="department" label="部門" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入部門" />
+                  <Form.Item name="status" label="狀態" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Select placeholder="請選擇狀態">
+                      <Select.Option value={1}>在職</Select.Option>
+                      <Select.Option value={2}>離職</Select.Option>
+                    </Select>
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="mobile" label="手機" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入手機" />
+                  <Form.Item name="departmentCode" label="部門代碼" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入部門代碼" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="phone" label="聯絡電話" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入聯絡電話" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -271,8 +281,18 @@ export default function EmployeeList() {
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="isActive" label="狀態" valuePropName="checked">
-                    <Switch />
+                  <Form.Item name="hireDate" label="到職日期">
+                    <Input type="date" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="resignDate" label="離職日期">
+                    <Input type="date" />
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item name="notes" label="備註">
+                    <Input.TextArea placeholder="請輸入備註" rows={3} />
                   </Form.Item>
                 </Col>
     </Row>
@@ -377,8 +397,26 @@ export default function EmployeeList() {
               </Form.Item>
             </Col>
             <Col span={24}>
-              <Form.Item name="name" label="名稱">
-                <Input placeholder="請輸入名稱" allowClear />
+              <Form.Item name="name" label="姓名">
+                <Input placeholder="請輸入姓名" allowClear />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item name="phone" label="聯絡電話">
+                <Input placeholder="請輸入聯絡電話" allowClear />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item name="status" label="狀態">
+                <Select placeholder="請選擇狀態" allowClear>
+                  <Select.Option value={1}>在職</Select.Option>
+                  <Select.Option value={2}>離職</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item name="departmentCode" label="部門代碼">
+                <Input placeholder="請輸入部門代碼" allowClear />
               </Form.Item>
             </Col>
           </Row>
@@ -436,12 +474,15 @@ export default function EmployeeList() {
             </Form>
           ) : (
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="員工編號">{viewData?.employeeCode}</Descriptions.Item>
-              <Descriptions.Item label="名稱">{viewData?.name}</Descriptions.Item>
-              <Descriptions.Item label="部門">{viewData?.department}</Descriptions.Item>
-              <Descriptions.Item label="手機">{viewData?.mobile}</Descriptions.Item>
+              <Descriptions.Item label="員工編號">{viewData?.employeeNo}</Descriptions.Item>
+              <Descriptions.Item label="姓名">{viewData?.name}</Descriptions.Item>
+              <Descriptions.Item label="狀態">{viewData?.status === 1 ? '在職' : '離職'}</Descriptions.Item>
+              <Descriptions.Item label="部門代碼">{viewData?.departmentCode}</Descriptions.Item>
+              <Descriptions.Item label="聯絡電話">{viewData?.phone}</Descriptions.Item>
               <Descriptions.Item label="電子郵件">{viewData?.email}</Descriptions.Item>
-              <Descriptions.Item label="狀態">{viewData?.isActive ? '是' : '否'}</Descriptions.Item>
+              <Descriptions.Item label="到職日期">{viewData?.hireDate ? viewData.hireDate.substring(0,10) : '-'}</Descriptions.Item>
+              <Descriptions.Item label="離職日期">{viewData?.resignDate ? viewData.resignDate.substring(0,10) : '-'}</Descriptions.Item>
+              <Descriptions.Item label="備註">{viewData?.notes}</Descriptions.Item>
             </Descriptions>
           )}
         </Spin>
