@@ -41,6 +41,7 @@ import {
   putApiV1RoleById,
   deleteApiV1RoleById
 } from '@/api/generated/sdk.gen';
+
 import { useRoleQueryStore } from '@/stores/systemStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 
@@ -87,7 +88,7 @@ export default function RoleList() {
   const totalRecords = (data?.data as any)?.data?.totalRecords || (data?.data as any)?.totalRecords || 0;
   const currentPage = (data?.data as any)?.data?.pageNumber || params.pageNumber;
   const currentPageSize = (data?.data as any)?.data?.pageSize || params.pageSize;
-  
+
   // Mutations
   const createMutation = useMutation({
     mutationFn: (values: any) => postApiV1Role({ body: values }),
@@ -254,7 +255,7 @@ export default function RoleList() {
                     <Input placeholder="請輸入角色標題" />
                   </Form.Item>
                 </Col>
-                <Col span={24}>
+                <Col span={12}>
                   <Form.Item name="description" label="描述">
                     <Input.TextArea placeholder="請輸入描述" rows={3} />
                   </Form.Item>
@@ -338,11 +339,11 @@ export default function RoleList() {
             </Button>
           </div>
         }
-        width={600}
-        style={{ top: 50 }}
+        width={'60vw'}
+        style={{ top: '10vh' }}
         styles={{
           body: {
-            height: '400px',
+            maxHeight: '80vh',
             overflowY: 'auto',
             padding: '24px 24px 0 24px'
           }

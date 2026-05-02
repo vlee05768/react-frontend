@@ -41,6 +41,7 @@ import {
   putApiV1StorageByCode,
   deleteApiV1StorageByCode
 } from '@/api/generated/sdk.gen';
+
 import { useStorageQueryStore } from '@/stores/warehouseStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 
@@ -87,7 +88,7 @@ export default function StorageList() {
   const totalRecords = (data?.data as any)?.data?.totalRecords || (data?.data as any)?.totalRecords || 0;
   const currentPage = (data?.data as any)?.data?.pageNumber || params.pageNumber;
   const currentPageSize = (data?.data as any)?.data?.pageSize || params.pageSize;
-  
+
   // Mutations
   const createMutation = useMutation({
     mutationFn: (values: any) => postApiV1Storage({ body: values }),
@@ -281,7 +282,7 @@ export default function StorageList() {
                     <Switch />
                   </Form.Item>
                 </Col>
-                <Col span={24}>
+                <Col span={12}>
                   <Form.Item name="notes" label="備註">
                     <Input.TextArea placeholder="請輸入備註" rows={3} />
                   </Form.Item>
@@ -365,11 +366,11 @@ export default function StorageList() {
             </Button>
           </div>
         }
-        width={600}
-        style={{ top: 50 }}
+        width={'60vw'}
+        style={{ top: '10vh' }}
         styles={{
           body: {
-            height: '400px',
+            maxHeight: '80vh',
             overflowY: 'auto',
             padding: '24px 24px 0 24px'
           }
@@ -382,12 +383,12 @@ export default function StorageList() {
           onFinish={handleSearch}
         >
           <Row gutter={16}>
-            <Col span={24}>
+            <Col span={12}>
               <Form.Item name="CodeOrName" label="編號或名稱">
                 <Input placeholder="請輸入編號或名稱" allowClear />
               </Form.Item>
             </Col>
-            <Col span={24}>
+            <Col span={12}>
               <Form.Item name="Type" label="類型">
                 <Input placeholder="請輸入類型" allowClear />
               </Form.Item>

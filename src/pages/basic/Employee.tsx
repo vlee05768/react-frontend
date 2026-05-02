@@ -41,6 +41,7 @@ import {
   putApiV1EmployeeById,
   deleteApiV1EmployeeById
 } from '@/api/generated/sdk.gen';
+import { getApiV1GeneralTypesGetTypes } from '@/api/generated/sdk.gen';
 import { useEmployeeQueryStore } from '@/stores/employeeStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 
@@ -87,7 +88,19 @@ export default function EmployeeList() {
   const totalRecords = (data?.data as any)?.data?.totalRecords || (data?.data as any)?.totalRecords || 0;
   const currentPage = (data?.data as any)?.data?.pageNumber || params.pageNumber;
   const currentPageSize = (data?.data as any)?.data?.pageSize || params.pageSize;
+
+  // 獲取部門選單
+  const { data: deptRes, isFetching: isFetchingDepartments } = useQuery({
+    queryKey: ['departmentOptions'],
+    queryFn: () => getApiV1GeneralTypesGetTypes({ query: { types: ['Department'] } }),
+    staleTime: 1000 * 60 * 5,
+  });
   
+  const departmentOptions = ((deptRes?.data as any)?.data?.Department || (deptRes?.data as any)?.Department || []).map((d: any) => ({
+    label: d.desc || d.code || '',
+    value: d.code || ''
+  }));
+
   // Mutations
   const createMutation = useMutation({
     mutationFn: (values: any) => postApiV1Employee({ body: values }),
@@ -259,7 +272,7 @@ export default function EmployeeList() {
                 </Col>
                 <Col span={12}>
                   <Form.Item name="status" label="狀態" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Select placeholder="請選擇狀態">
+                    <Select placeholder="請選擇狀態" style={{ width: '100%' }}>
                       <Select.Option value={1}>在職</Select.Option>
                       <Select.Option value={2}>離職</Select.Option>
                     </Select>
@@ -267,7 +280,7 @@ export default function EmployeeList() {
                 </Col>
                 <Col span={12}>
                   <Form.Item name="departmentCode" label="部門代碼" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入部門代碼" />
+                    <Select placeholder="請選擇部門代碼" style={{ width: '100%' }} options={departmentOptions} loading={isFetchingDepartments} showSearch filterOption={(input, option) => (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -282,15 +295,15 @@ export default function EmployeeList() {
                 </Col>
                 <Col span={12}>
                   <Form.Item name="hireDate" label="到職日期">
-                    <Input type="date" />
+                    <Input type="date" style={{ width: '100%' }} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="resignDate" label="離職日期">
-                    <Input type="date" />
+                    <Input type="date" style={{ width: '100%' }} />
                   </Form.Item>
                 </Col>
-                <Col span={24}>
+                <Col span={12}>
                   <Form.Item name="notes" label="備註">
                     <Input.TextArea placeholder="請輸入備註" rows={3} />
                   </Form.Item>
@@ -374,11 +387,11 @@ export default function EmployeeList() {
             </Button>
           </div>
         }
-        width={600}
-        style={{ top: 50 }}
+        width={'60vw'}
+        style={{ top: '10vh' }}
         styles={{
           body: {
-            height: '400px',
+            maxHeight: '80vh',
             overflowY: 'auto',
             padding: '24px 24px 0 24px'
           }
@@ -391,32 +404,32 @@ export default function EmployeeList() {
           onFinish={handleSearch}
         >
           <Row gutter={16}>
-            <Col span={24}>
+            <Col span={12}>
               <Form.Item name="employeeNo" label="員工編號">
                 <Input placeholder="請輸入員工編號" allowClear />
               </Form.Item>
             </Col>
-            <Col span={24}>
+            <Col span={12}>
               <Form.Item name="name" label="姓名">
                 <Input placeholder="請輸入姓名" allowClear />
               </Form.Item>
             </Col>
-            <Col span={24}>
+            <Col span={12}>
               <Form.Item name="phone" label="聯絡電話">
                 <Input placeholder="請輸入聯絡電話" allowClear />
               </Form.Item>
             </Col>
-            <Col span={24}>
+            <Col span={12}>
               <Form.Item name="status" label="狀態">
-                <Select placeholder="請選擇狀態" allowClear>
+                <Select placeholder="請選擇狀態" allowClear style={{ width: '100%' }}>
                   <Select.Option value={1}>在職</Select.Option>
                   <Select.Option value={2}>離職</Select.Option>
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={24}>
+            <Col span={12}>
               <Form.Item name="departmentCode" label="部門代碼">
-                <Input placeholder="請輸入部門代碼" allowClear />
+                <Select placeholder="請選擇部門代碼" allowClear style={{ width: '100%' }} options={departmentOptions} loading={isFetchingDepartments} showSearch filterOption={(input, option) => (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())} />
               </Form.Item>
             </Col>
           </Row>
@@ -477,7 +490,7 @@ export default function EmployeeList() {
               <Descriptions.Item label="員工編號">{viewData?.employeeNo}</Descriptions.Item>
               <Descriptions.Item label="姓名">{viewData?.name}</Descriptions.Item>
               <Descriptions.Item label="狀態">{viewData?.status === 1 ? '在職' : '離職'}</Descriptions.Item>
-              <Descriptions.Item label="部門代碼">{viewData?.departmentCode}</Descriptions.Item>
+              <Descriptions.Item label="部門代碼">{departmentOptions?.find((o: any) => o.value === viewData?.departmentCode)?.label || viewData?.departmentCode}</Descriptions.Item>
               <Descriptions.Item label="聯絡電話">{viewData?.phone}</Descriptions.Item>
               <Descriptions.Item label="電子郵件">{viewData?.email}</Descriptions.Item>
               <Descriptions.Item label="到職日期">{viewData?.hireDate ? viewData.hireDate.substring(0,10) : '-'}</Descriptions.Item>

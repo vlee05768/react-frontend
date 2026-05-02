@@ -57,6 +57,7 @@ import {
   putApiV1{Entity}By{IdKeyC},
   deleteApiV1{Entity}By{IdKeyC}
 } from '@/api/generated/sdk.gen';
+{ExtraImportsStr}
 import { use{Entity}QueryStore } from '@/stores/{StoreFile}';
 import { useAuthStore } from '@/stores/useAuthStore';
 
@@ -103,7 +104,7 @@ export default function {Entity}List() {
   const totalRecords = (data?.data as any)?.data?.totalRecords || (data?.data as any)?.totalRecords || 0;
   const currentPage = (data?.data as any)?.data?.pageNumber || params.pageNumber;
   const currentPageSize = (data?.data as any)?.data?.pageSize || params.pageSize;
-  
+{ExtraHooksStr}
   // Mutations
   const createMutation = useMutation({
     mutationFn: (values: any) => postApiV1{Entity}({ body: values }),
@@ -338,11 +339,11 @@ export default function {Entity}List() {
             </Button>
           </div>
         }
-        width={600}
-        style={{ top: 50 }}
+        width={'60vw'}
+        style={{ top: '10vh' }}
         styles={{
           body: {
-            height: '400px',
+            maxHeight: '80vh',
             overflowY: 'auto',
             padding: '24px 24px 0 24px'
           }
@@ -482,15 +483,21 @@ def make_col(c, is_employee=False):
 
 def make_search(c, is_employee=False):
     if c == 'status':
-        return f"""            <Col span={{24}}>
+        return f"""            <Col span={{12}}>
               <Form.Item name="{c}" label="{t(c, is_employee)}">
-                <Select placeholder="請選擇{t(c, is_employee)}" allowClear>
+                <Select placeholder="請選擇{t(c, is_employee)}" allowClear style={{{{ width: '100%' }}}}>
                   <Select.Option value={{1}}>在職</Select.Option>
                   <Select.Option value={{2}}>離職</Select.Option>
                 </Select>
               </Form.Item>
             </Col>"""
-    return f"""            <Col span={{24}}>
+    if c == 'departmentCode':
+        return f"""            <Col span={{12}}>
+              <Form.Item name="{c}" label="{t(c, is_employee)}">
+                <Select placeholder="請選擇{t(c, is_employee)}" allowClear style={{{{ width: '100%' }}}} options={{departmentOptions}} loading={{isFetchingDepartments}} showSearch filterOption={{(input, option) => (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())}} />
+              </Form.Item>
+            </Col>"""
+    return f"""            <Col span={{12}}>
               <Form.Item name="{c}" label="{t(c, is_employee)}">
                 <Input placeholder="請輸入{t(c, is_employee)}" allowClear />
               </Form.Item>
@@ -501,6 +508,8 @@ def make_desc(c, is_employee=False):
         return f"              <Descriptions.Item label=\"{t(c, is_employee)}\">{{viewData?.{c} ? '是' : '否'}}</Descriptions.Item>"
     if c == 'status':
         return f"              <Descriptions.Item label=\"{t(c, is_employee)}\">{{viewData?.{c} === 1 ? '在職' : '離職'}}</Descriptions.Item>"
+    if c == 'departmentCode':
+        return f"              <Descriptions.Item label=\"{t(c, is_employee)}\">{{departmentOptions?.find((o: any) => o.value === viewData?.{c})?.label || viewData?.{c}}}</Descriptions.Item>"
     if 'Date' in c:
         return f"              <Descriptions.Item label=\"{t(c, is_employee)}\">{{viewData?.{c} ? viewData.{c}.substring(0,10) : '-'}}</Descriptions.Item>"
     return f"              <Descriptions.Item label=\"{t(c, is_employee)}\">{{viewData?.{c}}}</Descriptions.Item>"
@@ -515,20 +524,26 @@ def make_form(c, is_employee=False):
     if c == 'status':
         return f"""                <Col span={{12}}>
                   <Form.Item name="{c}" label="{t(c, is_employee)}" rules={{[{{ required: true, message: '必填欄位' }}]}}>
-                    <Select placeholder="請選擇{t(c, is_employee)}">
+                    <Select placeholder="請選擇{t(c, is_employee)}" style={{{{ width: '100%' }}}}>
                       <Select.Option value={{1}}>在職</Select.Option>
                       <Select.Option value={{2}}>離職</Select.Option>
                     </Select>
                   </Form.Item>
                 </Col>"""
+    if c == 'departmentCode':
+        return f"""                <Col span={{12}}>
+                  <Form.Item name="{c}" label="{t(c, is_employee)}" rules={{[{{ required: true, message: '必填欄位' }}]}}>
+                    <Select placeholder="請選擇{t(c, is_employee)}" style={{{{ width: '100%' }}}} options={{departmentOptions}} loading={{isFetchingDepartments}} showSearch filterOption={{(input, option) => (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())}} />
+                  </Form.Item>
+                </Col>"""
     if 'Date' in c:
         return f"""                <Col span={{12}}>
                   <Form.Item name="{c}" label="{t(c, is_employee)}">
-                    <Input type="date" />
+                    <Input type="date" style={{{{ width: '100%' }}}} />
                   </Form.Item>
                 </Col>"""
     if c == 'notes' or c == 'description':
-        return f"""                <Col span={{24}}>
+        return f"""                <Col span={{12}}>
                   <Form.Item name="{c}" label="{t(c, is_employee)}">
                     <Input.TextArea placeholder="請輸入{t(c, is_employee)}" rows={{3}} />
                   </Form.Item>
@@ -557,6 +572,27 @@ def build(e):
     code = code.replace("{ColumnsStr}", cols_str)
     code = code.replace("{SearchFormStr}", search_str)
     code = code.replace("{ViewDescriptionsStr}", desc_str)
+    
+    extra_imports = ""
+    extra_hooks = ""
+    if is_emp:
+        extra_imports = "import { getApiV1GeneralTypesGetTypes } from '@/api/generated/sdk.gen';"
+        extra_hooks = """
+  // 獲取部門選單
+  const { data: deptRes, isFetching: isFetchingDepartments } = useQuery({
+    queryKey: ['departmentOptions'],
+    queryFn: () => getApiV1GeneralTypesGetTypes({ query: { types: ['Department'] } }),
+    staleTime: 1000 * 60 * 5,
+  });
+  
+  const departmentOptions = ((deptRes?.data as any)?.data?.Department || (deptRes?.data as any)?.Department || []).map((d: any) => ({
+    label: d.desc || d.code || '',
+    value: d.code || ''
+  }));
+"""
+        
+    code = code.replace("{ExtraImportsStr}", extra_imports)
+    code = code.replace("{ExtraHooksStr}", extra_hooks)
     code = code.replace("{EditFormStr}", form_str)
     
     # inject ref to first input
