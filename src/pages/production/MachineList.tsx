@@ -379,13 +379,17 @@ export default function MachineList() {
 
             /* View-Mode Styling for Single Form */
             .view-mode-form .ant-input-disabled,
+            .view-mode-form .ant-input[disabled],
+            .view-mode-form .ant-select-disabled,
             .view-mode-form .ant-select-disabled .ant-select-selection-item,
             .view-mode-form .ant-select-disabled .ant-select-selector,
             .view-mode-form .ant-input-number-disabled,
             .view-mode-form .ant-picker-disabled {
                 color: var(--ant-color-text, rgba(0, 0, 0, 0.88)) !important;
+                -webkit-text-fill-color: var(--ant-color-text, rgba(0, 0, 0, 0.88)) !important;
                 background-color: var(--ant-color-bg-container-disabled, rgba(0, 0, 0, 0.04)) !important;
                 border-color: var(--ant-color-border, #d9d9d9) !important;
+                opacity: 1 !important;
                 cursor: default !important;
             }
             .view-mode-form .ant-switch-disabled {
