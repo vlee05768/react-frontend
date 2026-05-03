@@ -31,7 +31,9 @@ import {
   ClearOutlined,
   SaveOutlined,
   EyeOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  CheckOutlined,
+  CloseOutlined
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -207,7 +209,7 @@ export default function StorageList() {
               />
             </Tooltip>
           )}
-          {hasPermission('Warehouse.Storages.Delete') && (
+          {false && (
             <Tooltip title="刪除">
               <Popconfirm
                 title="確定要刪除此筆資料嗎？"
@@ -222,20 +224,29 @@ export default function StorageList() {
         </Space>
       ),
     },
-    { title: '編號', dataIndex: 'code', key: 'code', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '名稱', dataIndex: 'name', key: 'name', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '類型', dataIndex: 'type', key: 'type', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '儲位位置', dataIndex: 'location', key: 'location', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '狀態', dataIndex: 'isActive', key: 'isActive', align: 'center', render: (v: boolean) => <Tag color={v ? 'green' : 'red'}>{v ? '啟用' : '停用'}</Tag> },
+    { title: '儲位編碼', dataIndex: 'code', key: 'code', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '儲位名稱', dataIndex: 'name', key: 'name', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '儲位類型', dataIndex: 'type', key: 'type', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '地區', dataIndex: 'location', key: 'location', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '區域', dataIndex: 'area', key: 'area', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '計算庫存', dataIndex: 'isCalculateInventory', key: 'isCalculateInventory', align: 'center', render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{ color: 'green' }} /> : (v === false ? <CloseOutlined style={{ color: 'red' }} /> : null) },
+    { title: '狀態', dataIndex: 'isActive', key: 'isActive', align: 'center', render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{ color: 'green' }} /> : (v === false ? <CloseOutlined style={{ color: 'red' }} /> : null) },
+    { title: '備註', dataIndex: 'notes', key: 'notes', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
   ];
 
   const handleSearch = (values: any) => {
-    // 移除空字串
-    const cleanValues = Object.fromEntries(
-      Object.entries(values).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
-    );
+    // 確保清空的欄位能覆蓋 Zustand store 中的舊值
+    const searchKeys = ['CodeOrName', 'Type'];
+    const nextParams = { ...values };
+    
+    searchKeys.forEach(key => {
+      if (nextParams[key] === '' || nextParams[key] === null) {
+        nextParams[key] = undefined;
+      }
+    });
+
     setParams({
-      ...cleanValues,
+      ...nextParams,
       pageNumber: 1,
     });
     setIsSearchModalOpen(false);
@@ -243,7 +254,7 @@ export default function StorageList() {
 
   const handleSearchReset = () => {
     searchForm.resetFields();
-    resetParams();
+    // 僅清空表單，不呼叫 resetParams()，避免自動觸發 API 查詢
   };
 
 
@@ -276,23 +287,23 @@ export default function StorageList() {
   const renderFormFields = (isEdit: boolean) => (
     <Row gutter={16}>
                 <Col span={12}>
-                  <Form.Item name="code" label="編號" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入編號" ref={firstInputRef} />
+                  <Form.Item name="code" label="儲位編碼" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入儲位編碼" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="name" label="名稱" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入名稱" />
+                  <Form.Item name="name" label="儲位名稱" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入儲位名稱" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="type" label="類型" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入類型" />
+                  <Form.Item name="type" label="儲位類型" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入儲位類型" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="location" label="儲位位置" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入儲位位置" />
+                  <Form.Item name="location" label="地區" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入地區" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -350,7 +361,7 @@ export default function StorageList() {
             >
               進階查詢
             </Button>
-            {hasPermission('Warehouse.Storages.Create') && (
+            {false && (
               <Button 
                 type="primary" 
                 icon={<PlusOutlined />} 
@@ -377,14 +388,16 @@ export default function StorageList() {
             .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
             .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
             .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
+            .ant-table-thead > tr > th { text-align: center !important; }
           `}</style>
           <Table
+            bordered
             style={{ flex: 1 }}
             columns={columns}
             dataSource={listData}
             rowKey="code"
             loading={isFetching}
-            scroll={{ x: 1200, y: 300 }}
+            scroll={{ x: 'max-content', y: 300 }}
             pagination={{
               current: currentPage,
               pageSize: currentPageSize,
@@ -457,7 +470,7 @@ export default function StorageList() {
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={
-          (!isDrawerEditing && !isCreateDrawerOpen && hasPermission('Warehouse.Storages.Update')) && (
+          (!isDrawerEditing && !isCreateDrawerOpen && false) && (
             <Button 
               type="primary" 
               icon={<EditOutlined />} 
@@ -497,13 +510,13 @@ export default function StorageList() {
             </Form>
           ) : (
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="編號">{viewData?.code}</Descriptions.Item>
-              <Descriptions.Item label="名稱">{viewData?.name}</Descriptions.Item>
-              <Descriptions.Item label="類型">{viewData?.type}</Descriptions.Item>
-              <Descriptions.Item label="儲位位置">{viewData?.location}</Descriptions.Item>
+              <Descriptions.Item label="儲位編碼">{viewData?.code}</Descriptions.Item>
+              <Descriptions.Item label="儲位名稱">{viewData?.name}</Descriptions.Item>
+              <Descriptions.Item label="儲位類型">{viewData?.type}</Descriptions.Item>
+              <Descriptions.Item label="地區">{viewData?.location}</Descriptions.Item>
               <Descriptions.Item label="區域">{viewData?.area}</Descriptions.Item>
               <Descriptions.Item label="計算庫存">{viewData?.isCalculateInventory ? '是' : '否'}</Descriptions.Item>
-              <Descriptions.Item label="狀態">{viewData?.isActive ? '是' : '否'}</Descriptions.Item>
+              <Descriptions.Item label="狀態">{viewData?.isActive ? '啟用' : '停用'}</Descriptions.Item>
               <Descriptions.Item label="備註">{viewData?.notes}</Descriptions.Item>
             </Descriptions>
           )}

@@ -31,7 +31,9 @@ import {
   ClearOutlined,
   SaveOutlined,
   EyeOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  CheckOutlined,
+  CloseOutlined
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -234,23 +236,29 @@ export default function EmployeeList() {
         </Space>
       ),
     },
-    { title: '員工編號', dataIndex: 'employeeNo', key: 'employeeNo', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '姓名', dataIndex: 'name', key: 'name', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '部門名稱', dataIndex: 'departmentName', key: 'departmentName', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '聯絡電話', dataIndex: 'phone', key: 'phone', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '員工編號', dataIndex: 'employeeNo', key: 'employeeNo', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '姓名', dataIndex: 'name', key: 'name', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '部門名稱', dataIndex: 'departmentName', key: 'departmentName', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '聯絡電話', dataIndex: 'phone', key: 'phone', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
     { title: '到職日期', dataIndex: 'hireDate', key: 'hireDate', align: 'center', render: (v: string) => v ? v.substring(0, 10) : '-' },
     { title: '離職日期', dataIndex: 'resignDate', key: 'resignDate', align: 'center', render: (v: string) => v ? v.substring(0, 10) : '-' },
-    { title: '狀態', dataIndex: 'status', key: 'status', align: 'center', render: (v: number) => <Tag color={v === 1 ? 'green' : 'red'}>{v === 1 ? '在職' : '離職'}</Tag> },
-    { title: '備註', dataIndex: 'notes', key: 'notes', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '狀態', dataIndex: 'status', key: 'status', align: 'center', render: (v: number) => v === 1 ? <CheckOutlined style={{ color: 'green' }} /> : (v === 2 ? <CloseOutlined style={{ color: 'red' }} /> : null) },
+    { title: '備註', dataIndex: 'notes', key: 'notes', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
   ];
 
   const handleSearch = (values: any) => {
-    // 移除空字串
-    const cleanValues = Object.fromEntries(
-      Object.entries(values).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
-    );
+    // 確保清空的欄位能覆蓋 Zustand store 中的舊值
+    const searchKeys = ['employeeNo', 'name', 'status', 'departmentCode'];
+    const nextParams = { ...values };
+    
+    searchKeys.forEach(key => {
+      if (nextParams[key] === '' || nextParams[key] === null) {
+        nextParams[key] = undefined;
+      }
+    });
+
     setParams({
-      ...cleanValues,
+      ...nextParams,
       pageNumber: 1,
     });
     setIsSearchModalOpen(false);
@@ -258,7 +266,7 @@ export default function EmployeeList() {
 
   const handleSearchReset = () => {
     searchForm.resetFields();
-    resetParams();
+    // 僅清空表單，不呼叫 resetParams()，避免自動觸發 API 查詢
   };
 
 
@@ -404,14 +412,16 @@ export default function EmployeeList() {
             .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
             .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
             .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
+            .ant-table-thead > tr > th { text-align: center !important; }
           `}</style>
           <Table
+            bordered
             style={{ flex: 1 }}
             columns={columns}
             dataSource={listData}
             rowKey="id"
             loading={isFetching}
-            scroll={{ x: 1200, y: 300 }}
+            scroll={{ x: 'max-content', y: 300 }}
             pagination={{
               current: currentPage,
               pageSize: currentPageSize,

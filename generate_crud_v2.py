@@ -2,13 +2,13 @@ import os
 import re
 
 I18N_MAP = {
-    'userName': '使用者名稱', 'name': '名稱', 'email': '電子郵件', 'isActive': '狀態',
+    'userName': '帳號', 'name': '姓名', 'email': '電子郵件', 'isActive': '狀態', 'position': '職位', 'extensionNumber': '分機號碼', 'phoneNumber': '電話號碼', 'roles': '角色', 'mobile': '手機號碼',
     'employeeCode': '員工編號', 'employeeNo': '員工編號', 'caption': '角色標題',
     'description': '描述', 'code': '編號', 'type': '類型', 'location': '儲位位置',
     'area': '區域', 'isCalculateInventory': '計算庫存', 'notes': '備註',
     'supplierCode': '供應商編號', 'shape': '形狀', 'dimensionLMm': '長度 (mm)',
     'dimensionWMm': '寬度 (mm)', 'dimensionHMm': '高度 (mm)', 'isShareable': '可共用',
-    'capacity': '產能', 'department': '部門', 'mobile': '手機',
+    'capacity': '產能', 'department': '部門',
     'CodeOrName': '編號或名稱', 'Type': '類型', 'SupplierCode': '供應商編號',
     'departmentName': '部門名稱', 'phone': '聯絡電話', 'hireDate': '到職日期', 
     'resignDate': '離職日期', 'status': '狀態', 'departmentCode': '部門代碼'
@@ -47,7 +47,9 @@ import {
   ClearOutlined,
   SaveOutlined,
   EyeOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  CheckOutlined,
+  CloseOutlined
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -223,7 +225,7 @@ export default function {Entity}List() {
               />
             </Tooltip>
           )}
-          {hasPermission('{PermKey}.Delete') && (
+          {{DeletePermCheck} && (
             <Tooltip title="刪除">
               <Popconfirm
                 title="確定要刪除此筆資料嗎？"
@@ -242,12 +244,18 @@ export default function {Entity}List() {
   ];
 
   const handleSearch = (values: any) => {
-    // 移除空字串
-    const cleanValues = Object.fromEntries(
-      Object.entries(values).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
-    );
+    // 確保清空的欄位能覆蓋 Zustand store 中的舊值
+    const searchKeys = {SearchKeysArray};
+    const nextParams = { ...values };
+    
+    searchKeys.forEach(key => {
+      if (nextParams[key] === '' || nextParams[key] === null) {
+        nextParams[key] = undefined;
+      }
+    });
+
     setParams({
-      ...cleanValues,
+      ...nextParams,
       pageNumber: 1,
     });
     setIsSearchModalOpen(false);
@@ -255,7 +263,7 @@ export default function {Entity}List() {
 
   const handleSearchReset = () => {
     searchForm.resetFields();
-    resetParams();
+    // 僅清空表單，不呼叫 resetParams()，避免自動觸發 API 查詢
   };
 
 
@@ -322,7 +330,7 @@ export default function {Entity}List() {
             >
               進階查詢
             </Button>
-            {hasPermission('{PermKey}.Create') && (
+            {{CreatePermCheck} && (
               <Button 
                 type="primary" 
                 icon={<PlusOutlined />} 
@@ -349,14 +357,16 @@ export default function {Entity}List() {
             .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
             .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
             .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
+            .ant-table-thead > tr > th { text-align: center !important; }
           `}</style>
           <Table
+            bordered
             style={{ flex: 1 }}
             columns={columns}
             dataSource={listData}
             rowKey="{idKey}"
             loading={isFetching}
-            scroll={{ x: 1200, y: 300 }}
+            scroll={{ x: 'max-content', y: 300 }}
             pagination={{
               current: currentPage,
               pageSize: currentPageSize,
@@ -420,7 +430,7 @@ export default function {Entity}List() {
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={
-          (!isDrawerEditing && !isCreateDrawerOpen && hasPermission('{PermKey}.Update')) && (
+          (!isDrawerEditing && !isCreateDrawerOpen && {UpdatePermCheck}) && (
             <Button 
               type="primary" 
               icon={<EditOutlined />} 
@@ -474,9 +484,9 @@ entities = [
     {
         "Entity": "User", "entity": "user", "TitleStr": "用戶管理", "PermKey": "System.Users",
         "IdKeyC": "Id", "idKey": "id", "StoreFile": "systemStore", "RoutePath": "/system/users",
-        "cols": ["userName", "name", "email", "isActive"],
-        "search": ["name"],
-        "fields": ["userName", "name", "email", "isActive", "employeeCode"]
+        "cols": ["isActive", "userName", "name", "employeeCode", "position", "email", "department", "extensionNumber", "mobile", "phoneNumber", "roles"],
+        "search": ["userName", "name", "employeeCode"],
+        "fields": ["isActive", "userName", "name", "employeeCode", "position", "email", "department", "extensionNumber", "mobile", "phoneNumber", "roles"]
     },
     {
         "Entity": "Role", "entity": "role", "TitleStr": "角色管理", "PermKey": "System.Roles",
@@ -488,9 +498,10 @@ entities = [
     {
         "Entity": "Storage", "entity": "storage", "TitleStr": "儲位管理", "PermKey": "Warehouse.Storages",
         "IdKeyC": "Code", "idKey": "code", "StoreFile": "warehouseStore", "RoutePath": "/warehouse/storages",
-        "cols": ["code", "name", "type", "location", "isActive"],
+        "cols": ["code", "name", "type", "location", "area", "isCalculateInventory", "isActive", "notes"],
         "search": ["CodeOrName", "Type"],
-        "fields": ["code", "name", "type", "location", "area", "isCalculateInventory", "isActive", "notes"]
+        "fields": ["code", "name", "type", "location", "area", "isCalculateInventory", "isActive", "notes"],
+        "readOnly": True
     },
     {
         "Entity": "Mold", "entity": "mold", "TitleStr": "模具管理", "PermKey": "ProductionQuality.Molds",
@@ -515,26 +526,36 @@ entities = [
     }
 ]
 
-def t(c, is_employee=False):
-    if is_employee and c == 'name':
+def t(c, entity=''):
+    if entity == 'employee' and c == 'name':
         return '姓名'
+    if entity == 'storage':
+        if c == 'code': return '儲位編碼'
+        if c == 'name': return '儲位名稱'
+        if c == 'type': return '儲位類型'
+        if c == 'location': return '地區'
     return I18N_MAP.get(c, c)
 
-def make_col(c, is_employee=False):
-    if c == 'isActive':
-        return f"    {{ title: '{t(c, is_employee)}', dataIndex: '{c}', key: '{c}', align: 'center', render: (v: boolean) => <Tag color={{v ? 'green' : 'red'}}>{{v ? '啟用' : '停用'}}</Tag> }},"
+def make_col(c, entity=""):
+    if c in ['isActive', 'isCalculateInventory', 'isShareable']:
+        return f"    {{ title: '{t(c, entity)}', dataIndex: '{c}', key: '{c}', align: 'center', render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{{{ color: 'green' }}}} /> : (v === false ? <CloseOutlined style={{{{ color: 'red' }}}} /> : null) }},"
     if c == 'status':
-        return f"    {{ title: '{t(c, is_employee)}', dataIndex: '{c}', key: '{c}', align: 'center', render: (v: number) => <Tag color={{v === 1 ? 'green' : 'red'}}>{{v === 1 ? '在職' : '離職'}}</Tag> }},"
+        return f"    {{ title: '{t(c, entity)}', dataIndex: '{c}', key: '{c}', align: 'center', render: (v: number) => v === 1 ? <CheckOutlined style={{{{ color: 'green' }}}} /> : (v === 2 ? <CloseOutlined style={{{{ color: 'red' }}}} /> : null) }},"
     if 'Date' in c:
-        return f"    {{ title: '{t(c, is_employee)}', dataIndex: '{c}', key: '{c}', align: 'center', render: (v: string) => v ? v.substring(0, 10) : '-' }},"
-    return f"    {{ title: '{t(c, is_employee)}', dataIndex: '{c}', key: '{c}', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v }},"
+        return f"    {{ title: '{t(c, entity)}', dataIndex: '{c}', key: '{c}', align: 'center', render: (v: string) => v ? v.substring(0, 10) : '-' }},"
+    if c == 'roles':
+        return f"    {{ title: '{t(c, entity)}', dataIndex: '{c}', key: '{c}', render: (v: string[]) => v?.join(', ') || '-' }},"
+    if c in ['capacity', 'dimensionLMm', 'dimensionWMm', 'dimensionHMm']:
+        return f"    {{ title: '{t(c, entity)}', dataIndex: '{c}', key: '{c}', align: 'right', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v }},"
+    # Text columns (left aligned content, header centered via css)
+    return f"    {{ title: '{t(c, entity)}', dataIndex: '{c}', key: '{c}', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v }},"
 
 
-def make_search(c, is_employee=False):
+def make_search(c, entity=""):
     if c == 'status':
         return f"""            <Col span={{12}}>
-              <Form.Item name="{c}" label="{t(c, is_employee)}">
-                <Select placeholder="請選擇{t(c, is_employee)}" allowClear style={{{{ width: '100%' }}}}>
+              <Form.Item name="{c}" label="{t(c, entity)}">
+                <Select placeholder="請選擇{t(c, entity)}" allowClear style={{{{ width: '100%' }}}}>
                   <Select.Option value={{1}}>在職</Select.Option>
                   <Select.Option value={{2}}>離職</Select.Option>
                 </Select>
@@ -542,87 +563,98 @@ def make_search(c, is_employee=False):
             </Col>"""
     if c == 'departmentCode':
         return f"""            <Col span={{12}}>
-              <Form.Item name="{c}" label="{t(c, is_employee)}">
-                <Select placeholder="請選擇{t(c, is_employee)}" allowClear style={{{{ width: '100%' }}}} options={{departmentOptions}} loading={{isFetchingDepartments}} showSearch filterOption={{(input, option) => (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())}} />
+              <Form.Item name="{c}" label="{t(c, entity)}">
+                <Select placeholder="請選擇{t(c, entity)}" allowClear style={{{{ width: '100%' }}}} options={{departmentOptions}} loading={{isFetchingDepartments}} showSearch filterOption={{(input, option) => (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())}} />
               </Form.Item>
             </Col>"""
     return f"""            <Col span={{12}}>
-              <Form.Item name="{c}" label="{t(c, is_employee)}">
-                <Input placeholder="請輸入{t(c, is_employee)}" allowClear />
+              <Form.Item name="{c}" label="{t(c, entity)}">
+                <Input placeholder="請輸入{t(c, entity)}" allowClear />
               </Form.Item>
             </Col>"""
 
-def make_desc(c, is_employee=False):
-    if c == 'isActive' or c == 'isCalculateInventory' or c == 'isShareable':
-        return f"              <Descriptions.Item label=\"{t(c, is_employee)}\">{{viewData?.{c} ? '是' : '否'}}</Descriptions.Item>"
+def make_desc(c, entity=""):
+    if c in ['isCalculateInventory', 'isShareable']:
+        return f"              <Descriptions.Item label=\"{t(c, entity)}\">{{viewData?.{c} ? '是' : '否'}}</Descriptions.Item>"
+    if c == 'isActive':
+        return f"              <Descriptions.Item label=\"{t(c, entity)}\">{{viewData?.{c} ? '啟用' : '停用'}}</Descriptions.Item>"
     if c == 'status':
-        return f"              <Descriptions.Item label=\"{t(c, is_employee)}\">{{viewData?.{c} === 1 ? '在職' : '離職'}}</Descriptions.Item>"
+        return f"              <Descriptions.Item label=\"{t(c, entity)}\">{{viewData?.{c} === 1 ? '在職' : '離職'}}</Descriptions.Item>"
+    if c == 'roles':
+        return f"              <Descriptions.Item label=\"{t(c, entity)}\">{{viewData?.{c}?.join(', ') || '-'}}</Descriptions.Item>"
     if c == 'departmentCode':
-        return f"              <Descriptions.Item label=\"{t(c, is_employee)}\">{{departmentOptions?.find((o: any) => o.value === viewData?.{c})?.label || viewData?.{c}}}</Descriptions.Item>"
+        return f"              <Descriptions.Item label=\"{t(c, entity)}\">{{departmentOptions?.find((o: any) => o.value === viewData?.{c})?.label || viewData?.{c}}}</Descriptions.Item>"
     if 'Date' in c:
-        return f"              <Descriptions.Item label=\"{t(c, is_employee)}\">{{viewData?.{c} ? viewData.{c}.substring(0,10) : '-'}}</Descriptions.Item>"
-    return f"              <Descriptions.Item label=\"{t(c, is_employee)}\">{{viewData?.{c}}}</Descriptions.Item>"
+        return f"              <Descriptions.Item label=\"{t(c, entity)}\">{{viewData?.{c} ? viewData.{c}.substring(0,10) : '-'}}</Descriptions.Item>"
+    return f"              <Descriptions.Item label=\"{t(c, entity)}\">{{viewData?.{c}}}</Descriptions.Item>"
 
-def make_form(c, is_employee=False):
+def make_form(c, entity=""):
     if c == 'isActive' or c == 'isCalculateInventory' or c == 'isShareable':
         return f"""                <Col span={{12}}>
-                  <Form.Item name="{c}" label="{t(c, is_employee)}" valuePropName="checked">
+                  <Form.Item name="{c}" label="{t(c, entity)}" valuePropName="checked">
                     <Switch />
                   </Form.Item>
                 </Col>"""
     if c == 'status':
         return f"""                <Col span={{12}}>
-                  <Form.Item name="{c}" label="{t(c, is_employee)}" rules={{[{{ required: true, message: '必填欄位' }}]}}>
-                    <Select placeholder="請選擇{t(c, is_employee)}" style={{{{ width: '100%' }}}}>
+                  <Form.Item name="{c}" label="{t(c, entity)}" rules={{[{{ required: true, message: '必填欄位' }}]}}>
+                    <Select placeholder="請選擇{t(c, entity)}" style={{{{ width: '100%' }}}}>
                       <Select.Option value={{1}}>在職</Select.Option>
                       <Select.Option value={{2}}>離職</Select.Option>
                     </Select>
                   </Form.Item>
                 </Col>"""
+    if c == 'roles':
+        return f"""                <Col span={{12}}>
+                  <Form.Item name="{c}" label="{t(c, entity)}">
+                    <Select mode="tags" placeholder="請選擇或輸入{t(c, entity)}" style={{{{ width: '100%' }}}} />
+                  </Form.Item>
+                </Col>"""
     if c == 'departmentCode':
         return f"""                <Col span={{12}}>
-                  <Form.Item name="{c}" label="{t(c, is_employee)}" rules={{[{{ required: true, message: '必填欄位' }}]}}>
-                    <Select placeholder="請選擇{t(c, is_employee)}" style={{{{ width: '100%' }}}} options={{departmentOptions}} loading={{isFetchingDepartments}} showSearch filterOption={{(input, option) => (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())}} />
+                  <Form.Item name="{c}" label="{t(c, entity)}" rules={{[{{ required: true, message: '必填欄位' }}]}}>
+                    <Select placeholder="請選擇{t(c, entity)}" style={{{{ width: '100%' }}}} options={{departmentOptions}} loading={{isFetchingDepartments}} showSearch filterOption={{(input, option) => (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())}} />
                   </Form.Item>
                 </Col>"""
     if 'Date' in c:
         return f"""                <Col span={{12}}>
-                  <Form.Item name="{c}" label="{t(c, is_employee)}">
+                  <Form.Item name="{c}" label="{t(c, entity)}">
                     <Input type="date" style={{{{ width: '100%' }}}} />
                   </Form.Item>
                 </Col>"""
     if c == 'notes' or c == 'description':
         return f"""                <Col span={{24}}>
-                  <Form.Item name="{c}" label="{t(c, is_employee)}">
-                    <Input.TextArea placeholder="請輸入{t(c, is_employee)}" rows={{3}} />
+                  <Form.Item name="{c}" label="{t(c, entity)}">
+                    <Input.TextArea placeholder="請輸入{t(c, entity)}" rows={{3}} />
                   </Form.Item>
                 </Col>"""
     return f"""                <Col span={{12}}>
-                  <Form.Item name="{c}" label="{t(c, is_employee)}" rules={{[{{ required: {str(c in ['code', 'name', 'userName', 'employeeNo', 'departmentCode']).lower()}, message: '必填欄位' }}]}}>
-                    <Input placeholder="請輸入{t(c, is_employee)}" />
+                  <Form.Item name="{c}" label="{t(c, entity)}" rules={{[{{ required: {str(c in ['code', 'name', 'userName', 'employeeNo', 'departmentCode']).lower()}, message: '必填欄位' }}]}}>
+                    <Input placeholder="請輸入{t(c, entity)}" />
                   </Form.Item>
                 </Col>"""
 
 
 def make_search_tags(e):
-    is_emp = e["Entity"] == "Employee"
+    ent = e["entity"]
     lines = []
     for c in e["search"]:
-        lbl = t(c, is_emp)
+        lbl = t(c, ent)
         if c == 'status':
             lines.append(f"        if (key === '{c}') valueStr = params[key] === 1 ? '在職' : (params[key] === 2 ? '離職' : String(params[key]));")
-        elif c == 'departmentCode' and is_emp:
+        elif c == 'departmentCode' and ent == 'employee':
             lines.append(f"        if (key === '{c}') valueStr = departmentOptions?.find((o: any) => o.value === params[key])?.label || String(params[key]);")
         lines.append(f"        if (key === '{c}') label = '{lbl}';")
     return "\n".join(lines)
 
 def build(e):
 
+    ent = e["entity"]
     is_emp = e["Entity"] == "Employee"
-    cols_str = "\n".join(make_col(c, is_emp) for c in e["cols"])
-    search_str = "\n".join(make_search(c, is_emp) for c in e["search"])
-    desc_str = "\n".join(make_desc(c, is_emp) for c in e["fields"])
-    form_str = "\n".join(make_form(c, is_emp) for c in e["fields"])
+    cols_str = "\n".join(make_col(c, ent) for c in e["cols"])
+    search_str = "\n".join(make_search(c, ent) for c in e["search"])
+    desc_str = "\n".join(make_desc(c, ent) for c in e["fields"])
+    form_str = "\n".join(make_form(c, ent) for c in e["fields"])
     
     code = TEMPLATE.replace("{Entity}", e["Entity"])
     code = code.replace("{entity}", e["entity"])
@@ -634,6 +666,12 @@ def build(e):
     code = code.replace("{RoutePath}", e["RoutePath"])
     code = code.replace("{ColumnsStr}", cols_str)
     code = code.replace("{SearchFormStr}", search_str)
+
+    # 處理 ReadOnly
+    is_read_only = e.get("readOnly", False)
+    code = code.replace("{CreatePermCheck}", "false" if is_read_only else f"hasPermission('{e['PermKey']}.Create')")
+    code = code.replace("{UpdatePermCheck}", "false" if is_read_only else f"hasPermission('{e['PermKey']}.Update')")
+    code = code.replace("{DeletePermCheck}", "false" if is_read_only else f"hasPermission('{e['PermKey']}.Delete')")
 
     code = code.replace("{ViewDescriptionsStr}", desc_str)
     

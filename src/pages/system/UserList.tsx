@@ -31,7 +31,9 @@ import {
   ClearOutlined,
   SaveOutlined,
   EyeOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  CheckOutlined,
+  CloseOutlined
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -222,19 +224,32 @@ export default function UserList() {
         </Space>
       ),
     },
-    { title: '使用者名稱', dataIndex: 'userName', key: 'userName', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '名稱', dataIndex: 'name', key: 'name', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '電子郵件', dataIndex: 'email', key: 'email', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '狀態', dataIndex: 'isActive', key: 'isActive', align: 'center', render: (v: boolean) => <Tag color={v ? 'green' : 'red'}>{v ? '啟用' : '停用'}</Tag> },
+    { title: '狀態', dataIndex: 'isActive', key: 'isActive', align: 'center', render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{ color: 'green' }} /> : (v === false ? <CloseOutlined style={{ color: 'red' }} /> : null) },
+    { title: '帳號', dataIndex: 'userName', key: 'userName', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '姓名', dataIndex: 'name', key: 'name', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '員工編號', dataIndex: 'employeeCode', key: 'employeeCode', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '職位', dataIndex: 'position', key: 'position', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '電子郵件', dataIndex: 'email', key: 'email', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '部門', dataIndex: 'department', key: 'department', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '分機號碼', dataIndex: 'extensionNumber', key: 'extensionNumber', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '手機號碼', dataIndex: 'mobile', key: 'mobile', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '電話號碼', dataIndex: 'phoneNumber', key: 'phoneNumber', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '角色', dataIndex: 'roles', key: 'roles', render: (v: string[]) => v?.join(', ') || '-' },
   ];
 
   const handleSearch = (values: any) => {
-    // 移除空字串
-    const cleanValues = Object.fromEntries(
-      Object.entries(values).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
-    );
+    // 確保清空的欄位能覆蓋 Zustand store 中的舊值
+    const searchKeys = ['userName', 'name', 'employeeCode'];
+    const nextParams = { ...values };
+    
+    searchKeys.forEach(key => {
+      if (nextParams[key] === '' || nextParams[key] === null) {
+        nextParams[key] = undefined;
+      }
+    });
+
     setParams({
-      ...cleanValues,
+      ...nextParams,
       pageNumber: 1,
     });
     setIsSearchModalOpen(false);
@@ -242,19 +257,21 @@ export default function UserList() {
 
   const handleSearchReset = () => {
     searchForm.resetFields();
-    resetParams();
+    // 僅清空表單，不呼叫 resetParams()，避免自動觸發 API 查詢
   };
 
 
   const renderSearchTags = () => {
-    const searchKeys = ['name'];
+    const searchKeys = ['userName', 'name', 'employeeCode'];
     const activeFilters: React.ReactNode[] = [];
     
     searchKeys.forEach(key => {
       if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
         let label = key;
         let valueStr = String(params[key]);
-        if (key === 'name') label = '名稱';
+        if (key === 'userName') label = '帳號';
+        if (key === 'name') label = '姓名';
+        if (key === 'employeeCode') label = '員工編號';
         activeFilters.push(<Tag color="blue" key={key} style={{ fontSize: '13px', padding: '2px 8px' }}>{label}: {valueStr}</Tag>);
       }
     });
@@ -274,13 +291,28 @@ export default function UserList() {
   const renderFormFields = (isEdit: boolean) => (
     <Row gutter={16}>
                 <Col span={12}>
-                  <Form.Item name="userName" label="使用者名稱" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入使用者名稱" ref={firstInputRef} />
+                  <Form.Item name="isActive" label="狀態" valuePropName="checked">
+                    <Switch />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="name" label="名稱" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入名稱" />
+                  <Form.Item name="userName" label="帳號" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入帳號" ref={firstInputRef} />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="name" label="姓名" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入姓名" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="employeeCode" label="員工編號" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入員工編號" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="position" label="職位" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入職位" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -289,13 +321,28 @@ export default function UserList() {
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="isActive" label="狀態" valuePropName="checked">
-                    <Switch />
+                  <Form.Item name="department" label="部門" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入部門" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="employeeCode" label="員工編號" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入員工編號" />
+                  <Form.Item name="extensionNumber" label="分機號碼" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入分機號碼" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="mobile" label="手機號碼" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入手機號碼" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="phoneNumber" label="電話號碼" rules={[{ required: false, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入電話號碼" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="roles" label="角色">
+                    <Select mode="tags" placeholder="請選擇或輸入角色" style={{ width: '100%' }} />
                   </Form.Item>
                 </Col>
     </Row>
@@ -360,14 +407,16 @@ export default function UserList() {
             .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
             .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
             .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
+            .ant-table-thead > tr > th { text-align: center !important; }
           `}</style>
           <Table
+            bordered
             style={{ flex: 1 }}
             columns={columns}
             dataSource={listData}
             rowKey="id"
             loading={isFetching}
-            scroll={{ x: 1200, y: 300 }}
+            scroll={{ x: 'max-content', y: 300 }}
             pagination={{
               current: currentPage,
               pageSize: currentPageSize,
@@ -416,8 +465,18 @@ export default function UserList() {
         >
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="name" label="名稱">
-                <Input placeholder="請輸入名稱" allowClear />
+              <Form.Item name="userName" label="帳號">
+                <Input placeholder="請輸入帳號" allowClear />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="name" label="姓名">
+                <Input placeholder="請輸入姓名" allowClear />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="employeeCode" label="員工編號">
+                <Input placeholder="請輸入員工編號" allowClear />
               </Form.Item>
             </Col>
           </Row>
@@ -475,11 +534,17 @@ export default function UserList() {
             </Form>
           ) : (
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="使用者名稱">{viewData?.userName}</Descriptions.Item>
-              <Descriptions.Item label="名稱">{viewData?.name}</Descriptions.Item>
-              <Descriptions.Item label="電子郵件">{viewData?.email}</Descriptions.Item>
-              <Descriptions.Item label="狀態">{viewData?.isActive ? '是' : '否'}</Descriptions.Item>
+              <Descriptions.Item label="狀態">{viewData?.isActive ? '啟用' : '停用'}</Descriptions.Item>
+              <Descriptions.Item label="帳號">{viewData?.userName}</Descriptions.Item>
+              <Descriptions.Item label="姓名">{viewData?.name}</Descriptions.Item>
               <Descriptions.Item label="員工編號">{viewData?.employeeCode}</Descriptions.Item>
+              <Descriptions.Item label="職位">{viewData?.position}</Descriptions.Item>
+              <Descriptions.Item label="電子郵件">{viewData?.email}</Descriptions.Item>
+              <Descriptions.Item label="部門">{viewData?.department}</Descriptions.Item>
+              <Descriptions.Item label="分機號碼">{viewData?.extensionNumber}</Descriptions.Item>
+              <Descriptions.Item label="手機號碼">{viewData?.mobile}</Descriptions.Item>
+              <Descriptions.Item label="電話號碼">{viewData?.phoneNumber}</Descriptions.Item>
+              <Descriptions.Item label="角色">{viewData?.roles?.join(', ') || '-'}</Descriptions.Item>
             </Descriptions>
           )}
         </Spin>

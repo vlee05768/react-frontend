@@ -7,9 +7,18 @@
 - **操作欄位固定 (Fixed Actions)**：
   - 表格的「操作」欄位 (檢視、編輯、刪除按鈕) 必須置於最左側 (`fixed: 'left'`)，寬度預設 `120px`。
   - 使用 `<Space>` 包覆 Icon Buttons。
-  - 表格必須設定水平捲動 (`scroll={{ x: 1200 }}`) 以防止小螢幕跑版。
+- **表格格線與區隔 (Table Borders)**：
+  - 為了清楚區分不同欄位的資料，表格必須開啟垂直分隔線。
+  - 在 `<Table>` 元件中必須加上 `bordered` 屬性。
+- **表格水平捲動 (Horizontal Scrolling)**：
+  - 當資料欄位太多時，必須提供水平捲軸，讓使用者能滾動查看其它欄位。
+  - 表格元件必須設定水平捲動 (例如 `scroll={{ x: 'max-content' }}`)，以確保在小螢幕或多欄位情況下不跑版，且各欄位能保持合理的閱讀寬度。
 - **表格欄位對齊 (Table Column Alignment)**：
   - Table 的欄位名稱 (Header) 一律置中排列 (`align: 'center'`)。
+  - 欄位內容文字靠左對齊 (`align: 'left'` 或預設)。
+  - 日期或時間欄位內容置中對齊 (`align: 'center'`)。
+  - 數字欄位內容靠右對齊 (`align: 'right'`)。
+  - 布林值 (Boolean) 欄位內容置中對齊 (`align: 'center'`)，且內容請使用綠色打勾圖示表示 true，紅色打叉圖示表示 false，未設定 (undefined/null) 則顯示空白。
 - **頁面標題與暗色模式 (Theming & Typography)**：
   - 模組標題應包含左側藍色飾條 (Width: 4px, Height: 24px, Color: `#1677ff`)。
   - 避免使用 `<Typography.Title>` 以防被 Tailwind 覆蓋樣式。文字顏色應依賴 CSS 變數動態適應主題 (`color: 'var(--ant-color-text, inherit)'`)，嚴禁寫死 `#262626` 或 `#000`。
@@ -32,6 +41,7 @@
   - 系統應在渲染標籤時自動排除分頁參數 (`pageNumber`, `pageSize`)。
 - **查詢按鈕操作 (Search Actions)**：
   - 查詢表單中的【清空重置】按鈕，僅需清空表單的所有查詢條件，**絕對不要關閉查詢視窗**，讓使用者能繼續輸入新的條件。
+  - 【清空重置】按鈕**不應自動呼叫 API 執行查詢**，必須讓使用者自行點擊「執行查詢」按鈕後，才以清空後的條件觸發 API 請求。
 - **表單排版 (Form Layout)**：
   - 統一使用兩欄式佈局 `<Row gutter={16}>` 搭配 `<Col span={12}>`。
 

@@ -31,7 +31,9 @@ import {
   ClearOutlined,
   SaveOutlined,
   EyeOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  CheckOutlined,
+  CloseOutlined
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -222,18 +224,24 @@ export default function RoleList() {
         </Space>
       ),
     },
-    { title: '名稱', dataIndex: 'name', key: 'name', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '角色標題', dataIndex: 'caption', key: 'caption', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '描述', dataIndex: 'description', key: 'description', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '姓名', dataIndex: 'name', key: 'name', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '角色標題', dataIndex: 'caption', key: 'caption', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '描述', dataIndex: 'description', key: 'description', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
   ];
 
   const handleSearch = (values: any) => {
-    // 移除空字串
-    const cleanValues = Object.fromEntries(
-      Object.entries(values).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
-    );
+    // 確保清空的欄位能覆蓋 Zustand store 中的舊值
+    const searchKeys = [];
+    const nextParams = { ...values };
+    
+    searchKeys.forEach(key => {
+      if (nextParams[key] === '' || nextParams[key] === null) {
+        nextParams[key] = undefined;
+      }
+    });
+
     setParams({
-      ...cleanValues,
+      ...nextParams,
       pageNumber: 1,
     });
     setIsSearchModalOpen(false);
@@ -241,7 +249,7 @@ export default function RoleList() {
 
   const handleSearchReset = () => {
     searchForm.resetFields();
-    resetParams();
+    // 僅清空表單，不呼叫 resetParams()，避免自動觸發 API 查詢
   };
 
 
@@ -273,8 +281,8 @@ export default function RoleList() {
   const renderFormFields = (isEdit: boolean) => (
     <Row gutter={16}>
                 <Col span={12}>
-                  <Form.Item name="name" label="名稱" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入名稱" ref={firstInputRef} />
+                  <Form.Item name="name" label="姓名" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入姓名" ref={firstInputRef} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -349,14 +357,16 @@ export default function RoleList() {
             .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
             .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
             .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
+            .ant-table-thead > tr > th { text-align: center !important; }
           `}</style>
           <Table
+            bordered
             style={{ flex: 1 }}
             columns={columns}
             dataSource={listData}
             rowKey="id"
             loading={isFetching}
-            scroll={{ x: 1200, y: 300 }}
+            scroll={{ x: 'max-content', y: 300 }}
             pagination={{
               current: currentPage,
               pageSize: currentPageSize,
@@ -460,7 +470,7 @@ export default function RoleList() {
             </Form>
           ) : (
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="名稱">{viewData?.name}</Descriptions.Item>
+              <Descriptions.Item label="姓名">{viewData?.name}</Descriptions.Item>
               <Descriptions.Item label="角色標題">{viewData?.caption}</Descriptions.Item>
               <Descriptions.Item label="描述">{viewData?.description}</Descriptions.Item>
             </Descriptions>

@@ -31,7 +31,9 @@ import {
   ClearOutlined,
   SaveOutlined,
   EyeOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  CheckOutlined,
+  CloseOutlined
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -222,20 +224,26 @@ export default function MoldList() {
         </Space>
       ),
     },
-    { title: '編號', dataIndex: 'code', key: 'code', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '名稱', dataIndex: 'name', key: 'name', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '類型', dataIndex: 'type', key: 'type', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '供應商編號', dataIndex: 'supplierCode', key: 'supplierCode', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '形狀', dataIndex: 'shape', key: 'shape', align: 'center', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '編號', dataIndex: 'code', key: 'code', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '姓名', dataIndex: 'name', key: 'name', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '類型', dataIndex: 'type', key: 'type', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '供應商編號', dataIndex: 'supplierCode', key: 'supplierCode', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '形狀', dataIndex: 'shape', key: 'shape', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
   ];
 
   const handleSearch = (values: any) => {
-    // 移除空字串
-    const cleanValues = Object.fromEntries(
-      Object.entries(values).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
-    );
+    // 確保清空的欄位能覆蓋 Zustand store 中的舊值
+    const searchKeys = ['CodeOrName', 'Type', 'SupplierCode'];
+    const nextParams = { ...values };
+    
+    searchKeys.forEach(key => {
+      if (nextParams[key] === '' || nextParams[key] === null) {
+        nextParams[key] = undefined;
+      }
+    });
+
     setParams({
-      ...cleanValues,
+      ...nextParams,
       pageNumber: 1,
     });
     setIsSearchModalOpen(false);
@@ -243,7 +251,7 @@ export default function MoldList() {
 
   const handleSearchReset = () => {
     searchForm.resetFields();
-    resetParams();
+    // 僅清空表單，不呼叫 resetParams()，避免自動觸發 API 查詢
   };
 
 
@@ -282,8 +290,8 @@ export default function MoldList() {
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="name" label="名稱" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入名稱" />
+                  <Form.Item name="name" label="姓名" rules={[{ required: true, message: '必填欄位' }]}>
+                    <Input placeholder="請輸入姓名" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -393,14 +401,16 @@ export default function MoldList() {
             .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
             .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
             .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
+            .ant-table-thead > tr > th { text-align: center !important; }
           `}</style>
           <Table
+            bordered
             style={{ flex: 1 }}
             columns={columns}
             dataSource={listData}
             rowKey="code"
             loading={isFetching}
-            scroll={{ x: 1200, y: 300 }}
+            scroll={{ x: 'max-content', y: 300 }}
             pagination={{
               current: currentPage,
               pageSize: currentPageSize,
@@ -519,7 +529,7 @@ export default function MoldList() {
           ) : (
             <Descriptions column={1} bordered>
               <Descriptions.Item label="編號">{viewData?.code}</Descriptions.Item>
-              <Descriptions.Item label="名稱">{viewData?.name}</Descriptions.Item>
+              <Descriptions.Item label="姓名">{viewData?.name}</Descriptions.Item>
               <Descriptions.Item label="類型">{viewData?.type}</Descriptions.Item>
               <Descriptions.Item label="供應商編號">{viewData?.supplierCode}</Descriptions.Item>
               <Descriptions.Item label="形狀">{viewData?.shape}</Descriptions.Item>
