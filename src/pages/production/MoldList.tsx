@@ -78,6 +78,19 @@ export default function MoldList() {
   });
   const viewData = viewRes?.data?.data || viewRes?.data;
 
+  // 當獲取到單筆資料時，更新表單內容 (為了 View Mode 能看到資料)
+  useEffect(() => {
+    if (viewData) {
+      const formattedData = { ...viewData };
+      Object.keys(formattedData).forEach(key => {
+        if (key.toLowerCase().includes('date') && formattedData[key] && typeof formattedData[key] === 'string') {
+          formattedData[key] = formattedData[key].substring(0, 10);
+        }
+      });
+      crudForm.setFieldsValue(formattedData);
+    }
+  }, [viewData, crudForm]);
+
   // API 查詢
   const { data, isFetching } = useQuery({
     queryKey: ['moldList', params],
@@ -148,7 +161,15 @@ export default function MoldList() {
   const handleCancel = () => {
     if (isDrawerEditing) {
       setIsDrawerEditing(false);
-      crudForm.resetFields();
+      if (viewData) {
+        const formattedData = { ...viewData };
+        Object.keys(formattedData).forEach(key => {
+          if (key.toLowerCase().includes('date') && formattedData[key] && typeof formattedData[key] === 'string') {
+            formattedData[key] = formattedData[key].substring(0, 10);
+          }
+        });
+        crudForm.setFieldsValue(formattedData);
+      }
     } else if (isCreateDrawerOpen) {
       closeViewDrawer();
     }
@@ -161,17 +182,7 @@ export default function MoldList() {
   };
 
   const startEditMode = () => {
-    if (viewData) {
-      const formattedData = { ...viewData };
-      // 將 API 傳回的 ISO Date 截斷為 YYYY-MM-DD 供 <Input type="date"> 使用
-      Object.keys(formattedData).forEach(key => {
-        if (key.toLowerCase().includes('date') && formattedData[key] && typeof formattedData[key] === 'string') {
-          formattedData[key] = formattedData[key].substring(0, 10);
-        }
-      });
-      crudForm.setFieldsValue(formattedData);
-      setIsDrawerEditing(true);
-    }
+    setIsDrawerEditing(true);
   };
 
   const handleCrudSubmit = (values: any) => {
