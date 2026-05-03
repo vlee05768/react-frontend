@@ -98,3 +98,7 @@
   - 必須在元件層級注入 `<style>`，強制將上述所有內部 Wrapper 設為 `flex: 1; display: flex; flex-direction: column; overflow: hidden;`。
   - 並且將 `.ant-table-body` 設為 `flex: 1; overflow-y: auto !important; max-height: none !important;`。
   - 透過這套組合技，才能徹底消除 Antd Table 內部的版面死角，完美將 `.ant-table-pagination` 推擠至畫面最底部。
+
+## 7. 表單自動聚焦 (Auto Focus)
+- 當進入 **新增 (Create)** 或 **編輯 (Update)** 模式時，系統應自動將游標聚焦 (Focus) 在表單中**第一個可編輯的輸入欄位**。
+- 實作方式：於 `useEffect` 監聽 Drawer 開啟狀態 (`isCreateDrawerOpen` 與 `isDrawerEditing`)，透過 DOM Selector (`document.querySelector`) 尋找 Drawer 內第一個 `:not([disabled])` 的 `input`, `textarea` 或 `select` 並呼叫 `.focus()`，以確保正確跳過被唯讀鎖定 (`updateDisabled` 或 `createDisabled`) 的欄位，停留在第一個可以編輯的欄位。

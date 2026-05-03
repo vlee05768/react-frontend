@@ -58,11 +58,14 @@ export default function UserList() {
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   
-  const firstInputRef = useRef<InputRef>(null);
-
   useEffect(() => {
     if (isCreateDrawerOpen || isDrawerEditing) {
-      setTimeout(() => firstInputRef.current?.focus(), 100);
+      setTimeout(() => {
+        const firstInput = document.querySelector('.ant-drawer-body form input:not([disabled]), .ant-drawer-body form textarea:not([disabled]), .ant-drawer-body form span.ant-select-selection-search-input:not([disabled])') as HTMLElement;
+        if (firstInput) {
+          firstInput.focus();
+        }
+      }, 100);
     }
   }, [isCreateDrawerOpen, isDrawerEditing]);
   
