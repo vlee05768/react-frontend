@@ -403,7 +403,7 @@ export default function EmployeeList() {
           {renderSearchTags()}
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <style>{`
+                    <style>{`
             .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
             .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
             .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -413,6 +413,25 @@ export default function EmployeeList() {
             .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
             .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
             .ant-table-thead > tr > th { text-align: center !important; }
+
+            /* View-Mode Styling for Single Form */
+            .view-mode-form .ant-input-disabled,
+            .view-mode-form .ant-select-disabled .ant-select-selection-item,
+            .view-mode-form .ant-select-disabled .ant-select-selector,
+            .view-mode-form .ant-input-number-disabled,
+            .view-mode-form .ant-picker-disabled {
+                color: var(--ant-color-text, rgba(0, 0, 0, 0.88)) !important;
+                background-color: transparent !important;
+                border-color: transparent !important;
+                cursor: default !important;
+            }
+            .view-mode-form .ant-switch-disabled {
+                opacity: 1 !important;
+                cursor: default !important;
+            }
+            .view-mode-form .ant-select-arrow {
+                display: none !important;
+            }
           `}</style>
           <Table
             bordered
@@ -535,29 +554,17 @@ export default function EmployeeList() {
           )
         }
       >
-        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
-          {(isDrawerEditing || isCreateDrawerOpen) ? (
-            <Form
-              form={crudForm}
-              layout="vertical"
-              onFinish={handleCrudSubmit}
-              onFinishFailed={handleFinishFailed}
-            >
-              {renderFormFields(isDrawerEditing)}
-            </Form>
-          ) : (
-            <Descriptions column={1} bordered>
-              <Descriptions.Item label="員工編號">{viewData?.employeeNo}</Descriptions.Item>
-              <Descriptions.Item label="姓名">{viewData?.name}</Descriptions.Item>
-              <Descriptions.Item label="狀態">{viewData?.status === 1 ? '在職' : '離職'}</Descriptions.Item>
-              <Descriptions.Item label="部門代碼">{departmentOptions?.find((o: any) => o.value === viewData?.departmentCode)?.label || viewData?.departmentCode}</Descriptions.Item>
-              <Descriptions.Item label="聯絡電話">{viewData?.phone}</Descriptions.Item>
-              <Descriptions.Item label="電子郵件">{viewData?.email}</Descriptions.Item>
-              <Descriptions.Item label="到職日期">{viewData?.hireDate ? viewData.hireDate.substring(0,10) : '-'}</Descriptions.Item>
-              <Descriptions.Item label="離職日期">{viewData?.resignDate ? viewData.resignDate.substring(0,10) : '-'}</Descriptions.Item>
-              <Descriptions.Item label="備註">{viewData?.notes}</Descriptions.Item>
-            </Descriptions>
-          )}
+                <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+          <Form
+            form={crudForm}
+            layout="vertical"
+            onFinish={handleCrudSubmit}
+            onFinishFailed={handleFinishFailed}
+            className={(!isDrawerEditing && !isCreateDrawerOpen) ? 'view-mode-form' : ''}
+            disabled={!isDrawerEditing && !isCreateDrawerOpen}
+          >
+            {renderFormFields(isDrawerEditing)}
+          </Form>
         </Spin>
       </Drawer>
     </div>

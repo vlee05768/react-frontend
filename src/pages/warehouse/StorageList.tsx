@@ -379,7 +379,7 @@ export default function StorageList() {
           {renderSearchTags()}
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <style>{`
+                    <style>{`
             .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
             .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
             .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -389,6 +389,25 @@ export default function StorageList() {
             .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
             .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
             .ant-table-thead > tr > th { text-align: center !important; }
+
+            /* View-Mode Styling for Single Form */
+            .view-mode-form .ant-input-disabled,
+            .view-mode-form .ant-select-disabled .ant-select-selection-item,
+            .view-mode-form .ant-select-disabled .ant-select-selector,
+            .view-mode-form .ant-input-number-disabled,
+            .view-mode-form .ant-picker-disabled {
+                color: var(--ant-color-text, rgba(0, 0, 0, 0.88)) !important;
+                background-color: transparent !important;
+                border-color: transparent !important;
+                cursor: default !important;
+            }
+            .view-mode-form .ant-switch-disabled {
+                opacity: 1 !important;
+                cursor: default !important;
+            }
+            .view-mode-form .ant-select-arrow {
+                display: none !important;
+            }
           `}</style>
           <Table
             bordered
@@ -498,28 +517,17 @@ export default function StorageList() {
           )
         }
       >
-        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
-          {(isDrawerEditing || isCreateDrawerOpen) ? (
-            <Form
-              form={crudForm}
-              layout="vertical"
-              onFinish={handleCrudSubmit}
-              onFinishFailed={handleFinishFailed}
-            >
-              {renderFormFields(isDrawerEditing)}
-            </Form>
-          ) : (
-            <Descriptions column={1} bordered>
-              <Descriptions.Item label="儲位編碼">{viewData?.code}</Descriptions.Item>
-              <Descriptions.Item label="儲位名稱">{viewData?.name}</Descriptions.Item>
-              <Descriptions.Item label="儲位類型">{viewData?.type}</Descriptions.Item>
-              <Descriptions.Item label="地區">{viewData?.location}</Descriptions.Item>
-              <Descriptions.Item label="區域">{viewData?.area}</Descriptions.Item>
-              <Descriptions.Item label="計算庫存">{viewData?.isCalculateInventory ? '是' : '否'}</Descriptions.Item>
-              <Descriptions.Item label="狀態">{viewData?.isActive ? '啟用' : '停用'}</Descriptions.Item>
-              <Descriptions.Item label="備註">{viewData?.notes}</Descriptions.Item>
-            </Descriptions>
-          )}
+                <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+          <Form
+            form={crudForm}
+            layout="vertical"
+            onFinish={handleCrudSubmit}
+            onFinishFailed={handleFinishFailed}
+            className={(!isDrawerEditing && !isCreateDrawerOpen) ? 'view-mode-form' : ''}
+            disabled={!isDrawerEditing && !isCreateDrawerOpen}
+          >
+            {renderFormFields(isDrawerEditing)}
+          </Form>
         </Spin>
       </Drawer>
     </div>

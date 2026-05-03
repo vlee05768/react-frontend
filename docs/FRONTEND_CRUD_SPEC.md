@@ -81,7 +81,18 @@
 - **Space 元件**：禁用 `split` 屬性，必須改用 `separator` 屬性來加入分隔線。
 - **Divider 元件**：禁用 `type` 屬性，必須改用 `orientation` 屬性 (例如：`<Divider orientation="vertical" />`)。
 - **Spin 元件**：禁用 `tip` 屬性，必須改用 `description` 屬性。
-\n### 12. 分頁底部對齊與佈局限制 (Sticky Pagination)\n- 整個頁面容器高度設置為 `calc(100vh - 64px)`。\n- 透過 Flexbox 配合 `flex: 1` 與 `overflow: hidden` 使表格主體彈性填滿。\n- 使用內聯 CSS 覆寫 `.ant-table-wrapper` 相關的 flex 屬性，並設定 `.ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }`，確保**不論表格資料多寡，分頁器永遠貼齊在頁面底部（約 10px 間距）**。
+\n## 6. 單一表單 (Single Form CRUD Pattern) 與欄位權限
+
+- **整合檢視與編輯模式**：
+  - 廢除舊有的 `<Descriptions>` 元件，檢視 (View)、新增 (Create)、修改 (Update) 畫面必須**統一使用同一個 `<Form>` 元件**進行渲染，以確保視覺排版一致性與降低維護成本。
+  - 使用 `isViewMode`, `isCreateMode`, `isEditMode` 狀態來區分目前情境。
+- **檢視模式的高對比樣式 (View-Mode Styling)**：
+  - 檢視模式下，整份表單會被鎖定 (`<Form disabled={isViewMode}>`)。
+  - 必須套用專屬的 `.view-mode-form` CSS 類別，透過樣式覆寫解決 Ant Design `disabled` 預設的灰底灰字問題。
+  - **樣式要求**：強制將文字顏色改為正常色 (`var(--ant-color-text)`)、移除背景與邊框 (`transparent`)，使其呈現純文字的清晰質感。
+- **個別欄位操作權限設定 (Field-Level Permissions)**：
+  - 每個表單欄位 (`Form.Item`) 可以獨立透過設定 (如 `updateDisabled`, `createDisabled`) 決定在不同模式下是否可輸入。
+  - 當欄位在編輯或新增模式下被獨立停用時 (`<Input disabled={true} />`)，需保留 Ant Design 預設的淺灰外觀，藉此明確告訴使用者「該欄位在此操作中被鎖定」。\n- 整個頁面容器高度設置為 `calc(100vh - 64px)`。\n- 透過 Flexbox 配合 `flex: 1` 與 `overflow: hidden` 使表格主體彈性填滿。\n- 使用內聯 CSS 覆寫 `.ant-table-wrapper` 相關的 flex 屬性，並設定 `.ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }`，確保**不論表格資料多寡，分頁器永遠貼齊在頁面底部（約 10px 間距）**。
 - **Ant Design Table 深度 Flexbox 覆寫 (Deep CSS Override)**：
   - 由於 Ant Design `<Table>` 元件內部包含多層未展開的 DOM 節點 (`.ant-table-wrapper`, `.ant-spin-nested-loading`, `.ant-spin-container`, `.ant-table`, `.ant-table-container`)，單純在外層設定 Flexbox 無法真正撐滿剩餘高度。
   - 必須在元件層級注入 `<style>`，強制將上述所有內部 Wrapper 設為 `flex: 1; display: flex; flex-direction: column; overflow: hidden;`。

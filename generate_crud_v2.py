@@ -348,7 +348,7 @@ export default function {Entity}List() {
           {renderSearchTags()}
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <style>{`
+                    <style>{`
             .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
             .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
             .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -358,6 +358,25 @@ export default function {Entity}List() {
             .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
             .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
             .ant-table-thead > tr > th { text-align: center !important; }
+
+            /* View-Mode Styling for Single Form */
+            .view-mode-form .ant-input-disabled,
+            .view-mode-form .ant-select-disabled .ant-select-selection-item,
+            .view-mode-form .ant-select-disabled .ant-select-selector,
+            .view-mode-form .ant-input-number-disabled,
+            .view-mode-form .ant-picker-disabled {
+                color: var(--ant-color-text, rgba(0, 0, 0, 0.88)) !important;
+                background-color: transparent !important;
+                border-color: transparent !important;
+                cursor: default !important;
+            }
+            .view-mode-form .ant-switch-disabled {
+                opacity: 1 !important;
+                cursor: default !important;
+            }
+            .view-mode-form .ant-select-arrow {
+                display: none !important;
+            }
           `}</style>
           <Table
             bordered
@@ -458,21 +477,17 @@ export default function {Entity}List() {
           )
         }
       >
-        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
-          {(isDrawerEditing || isCreateDrawerOpen) ? (
-            <Form
-              form={crudForm}
-              layout="vertical"
-              onFinish={handleCrudSubmit}
-              onFinishFailed={handleFinishFailed}
-            >
-              {renderFormFields(isDrawerEditing)}
-            </Form>
-          ) : (
-            <Descriptions column={1} bordered>
-{ViewDescriptionsStr}
-            </Descriptions>
-          )}
+                <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+          <Form
+            form={crudForm}
+            layout="vertical"
+            onFinish={handleCrudSubmit}
+            onFinishFailed={handleFinishFailed}
+            className={(!isDrawerEditing && !isCreateDrawerOpen) ? 'view-mode-form' : ''}
+            disabled={!isDrawerEditing && !isCreateDrawerOpen}
+          >
+            {renderFormFields(isDrawerEditing)}
+          </Form>
         </Spin>
       </Drawer>
     </div>
@@ -486,7 +501,7 @@ entities = [
         "IdKeyC": "Id", "idKey": "id", "StoreFile": "systemStore", "RoutePath": "/system/users",
         "cols": ["isActive", "userName", "name", "employeeCode", "position", "email", "department", "extensionNumber", "mobile", "phoneNumber", "roles"],
         "search": ["userName", "name", "employeeCode"],
-        "fields": ["isActive", "userName", "name", "employeeCode", "position", "email", "department", "extensionNumber", "mobile", "phoneNumber", "roles"]
+        "fields": [{"name": "isActive"}, {"name": "userName", "updateDisabled": True}, {"name": "name"}, {"name": "employeeCode"}, {"name": "position"}, {"name": "email"}, {"name": "department"}, {"name": "extensionNumber"}, {"name": "mobile"}, {"name": "phoneNumber"}, {"name": "roles"}]
     },
     {
         "Entity": "Role", "entity": "role", "TitleStr": "角色管理", "PermKey": "System.Roles",
@@ -573,32 +588,36 @@ def make_search(c, entity=""):
               </Form.Item>
             </Col>"""
 
-def make_desc(c, entity=""):
-    if c in ['isCalculateInventory', 'isShareable']:
-        return f"              <Descriptions.Item label=\"{t(c, entity)}\">{{viewData?.{c} ? '是' : '否'}}</Descriptions.Item>"
-    if c == 'isActive':
-        return f"              <Descriptions.Item label=\"{t(c, entity)}\">{{viewData?.{c} ? '啟用' : '停用'}}</Descriptions.Item>"
-    if c == 'status':
-        return f"              <Descriptions.Item label=\"{t(c, entity)}\">{{viewData?.{c} === 1 ? '在職' : '離職'}}</Descriptions.Item>"
-    if c == 'roles':
-        return f"              <Descriptions.Item label=\"{t(c, entity)}\">{{viewData?.{c}?.join(', ') || '-'}}</Descriptions.Item>"
-    if c == 'departmentCode':
-        return f"              <Descriptions.Item label=\"{t(c, entity)}\">{{departmentOptions?.find((o: any) => o.value === viewData?.{c})?.label || viewData?.{c}}}</Descriptions.Item>"
-    if 'Date' in c:
-        return f"              <Descriptions.Item label=\"{t(c, entity)}\">{{viewData?.{c} ? viewData.{c}.substring(0,10) : '-'}}</Descriptions.Item>"
-    return f"              <Descriptions.Item label=\"{t(c, entity)}\">{{viewData?.{c}}}</Descriptions.Item>"
+def make_form(field_def, entity=""):
+    if isinstance(field_def, dict):
+        c = field_def.get("name")
+        ud = field_def.get("updateDisabled", False)
+        cd = field_def.get("createDisabled", False)
+    else:
+        c = field_def
+        ud = False
+        cd = False
 
-def make_form(c, entity=""):
+    disabled_expr = "false"
+    if ud and cd:
+        disabled_expr = "true"
+    elif ud:
+        disabled_expr = "isEdit"
+    elif cd:
+        disabled_expr = "!isEdit"
+
+    disabled_prop = f" disabled={{{disabled_expr}}}" if disabled_expr != "false" else ""
+
     if c == 'isActive' or c == 'isCalculateInventory' or c == 'isShareable':
         return f"""                <Col span={{12}}>
                   <Form.Item name="{c}" label="{t(c, entity)}" valuePropName="checked">
-                    <Switch />
+                    <Switch{disabled_prop} />
                   </Form.Item>
                 </Col>"""
     if c == 'status':
         return f"""                <Col span={{12}}>
                   <Form.Item name="{c}" label="{t(c, entity)}" rules={{[{{ required: true, message: '必填欄位' }}]}}>
-                    <Select placeholder="請選擇{t(c, entity)}" style={{{{ width: '100%' }}}}>
+                    <Select placeholder="請選擇{t(c, entity)}" style={{{{ width: '100%' }}}}{disabled_prop}>
                       <Select.Option value={{1}}>在職</Select.Option>
                       <Select.Option value={{2}}>離職</Select.Option>
                     </Select>
@@ -607,33 +626,32 @@ def make_form(c, entity=""):
     if c == 'roles':
         return f"""                <Col span={{12}}>
                   <Form.Item name="{c}" label="{t(c, entity)}">
-                    <Select mode="tags" placeholder="請選擇或輸入{t(c, entity)}" style={{{{ width: '100%' }}}} />
+                    <Select mode="tags" placeholder="請選擇或輸入{t(c, entity)}" style={{{{ width: '100%' }}}}{disabled_prop} />
                   </Form.Item>
                 </Col>"""
     if c == 'departmentCode':
         return f"""                <Col span={{12}}>
                   <Form.Item name="{c}" label="{t(c, entity)}" rules={{[{{ required: true, message: '必填欄位' }}]}}>
-                    <Select placeholder="請選擇{t(c, entity)}" style={{{{ width: '100%' }}}} options={{departmentOptions}} loading={{isFetchingDepartments}} showSearch filterOption={{(input, option) => (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())}} />
+                    <Select placeholder="請選擇{t(c, entity)}" style={{{{ width: '100%' }}}}{disabled_prop} options={{departmentOptions}} loading={{isFetchingDepartments}} showSearch filterOption={{(input, option) => (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())}} />
                   </Form.Item>
                 </Col>"""
     if 'Date' in c:
         return f"""                <Col span={{12}}>
                   <Form.Item name="{c}" label="{t(c, entity)}">
-                    <Input type="date" style={{{{ width: '100%' }}}} />
+                    <Input type="date" style={{{{ width: '100%' }}}}{disabled_prop} />
                   </Form.Item>
                 </Col>"""
     if c == 'notes' or c == 'description':
         return f"""                <Col span={{24}}>
                   <Form.Item name="{c}" label="{t(c, entity)}">
-                    <Input.TextArea placeholder="請輸入{t(c, entity)}" rows={{3}} />
+                    <Input.TextArea placeholder="請輸入{t(c, entity)}" rows={{3}}{disabled_prop} />
                   </Form.Item>
                 </Col>"""
     return f"""                <Col span={{12}}>
                   <Form.Item name="{c}" label="{t(c, entity)}" rules={{[{{ required: {str(c in ['code', 'name', 'userName', 'employeeNo', 'departmentCode']).lower()}, message: '必填欄位' }}]}}>
-                    <Input placeholder="請輸入{t(c, entity)}" />
+                    <Input placeholder="請輸入{t(c, entity)}"{disabled_prop} />
                   </Form.Item>
                 </Col>"""
-
 
 def make_search_tags(e):
     ent = e["entity"]
@@ -653,7 +671,7 @@ def build(e):
     is_emp = e["Entity"] == "Employee"
     cols_str = "\n".join(make_col(c, ent) for c in e["cols"])
     search_str = "\n".join(make_search(c, ent) for c in e["search"])
-    desc_str = "\n".join(make_desc(c, ent) for c in e["fields"])
+    
     form_str = "\n".join(make_form(c, ent) for c in e["fields"])
     
     code = TEMPLATE.replace("{Entity}", e["Entity"])
@@ -673,7 +691,7 @@ def build(e):
     code = code.replace("{UpdatePermCheck}", "false" if is_read_only else f"hasPermission('{e['PermKey']}.Update')")
     code = code.replace("{DeletePermCheck}", "false" if is_read_only else f"hasPermission('{e['PermKey']}.Delete')")
 
-    code = code.replace("{ViewDescriptionsStr}", desc_str)
+    
     
     search_keys_arr = str(e["search"])
     code = code.replace("{SearchKeysArray}", search_keys_arr)
@@ -704,7 +722,7 @@ def build(e):
     
     # inject ref to first input
     if e["Entity"] == "User":
-        code = code.replace(f'<Input placeholder="請輸入{t("userName")}" />', f'<Input placeholder="請輸入{t("userName")}" ref={{firstInputRef}} />')
+        code = code.replace(f'<Input placeholder="請輸入{t("userName")}" disabled={{isEdit}} />', f'<Input placeholder="請輸入{t("userName")}" disabled={{isEdit}} ref={{firstInputRef}} />')
     elif e["Entity"] == "Role":
         code = code.replace(f'<Input placeholder="請輸入{t("name")}" />', f'<Input placeholder="請輸入{t("name")}" ref={{firstInputRef}} />')
     elif e["Entity"] == "Employee":
