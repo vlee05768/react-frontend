@@ -52,6 +52,7 @@ const ROUTE_PERMISSION_MAP: Record<string, string> = {
 
 export default function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const [openKeys, setOpenKeys] = useState<string[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, permissionTree, fetchUserProfile, logout, hasPermission } = useAuthStore();
@@ -99,6 +100,32 @@ export default function MainLayout() {
     }
     
     return true; // 預設放行尚未被管理的路由，或可改為 false 嚴格模式
+  };
+
+// 根據當前路由自動展開對應的主選單
+  useEffect(() => {
+    const matchedEntry = Object.entries(ROUTE_MAPPING).find(([, path]) => location.pathname.startsWith(path));
+    if (matchedEntry) {
+      const [key] = matchedEntry;
+      const parentKey = key.split('.')[0];
+      if (!openKeys.includes(parentKey)) {
+        setOpenKeys([parentKey]);
+      }
+    }
+  }, [location.pathname, permissionTree]);
+
+  const onOpenChange = (keys: string[]) => {
+    const latestOpenKey = keys.find((key) => openKeys.indexOf(key) === -1);
+    
+    // 找出所有有子選單的 root level keys
+    const menuItems = generateMenuItems();
+    const rootSubmenuKeys = menuItems.filter((item: any) => item && item.children).map((item: any) => item.key);
+    
+    if (latestOpenKey && rootSubmenuKeys.includes(latestOpenKey)) {
+      setOpenKeys([latestOpenKey]);
+    } else {
+      setOpenKeys(keys);
+    }
   };
 
   // 動態產出 Ant Design Menu Items
@@ -193,10 +220,12 @@ export default function MainLayout() {
             ERP {collapsed ? '' : 'System'}
           </h1>
         </div>
-        <Menu
+                <Menu
           theme="dark"
           mode="inline"
           selectedKeys={[location.pathname]}
+          openKeys={openKeys}
+          onOpenChange={onOpenChange}
           onClick={handleMenuClick}
           items={generateMenuItems()}
         />
