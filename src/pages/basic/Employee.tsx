@@ -56,6 +56,7 @@ export default function EmployeeList() {
   const [searchForm] = Form.useForm();
   const [crudForm] = Form.useForm();
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
+  const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   
   const firstInputRef = useRef<InputRef>(null);
 
@@ -304,17 +305,17 @@ export default function EmployeeList() {
     <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item name="employeeNo" label="員工編號" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入員工編號" ref={firstInputRef} />
+                    <Input placeholder={isViewMode ? '' : '請輸入員工編號'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="name" label="姓名" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入姓名" />
+                    <Input placeholder={isViewMode ? '' : '請輸入姓名'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="status" label="狀態" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Select placeholder="請選擇狀態" style={{ width: '100%' }}>
+                    <Select placeholder={isViewMode ? '' : '請選擇狀態'} style={{ width: '100%' }}>
                       <Select.Option value={1}>在職</Select.Option>
                       <Select.Option value={2}>離職</Select.Option>
                     </Select>
@@ -322,32 +323,32 @@ export default function EmployeeList() {
                 </Col>
                 <Col span={12}>
                   <Form.Item name="departmentCode" label="部門代碼" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Select placeholder="請選擇部門代碼" style={{ width: '100%' }} options={departmentOptions} loading={isFetchingDepartments} showSearch filterOption={(input, option) => (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())} />
+                    <Select placeholder={isViewMode ? '' : '請選擇部門代碼'} style={{ width: '100%' }} options={departmentOptions} loading={isFetchingDepartments} showSearch filterOption={(input, option) => (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="phone" label="聯絡電話" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入聯絡電話" />
+                    <Input placeholder={isViewMode ? '' : '請輸入聯絡電話'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="email" label="電子郵件" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入電子郵件" />
+                    <Input placeholder={isViewMode ? '' : '請輸入電子郵件'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="hireDate" label="到職日期">
-                    <Input type="date" style={{ width: '100%' }} />
+                    <Input type={isViewMode ? 'text' : 'date'} placeholder={isViewMode ? '' : '請選擇到職日期'} style={{ width: '100%' }} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="resignDate" label="離職日期">
-                    <Input type="date" style={{ width: '100%' }} />
+                    <Input type={isViewMode ? 'text' : 'date'} placeholder={isViewMode ? '' : '請選擇離職日期'} style={{ width: '100%' }} />
                   </Form.Item>
                 </Col>
                 <Col span={24}>
                   <Form.Item name="notes" label="備註">
-                    <Input.TextArea placeholder="請輸入備註" rows={3} />
+                    <Input.TextArea placeholder={isViewMode ? '' : '請輸入備註'} rows={3} />
                   </Form.Item>
                 </Col>
     </Row>
@@ -421,8 +422,8 @@ export default function EmployeeList() {
             .view-mode-form .ant-input-number-disabled,
             .view-mode-form .ant-picker-disabled {
                 color: var(--ant-color-text, rgba(0, 0, 0, 0.88)) !important;
-                background-color: transparent !important;
-                border-color: transparent !important;
+                background-color: var(--ant-color-bg-container-disabled, rgba(0, 0, 0, 0.04)) !important;
+                border-color: var(--ant-color-border, #d9d9d9) !important;
                 cursor: default !important;
             }
             .view-mode-form .ant-switch-disabled {

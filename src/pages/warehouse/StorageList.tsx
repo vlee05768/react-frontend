@@ -56,6 +56,7 @@ export default function StorageList() {
   const [searchForm] = Form.useForm();
   const [crudForm] = Form.useForm();
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
+  const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   
   const firstInputRef = useRef<InputRef>(null);
 
@@ -288,27 +289,27 @@ export default function StorageList() {
     <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item name="code" label="儲位編碼" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入儲位編碼" />
+                    <Input placeholder={isViewMode ? '' : '請輸入儲位編碼'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="name" label="儲位名稱" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入儲位名稱" />
+                    <Input placeholder={isViewMode ? '' : '請輸入儲位名稱'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="type" label="儲位類型" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入儲位類型" />
+                    <Input placeholder={isViewMode ? '' : '請輸入儲位類型'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="location" label="地區" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入地區" />
+                    <Input placeholder={isViewMode ? '' : '請輸入地區'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="area" label="區域" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入區域" />
+                    <Input placeholder={isViewMode ? '' : '請輸入區域'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -323,7 +324,7 @@ export default function StorageList() {
                 </Col>
                 <Col span={24}>
                   <Form.Item name="notes" label="備註">
-                    <Input.TextArea placeholder="請輸入備註" rows={3} />
+                    <Input.TextArea placeholder={isViewMode ? '' : '請輸入備註'} rows={3} />
                   </Form.Item>
                 </Col>
     </Row>
@@ -397,8 +398,8 @@ export default function StorageList() {
             .view-mode-form .ant-input-number-disabled,
             .view-mode-form .ant-picker-disabled {
                 color: var(--ant-color-text, rgba(0, 0, 0, 0.88)) !important;
-                background-color: transparent !important;
-                border-color: transparent !important;
+                background-color: var(--ant-color-bg-container-disabled, rgba(0, 0, 0, 0.04)) !important;
+                border-color: var(--ant-color-border, #d9d9d9) !important;
                 cursor: default !important;
             }
             .view-mode-form .ant-switch-disabled {

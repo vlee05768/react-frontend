@@ -56,6 +56,7 @@ export default function MachineList() {
   const [searchForm] = Form.useForm();
   const [crudForm] = Form.useForm();
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
+  const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   
   const firstInputRef = useRef<InputRef>(null);
 
@@ -283,22 +284,22 @@ export default function MachineList() {
     <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item name="code" label="編號" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入編號" ref={firstInputRef} />
+                    <Input placeholder={isViewMode ? '' : '請輸入編號'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="name" label="姓名" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入姓名" />
+                    <Input placeholder={isViewMode ? '' : '請輸入姓名'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="type" label="類型" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入類型" />
+                    <Input placeholder={isViewMode ? '' : '請輸入類型'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="capacity" label="產能" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入產能" />
+                    <Input placeholder={isViewMode ? '' : '請輸入產能'} />
                   </Form.Item>
                 </Col>
     </Row>
@@ -372,8 +373,8 @@ export default function MachineList() {
             .view-mode-form .ant-input-number-disabled,
             .view-mode-form .ant-picker-disabled {
                 color: var(--ant-color-text, rgba(0, 0, 0, 0.88)) !important;
-                background-color: transparent !important;
-                border-color: transparent !important;
+                background-color: var(--ant-color-bg-container-disabled, rgba(0, 0, 0, 0.04)) !important;
+                border-color: var(--ant-color-border, #d9d9d9) !important;
                 cursor: default !important;
             }
             .view-mode-form .ant-switch-disabled {

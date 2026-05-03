@@ -56,6 +56,7 @@ export default function UserList() {
   const [searchForm] = Form.useForm();
   const [crudForm] = Form.useForm();
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
+  const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   
   const firstInputRef = useRef<InputRef>(null);
 
@@ -297,52 +298,52 @@ export default function UserList() {
                 </Col>
                 <Col span={12}>
                   <Form.Item name="userName" label="帳號" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入帳號" disabled={isEdit} ref={firstInputRef} />
+                    <Input placeholder={isViewMode ? '' : '請輸入帳號'} disabled={isEdit} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="name" label="姓名" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入姓名" />
+                    <Input placeholder={isViewMode ? '' : '請輸入姓名'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="employeeCode" label="員工編號" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入員工編號" />
+                    <Input placeholder={isViewMode ? '' : '請輸入員工編號'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="position" label="職位" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入職位" />
+                    <Input placeholder={isViewMode ? '' : '請輸入職位'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="email" label="電子郵件" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入電子郵件" />
+                    <Input placeholder={isViewMode ? '' : '請輸入電子郵件'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="department" label="部門" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入部門" />
+                    <Input placeholder={isViewMode ? '' : '請輸入部門'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="extensionNumber" label="分機號碼" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入分機號碼" />
+                    <Input placeholder={isViewMode ? '' : '請輸入分機號碼'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="mobile" label="手機號碼" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入手機號碼" />
+                    <Input placeholder={isViewMode ? '' : '請輸入手機號碼'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="phoneNumber" label="電話號碼" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder="請輸入電話號碼" />
+                    <Input placeholder={isViewMode ? '' : '請輸入電話號碼'} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item name="roles" label="角色">
-                    <Select mode="tags" placeholder="請選擇或輸入角色" style={{ width: '100%' }} />
+                    <Select mode="tags" placeholder={isViewMode ? '' : '請選擇或輸入角色'} style={{ width: '100%' }} />
                   </Form.Item>
                 </Col>
     </Row>
@@ -416,8 +417,8 @@ export default function UserList() {
             .view-mode-form .ant-input-number-disabled,
             .view-mode-form .ant-picker-disabled {
                 color: var(--ant-color-text, rgba(0, 0, 0, 0.88)) !important;
-                background-color: transparent !important;
-                border-color: transparent !important;
+                background-color: var(--ant-color-bg-container-disabled, rgba(0, 0, 0, 0.04)) !important;
+                border-color: var(--ant-color-border, #d9d9d9) !important;
                 cursor: default !important;
             }
             .view-mode-form .ant-switch-disabled {

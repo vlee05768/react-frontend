@@ -72,6 +72,7 @@ export default function {Entity}List() {
   const [searchForm] = Form.useForm();
   const [crudForm] = Form.useForm();
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
+  const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   
   const firstInputRef = useRef<InputRef>(null);
 
@@ -366,8 +367,8 @@ export default function {Entity}List() {
             .view-mode-form .ant-input-number-disabled,
             .view-mode-form .ant-picker-disabled {
                 color: var(--ant-color-text, rgba(0, 0, 0, 0.88)) !important;
-                background-color: transparent !important;
-                border-color: transparent !important;
+                background-color: var(--ant-color-bg-container-disabled, rgba(0, 0, 0, 0.04)) !important;
+                border-color: var(--ant-color-border, #d9d9d9) !important;
                 cursor: default !important;
             }
             .view-mode-form .ant-switch-disabled {
@@ -617,7 +618,7 @@ def make_form(field_def, entity=""):
     if c == 'status':
         return f"""                <Col span={{12}}>
                   <Form.Item name="{c}" label="{t(c, entity)}" rules={{[{{ required: true, message: '必填欄位' }}]}}>
-                    <Select placeholder="請選擇{t(c, entity)}" style={{{{ width: '100%' }}}}{disabled_prop}>
+                    <Select placeholder={{isViewMode ? '' : '請選擇{t(c, entity)}'}} style={{{{ width: '100%' }}}}{disabled_prop}>
                       <Select.Option value={{1}}>在職</Select.Option>
                       <Select.Option value={{2}}>離職</Select.Option>
                     </Select>
@@ -626,30 +627,30 @@ def make_form(field_def, entity=""):
     if c == 'roles':
         return f"""                <Col span={{12}}>
                   <Form.Item name="{c}" label="{t(c, entity)}">
-                    <Select mode="tags" placeholder="請選擇或輸入{t(c, entity)}" style={{{{ width: '100%' }}}}{disabled_prop} />
+                    <Select mode="tags" placeholder={{isViewMode ? '' : '請選擇或輸入{t(c, entity)}'}} style={{{{ width: '100%' }}}}{disabled_prop} />
                   </Form.Item>
                 </Col>"""
     if c == 'departmentCode':
         return f"""                <Col span={{12}}>
                   <Form.Item name="{c}" label="{t(c, entity)}" rules={{[{{ required: true, message: '必填欄位' }}]}}>
-                    <Select placeholder="請選擇{t(c, entity)}" style={{{{ width: '100%' }}}}{disabled_prop} options={{departmentOptions}} loading={{isFetchingDepartments}} showSearch filterOption={{(input, option) => (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())}} />
+                    <Select placeholder={{isViewMode ? '' : '請選擇{t(c, entity)}'}} style={{{{ width: '100%' }}}}{disabled_prop} options={{departmentOptions}} loading={{isFetchingDepartments}} showSearch filterOption={{(input, option) => (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())}} />
                   </Form.Item>
                 </Col>"""
     if 'Date' in c:
         return f"""                <Col span={{12}}>
                   <Form.Item name="{c}" label="{t(c, entity)}">
-                    <Input type="date" style={{{{ width: '100%' }}}}{disabled_prop} />
+                    <Input type={{isViewMode ? 'text' : 'date'}} placeholder={{isViewMode ? '' : '請選擇{t(c, entity)}'}} style={{{{ width: '100%' }}}}{disabled_prop} />
                   </Form.Item>
                 </Col>"""
     if c == 'notes' or c == 'description':
         return f"""                <Col span={{24}}>
                   <Form.Item name="{c}" label="{t(c, entity)}">
-                    <Input.TextArea placeholder="請輸入{t(c, entity)}" rows={{3}}{disabled_prop} />
+                    <Input.TextArea placeholder={{isViewMode ? '' : '請輸入{t(c, entity)}'}} rows={{3}}{disabled_prop} />
                   </Form.Item>
                 </Col>"""
     return f"""                <Col span={{12}}>
                   <Form.Item name="{c}" label="{t(c, entity)}" rules={{[{{ required: {str(c in ['code', 'name', 'userName', 'employeeNo', 'departmentCode']).lower()}, message: '必填欄位' }}]}}>
-                    <Input placeholder="請輸入{t(c, entity)}"{disabled_prop} />
+                    <Input placeholder={{isViewMode ? '' : '請輸入{t(c, entity)}'}}{disabled_prop} />
                   </Form.Item>
                 </Col>"""
 
