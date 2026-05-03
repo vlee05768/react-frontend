@@ -618,9 +618,9 @@ def make_form(field_def, entity=""):
     if ud and cd:
         disabled_expr = "true"
     elif ud:
-        disabled_expr = "isEdit"
+        disabled_expr = "isViewMode || isEdit"
     elif cd:
-        disabled_expr = "!isEdit"
+        disabled_expr = "isViewMode || !isEdit"
 
     disabled_prop = f" disabled={{{disabled_expr}}}" if disabled_expr != "false" else ""
 

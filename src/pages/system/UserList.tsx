@@ -309,7 +309,7 @@ export default function UserList() {
                 </Col>
                 <Col span={12}>
                   <Form.Item name="userName" label="帳號" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入帳號'} disabled={isEdit} />
+                    <Input placeholder={isViewMode ? '' : '請輸入帳號'} disabled={isViewMode || isEdit} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
