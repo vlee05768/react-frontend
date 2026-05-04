@@ -15,7 +15,13 @@ body {
 }
 
 
-/* 確保 Ant Design 選單文字正常顯示 */
+/* 修正 DatePicker 內的日曆 icon 在黑暗模式下不明顯的問題 */
+.ant-picker .ant-picker-suffix {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+.ant-picker:hover .ant-picker-suffix {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
 .ant-menu-title-content {
   display: inline-block !important;
   opacity: 1 !important;
