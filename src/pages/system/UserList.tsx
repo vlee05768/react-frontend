@@ -153,8 +153,36 @@ export default function UserList() {
 
   const resendActivationMutation = useMutation({
     mutationFn: (email: string) => postApiV1AuthResendActivation({ body: { email } }),
-    onSuccess: () => {
+    onSuccess: (_, email) => {
       message.success('已重新發送啟用信件');
+      
+      // 直接更新本地快取，將該帳號的啟動狀態設為 false
+      queryClient.setQueriesData({ queryKey: ['userList'] }, (oldData: any) => {
+        if (!oldData) return oldData;
+        
+        // 建立資料深拷貝以避免 mutate 原有 state
+        const newData = JSON.parse(JSON.stringify(oldData));
+        
+        // 根據常見的 API 回傳結構更新資料
+        if (newData?.data?.data?.data && Array.isArray(newData.data.data.data)) {
+          newData.data.data.data = newData.data.data.data.map((user: any) => 
+            user.email === email ? { ...user, isActive: false } : user
+          );
+        } else if (newData?.data?.data && Array.isArray(newData.data.data)) {
+          newData.data.data = newData.data.data.map((user: any) => 
+            user.email === email ? { ...user, isActive: false } : user
+          );
+        } else if (newData?.data && Array.isArray(newData.data)) {
+          newData.data = newData.data.map((user: any) => 
+            user.email === email ? { ...user, isActive: false } : user
+          );
+        }
+        
+        return newData;
+      });
+      
+      // 同步觸發背景重取，確保與後端完全一致
+      queryClient.invalidateQueries({ queryKey: ['userList'] });
     },
     onError: (error: any) => {
       Modal.error({ centered: true, title: '錯誤提示', content: `重新啟用失敗: ${error?.response?.data?.message || '未知錯誤'}` });
@@ -263,7 +291,7 @@ export default function UserList() {
         </Space>
       ),
     },
-    { title: '狀態', dataIndex: 'isActive', key: 'isActive', align: 'center', render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{ color: 'green' }} /> : (v === false ? <CloseOutlined style={{ color: 'red' }} /> : null) },
+    { title: '啟動狀態', dataIndex: 'isActive', key: 'isActive', align: 'center', render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{ color: 'green' }} /> : (v === false ? <CloseOutlined style={{ color: 'red' }} /> : null) },
     { title: '帳號', dataIndex: 'userName', key: 'userName', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
     { title: '姓名', dataIndex: 'name', key: 'name', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
     { title: '員工編號', dataIndex: 'employeeCode', key: 'employeeCode', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
@@ -330,7 +358,7 @@ export default function UserList() {
   const renderFormFields = (isEdit: boolean) => (
     <Row gutter={16}>
                 <Col span={12}>
-                  <Form.Item name="isActive" label="狀態" valuePropName="checked">
+                  <Form.Item name="isActive" label="啟動狀態" valuePropName="checked">
                     <Switch />
                   </Form.Item>
                 </Col>
