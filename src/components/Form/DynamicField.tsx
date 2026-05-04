@@ -2,6 +2,7 @@ import React from 'react';
 import { Form, Input, Select, InputNumber, DatePicker, Switch, Tooltip } from 'antd';
 import { Controller } from 'react-hook-form';
 import type { Control, UseFormSetValue } from 'react-hook-form';
+import { z } from 'zod';
 import type { FieldConfig, FormContext } from './types';
 
 interface DynamicFieldProps {
@@ -115,7 +116,7 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
                 <Form.Item
                   validateStatus={error ? 'error' : ''}
                   help={error?.message}
-                  required={isRequired || !!config.validation || !!config.dynamicValidation}
+                  required={isRequired || (!!config.validation && !config.validation.isOptional()) || !!config.dynamicValidation}
                 >
                   <div className="flex items-center h-[32px] mt-[30px]">
                      {ComponentNode}
@@ -125,12 +126,17 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
             );
         }
 
+        // 判斷是否顯示必填紅星號：若是明確要求 (isRequired) 或 validation 中非 optional 皆視為必填
+        const showRequiredMark = isRequired || 
+          (!!config.validation && !config.validation.isOptional() && !(config.validation instanceof z.ZodOptional) && !(config.validation instanceof z.ZodNullable)) || 
+          !!config.dynamicValidation;
+
         return (
           <Form.Item
             label={config.label}
             validateStatus={error ? 'error' : ''}
             help={error?.message}
-            required={isRequired || !!config.validation || !!config.dynamicValidation}
+            required={showRequiredMark}
           >
             {ComponentNode}
           </Form.Item>
