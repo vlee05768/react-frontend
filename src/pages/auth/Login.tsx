@@ -28,10 +28,10 @@ export default function Login() {
         message.success('登入成功');
         navigate(ROUTES.HOME);
       } else {
-        Modal.error({ title: '錯誤提示', content: response.data?.message || '登入失敗，請檢查帳號密碼' });
+        Modal.error({ centered: true, title: '錯誤提示', content: response.data?.message || '登入失敗，請檢查帳號密碼' });
       }
     } catch (error: any) {
-      Modal.error({ title: '錯誤提示', content: error?.response?.data?.message || '登入發生錯誤，請稍後再試' });
+      Modal.error({ centered: true, title: '錯誤提示', content: error?.response?.data?.message || '登入發生錯誤，請稍後再試' });
     } finally {
       setLoading(false);
     }

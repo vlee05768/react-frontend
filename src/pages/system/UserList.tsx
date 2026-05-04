@@ -120,7 +120,7 @@ export default function UserList() {
       queryClient.invalidateQueries({ queryKey: ['userList'] });
     },
     onError: (error: any) => {
-      Modal.error({ title: '錯誤提示', content: `新增失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      Modal.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${error?.response?.data?.message || '未知錯誤'}` });
     }
   });
 
@@ -135,7 +135,7 @@ export default function UserList() {
       queryClient.invalidateQueries({ queryKey: ['userDetail'] });
     },
     onError: (error: any) => {
-      Modal.error({ title: '錯誤提示', content: `更新失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      Modal.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${error?.response?.data?.message || '未知錯誤'}` });
     }
   });
 
@@ -147,7 +147,7 @@ export default function UserList() {
       queryClient.invalidateQueries({ queryKey: ['userDetail'] });
     },
     onError: (error: any) => {
-      Modal.error({ title: '錯誤提示', content: `刪除失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      Modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${error?.response?.data?.message || '未知錯誤'}` });
     }
   });
 
@@ -157,7 +157,7 @@ export default function UserList() {
       message.success('已重新發送啟用信件');
     },
     onError: (error: any) => {
-      Modal.error({ title: '錯誤提示', content: `重新啟用失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      Modal.error({ centered: true, title: '錯誤提示', content: `重新啟用失敗: ${error?.response?.data?.message || '未知錯誤'}` });
     }
   });
 

@@ -133,7 +133,7 @@ export default function EmployeeList() {
       queryClient.invalidateQueries({ queryKey: ['employeeList'] });
     },
     onError: (error: any) => {
-      Modal.error({ title: '錯誤提示', content: `新增失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      Modal.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${error?.response?.data?.message || '未知錯誤'}` });
     }
   });
 
@@ -148,7 +148,7 @@ export default function EmployeeList() {
       queryClient.invalidateQueries({ queryKey: ['employeeDetail'] });
     },
     onError: (error: any) => {
-      Modal.error({ title: '錯誤提示', content: `更新失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      Modal.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${error?.response?.data?.message || '未知錯誤'}` });
     }
   });
 
@@ -160,7 +160,7 @@ export default function EmployeeList() {
       queryClient.invalidateQueries({ queryKey: ['employeeDetail'] });
     },
     onError: (error: any) => {
-      Modal.error({ title: '錯誤提示', content: `刪除失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      Modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${error?.response?.data?.message || '未知錯誤'}` });
     }
   });
 

@@ -23,7 +23,7 @@ export function initializeApi() {
     (error) => {
       if (error.response) {
         if (error.response.status === 401) {
-          Modal.error({ title: '錯誤提示', content: '請重新登入' });
+          Modal.error({ centered: true, title: '錯誤提示', content: '請重新登入' });
           useAuthStore.getState().logout();
           window.location.href = '/login';
         }
