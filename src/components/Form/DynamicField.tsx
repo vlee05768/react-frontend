@@ -88,7 +88,13 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
           ) : node;
 
           return (
-            <Tooltip title={tooltipContent} placement="topLeft">
+            <Tooltip 
+              title={tooltipContent} 
+              placement="topLeft" 
+              color="#1677ff" 
+              overlayInnerStyle={{ padding: '6px 10px', fontSize: '13px', letterSpacing: '0.5px' }}
+              align={{ offset: [0, -8] }}
+            >
               {wrappedNode}
             </Tooltip>
           );
