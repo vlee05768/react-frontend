@@ -25,6 +25,8 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
   const finalDisabled = isViewMode || isDisabled || (isUpdateMode && isUpdateDisabled);
 
   const componentProps = typeof config.componentProps === 'function' ? config.componentProps(context) : (config.componentProps || {});
+  const resolvedLabel = typeof config.label === 'function' ? config.label(context) : config.label;
+  const resolvedComponentType = typeof config.componentType === 'function' ? config.componentType(context) : config.componentType;
 
   return (
     <Controller
@@ -103,7 +105,7 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
 
         // 渲染對應的輸入元件
         let ComponentNode: React.ReactNode = null;
-        switch (config.componentType) {
+        switch (resolvedComponentType) {
           case 'Input':
             ComponentNode = renderWithTooltip(<Input {...commonProps} />);
             break;
@@ -136,7 +138,7 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
         }
 
         // 處理 boolean 元件的特殊排版 (不用 label 包裝，而是放在右側)
-        if (config.componentType === 'Switch') {
+        if (resolvedComponentType === 'Switch') {
             return (
                 <Form.Item
                   validateStatus={error ? 'error' : ''}
@@ -145,7 +147,7 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
                 >
                   <div className="flex items-center h-[32px] mt-[30px]">
                      {ComponentNode}
-                     <span className="ml-2">{config.label}</span>
+                     <span className="ml-2">{resolvedLabel}</span>
                   </div>
                 </Form.Item>
             );
@@ -154,11 +156,11 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
         // 判斷是否顯示必填紅星號：若是明確要求 (isRequired) 或 validation 中非 optional 皆視為必填
         const showRequiredMark = isRequired || 
           (!!config.validation && !config.validation.isOptional() && !(config.validation instanceof z.ZodOptional) && !(config.validation instanceof z.ZodNullable)) || 
-          !!config.dynamicValidation;
+          (config.dynamicValidation && !config.dynamicValidation(context)?.isOptional());
 
         return (
           <Form.Item
-            label={config.label}
+            label={resolvedLabel}
             validateStatus={error ? 'error' : ''}
             help={error?.message}
             required={showRequiredMark}

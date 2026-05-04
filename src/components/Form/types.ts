@@ -18,8 +18,10 @@ export type DynamicProp<T, TValues> = T | ((context: FormContext<TValues>) => T)
 
 export interface FieldConfig<TValues = any> {
   name: Extract<keyof TValues, string>;
-  label: string;
-  componentType: ComponentType;
+  
+  // 核心定義：支援 Function 動態決定標籤與元件類型
+  label: DynamicProp<string | ReactNode, TValues>;
+  componentType: DynamicProp<ComponentType, TValues>;
   
   // 狀態控制
   disabled?: DynamicProp<boolean, TValues>;
