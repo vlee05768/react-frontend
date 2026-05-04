@@ -5,7 +5,8 @@ import { message } from 'antd';
 export function initializeApi() {
   // Configured to use relative path so Vite proxy handles it
   client.setConfig({
-    baseURL: ''
+    baseURL: '',
+    throwOnError: true
   });
 
   client.instance.interceptors.request.use((request) => {
@@ -20,10 +21,23 @@ export function initializeApi() {
   client.instance.interceptors.response.use(
     (response) => response,
     (error) => {
-      if (error.response && error.response.status === 401) {
-        message.error('請重新登入');
-        useAuthStore.getState().logout();
-        window.location.href = '/login';
+      if (error.response) {
+        if (error.response.status === 401) {
+          message.error('請重新登入');
+          useAuthStore.getState().logout();
+          window.location.href = '/login';
+        }
+        
+        // 正規化錯誤訊息，支援 .NET ProblemDetails 與自訂 ApiResponse
+        const data = error.response.data;
+        if (data && !data.message) {
+          if (data.errors && typeof data.errors === 'object') {
+            const firstError = Object.values(data.errors)[0];
+            data.message = Array.isArray(firstError) ? firstError[0] : data.title;
+          } else if (data.title) {
+            data.message = data.title;
+          }
+        }
       }
       return Promise.reject(error);
     }
