@@ -42,7 +42,8 @@ export interface FieldConfig<TValues = any> {
   dynamicValidation?: (context: FormContext<TValues>) => ZodTypeAny | undefined;
   
   // 顯示控制 (文字過長時是否顯示 ... 以及 Tooltip hint)
-  ellipsis?: DynamicProp<boolean, TValues>;
+  // 支援 boolean，或 function (可根據當前值與上下文動態決定是否啟用，甚至回傳自訂的 Tooltip 內容)
+  ellipsis?: boolean | ((value: any, context: FormContext<TValues>) => boolean | React.ReactNode);
 
   // 排版 (預設將表單切分為12個 cell)
   // colSpan 表示一行顯示幾欄。例如：colSpan=4 (預設) 表示一行4欄 (每欄佔3個cell)。colSpan=1 表示一行1欄 (佔12個cell)。

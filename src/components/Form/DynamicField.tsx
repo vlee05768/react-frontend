@@ -43,9 +43,19 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
           }
         };
 
-        // 解析是否啟用 ellipsis
-        const isEllipsis = typeof config.ellipsis === 'function' ? config.ellipsis(context) : config.ellipsis;
+        // 解析是否啟用 ellipsis 及對應的 hint 內容
+        const ellipsisResult = typeof config.ellipsis === 'function' ? config.ellipsis(field.value, context) : config.ellipsis;
+        // 如果 result 是 boolean，就是啟用與否；如果是 ReactNode (字串等)，則代表啟用並指定 tooltip 內容
+        const isEllipsis = !!ellipsisResult;
         
+        // Tooltip 要顯示的字串/節點 (如果是 true 就顯示原本的值，如果是自訂內容就顯示自訂內容)
+        let tooltipContent: React.ReactNode = undefined;
+        if (ellipsisResult !== true && ellipsisResult !== false && ellipsisResult !== undefined) {
+           tooltipContent = ellipsisResult;
+        } else if (field.value !== null && field.value !== undefined && field.value !== '') {
+           tooltipContent = String(field.value);
+        }
+
         // 判斷是否為必填
         const isRequired = typeof config.required === 'function' ? config.required(context) : config.required;
 
@@ -58,6 +68,8 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
           ...(isEllipsis ? {
             style: {
               textOverflow: 'ellipsis',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
               ...componentProps?.style,
             }
           } : {
@@ -65,13 +77,19 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
           }),
         };
 
-        // 判斷是否需要 Tooltip 提示 (只在有值且啟用 ellipsis 時顯示)
-        const valueStr = field.value !== null && field.value !== undefined && field.value !== '' ? String(field.value) : undefined;
         const renderWithTooltip = (node: React.ReactNode) => {
-          if (!isEllipsis || !valueStr) return node;
+          if (!isEllipsis || !tooltipContent) return node;
+          
+          // 在 Antd 中，Tooltip 綁定在 disabled 元素上無法觸發 hover，需要用 wrapper 元素包裝
+          const wrappedNode = finalDisabled ? (
+             <span style={{ display: 'block', cursor: 'not-allowed' }}>
+                <div style={{ pointerEvents: 'none' }}>{node}</div>
+             </span>
+          ) : node;
+
           return (
-            <Tooltip title={valueStr} placement="topLeft">
-              {node}
+            <Tooltip title={tooltipContent} placement="topLeft">
+              {wrappedNode}
             </Tooltip>
           );
         };

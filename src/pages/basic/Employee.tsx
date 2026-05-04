@@ -1,5 +1,8 @@
 // @ts-nocheck
 import { useParams, useNavigate } from 'react-router-dom';
+import { DynamicForm } from '@/components/Form/DynamicForm';
+import { getEmployeeFormConfig } from './EmployeeFormConfig';
+
 import { useState, useRef, useEffect } from 'react';
 import type { InputRef } from 'antd';
 import {
@@ -54,7 +57,7 @@ export default function EmployeeList() {
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
   const [searchForm] = Form.useForm();
-  const [crudForm] = Form.useForm();
+  const [formDefaultValues, setFormDefaultValues] = useState<any>({});
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   
@@ -90,9 +93,9 @@ export default function EmployeeList() {
           formattedData[key] = formattedData[key].substring(0, 10);
         }
       });
-      crudForm.setFieldsValue(formattedData);
+      setFormDefaultValues(formattedData);
     }
-  }, [viewData, crudForm]);
+  }, [viewData]);
 
   // API 查詢
   const { data, isFetching } = useQuery({
@@ -126,7 +129,7 @@ export default function EmployeeList() {
     onSuccess: () => {
       message.success('新增成功');
       setIsCreateDrawerOpen(false);
-      crudForm.resetFields();
+      setFormDefaultValues({});
       queryClient.invalidateQueries({ queryKey: ['employeeList'] });
     },
     onError: (error: any) => {
@@ -140,7 +143,7 @@ export default function EmployeeList() {
     onSuccess: () => {
       message.success('更新成功');
       setIsDrawerEditing(false);
-      crudForm.resetFields();
+      setFormDefaultValues({});
       queryClient.invalidateQueries({ queryKey: ['employeeList'] });
       queryClient.invalidateQueries({ queryKey: ['employeeDetail'] });
     },
@@ -183,7 +186,7 @@ export default function EmployeeList() {
             formattedData[key] = formattedData[key].substring(0, 10);
           }
         });
-        crudForm.setFieldsValue(formattedData);
+        setFormDefaultValues(formattedData);
       }
     } else if (isCreateDrawerOpen) {
       closeViewDrawer();
@@ -191,8 +194,8 @@ export default function EmployeeList() {
   };
 
   const openCreateDrawer = () => {
-    crudForm.resetFields();
-    crudForm.setFieldsValue({ isActive: true });
+    setFormDefaultValues({});
+    setFormDefaultValues({ status: 1 });
     setIsCreateDrawerOpen(true);
   };
 
@@ -208,17 +211,7 @@ export default function EmployeeList() {
     }
   };
 
-  const handleFinishFailed = (errorInfo: any) => {
-    if (errorInfo.errorFields && errorInfo.errorFields.length > 0) {
-      const firstErrorField = errorInfo.errorFields[0].name;
-      crudForm.scrollToField(firstErrorField, { behavior: 'smooth' });
-      setTimeout(() => {
-        crudForm.getFieldInstance(firstErrorField)?.focus();
-      }, 100);
-    }
-  };
-
-  const columns = [
+    const columns = [
     {
       title: '操作',
       key: 'actions',
@@ -315,60 +308,7 @@ export default function EmployeeList() {
     setIsSearchModalOpen(true);
   };
 
-  const renderFormFields = (isEdit: boolean) => (
-    <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item name="employeeNo" label="員工編號" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入員工編號'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="name" label="姓名" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入姓名'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="status" label="狀態" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Select placeholder={isViewMode ? '' : '請選擇狀態'} style={{ width: '100%' }}>
-                      <Select.Option value={1}>在職</Select.Option>
-                      <Select.Option value={2}>離職</Select.Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="departmentCode" label="部門代碼" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Select placeholder={isViewMode ? '' : '請選擇部門代碼'} style={{ width: '100%' }} options={departmentOptions} loading={isFetchingDepartments} showSearch filterOption={(input, option) => (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="phone" label="聯絡電話" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入聯絡電話'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="email" label="電子郵件" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入電子郵件'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="hireDate" label="到職日期">
-                    <Input type={isViewMode ? 'text' : 'date'} placeholder={isViewMode ? '' : '請選擇到職日期'} style={{ width: '100%' }} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="resignDate" label="離職日期">
-                    <Input type={isViewMode ? 'text' : 'date'} placeholder={isViewMode ? '' : '請選擇離職日期'} style={{ width: '100%' }} />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item name="notes" label="備註">
-                    <Input.TextArea placeholder={isViewMode ? '' : '請輸入備註'} rows={3} />
-                  </Form.Item>
-                </Col>
-    </Row>
-  );
-
-  return (
+    return (
     <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
       <Card
         variant="borderless"
@@ -563,7 +503,7 @@ export default function EmployeeList() {
                 <Button 
                   type="primary" 
                   icon={<SaveOutlined />} 
-                  onClick={() => crudForm.submit()}
+                  htmlType="submit" form="employee-form"
                   loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
                 >
                   儲存
@@ -574,16 +514,15 @@ export default function EmployeeList() {
         }
       >
                 <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
-          <Form
-            form={crudForm}
-            layout="vertical"
-            onFinish={handleCrudSubmit}
-            onFinishFailed={handleFinishFailed}
-            className={(!isDrawerEditing && !isCreateDrawerOpen) ? 'view-mode-form' : ''}
-            disabled={!isDrawerEditing && !isCreateDrawerOpen}
-          >
-            {renderFormFields(isDrawerEditing)}
-          </Form>
+          <DynamicForm
+            formId="employee-form"
+            fields={getEmployeeFormConfig(departmentOptions, isFetchingDepartments)}
+            defaultValues={formDefaultValues}
+            onSubmit={handleCrudSubmit}
+            isUpdateMode={isDrawerEditing}
+            isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
+            hideDefaultFooter={true}
+          />
         </Spin>
       </Drawer>
     </div>

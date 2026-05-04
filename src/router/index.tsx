@@ -15,6 +15,7 @@ import RoleList from '@/pages/system/RoleList';
 import StorageList from '@/pages/warehouse/StorageList';
 import MoldList from '@/pages/production/MoldList';
 import MachineList from '@/pages/production/MachineList';
+import FormDemo from '@/pages/demo/FormDemo';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 // 路由守衛
@@ -49,7 +50,8 @@ export const router = createBrowserRouter([
       { path: 'system/roles/:viewId?', element: <RoleList /> },
       { path: 'warehouse/storages/:viewId?', element: <StorageList /> },
       { path: 'production-quality/molds/:viewId?', element: <MoldList /> },
-      { path: 'production-quality/machines/:viewId?', element: <MachineList /> }
+      { path: 'production-quality/machines/:viewId?', element: <MachineList /> },
+      { path: 'demo/form', element: <FormDemo /> }
     ]
   },
   { path: ROUTES.FORBIDDEN, element: <Forbidden /> },
