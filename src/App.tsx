@@ -28,6 +28,11 @@ export default function App() {
             borderRadius: 6,
           },
           components: {
+            DatePicker: {
+              colorIcon: 'rgba(255, 255, 255, 0.65)',
+              colorIconHover: 'rgba(255, 255, 255, 0.85)',
+              colorTextDisabled: 'rgba(255, 255, 255, 0.25)',
+            },
             Table: {
               // 高資訊密度列表設計
               padding: 8,

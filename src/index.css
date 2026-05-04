@@ -16,12 +16,13 @@ body {
 
 
 /* 修正 DatePicker 內的日曆 icon 在黑暗模式下不明顯的問題 */
-.ant-picker .ant-picker-suffix,
-.ant-picker .ant-picker-suffix *,
-.ant-picker .ant-picker-clear,
-.ant-picker .ant-picker-clear * {
+body .ant-picker .ant-picker-suffix,
+body .ant-picker .ant-picker-suffix *,
+body .ant-picker .ant-picker-clear,
+body .ant-picker .ant-picker-clear * {
   color: rgba(255, 255, 255, 0.85) !important;
   fill: rgba(255, 255, 255, 0.85) !important;
+  opacity: 1 !important;
 }
 .ant-menu-title-content {
   display: inline-block !important;
