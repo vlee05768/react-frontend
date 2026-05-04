@@ -193,10 +193,9 @@ export default function UserList() {
 
   const toggleStatusMutation = useMutation({
     mutationFn: (record: any) => {
-      const { id, ...rest } = record;
       return putApiV1UserById({ 
-        path: { id: id as any }, 
-        body: { ...rest, isActive: !record.isActive } 
+        path: { id: record.id as any }, 
+        body: { isActive: !record.isActive } 
       });
     },
     onSuccess: (_, record) => {
