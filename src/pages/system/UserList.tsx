@@ -358,11 +358,6 @@ export default function UserList() {
   const renderFormFields = (isEdit: boolean) => (
     <Row gutter={16}>
                 <Col span={12}>
-                  <Form.Item name="isActive" label="啟動狀態" valuePropName="checked">
-                    <Switch />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
                   <Form.Item name="userName" label="帳號" rules={[{ required: true, message: '必填欄位' }]}>
                     <Input placeholder={isViewMode ? '' : '請輸入帳號'} disabled={isViewMode || isEdit} />
                   </Form.Item>

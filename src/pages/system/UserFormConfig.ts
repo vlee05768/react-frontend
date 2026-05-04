@@ -3,12 +3,6 @@ import type { FieldConfig } from '@/components/Form/types';
 
 export const getUserFormConfig = (): FieldConfig<any>[] => [
   {
-    name: 'isActive',
-    label: '狀態',
-    componentType: 'Switch',
-    validation: z.boolean().optional(),
-  },
-  {
     name: 'userName',
     label: '帳號',
     componentType: 'Input',
