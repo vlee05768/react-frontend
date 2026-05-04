@@ -34,7 +34,9 @@ import {
   AppstoreOutlined,
   CheckOutlined,
   CloseOutlined,
-  MailOutlined
+  MailOutlined,
+  StopOutlined,
+  CheckCircleOutlined
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -189,6 +191,43 @@ export default function UserList() {
     }
   });
 
+  const toggleStatusMutation = useMutation({
+    mutationFn: (record: any) => {
+      const { id, ...rest } = record;
+      return putApiV1UserById({ 
+        path: { id: id as any }, 
+        body: { ...rest, isActive: !record.isActive } 
+      });
+    },
+    onSuccess: (_, record) => {
+      message.success(`已成功${record.isActive ? '停用' : '啟用'}帳號`);
+      
+      // 直接更新本地快取，讓畫面即時反應
+      queryClient.setQueriesData({ queryKey: ['userList'] }, (oldData: any) => {
+        if (!oldData) return oldData;
+        
+        const newData = JSON.parse(JSON.stringify(oldData));
+        const toggleActive = (user: any) => user.id === record.id ? { ...user, isActive: !record.isActive } : user;
+
+        if (newData?.data?.data?.data && Array.isArray(newData.data.data.data)) {
+          newData.data.data.data = newData.data.data.data.map(toggleActive);
+        } else if (newData?.data?.data && Array.isArray(newData.data.data)) {
+          newData.data.data = newData.data.data.map(toggleActive);
+        } else if (newData?.data && Array.isArray(newData.data)) {
+          newData.data = newData.data.map(toggleActive);
+        }
+        
+        return newData;
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['userList'] });
+      queryClient.invalidateQueries({ queryKey: ['userDetail'] });
+    },
+    onError: (error: any) => {
+      Modal.error({ centered: true, title: '錯誤提示', content: `狀態更新失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+    }
+  });
+
   const openViewDrawer = (record: any) => {
     navigate(`/system/users/${record.id}`);
   };
@@ -284,7 +323,23 @@ export default function UserList() {
                 okText="確定"
                 cancelText="取消"
               >
-                <Button type="text" icon={<MailOutlined />} style={{ color: '#52c41a' }} />
+                <Button type="text" icon={<MailOutlined />} style={{ color: '#1890ff' }} />
+              </Popconfirm>
+            </Tooltip>
+          )}
+          {hasPermission('System.Users.Update') && (
+            <Tooltip title={record.isActive ? "停用帳號" : "啟用帳號"}>
+              <Popconfirm
+                title={`確定要${record.isActive ? '停用' : '啟用'}此帳號嗎？`}
+                onConfirm={() => toggleStatusMutation.mutate(record)}
+                okText="確定"
+                cancelText="取消"
+              >
+                <Button 
+                  type="text" 
+                  icon={record.isActive ? <StopOutlined /> : <CheckCircleOutlined />} 
+                  style={{ color: record.isActive ? '#ff4d4f' : '#52c41a' }} 
+                />
               </Popconfirm>
             </Tooltip>
           )}
