@@ -1,5 +1,6 @@
 import React from 'react';
 import { Form, Input, Select, InputNumber, DatePicker, Switch, Tooltip } from 'antd';
+import { CalendarOutlined } from '@ant-design/icons';
 import { Controller } from 'react-hook-form';
 import type { Control, UseFormSetValue } from 'react-hook-form';
 import { z } from 'zod';
@@ -121,7 +122,7 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
             ComponentNode = renderWithTooltip(<InputNumber {...commonProps} className="w-full" />);
             break;
           case 'DatePicker':
-            ComponentNode = renderWithTooltip(<DatePicker {...commonProps} className="w-full" />);
+            ComponentNode = renderWithTooltip(<DatePicker {...commonProps} className="w-full" suffixIcon={<CalendarOutlined style={{ color: "rgba(255, 255, 255, 0.65)" }} />} />);
             break;
           case 'Switch':
             // Switch 的值是 checked
