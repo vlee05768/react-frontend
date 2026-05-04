@@ -1,0 +1,106 @@
+.ant-modal-confirm-error .ant-modal-content {
+  padding: 0 !important;
+  border: 4px solid #4a362f !important;
+  border-radius: 12px !important;
+  background-color: #fff9f0 !important;
+  box-shadow: 6px 6px 0px 0px rgba(74, 54, 47, 0.2) !important;
+  overflow: hidden;
+}
+
+.ant-modal-confirm-error .ant-modal-body {
+  padding: 0 !important;
+}
+
+.ant-modal-confirm-error .ant-modal-confirm-body-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.ant-modal-confirm-error .ant-modal-confirm-body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 隱藏預設的 Icon */
+.ant-modal-confirm-error .ant-modal-confirm-icon {
+  display: none !important;
+}
+
+/* Title Bar 的實作 (透過 title 區塊偽裝) */
+.ant-modal-confirm-error .ant-modal-confirm-title {
+  background-color: #ff8c7a;
+  color: #4a362f;
+  font-family: monospace, sans-serif;
+  font-weight: 900;
+  font-size: 18px;
+  padding: 12px 20px;
+  border-bottom: 4px solid #4a362f;
+  margin: 0 !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-transform: uppercase;
+}
+
+/* 假裝有右上角的關閉按鈕 X */
+.ant-modal-confirm-error .ant-modal-confirm-title::after {
+  content: '✖';
+  font-weight: 900;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* Content 區塊：左側 Icon + 右側文字 */
+.ant-modal-confirm-error .ant-modal-confirm-content {
+  padding: 30px 24px 10px 24px !important;
+  margin: 0 !important;
+  color: #4a362f;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 15px;
+}
+
+/* 左側紅色圓形 X Icon */
+.ant-modal-confirm-error .ant-modal-confirm-content::before {
+  content: '✖';
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  background-color: #ff8c7a;
+  color: #ffffff;
+  border: 4px solid #4a362f;
+  border-radius: 50%;
+  font-weight: 900;
+  font-size: 24px;
+}
+
+/* OK 按鈕區塊置中 */
+.ant-modal-confirm-error .ant-modal-confirm-btns {
+  padding: 16px 24px 30px 24px;
+  display: flex;
+  justify-content: center;
+  margin-top: 0 !important;
+}
+
+/* OK 按鈕樣式 */
+.ant-modal-confirm-error .ant-modal-confirm-btns .ant-btn-primary {
+  background-color: #ff8c7a !important;
+  color: #4a362f !important;
+  border: 4px solid #4a362f !important;
+  border-radius: 8px !important;
+  font-weight: 900 !important;
+  box-shadow: none !important;
+  padding: 6px 36px !important;
+  height: auto !important;
+  font-size: 16px !important;
+  text-transform: uppercase;
+}
+
+.ant-modal-confirm-error .ant-modal-confirm-btns .ant-btn-primary:hover {
+  background-color: #ff7b68 !important;
+}
