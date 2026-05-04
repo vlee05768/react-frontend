@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Layout, Menu, Button, Dropdown, Spin } from 'antd';
 import { 
+  SunOutlined, MoonOutlined,
   MenuUnfoldOutlined, 
   MenuFoldOutlined, 
   UserOutlined, 
@@ -16,6 +17,7 @@ import {
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useThemeStore } from '@/stores/useThemeStore';
 import { ROUTES } from '@/constants/routes';
 
 const { Header, Sider, Content } = Layout;
@@ -56,6 +58,7 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, permissionTree, fetchUserProfile, logout, hasPermission } = useAuthStore();
+  const { mode, toggleTheme } = useThemeStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -185,6 +188,15 @@ export default function MainLayout() {
   const userMenu = {
     items: [
       {
+        key: 'profile',
+        icon: <UserOutlined />,
+        label: '個人資訊',
+        onClick: () => navigate(ROUTES.PROFILE)
+      },
+      {
+        type: 'divider' as const
+      },
+      {
         key: 'logout',
         icon: <LogoutOutlined />,
         label: '登出系統',
@@ -199,7 +211,7 @@ export default function MainLayout() {
 
   if (loading) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-[#141414]">
+      <div className={`h-screen w-screen flex items-center justify-center ${mode === 'dark' ? 'bg-[#141414]' : 'bg-[#f5f5f5]'}`}>
         <Spin size="large" description="載入使用者設定中..." />
       </div>
     );
@@ -211,17 +223,17 @@ export default function MainLayout() {
         trigger={null} 
         collapsible 
         collapsed={collapsed}
-        theme="dark"
-        className="border-r border-[#303030]"
+        theme={mode}
+        className={`border-r ${mode === 'dark' ? 'border-[#303030]' : 'border-gray-200'}`}
         width={220}
       >
-        <div className="h-16 flex items-center justify-center border-b border-[#303030]">
-          <h1 className={`text-white font-bold transition-all ${collapsed ? 'text-sm' : 'text-xl'}`}>
+        <div className={`h-16 flex items-center justify-center border-b ${mode === 'dark' ? 'border-[#303030]' : 'border-gray-200'}`}>
+          <h1 className={`${mode === 'dark' ? 'text-white' : 'text-gray-800'} font-bold transition-all ${collapsed ? 'text-sm' : 'text-xl'}`}>
             ERP {collapsed ? '' : 'System'}
           </h1>
         </div>
                 <Menu
-          theme="dark"
+          theme={mode}
           mode="inline"
           selectedKeys={[location.pathname]}
           openKeys={openKeys}
@@ -230,22 +242,31 @@ export default function MainLayout() {
           items={generateMenuItems()}
         />
       </Sider>
-      <Layout className="bg-[#141414]">
-        <Header className="px-4 bg-[#141414] border-b border-[#303030] flex justify-between items-center h-16 leading-[64px]">
+      <Layout className={`flex-1 ${mode === 'dark' ? 'bg-[#141414]' : 'bg-[#f5f5f5]'}`}>
+        <Header 
+          className={`px-4 ${mode === 'dark' ? 'border-[#303030]' : 'border-gray-200'} border-b flex justify-between items-center h-16 leading-[64px]`}
+          style={{ background: mode === 'dark' ? '#141414' : '#ffffff' }}
+        >
           <div className="flex items-center">
             <Button
               type="text"
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={() => setCollapsed(!collapsed)}
-              className="text-white hover:text-gray-300"
+              className={`${mode === 'dark' ? 'text-white hover:text-gray-300' : 'text-gray-800 hover:text-gray-600'}`}
             />
             <span className="ml-4 text-gray-400 text-sm hidden md:inline-block">
               (提示: 使用 <kbd className="bg-[#2a2a2a] px-1 rounded">Ctrl+K</kbd> 開啟全域搜尋)
             </span>
           </div>
-          <div>
+          <div className="flex items-center gap-2">
+            <Button 
+              type="text" 
+              icon={mode === 'dark' ? <SunOutlined /> : <MoonOutlined />} 
+              onClick={toggleTheme}
+              className={`${mode === 'dark' ? 'text-white hover:text-yellow-400' : 'text-gray-800 hover:text-blue-500'}`}
+            />
             <Dropdown menu={userMenu} placement="bottomRight" arrow>
-              <Button type="text" className="text-white flex items-center">
+              <Button type="text" className={`${mode === 'dark' ? 'text-white' : 'text-gray-800'} flex items-center`}>
                 <UserOutlined className="mr-2" /> {user?.name || 'User'}
               </Button>
             </Dropdown>
@@ -255,7 +276,7 @@ export default function MainLayout() {
           {checkRoutePermission() ? (
             <Outlet />
           ) : (
-            <div className="h-full w-full flex items-center justify-center bg-[#141414]">
+            <div className={`h-full w-full flex items-center justify-center ${mode === 'dark' ? 'bg-[#141414]' : 'bg-[#f5f5f5]'}`}>
               <div className="text-center">
                 <h1 className="text-6xl font-bold text-gray-700 mb-4">403</h1>
                 <p className="text-gray-400 text-lg mb-8">抱歉，您沒有權限訪問此頁面。</p>

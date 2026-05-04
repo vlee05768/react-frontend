@@ -46,6 +46,8 @@ import {
 
 import { useMachineQueryStore } from '@/stores/productionStore';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { DynamicForm } from '@/components/Form/DynamicForm';
+import { getMachineFormConfig } from './MachineFormConfig';
 
 export default function MachineList() {
   const { params, setParams, resetParams } = useMachineQueryStore();
@@ -54,7 +56,7 @@ export default function MachineList() {
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
   const [searchForm] = Form.useForm();
-  const [crudForm] = Form.useForm();
+  const [formDefaultValues, setFormDefaultValues] = useState<any>({});
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   
@@ -90,9 +92,9 @@ export default function MachineList() {
           formattedData[key] = formattedData[key].substring(0, 10);
         }
       });
-      crudForm.setFieldsValue(formattedData);
+      setFormDefaultValues(formattedData);
     }
-  }, [viewData, crudForm]);
+  }, [viewData]);
 
   // API 查詢
   const { data, isFetching } = useQuery({
@@ -114,7 +116,7 @@ export default function MachineList() {
     onSuccess: () => {
       message.success('新增成功');
       setIsCreateDrawerOpen(false);
-      crudForm.resetFields();
+      setFormDefaultValues({});
       queryClient.invalidateQueries({ queryKey: ['machineList'] });
     },
     onError: (error: any) => {
@@ -128,7 +130,7 @@ export default function MachineList() {
     onSuccess: () => {
       message.success('更新成功');
       setIsDrawerEditing(false);
-      crudForm.resetFields();
+      setFormDefaultValues({});
       queryClient.invalidateQueries({ queryKey: ['machineList'] });
       queryClient.invalidateQueries({ queryKey: ['machineDetail'] });
     },
@@ -171,7 +173,7 @@ export default function MachineList() {
             formattedData[key] = formattedData[key].substring(0, 10);
           }
         });
-        crudForm.setFieldsValue(formattedData);
+        setFormDefaultValues(formattedData);
       }
     } else if (isCreateDrawerOpen) {
       closeViewDrawer();
@@ -179,8 +181,8 @@ export default function MachineList() {
   };
 
   const openCreateDrawer = () => {
-    crudForm.resetFields();
-    crudForm.setFieldsValue({ isActive: true });
+    setFormDefaultValues({});
+    setFormDefaultValues({ isActive: true });
     setIsCreateDrawerOpen(true);
   };
 
@@ -193,16 +195,6 @@ export default function MachineList() {
       createMutation.mutate(values);
     } else if (viewId) {
       updateMutation.mutate({ code: viewId as any, values });
-    }
-  };
-
-  const handleFinishFailed = (errorInfo: any) => {
-    if (errorInfo.errorFields && errorInfo.errorFields.length > 0) {
-      const firstErrorField = errorInfo.errorFields[0].name;
-      crudForm.scrollToField(firstErrorField, { behavior: 'smooth' });
-      setTimeout(() => {
-        crudForm.getFieldInstance(firstErrorField)?.focus();
-      }, 100);
     }
   };
 
@@ -293,31 +285,6 @@ export default function MachineList() {
     searchForm.setFieldsValue(params);
     setIsSearchModalOpen(true);
   };
-
-  const renderFormFields = (isEdit: boolean) => (
-    <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item name="code" label="編號" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入編號'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="name" label="姓名" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入姓名'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="type" label="類型" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入類型'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="capacity" label="產能" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入產能'} />
-                  </Form.Item>
-                </Col>
-    </Row>
-  );
 
   return (
     <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
@@ -496,7 +463,7 @@ export default function MachineList() {
                 <Button 
                   type="primary" 
                   icon={<SaveOutlined />} 
-                  onClick={() => crudForm.submit()}
+                  htmlType="submit" form="crud-form"
                   loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
                 >
                   儲存
@@ -507,16 +474,15 @@ export default function MachineList() {
         }
       >
                 <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
-          <Form
-            form={crudForm}
-            layout="vertical"
-            onFinish={handleCrudSubmit}
-            onFinishFailed={handleFinishFailed}
-            className={(!isDrawerEditing && !isCreateDrawerOpen) ? 'view-mode-form' : ''}
-            disabled={!isDrawerEditing && !isCreateDrawerOpen}
-          >
-            {renderFormFields(isDrawerEditing)}
-          </Form>
+          <DynamicForm
+            formId="crud-form"
+            fields={getMachineFormConfig()}
+            defaultValues={formDefaultValues}
+            onSubmit={handleCrudSubmit}
+            isUpdateMode={isDrawerEditing}
+            isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
+            hideDefaultFooter={true}
+          />
         </Spin>
       </Drawer>
     </div>

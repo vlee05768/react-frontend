@@ -3,6 +3,7 @@ import zhTW from 'antd/locale/zh_TW';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './router';
+import { useThemeStore } from './stores/useThemeStore';
 
 // 建立 React Query Client，統一全域快取設定
 const queryClient = new QueryClient({
@@ -16,15 +17,16 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
+  const { mode } = useThemeStore();
   return (
     <QueryClientProvider client={queryClient}>
       <ConfigProvider
         locale={zhTW}
         theme={{
-          algorithm: theme.darkAlgorithm,
+          algorithm: mode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
           token: {
             colorPrimary: '#1668dc',
-            colorBgBase: '#141414',
+            colorBgBase: mode === 'dark' ? '#141414' : '#ffffff',
             borderRadius: 6,
           },
           components: {

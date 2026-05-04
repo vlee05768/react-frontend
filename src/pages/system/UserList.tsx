@@ -33,7 +33,8 @@ import {
   EyeOutlined,
   AppstoreOutlined,
   CheckOutlined,
-  CloseOutlined
+  CloseOutlined,
+  MailOutlined
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -41,7 +42,8 @@ import {
   getApiV1UserById,
   postApiV1User,
   putApiV1UserById,
-  deleteApiV1UserById
+  deleteApiV1UserById,
+  postApiV1AuthResendActivation
 } from '@/api/generated/sdk.gen';
 
 import { useUserQueryStore } from '@/stores/systemStore';
@@ -149,6 +151,16 @@ export default function UserList() {
     }
   });
 
+  const resendActivationMutation = useMutation({
+    mutationFn: (email: string) => postApiV1AuthResendActivation({ body: { email } }),
+    onSuccess: () => {
+      message.success('已重新發送啟用信件');
+    },
+    onError: (error: any) => {
+      message.error(`重新啟用失敗: ${error?.response?.data?.message || '未知錯誤'}`);
+    }
+  });
+
   const openViewDrawer = (record: any) => {
     navigate(`/system/users/${record.id}`);
   };
@@ -211,7 +223,7 @@ export default function UserList() {
       title: '操作',
       key: 'actions',
       fixed: 'left' as const,
-      width: 120,
+      width: 160,
       render: (_: any, record: any) => (
         <Space>
           {hasPermission('System.Users.View') && (
@@ -233,6 +245,18 @@ export default function UserList() {
                 cancelText="取消"
               >
                 <Button type="text" danger icon={<DeleteOutlined />} />
+              </Popconfirm>
+            </Tooltip>
+          )}
+          {hasPermission('System.Users.Update') && record.email && (
+            <Tooltip title={`重新發送啟用信件給 ${record.userName}`}>
+              <Popconfirm
+                title={`確定要重新發送啟用信件給 ${record.userName} 嗎？`}
+                onConfirm={() => resendActivationMutation.mutate(record.email)}
+                okText="確定"
+                cancelText="取消"
+              >
+                <Button type="text" icon={<MailOutlined />} style={{ color: '#52c41a' }} />
               </Popconfirm>
             </Tooltip>
           )}

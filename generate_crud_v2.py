@@ -62,6 +62,8 @@ import {
 {ExtraImportsStr}
 import { use{Entity}QueryStore } from '@/stores/{StoreFile}';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { DynamicForm } from '@/components/Form/DynamicForm';
+import { get{Entity}FormConfig } from './{Entity}FormConfig';
 
 export default function {Entity}List() {
   const { params, setParams, resetParams } = use{Entity}QueryStore();
@@ -70,7 +72,7 @@ export default function {Entity}List() {
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
   const [searchForm] = Form.useForm();
-  const [crudForm] = Form.useForm();
+  const [formDefaultValues, setFormDefaultValues] = useState<any>({});
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   
@@ -106,9 +108,9 @@ export default function {Entity}List() {
           formattedData[key] = formattedData[key].substring(0, 10);
         }
       });
-      crudForm.setFieldsValue(formattedData);
+      setFormDefaultValues(formattedData);
     }
-  }, [viewData, crudForm]);
+  }, [viewData]);
 
   // API 查詢
   const { data, isFetching } = useQuery({
@@ -130,7 +132,7 @@ export default function {Entity}List() {
     onSuccess: () => {
       message.success('新增成功');
       setIsCreateDrawerOpen(false);
-      crudForm.resetFields();
+      setFormDefaultValues({});
       queryClient.invalidateQueries({ queryKey: ['{entity}List'] });
     },
     onError: (error: any) => {
@@ -144,7 +146,7 @@ export default function {Entity}List() {
     onSuccess: () => {
       message.success('更新成功');
       setIsDrawerEditing(false);
-      crudForm.resetFields();
+      setFormDefaultValues({});
       queryClient.invalidateQueries({ queryKey: ['{entity}List'] });
       queryClient.invalidateQueries({ queryKey: ['{entity}Detail'] });
     },
@@ -187,7 +189,7 @@ export default function {Entity}List() {
             formattedData[key] = formattedData[key].substring(0, 10);
           }
         });
-        crudForm.setFieldsValue(formattedData);
+        setFormDefaultValues(formattedData);
       }
     } else if (isCreateDrawerOpen) {
       closeViewDrawer();
@@ -195,8 +197,8 @@ export default function {Entity}List() {
   };
 
   const openCreateDrawer = () => {
-    crudForm.resetFields();
-    crudForm.setFieldsValue({ isActive: true });
+    setFormDefaultValues({});
+    setFormDefaultValues({ isActive: true });
     setIsCreateDrawerOpen(true);
   };
 
@@ -209,16 +211,6 @@ export default function {Entity}List() {
       createMutation.mutate(values);
     } else if (viewId) {
       updateMutation.mutate({ {idKey}: viewId as any, values });
-    }
-  };
-
-  const handleFinishFailed = (errorInfo: any) => {
-    if (errorInfo.errorFields && errorInfo.errorFields.length > 0) {
-      const firstErrorField = errorInfo.errorFields[0].name;
-      crudForm.scrollToField(firstErrorField, { behavior: 'smooth' });
-      setTimeout(() => {
-        crudForm.getFieldInstance(firstErrorField)?.focus();
-      }, 100);
     }
   };
 
@@ -306,12 +298,6 @@ export default function {Entity}List() {
     searchForm.setFieldsValue(params);
     setIsSearchModalOpen(true);
   };
-
-  const renderFormFields = (isEdit: boolean) => (
-    <Row gutter={16}>
-{EditFormStr}
-    </Row>
-  );
 
   return (
     <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
@@ -486,7 +472,7 @@ export default function {Entity}List() {
                 <Button 
                   type="primary" 
                   icon={<SaveOutlined />} 
-                  onClick={() => crudForm.submit()}
+                  htmlType="submit" form="crud-form"
                   loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
                 >
                   儲存
@@ -497,16 +483,15 @@ export default function {Entity}List() {
         }
       >
                 <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
-          <Form
-            form={crudForm}
-            layout="vertical"
-            onFinish={handleCrudSubmit}
-            onFinishFailed={handleFinishFailed}
-            className={(!isDrawerEditing && !isCreateDrawerOpen) ? 'view-mode-form' : ''}
-            disabled={!isDrawerEditing && !isCreateDrawerOpen}
-          >
-            {renderFormFields(isDrawerEditing)}
-          </Form>
+          <DynamicForm
+            formId="crud-form"
+            fields={get{Entity}FormConfig()}
+            defaultValues={formDefaultValues}
+            onSubmit={handleCrudSubmit}
+            isUpdateMode={isDrawerEditing}
+            isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
+            hideDefaultFooter={true}
+          />
         </Spin>
       </Drawer>
     </div>
@@ -737,7 +722,7 @@ def build(e):
         
     code = code.replace("{ExtraImportsStr}", extra_imports)
     code = code.replace("{ExtraHooksStr}", extra_hooks)
-    code = code.replace("{EditFormStr}", form_str)
+    
     
     # inject ref to first input
     if e["Entity"] == "User":
@@ -751,6 +736,45 @@ def build(e):
         
     return code
 
+
+def build_form_config(e):
+    entity = e['Entity']
+    fields = e.get('fields', [])
+    
+    config_code = "import { z } from 'zod';\nimport type { FieldConfig } from '@/components/Form/types';\n\n"
+    config_code += f"export const get{entity}FormConfig = (): FieldConfig<any>[] => [\n"
+    
+    for field in fields:
+        is_obj = isinstance(field, dict)
+        name = field['name'] if is_obj else field
+        update_disabled = "true" if (is_obj and field.get('updateDisabled')) else "false"
+        label = t(name, e['entity'])
+        
+        config_code += "  {\n"
+        config_code += f"    name: '{name}',\n"
+        config_code += f"    label: '{label}',\n"
+        
+        comp = 'Input'
+        if name in ['isActive', 'isCalculateInventory', 'isShareable']:
+            comp = 'Switch'
+        elif 'notes' in name.lower() or 'description' in name.lower():
+            comp = 'TextArea'
+            
+        config_code += f"    componentType: '{comp}',\n"
+        
+        if comp == 'Switch':
+             config_code += f"    validation: z.boolean().optional(),\n"
+        else:
+             config_code += f"    validation: z.any().optional().nullable(),\n"
+             
+        if update_disabled == "true":
+             config_code += f"    updateDisabled: true,\n"
+             
+        config_code += "  },\n"
+        
+    config_code += "];\n"
+    return config_code
+
 os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/system', exist_ok=True)
 os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/warehouse', exist_ok=True)
 os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/production', exist_ok=True)
@@ -758,9 +782,19 @@ os.makedirs('/home/hermes/git_projects/erp-frontend-react/src/pages/basic', exis
 
 for e in entities:
     if e['Entity'] == 'Employee':
-        path = '/home/hermes/git_projects/erp-frontend-react/src/pages/basic/Employee.tsx'
-    else:
-        path = f"/home/hermes/git_projects/erp-frontend-react/src/pages/{e['StoreFile'].replace('Store','')}/{e['Entity']}List.tsx"
+        continue
+    
+    path = f"/home/hermes/git_projects/erp-frontend-react/src/pages/{e['StoreFile'].replace('Store','')}/{e['Entity']}List.tsx"
+    config_path = f"/home/hermes/git_projects/erp-frontend-react/src/pages/{e['StoreFile'].replace('Store','')}/{e['Entity']}FormConfig.ts"
+    
     with open(path, 'w') as f:
         f.write(build(e))
     print(f"Generated {path}")
+    
+    if not os.path.exists(config_path):
+        with open(config_path, 'w') as f:
+            f.write(build_form_config(e))
+        print(f"Generated {config_path}")
+
+import sys
+sys.exit(0)

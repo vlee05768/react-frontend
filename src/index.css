@@ -1,9 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  /* 將 AntD 的背景色作為頁面基底色，保持暗黑模式一致性 */
-  background-color: #141414;
-  color: rgba(255, 255, 255, 0.85);
+  /* 由 AntD 和 Tailwind 動態控制背景與字體顏色，移除全域寫死 */
 }
 
 body {
@@ -15,14 +13,7 @@ body {
 }
 
 
-/* 修正 DatePicker 內的日曆 icon 在黑暗模式下不明顯的問題 */
-.ant-picker .ant-picker-suffix,
-.ant-picker .ant-picker-suffix *,
-.ant-picker .ant-picker-clear,
-.ant-picker .ant-picker-clear * {
-  color: rgba(255, 255, 255, 0.85) !important;
-  fill: rgba(255, 255, 255, 0.85) !important;
-}
+
 .ant-menu-title-content {
   display: inline-block !important;
   opacity: 1 !important;

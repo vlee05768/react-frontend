@@ -46,6 +46,8 @@ import {
 
 import { useStorageQueryStore } from '@/stores/warehouseStore';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { DynamicForm } from '@/components/Form/DynamicForm';
+import { getStorageFormConfig } from './StorageFormConfig';
 
 export default function StorageList() {
   const { params, setParams, resetParams } = useStorageQueryStore();
@@ -54,7 +56,7 @@ export default function StorageList() {
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
   const [searchForm] = Form.useForm();
-  const [crudForm] = Form.useForm();
+  const [formDefaultValues, setFormDefaultValues] = useState<any>({});
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   
@@ -90,9 +92,9 @@ export default function StorageList() {
           formattedData[key] = formattedData[key].substring(0, 10);
         }
       });
-      crudForm.setFieldsValue(formattedData);
+      setFormDefaultValues(formattedData);
     }
-  }, [viewData, crudForm]);
+  }, [viewData]);
 
   // API 查詢
   const { data, isFetching } = useQuery({
@@ -114,7 +116,7 @@ export default function StorageList() {
     onSuccess: () => {
       message.success('新增成功');
       setIsCreateDrawerOpen(false);
-      crudForm.resetFields();
+      setFormDefaultValues({});
       queryClient.invalidateQueries({ queryKey: ['storageList'] });
     },
     onError: (error: any) => {
@@ -128,7 +130,7 @@ export default function StorageList() {
     onSuccess: () => {
       message.success('更新成功');
       setIsDrawerEditing(false);
-      crudForm.resetFields();
+      setFormDefaultValues({});
       queryClient.invalidateQueries({ queryKey: ['storageList'] });
       queryClient.invalidateQueries({ queryKey: ['storageDetail'] });
     },
@@ -171,7 +173,7 @@ export default function StorageList() {
             formattedData[key] = formattedData[key].substring(0, 10);
           }
         });
-        crudForm.setFieldsValue(formattedData);
+        setFormDefaultValues(formattedData);
       }
     } else if (isCreateDrawerOpen) {
       closeViewDrawer();
@@ -179,8 +181,8 @@ export default function StorageList() {
   };
 
   const openCreateDrawer = () => {
-    crudForm.resetFields();
-    crudForm.setFieldsValue({ isActive: true });
+    setFormDefaultValues({});
+    setFormDefaultValues({ isActive: true });
     setIsCreateDrawerOpen(true);
   };
 
@@ -193,16 +195,6 @@ export default function StorageList() {
       createMutation.mutate(values);
     } else if (viewId) {
       updateMutation.mutate({ code: viewId as any, values });
-    }
-  };
-
-  const handleFinishFailed = (errorInfo: any) => {
-    if (errorInfo.errorFields && errorInfo.errorFields.length > 0) {
-      const firstErrorField = errorInfo.errorFields[0].name;
-      crudForm.scrollToField(firstErrorField, { behavior: 'smooth' });
-      setTimeout(() => {
-        crudForm.getFieldInstance(firstErrorField)?.focus();
-      }, 100);
     }
   };
 
@@ -298,51 +290,6 @@ export default function StorageList() {
     searchForm.setFieldsValue(params);
     setIsSearchModalOpen(true);
   };
-
-  const renderFormFields = (isEdit: boolean) => (
-    <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item name="code" label="儲位編碼" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入儲位編碼'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="name" label="儲位名稱" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入儲位名稱'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="type" label="儲位類型" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入儲位類型'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="location" label="地區" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入地區'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="area" label="區域" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入區域'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="isCalculateInventory" label="計算庫存" valuePropName="checked">
-                    <Switch />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="isActive" label="狀態" valuePropName="checked">
-                    <Switch />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item name="notes" label="備註">
-                    <Input.TextArea placeholder={isViewMode ? '' : '請輸入備註'} rows={3} />
-                  </Form.Item>
-                </Col>
-    </Row>
-  );
 
   return (
     <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
@@ -526,7 +473,7 @@ export default function StorageList() {
                 <Button 
                   type="primary" 
                   icon={<SaveOutlined />} 
-                  onClick={() => crudForm.submit()}
+                  htmlType="submit" form="crud-form"
                   loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
                 >
                   儲存
@@ -537,16 +484,15 @@ export default function StorageList() {
         }
       >
                 <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
-          <Form
-            form={crudForm}
-            layout="vertical"
-            onFinish={handleCrudSubmit}
-            onFinishFailed={handleFinishFailed}
-            className={(!isDrawerEditing && !isCreateDrawerOpen) ? 'view-mode-form' : ''}
-            disabled={!isDrawerEditing && !isCreateDrawerOpen}
-          >
-            {renderFormFields(isDrawerEditing)}
-          </Form>
+          <DynamicForm
+            formId="crud-form"
+            fields={getStorageFormConfig()}
+            defaultValues={formDefaultValues}
+            onSubmit={handleCrudSubmit}
+            isUpdateMode={isDrawerEditing}
+            isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
+            hideDefaultFooter={true}
+          />
         </Spin>
       </Drawer>
     </div>
