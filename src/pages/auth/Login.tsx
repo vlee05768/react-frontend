@@ -1,4 +1,4 @@
-import { Button, Form, Input, Checkbox, message } from 'antd';
+import { Button, Form, Input, Checkbox, message , Modal} from "antd";
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -28,10 +28,10 @@ export default function Login() {
         message.success('登入成功');
         navigate(ROUTES.HOME);
       } else {
-        message.error(response.data?.message || '登入失敗，請檢查帳號密碼');
+        Modal.error({ title: '錯誤提示', content: response.data?.message || '登入失敗，請檢查帳號密碼' });
       }
     } catch (error: any) {
-      message.error(error?.response?.data?.message || '登入發生錯誤，請稍後再試');
+      Modal.error({ title: '錯誤提示', content: error?.response?.data?.message || '登入發生錯誤，請稍後再試' });
     } finally {
       setLoading(false);
     }

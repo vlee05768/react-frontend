@@ -120,7 +120,7 @@ export default function MachineList() {
       queryClient.invalidateQueries({ queryKey: ['machineList'] });
     },
     onError: (error: any) => {
-      message.error(`新增失敗: ${error?.response?.data?.message || '未知錯誤'}`);
+      Modal.error({ title: '錯誤提示', content: `新增失敗: ${error?.response?.data?.message || '未知錯誤'}` });
     }
   });
 
@@ -135,7 +135,7 @@ export default function MachineList() {
       queryClient.invalidateQueries({ queryKey: ['machineDetail'] });
     },
     onError: (error: any) => {
-      message.error(`更新失敗: ${error?.response?.data?.message || '未知錯誤'}`);
+      Modal.error({ title: '錯誤提示', content: `更新失敗: ${error?.response?.data?.message || '未知錯誤'}` });
     }
   });
 
@@ -147,7 +147,7 @@ export default function MachineList() {
       queryClient.invalidateQueries({ queryKey: ['machineDetail'] });
     },
     onError: (error: any) => {
-      message.error(`刪除失敗: ${error?.response?.data?.message || '未知錯誤'}`);
+      Modal.error({ title: '錯誤提示', content: `刪除失敗: ${error?.response?.data?.message || '未知錯誤'}` });
     }
   });
 

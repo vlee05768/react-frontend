@@ -1,6 +1,6 @@
 import { client } from './generated/client.gen';
 import { useAuthStore } from '../stores/useAuthStore';
-import { message } from 'antd';
+import { Modal } from "antd";
 
 export function initializeApi() {
   // Configured to use relative path so Vite proxy handles it
@@ -23,7 +23,7 @@ export function initializeApi() {
     (error) => {
       if (error.response) {
         if (error.response.status === 401) {
-          message.error('請重新登入');
+          Modal.error({ title: '錯誤提示', content: '請重新登入' });
           useAuthStore.getState().logout();
           window.location.href = '/login';
         }

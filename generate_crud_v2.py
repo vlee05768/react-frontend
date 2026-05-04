@@ -136,7 +136,7 @@ export default function {Entity}List() {
       queryClient.invalidateQueries({ queryKey: ['{entity}List'] });
     },
     onError: (error: any) => {
-      message.error(`新增失敗: ${error?.response?.data?.message || '未知錯誤'}`);
+      Modal.error({ title: '錯誤提示', content: `新增失敗: ${error?.response?.data?.message || '未知錯誤'}` });
     }
   });
 
@@ -151,7 +151,7 @@ export default function {Entity}List() {
       queryClient.invalidateQueries({ queryKey: ['{entity}Detail'] });
     },
     onError: (error: any) => {
-      message.error(`更新失敗: ${error?.response?.data?.message || '未知錯誤'}`);
+      Modal.error({ title: '錯誤提示', content: `更新失敗: ${error?.response?.data?.message || '未知錯誤'}` });
     }
   });
 
@@ -163,7 +163,7 @@ export default function {Entity}List() {
       queryClient.invalidateQueries({ queryKey: ['{entity}Detail'] });
     },
     onError: (error: any) => {
-      message.error(`刪除失敗: ${error?.response?.data?.message || '未知錯誤'}`);
+      Modal.error({ title: '錯誤提示', content: `刪除失敗: ${error?.response?.data?.message || '未知錯誤'}` });
     }
   });
 

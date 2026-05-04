@@ -85,7 +85,7 @@ export default function Profile() {
     mutationFn: (data: ProfileFormValues) => putApiV1AuthProfile({ body: { phoneNumber: data.phoneNumber, extensionNumber: data.extensionNumber } as any }),
     onSuccess: (res) => {
       if (res.data?.success === false) {
-        message.error(res.data?.message || '更新失敗');
+        Modal.error({ title: '錯誤提示', content: res.data?.message || '更新失敗' });
         return;
       }
       message.success('個人資料更新成功');
@@ -93,7 +93,7 @@ export default function Profile() {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
     },
     onError: (error: any) => {
-      message.error(error?.response?.data?.message || '更新失敗');
+      Modal.error({ title: '錯誤提示', content: error?.response?.data?.message || '更新失敗' });
     }
   });
 
@@ -107,7 +107,7 @@ export default function Profile() {
     }),
     onSuccess: (res) => {
       if (res.data?.success === false) {
-        message.error(res.data?.message || '修改密碼失敗');
+        Modal.error({ title: '錯誤提示', content: res.data?.message || '修改密碼失敗' });
         return;
       }
       message.success('密碼修改成功，請重新登入');
@@ -116,7 +116,7 @@ export default function Profile() {
       navigate(ROUTES.LOGIN);
     },
     onError: (error: any) => {
-      message.error(error?.response?.data?.message || '修改密碼失敗');
+      Modal.error({ title: '錯誤提示', content: error?.response?.data?.message || '修改密碼失敗' });
     }
   });
 
