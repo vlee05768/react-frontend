@@ -76,18 +76,20 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
         const commonProps = {
           ...field,
           ...componentProps,
+          className: componentProps?.className ? `${componentProps.className} w-full` : 'w-full',
           onChange: handleChange,
           disabled: finalDisabled,
           status: error ? 'error' as const : undefined,
           ...(isEllipsis ? {
             style: {
+              width: '100%',
               textOverflow: 'ellipsis',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               ...componentProps?.style,
             }
           } : {
-            style: componentProps?.style,
+            style: { width: '100%', ...componentProps?.style },
           }),
         };
 
@@ -122,9 +124,13 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
             break;
           case 'TextArea':
             // TextArea 通常是換行，不需要 ellipsis
-            const textAreaProps = { ...commonProps };
+            const textAreaProps: any = { ...commonProps };
             if (textAreaProps.style) {
               delete textAreaProps.style.textOverflow;
+            }
+            // 確保 TextArea 至少有 3 行的高度
+            if (!textAreaProps.rows && !textAreaProps.autoSize) {
+              textAreaProps.autoSize = { minRows: 3 };
             }
             ComponentNode = <Input.TextArea {...textAreaProps} />;
             break;
@@ -132,10 +138,10 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
             ComponentNode = renderWithTooltip(<Select {...commonProps} />);
             break;
           case 'InputNumber':
-            ComponentNode = renderWithTooltip(<InputNumber {...commonProps} className="w-full" />);
+            ComponentNode = renderWithTooltip(<InputNumber {...commonProps} />);
             break;
           case 'DatePicker':
-            ComponentNode = renderWithTooltip(<DatePicker {...commonProps} className="w-full" />);
+            ComponentNode = renderWithTooltip(<DatePicker {...commonProps} />);
             break;
           case 'Switch':
             // Switch 的值是 checked
