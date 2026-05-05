@@ -13,6 +13,7 @@ import Employee from '@/pages/basic/Employee';
 import Profile from '@/pages/system/Profile';
 import UserList from '@/pages/system/UserList';
 import RoleList from '@/pages/system/RoleList';
+import GeneralTypeLayout from '@/pages/system/GeneralType/GeneralTypeLayout';
 import StorageList from '@/pages/warehouse/StorageList';
 import MoldList from '@/pages/production/MoldList';
 import MachineList from '@/pages/production/MachineList';
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
       { path: 'profile', element: <Profile /> },
       { path: 'system/users/:viewId?', element: <UserList /> },
       { path: 'system/roles/:viewId?', element: <RoleList /> },
+      { path: 'system/general-types', element: <GeneralTypeLayout /> },
       { path: 'warehouse/storages/:viewId?', element: <StorageList /> },
       { path: 'production-quality/molds/:viewId?', element: <MoldList /> },
       { path: 'production-quality/machines/:viewId?', element: <MachineList /> },

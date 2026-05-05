@@ -148,7 +148,7 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
             ComponentNode = <Switch checked={field.value} onChange={handleChange} disabled={finalDisabled} {...componentProps} />;
             break;
           case 'Custom':
-            ComponentNode = config.customRender ? config.customRender({ ...field, onChange: handleChange }, context) : null;
+            ComponentNode = config.customRender ? config.customRender({ ...commonProps }, context) : null;
             break;
           default:
             ComponentNode = renderWithTooltip(<Input {...commonProps} />);
