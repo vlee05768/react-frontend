@@ -47,7 +47,8 @@ import {
 import { useStorageQueryStore } from '@/stores/warehouseStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { DynamicForm } from '@/components/Form/DynamicForm';
-import { getStorageFormConfig } from './StorageFormConfig';
+import { mainDictionary, mainFormConfig, mainTableColumns } from './StorageConfig';
+import { buildTableColumns } from '@/utils/tableUtils';
 
 export default function StorageList() {
   const { params, setParams, resetParams } = useStorageQueryStore();
@@ -198,48 +199,40 @@ export default function StorageList() {
     }
   };
 
-  const columns = [
-    {
-      title: '操作',
-      key: 'actions',
-      fixed: 'left' as const,
-      width: 120,
-      render: (_: any, record: any) => (
-        <Space>
-          {hasPermission('Warehouse.Storages.View') && (
-            <Tooltip title="檢視">
-              <Button 
-                type="text" 
-                icon={<EyeOutlined />} 
-                style={{ color: '#1890ff' }} 
-                onClick={() => openViewDrawer(record)}
-              />
-            </Tooltip>
-          )}
-          {false && (
-            <Tooltip title="刪除">
-              <Popconfirm
-                title="確定要刪除此筆資料嗎？"
-                onConfirm={() => deleteMutation.mutate(record.code)}
-                okText="確定"
-                cancelText="取消"
-              >
-                <Button type="text" danger icon={<DeleteOutlined />} />
-              </Popconfirm>
-            </Tooltip>
-          )}
-        </Space>
-      ),
-    },
-    { title: '儲位編碼', dataIndex: 'code', key: 'code', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '儲位名稱', dataIndex: 'name', key: 'name', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '儲位類型', dataIndex: 'type', key: 'type', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '地區', dataIndex: 'location', key: 'location', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '區域', dataIndex: 'area', key: 'area', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '計算庫存', dataIndex: 'isCalculateInventory', key: 'isCalculateInventory', align: 'center', render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{ color: 'green' }} /> : (v === false ? <CloseOutlined style={{ color: 'red' }} /> : null) },
-    { title: '狀態', dataIndex: 'isActive', key: 'isActive', align: 'center', render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{ color: 'green' }} /> : (v === false ? <CloseOutlined style={{ color: 'red' }} /> : null) },
-    { title: '備註', dataIndex: 'notes', key: 'notes', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-  ];
+  const actionColumn = {
+    title: '操作',
+    key: 'actions',
+    fixed: 'left' as const,
+    width: 120,
+    render: (_: any, record: any) => (
+      <Space>
+        {hasPermission('Warehouse.Storages.View') && (
+          <Tooltip title="檢視">
+            <Button 
+              type="text" 
+              icon={<EyeOutlined />} 
+              style={{ color: '#1890ff' }} 
+              onClick={() => openViewDrawer(record)}
+            />
+          </Tooltip>
+        )}
+        {false && (
+          <Tooltip title="刪除">
+            <Popconfirm
+              title="確定要刪除此筆資料嗎？"
+              onConfirm={() => deleteMutation.mutate(record.code)}
+              okText="確定"
+              cancelText="取消"
+            >
+              <Button type="text" danger icon={<DeleteOutlined />} />
+            </Popconfirm>
+          </Tooltip>
+        )}
+      </Space>
+    ),
+  };
+
+  const columns = buildTableColumns(mainTableColumns(), actionColumn);
 
   const handleSearch = (values: any) => {
     // 確保清空的欄位能覆蓋 Zustand store 中的舊值
@@ -485,8 +478,8 @@ export default function StorageList() {
       >
                 <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
           <DynamicForm
-            formId="crud-form"
-            fields={getStorageFormConfig()}
+            formId="storageForm"
+            fields={mainFormConfig()}
             defaultValues={formDefaultValues}
             onSubmit={handleCrudSubmit}
             isUpdateMode={isDrawerEditing}

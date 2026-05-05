@@ -19,9 +19,21 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
   const isHidden = typeof config.hidden === 'function' ? config.hidden(context) : config.hidden;
   if (isHidden) return null;
 
-  const isDisabled = typeof config.disabled === 'function' ? config.disabled(context) : config.disabled;
-  const isUpdateDisabled = typeof config.updateDisabled === 'function' ? config.updateDisabled(context) : config.updateDisabled;
-  const finalDisabled = isViewMode || isDisabled || (isUpdateMode && isUpdateDisabled);
+  // 支援新版 editable 與舊版 disabled/updateDisabled
+  let calcDisabled = false;
+  if ('editable' in config && config.editable) {
+    const editable = typeof config.editable === 'function' ? config.editable(context) : config.editable;
+    if (editable === 'never') calcDisabled = true;
+    else if (editable === 'createOnly' && isUpdateMode) calcDisabled = true;
+    else if (editable === 'updateOnly' && !isUpdateMode) calcDisabled = true;
+    else if (typeof editable === 'boolean') calcDisabled = !editable; // 支援 boolean 傳入
+  } else {
+    const isDisabled = typeof (config as any).disabled === 'function' ? (config as any).disabled(context) : (config as any).disabled;
+    const isUpdateDisabled = typeof (config as any).updateDisabled === 'function' ? (config as any).updateDisabled(context) : (config as any).updateDisabled;
+    calcDisabled = isDisabled || (isUpdateMode && isUpdateDisabled);
+  }
+  
+  const finalDisabled = isViewMode || calcDisabled;
 
   const componentProps = typeof config.componentProps === 'function' ? config.componentProps(context) : (config.componentProps || {});
   const resolvedLabel = typeof config.label === 'function' ? config.label(context) : config.label;

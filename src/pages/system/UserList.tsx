@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import type { InputRef } from 'antd';
 import {
   Spin,
@@ -49,7 +49,11 @@ import {
 } from '@/api/generated/sdk.gen';
 
 import { useUserQueryStore } from '@/stores/systemStore';
+import { DynamicForm } from '@/components/Form/DynamicForm';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useLoadingStore } from '@/stores/useLoadingStore';
+import { mainDictionary, mainFormConfig, mainTableColumns } from './UserConfig';
+import { buildTableColumns } from '@/utils/tableUtils';
 
 export default function UserList() {
   const { params, setParams, resetParams } = useUserQueryStore();
@@ -85,18 +89,21 @@ export default function UserList() {
   });
   const viewData = viewRes?.data?.data || viewRes?.data;
 
-  // 當獲取到單筆資料時，更新表單內容 (為了 View Mode 能看到資料)
-  useEffect(() => {
-    if (viewData) {
-      const formattedData = { ...viewData };
-      Object.keys(formattedData).forEach(key => {
-        if (key.toLowerCase().includes('date') && formattedData[key] && typeof formattedData[key] === 'string') {
-          formattedData[key] = formattedData[key].substring(0, 10);
-        }
-      });
-      crudForm.setFieldsValue(formattedData);
-    }
-  }, [viewData, crudForm]);
+  const formattedViewData = useMemo(() => {
+    if (!viewData) return undefined;
+    const data = { ...viewData };
+    Object.keys(data).forEach(key => {
+      if (key.toLowerCase().includes('date') && data[key] && typeof data[key] === 'string') {
+        data[key] = data[key].substring(0, 10);
+      }
+    });
+    return data;
+  }, [viewData]);
+
+  // 取消原本 crudForm 的依賴
+  // useEffect(() => {
+  //   if (viewData) { ... crudForm.setFieldsValue(...) }
+  // }, [viewData, crudForm]);
 
   // API 查詢
   const { data, isFetching } = useQuery({
@@ -154,7 +161,11 @@ export default function UserList() {
   });
 
   const resendActivationMutation = useMutation({
-    mutationFn: (email: string) => postApiV1AuthResendActivation({ body: { email } }),
+    mutationFn: (email: string) => {
+      // 直接把設定寫入全域 Store，避開 Axios Headers 的複雜度
+      useLoadingStore.getState().setLoadingMessage('正在重新發送啟用信件...');
+      return postApiV1AuthResendActivation({ body: { email } });
+    },
     onSuccess: (_, email) => {
       message.success('已重新發送啟用信件');
       
@@ -242,23 +253,12 @@ export default function UserList() {
   const handleCancel = () => {
     if (isDrawerEditing) {
       setIsDrawerEditing(false);
-      if (viewData) {
-        const formattedData = { ...viewData };
-        Object.keys(formattedData).forEach(key => {
-          if (key.toLowerCase().includes('date') && formattedData[key] && typeof formattedData[key] === 'string') {
-            formattedData[key] = formattedData[key].substring(0, 10);
-          }
-        });
-        crudForm.setFieldsValue(formattedData);
-      }
     } else if (isCreateDrawerOpen) {
       closeViewDrawer();
     }
   };
 
   const openCreateDrawer = () => {
-    crudForm.resetFields();
-    crudForm.setFieldsValue({ isActive: true });
     setIsCreateDrawerOpen(true);
   };
 
@@ -284,79 +284,68 @@ export default function UserList() {
     }
   };
 
-  const columns = [
-    {
-      title: '操作',
-      key: 'actions',
-      fixed: 'left' as const,
-      width: 160,
-      render: (_: any, record: any) => (
-        <Space>
-          {hasPermission('System.Users.View') && (
-            <Tooltip title="檢視">
+  const actionColumn = {
+    title: '操作',
+    key: 'actions',
+    fixed: 'left' as const,
+    width: 160,
+    render: (_: any, record: any) => (
+      <Space>
+        {hasPermission('System.Users.View') && (
+          <Tooltip title="檢視">
+            <Button 
+              type="text" 
+              icon={<EyeOutlined />} 
+              style={{ color: '#1890ff' }} 
+              onClick={() => openViewDrawer(record)}
+            />
+          </Tooltip>
+        )}
+        {hasPermission('System.Users.Delete') && (
+          <Tooltip title="刪除">
+            <Popconfirm
+              title="確定要刪除此筆資料嗎？"
+              onConfirm={() => deleteMutation.mutate(record.id)}
+              okText="確定"
+              cancelText="取消"
+            >
+              <Button type="text" danger icon={<DeleteOutlined />} />
+            </Popconfirm>
+          </Tooltip>
+        )}
+        {hasPermission('System.Users.Update') && record.email && (
+          <Tooltip title={`重新發送啟用信件給 ${record.userName}`}>
+            <Popconfirm
+              title={`確定要重新發送啟用信件給 ${record.userName} 嗎？`}
+              onConfirm={() => resendActivationMutation.mutate(record.email)}
+              okText="確定"
+              cancelText="取消"
+            >
+              <Button type="text" icon={<MailOutlined />} style={{ color: '#1890ff' }} />
+            </Popconfirm>
+          </Tooltip>
+        )}
+        {hasPermission('System.Users.Update') && (
+          <Tooltip title={record.isActive ? "停用帳號" : "啟用帳號"}>
+            <Popconfirm
+              title={`確定要${record.isActive ? '停用' : '啟用'}此帳號嗎？`}
+              onConfirm={() => toggleStatusMutation.mutate(record)}
+              okText="確定"
+              cancelText="取消"
+            >
               <Button 
                 type="text" 
-                icon={<EyeOutlined />} 
-                style={{ color: '#1890ff' }} 
-                onClick={() => openViewDrawer(record)}
+                icon={record.isActive ? <StopOutlined /> : <CheckCircleOutlined />} 
+                style={{ color: record.isActive ? '#ff4d4f' : '#52c41a' }} 
               />
-            </Tooltip>
-          )}
-          {hasPermission('System.Users.Delete') && (
-            <Tooltip title="刪除">
-              <Popconfirm
-                title="確定要刪除此筆資料嗎？"
-                onConfirm={() => deleteMutation.mutate(record.id)}
-                okText="確定"
-                cancelText="取消"
-              >
-                <Button type="text" danger icon={<DeleteOutlined />} />
-              </Popconfirm>
-            </Tooltip>
-          )}
-          {hasPermission('System.Users.Update') && record.email && (
-            <Tooltip title={`重新發送啟用信件給 ${record.userName}`}>
-              <Popconfirm
-                title={`確定要重新發送啟用信件給 ${record.userName} 嗎？`}
-                onConfirm={() => resendActivationMutation.mutate(record.email)}
-                okText="確定"
-                cancelText="取消"
-              >
-                <Button type="text" icon={<MailOutlined />} style={{ color: '#1890ff' }} />
-              </Popconfirm>
-            </Tooltip>
-          )}
-          {hasPermission('System.Users.Update') && (
-            <Tooltip title={record.isActive ? "停用帳號" : "啟用帳號"}>
-              <Popconfirm
-                title={`確定要${record.isActive ? '停用' : '啟用'}此帳號嗎？`}
-                onConfirm={() => toggleStatusMutation.mutate(record)}
-                okText="確定"
-                cancelText="取消"
-              >
-                <Button 
-                  type="text" 
-                  icon={record.isActive ? <StopOutlined /> : <CheckCircleOutlined />} 
-                  style={{ color: record.isActive ? '#ff4d4f' : '#52c41a' }} 
-                />
-              </Popconfirm>
-            </Tooltip>
-          )}
-        </Space>
-      ),
-    },
-    { title: '啟動狀態', dataIndex: 'isActive', key: 'isActive', align: 'center', render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{ color: 'green' }} /> : (v === false ? <CloseOutlined style={{ color: 'red' }} /> : null) },
-    { title: '帳號', dataIndex: 'userName', key: 'userName', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '姓名', dataIndex: 'name', key: 'name', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '員工編號', dataIndex: 'employeeCode', key: 'employeeCode', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '職位', dataIndex: 'position', key: 'position', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '電子郵件', dataIndex: 'email', key: 'email', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '部門', dataIndex: 'department', key: 'department', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '分機號碼', dataIndex: 'extensionNumber', key: 'extensionNumber', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '手機號碼', dataIndex: 'mobile', key: 'mobile', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '電話號碼', dataIndex: 'phoneNumber', key: 'phoneNumber', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '角色', dataIndex: 'roles', key: 'roles', render: (v: string[]) => v?.join(', ') || '-' },
-  ];
+            </Popconfirm>
+          </Tooltip>
+        )}
+      </Space>
+    ),
+  };
+
+  const columns = buildTableColumns(mainTableColumns(), actionColumn);
 
   const handleSearch = (values: any) => {
     // 確保清空的欄位能覆蓋 Zustand store 中的舊值
@@ -410,58 +399,16 @@ export default function UserList() {
   };
 
   const renderFormFields = (isEdit: boolean) => (
-    <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item name="userName" label="帳號" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入帳號'} disabled={isViewMode || isEdit} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="name" label="姓名" rules={[{ required: true, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入姓名'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="employeeCode" label="員工編號" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入員工編號'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="position" label="職位" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入職位'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="email" label="電子郵件" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入電子郵件'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="department" label="部門" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入部門'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="extensionNumber" label="分機號碼" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入分機號碼'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="mobile" label="手機號碼" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入手機號碼'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="phoneNumber" label="電話號碼" rules={[{ required: false, message: '必填欄位' }]}>
-                    <Input placeholder={isViewMode ? '' : '請輸入電話號碼'} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="roles" label="角色">
-                    <Select mode="tags" placeholder={isViewMode ? '' : '請選擇或輸入角色'} style={{ width: '100%' }} />
-                  </Form.Item>
-                </Col>
-    </Row>
+    <DynamicForm
+      key={isCreateDrawerOpen ? 'create' : (viewId || 'empty')}
+      defaultValues={isCreateDrawerOpen ? { isActive: true } : formattedViewData}
+      fields={mainFormConfig()}
+      onSubmit={handleCrudSubmit}
+      isUpdateMode={isEdit}
+      isViewMode={isViewMode}
+      formId="userForm"
+      hideDefaultFooter={true}
+    />
   );
 
   return (
@@ -662,16 +609,7 @@ export default function UserList() {
         }
       >
                 <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
-          <Form
-            form={crudForm}
-            layout="vertical"
-            onFinish={handleCrudSubmit}
-            onFinishFailed={handleFinishFailed}
-            className={(!isDrawerEditing && !isCreateDrawerOpen) ? 'view-mode-form' : ''}
-            disabled={!isDrawerEditing && !isCreateDrawerOpen}
-          >
-            {renderFormFields(isDrawerEditing)}
-          </Form>
+          {renderFormFields(isDrawerEditing)}
         </Spin>
       </Drawer>
     </div>

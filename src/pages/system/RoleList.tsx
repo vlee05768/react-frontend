@@ -47,7 +47,8 @@ import {
 import { useRoleQueryStore } from '@/stores/systemStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { DynamicForm } from '@/components/Form/DynamicForm';
-import { getRoleFormConfig } from './RoleFormConfig';
+import { mainDictionary, mainFormConfig, mainTableColumns } from './RoleConfig';
+import { buildTableColumns } from '@/utils/tableUtils';
 
 export default function RoleList() {
   const { params, setParams, resetParams } = useRoleQueryStore();
@@ -198,43 +199,40 @@ export default function RoleList() {
     }
   };
 
-  const columns = [
-    {
-      title: '操作',
-      key: 'actions',
-      fixed: 'left' as const,
-      width: 120,
-      render: (_: any, record: any) => (
-        <Space>
-          {hasPermission('System.Roles.View') && (
-            <Tooltip title="檢視">
-              <Button 
-                type="text" 
-                icon={<EyeOutlined />} 
-                style={{ color: '#1890ff' }} 
-                onClick={() => openViewDrawer(record)}
-              />
-            </Tooltip>
-          )}
-          {hasPermission('System.Roles.Delete') && (
-            <Tooltip title="刪除">
-              <Popconfirm
-                title="確定要刪除此筆資料嗎？"
-                onConfirm={() => deleteMutation.mutate(record.id)}
-                okText="確定"
-                cancelText="取消"
-              >
-                <Button type="text" danger icon={<DeleteOutlined />} />
-              </Popconfirm>
-            </Tooltip>
-          )}
-        </Space>
-      ),
-    },
-    { title: '姓名', dataIndex: 'name', key: 'name', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '角色標題', dataIndex: 'caption', key: 'caption', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '描述', dataIndex: 'description', key: 'description', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-  ];
+  const actionColumn = {
+    title: '操作',
+    key: 'actions',
+    fixed: 'left' as const,
+    width: 120,
+    render: (_: any, record: any) => (
+      <Space>
+        {hasPermission('System.Roles.View') && (
+          <Tooltip title="檢視">
+            <Button 
+              type="text" 
+              icon={<EyeOutlined />} 
+              style={{ color: '#1890ff' }} 
+              onClick={() => openViewDrawer(record)}
+            />
+          </Tooltip>
+        )}
+        {hasPermission('System.Roles.Delete') && (
+          <Tooltip title="刪除">
+            <Popconfirm
+              title="確定要刪除此筆資料嗎？"
+              onConfirm={() => deleteMutation.mutate(record.id)}
+              okText="確定"
+              cancelText="取消"
+            >
+              <Button type="text" danger icon={<DeleteOutlined />} />
+            </Popconfirm>
+          </Tooltip>
+        )}
+      </Space>
+    ),
+  };
+
+  const columns = buildTableColumns(mainTableColumns(), actionColumn);
 
   const handleSearch = (values: any) => {
     // 確保清空的欄位能覆蓋 Zustand store 中的舊值
@@ -470,8 +468,8 @@ export default function RoleList() {
       >
                 <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
           <DynamicForm
-            formId="crud-form"
-            fields={getRoleFormConfig()}
+            formId="roleForm"
+            fields={mainFormConfig()}
             defaultValues={formDefaultValues}
             onSubmit={handleCrudSubmit}
             isUpdateMode={isDrawerEditing}

@@ -47,7 +47,8 @@ import {
 import { useMoldQueryStore } from '@/stores/productionStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { DynamicForm } from '@/components/Form/DynamicForm';
-import { getMoldFormConfig } from './MoldFormConfig';
+import { mainDictionary, mainFormConfig, mainTableColumns } from './MoldConfig';
+import { buildTableColumns } from '@/utils/tableUtils';
 
 export default function MoldList() {
   const { params, setParams, resetParams } = useMoldQueryStore();
@@ -198,45 +199,40 @@ export default function MoldList() {
     }
   };
 
-  const columns = [
-    {
-      title: '操作',
-      key: 'actions',
-      fixed: 'left' as const,
-      width: 120,
-      render: (_: any, record: any) => (
-        <Space>
-          {hasPermission('ProductionQuality.Molds.View') && (
-            <Tooltip title="檢視">
-              <Button 
-                type="text" 
-                icon={<EyeOutlined />} 
-                style={{ color: '#1890ff' }} 
-                onClick={() => openViewDrawer(record)}
-              />
-            </Tooltip>
-          )}
-          {hasPermission('ProductionQuality.Molds.Delete') && (
-            <Tooltip title="刪除">
-              <Popconfirm
-                title="確定要刪除此筆資料嗎？"
-                onConfirm={() => deleteMutation.mutate(record.code)}
-                okText="確定"
-                cancelText="取消"
-              >
-                <Button type="text" danger icon={<DeleteOutlined />} />
-              </Popconfirm>
-            </Tooltip>
-          )}
-        </Space>
-      ),
-    },
-    { title: '編號', dataIndex: 'code', key: 'code', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '姓名', dataIndex: 'name', key: 'name', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '類型', dataIndex: 'type', key: 'type', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '供應商編號', dataIndex: 'supplierCode', key: 'supplierCode', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '形狀', dataIndex: 'shape', key: 'shape', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-  ];
+  const actionColumn = {
+    title: '操作',
+    key: 'actions',
+    fixed: 'left' as const,
+    width: 120,
+    render: (_: any, record: any) => (
+      <Space>
+        {hasPermission('ProductionQuality.Molds.View') && (
+          <Tooltip title="檢視">
+            <Button 
+              type="text" 
+              icon={<EyeOutlined />} 
+              style={{ color: '#1890ff' }} 
+              onClick={() => openViewDrawer(record)}
+            />
+          </Tooltip>
+        )}
+        {hasPermission('ProductionQuality.Molds.Delete') && (
+          <Tooltip title="刪除">
+            <Popconfirm
+              title="確定要刪除此筆資料嗎？"
+              onConfirm={() => deleteMutation.mutate(record.code)}
+              okText="確定"
+              cancelText="取消"
+            >
+              <Button type="text" danger icon={<DeleteOutlined />} />
+            </Popconfirm>
+          </Tooltip>
+        )}
+      </Space>
+    ),
+  };
+
+  const columns = buildTableColumns(mainTableColumns(), actionColumn);
 
   const handleSearch = (values: any) => {
     // 確保清空的欄位能覆蓋 Zustand store 中的舊值
@@ -488,8 +484,8 @@ export default function MoldList() {
       >
                 <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
           <DynamicForm
-            formId="crud-form"
-            fields={getMoldFormConfig()}
+            formId="moldForm"
+            fields={mainFormConfig()}
             defaultValues={formDefaultValues}
             onSubmit={handleCrudSubmit}
             isUpdateMode={isDrawerEditing}

@@ -51,10 +51,14 @@ export function DynamicForm<TValues extends Record<string, any>>({
     const shape: Record<string, z.ZodTypeAny> = {};
     
     fields.forEach(field => {
+      // 處理 Form 動態隱藏邏輯，若 showInForm 顯式設定為 false，不渲染該欄位
+      if (field.showInForm === false) return;
+      
+      const isHidden = typeof field.hidden === 'function' ? field.hidden(context) : field.hidden;
+      if (isHidden) return;
+      
       // 1. 先取得預設或動態的 schema
       let fieldSchema = field.validation;
-      
-      // 若有動態驗證邏輯，依據 context 計算最新的 Schema
       if (field.dynamicValidation) {
         const dynamicVal = field.dynamicValidation(context);
         if (dynamicVal) {
@@ -97,6 +101,11 @@ export function DynamicForm<TValues extends Record<string, any>>({
       {/* 支援 grid 排版 */}
       <Row gutter={[24, 0]}>
         {fields.map((field) => {
+          // 處理 Form 靜態與動態隱藏邏輯
+          if (field.showInForm === false) return null;
+          const isHidden = typeof field.hidden === 'function' ? field.hidden(context) : field.hidden;
+          if (isHidden) return null;
+
           // 根據使用者的定義：colSpan 表示「一行幾欄」，預設為 4。
           // 將 form 分為 12 個 cell，colSpan=1 佔 12 cell，colSpan=3 佔 4 cell。
           // Ant Design 的 Col 系統為 24 欄制，因此每個 cell 等於 2 個 span。
