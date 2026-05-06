@@ -400,14 +400,12 @@ export default function BusinessPartnerList() {
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={
-          (!isDrawerEditing && !isCreateDrawerOpen) && (
-            <Button type="primary" icon={<EditOutlined />} onClick={startEditMode}>編輯</Button>
-          )
-        }
-        footer={
-          (isDrawerEditing || isCreateDrawerOpen) && activeTab === '1' && (
-            <div style={{ textAlign: 'right', padding: '8px 0' }}>
-              <Space>
+          <Space>
+            {(!isDrawerEditing && !isCreateDrawerOpen) && (
+              <Button type="primary" icon={<EditOutlined />} onClick={startEditMode}>編輯</Button>
+            )}
+            {(isDrawerEditing || isCreateDrawerOpen) && activeTab === '1' && (
+              <>
                 <Button onClick={handleCancel}>取消</Button>
                 <Button 
                   type="primary" 
@@ -418,9 +416,9 @@ export default function BusinessPartnerList() {
                 >
                   儲存
                 </Button>
-              </Space>
-            </div>
-          )
+              </>
+            )}
+          </Space>
         }
       >
         <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />

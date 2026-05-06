@@ -190,19 +190,17 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
         open={isDrawerOpen}
         destroyOnClose
         extra={
-          (!!viewingData && isMasterViewMode) && (
-            <Button type="primary" icon={<EditOutlined />} onClick={() => {
-              setEditingId(viewingData.id);
-              setViewingData(null);
-            }}>
-              編輯
-            </Button>
-          )
-        }
-        footer={
-          (!viewingData) && (
-            <div style={{ textAlign: 'right', padding: '8px 0' }}>
-              <Space>
+          <Space>
+            {(!!viewingData && isMasterViewMode) && (
+              <Button type="primary" icon={<EditOutlined />} onClick={() => {
+                setEditingId(viewingData.id);
+                setViewingData(null);
+              }}>
+                編輯
+              </Button>
+            )}
+            {(!viewingData) && (
+              <>
                 <Button onClick={handleCancel}>取消</Button>
                 <Button 
                   type="primary" 
@@ -213,9 +211,9 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
                 >
                   儲存
                 </Button>
-              </Space>
-            </div>
-          )
+              </>
+            )}
+          </Space>
         }
       >
         <DynamicForm
