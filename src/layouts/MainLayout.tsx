@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Dropdown, Spin, Modal } from 'antd';
+import { Layout, Menu, Button, Dropdown, Spin, Modal, Breadcrumb } from 'antd';
 import { 
   SunOutlined, MoonOutlined,
   MenuUnfoldOutlined, 
@@ -14,7 +14,8 @@ import {
   ShoppingCartOutlined,
   SettingOutlined,
   ContactsOutlined,
-  ExclamationCircleFilled
+  ExclamationCircleFilled,
+  HomeOutlined
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -190,6 +191,50 @@ export default function MainLayout() {
     return items;
   };
 
+  // 尋找樹狀結構中的節點名稱
+  const findNodeTitle = (nodes: any[], targetKey: string): string | null => {
+    for (const node of nodes) {
+      if (node.key === targetKey) return node.title;
+      if (node.children) {
+        const title = findNodeTitle(node.children, targetKey);
+        if (title) return title;
+      }
+    }
+    return null;
+  };
+
+  // 產生 Breadcrumb 資料
+  const generateBreadcrumbItems = () => {
+    const items: any[] = [
+      {
+        title: <span className="cursor-pointer" onClick={() => navigate(ROUTES.HOME)}><HomeOutlined /></span>,
+      }
+    ];
+
+    if (location.pathname === ROUTES.HOME) {
+      return items;
+    }
+
+    // 反查當前路徑對應的 Permission Key
+    const matchedEntry = Object.entries(ROUTE_MAPPING).find(([, path]) => location.pathname.startsWith(path));
+    
+    if (matchedEntry && permissionTree) {
+      const [key] = matchedEntry; // e.g. "BasicData.BusinessPartners"
+      const keys = key.split('.'); // ["BasicData", "BusinessPartners"]
+      
+      let currentPath = '';
+      keys.forEach((k) => {
+        currentPath = currentPath ? `${currentPath}.${k}` : k;
+        const title = findNodeTitle(permissionTree, currentPath);
+        if (title) {
+          items.push({ title });
+        }
+      });
+    }
+
+    return items;
+  };
+
   const userMenu = {
     items: [
       {
@@ -263,16 +308,14 @@ export default function MainLayout() {
           className={`px-4 ${mode === 'dark' ? 'border-[#303030]' : 'border-gray-200'} border-b flex justify-between items-center h-16 leading-[64px]`}
           style={{ background: mode === 'dark' ? '#141414' : '#ffffff' }}
         >
-          <div className="flex items-center">
+          <div className="flex items-center gap-4">
             <Button
               type="text"
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={() => setCollapsed(!collapsed)}
               className={`${mode === 'dark' ? 'text-white hover:text-gray-300' : 'text-gray-800 hover:text-gray-600'}`}
             />
-            <span className="ml-4 text-gray-400 text-sm hidden md:inline-block">
-              (提示: 使用 <kbd className="bg-[#2a2a2a] px-1 rounded">Ctrl+K</kbd> 開啟全域搜尋)
-            </span>
+            <Breadcrumb items={generateBreadcrumbItems()} className={`${mode === 'dark' ? 'text-gray-300' : ''}`} />
           </div>
           <div className="flex items-center gap-2">
             <Button 
