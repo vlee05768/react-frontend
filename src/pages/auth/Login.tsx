@@ -1,7 +1,8 @@
+
 import { Button, Form, Input, Checkbox, message , Modal} from "antd";
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { postApiV1AuthLogin } from '@/api/generated/sdk.gen';
@@ -11,6 +12,17 @@ export default function Login() {
   const setToken = useAuthStore((state) => state.setToken);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+
+  // 處理「記住我」：組件載入時讀取 localStorage
+  useEffect(() => {
+    const rememberedUsername = localStorage.getItem('erp_remembered_username');
+    if (rememberedUsername) {
+      form.setFieldsValue({
+        username: rememberedUsername,
+        remember: true,
+      });
+    }
+  }, [form]);
 
   const onFinish = async (values: any) => {
     try {
@@ -22,16 +34,42 @@ export default function Login() {
         },
       });
 
+      // hey-api 的預設行為：發生 HTTP 錯誤時不會 throw，而是把錯誤內容放在 response.error 中
+      if (response.error) {
+        const errorData = response.error as any;
+        Modal.error({ 
+          centered: true, 
+          title: '登入失敗', 
+          content: errorData?.message || errorData?.title || '帳號或密碼錯誤，請重新輸入' 
+        });
+        return; // 停留在 Login 畫面
+      }
+
       const token = response.data?.data?.token;
       if (token) {
+        // 處理「記住我」：儲存或清除 localStorage
+        if (values.remember) {
+          localStorage.setItem('erp_remembered_username', values.username);
+        } else {
+          localStorage.removeItem('erp_remembered_username');
+        }
+
         setToken(token);
         message.success('登入成功');
         navigate(ROUTES.HOME);
       } else {
-        Modal.error({ centered: true, title: '錯誤提示', content: response.data?.message || '登入失敗，請檢查帳號密碼' });
+        Modal.error({ 
+          centered: true, 
+          title: '登入失敗', 
+          content: '系統未回傳 Token，請聯絡管理員' 
+        });
       }
     } catch (error: any) {
-      Modal.error({ centered: true, title: '錯誤提示', content: error?.response?.data?.message || '登入發生錯誤，請稍後再試' });
+      Modal.error({ 
+        centered: true, 
+        title: '系統錯誤', 
+        content: error?.message || '發生未知的錯誤，請稍後再試' 
+      });
     } finally {
       setLoading(false);
     }
@@ -45,6 +83,7 @@ export default function Login() {
       layout="vertical"
       requiredMark={false}
       size="large"
+      initialValues={{ remember: false }}
     >
       <Form.Item
         name="username"
