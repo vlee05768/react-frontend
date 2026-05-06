@@ -121,7 +121,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
           style={{ color: '#1890ff' }} 
           onClick={() => openViewDrawer(record)}
         />
-        {!isMasterViewMode && (
+        {isMasterViewMode && (
           <>
             <Button 
               type="text" 
@@ -164,7 +164,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
         
         {/* 右側：操作按鈕 */}
         <div>
-          {!isMasterViewMode && (
+          {isMasterViewMode && (
             <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer}>
               新增聯絡人
             </Button>
