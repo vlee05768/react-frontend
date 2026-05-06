@@ -63,7 +63,6 @@ export default function UserList() {
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
   const [searchForm] = Form.useForm();
-  const [crudForm] = Form.useForm();
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   
@@ -139,7 +138,6 @@ export default function UserList() {
     onSuccess: () => {
       message.success('新增成功');
       setIsCreateDrawerOpen(false);
-      crudForm.resetFields();
       queryClient.invalidateQueries({ queryKey: ['userList'] });
     },
     onError: (error: any) => {
@@ -153,7 +151,6 @@ export default function UserList() {
     onSuccess: () => {
       message.success('更新成功');
       setIsDrawerEditing(false);
-      crudForm.resetFields();
       queryClient.invalidateQueries({ queryKey: ['userList'] });
       queryClient.invalidateQueries({ queryKey: ['userDetail'] });
     },
@@ -285,16 +282,6 @@ export default function UserList() {
       createMutation.mutate(values);
     } else if (viewId) {
       updateMutation.mutate({ id: viewId as any, values });
-    }
-  };
-
-  const handleFinishFailed = (errorInfo: any) => {
-    if (errorInfo.errorFields && errorInfo.errorFields.length > 0) {
-      const firstErrorField = errorInfo.errorFields[0].name;
-      crudForm.scrollToField(firstErrorField, { behavior: 'smooth' });
-      setTimeout(() => {
-        crudForm.getFieldInstance(firstErrorField)?.focus();
-      }, 100);
     }
   };
 
@@ -611,8 +598,9 @@ export default function UserList() {
                 <Button onClick={handleCancel}>取消</Button>
                 <Button 
                   type="primary" 
+                  htmlType="submit"
+                  form="userForm"
                   icon={<SaveOutlined />} 
-                  onClick={() => crudForm.submit()}
                   loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
                 >
                   儲存
