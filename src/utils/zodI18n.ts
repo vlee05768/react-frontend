@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const customErrorMap: any = (issue: any, ctx: any) => {
+const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
   let message = ctx.defaultError;
 
   switch (issue.code) {
@@ -44,7 +44,7 @@ const customErrorMap: any = (issue: any, ctx: any) => {
       }
       break;
 
-    case "invalid_format":
+    case "invalid_string":
       if (typeof issue.validation === "string") {
         if (issue.validation === "email") {
           message = "電子郵件格式無效";
@@ -66,7 +66,7 @@ const customErrorMap: any = (issue: any, ctx: any) => {
       message = issue.message || "輸入無效";
       break;
 
-    case "invalid_value":
+    case "invalid_enum_value":
       if (issue.options) {
         message = `無效的選項，請從下列選項中選擇：${issue.options.join(", ")}`;
       } else {
