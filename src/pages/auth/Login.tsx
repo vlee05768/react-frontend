@@ -64,11 +64,12 @@ export default function Login() {
           content: '系統未回傳 Token，請聯絡管理員' 
         });
       }
-    } catch (error: any) {
+        } catch (error: any) {
+      const errorData = error?.response?.data || error;
       Modal.error({ 
         centered: true, 
-        title: '系統錯誤', 
-        content: error?.message || '發生未知的錯誤，請稍後再試' 
+        title: '登入失敗', 
+        content: errorData?.message || errorData?.title || '登入發生錯誤，請稍後再試' 
       });
     } finally {
       setLoading(false);
