@@ -394,6 +394,7 @@ export default function EmployeeList() {
           `}</style>
           <Table
             bordered
+            rowClassName={(record) => record.id === viewId ? 'selected-table-row' : ''}
             style={{ flex: 1 }}
             columns={columns}
             dataSource={listData}

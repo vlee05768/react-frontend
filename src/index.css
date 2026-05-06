@@ -23,3 +23,8 @@ body {
 .ant-layout-sider-collapsed .ant-menu-title-content {
   display: none !important;
 }
+
+/* 資料表目前選中行的高亮樣式 */
+.selected-table-row > td {
+  background-color: var(--ant-color-primary-bg) !important;
+}

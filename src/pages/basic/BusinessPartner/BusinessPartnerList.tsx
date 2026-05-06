@@ -343,6 +343,7 @@ export default function BusinessPartnerList() {
           `}</style>
           <Table
             bordered
+            rowClassName={(record) => record.code === viewId ? 'selected-table-row' : ''}
             style={{ flex: 1 }}
             columns={columns}
             dataSource={listData}
