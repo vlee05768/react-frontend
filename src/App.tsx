@@ -1,4 +1,4 @@
-import { ConfigProvider, theme, Spin } from 'antd';
+import { ConfigProvider, theme, Spin, App as AntdApp } from 'antd';
 import { useLoadingStore } from './stores/useLoadingStore';
 import zhTW from 'antd/locale/zh_TW';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -45,8 +45,10 @@ export default function App() {
           }
         }}
       >
-        <RouterProvider router={router} />
-        {requestCount > 0 && <Spin fullscreen size="large" description={loadingMessage} />}
+        <AntdApp>
+          <RouterProvider router={router} />
+          {requestCount > 0 && <Spin fullscreen size="large" description={loadingMessage} />}
+        </AntdApp>
       </ConfigProvider>
     </QueryClientProvider>
   );

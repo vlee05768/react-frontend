@@ -55,8 +55,10 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useLoadingStore } from '@/stores/useLoadingStore';
 import { mainDictionary, mainFormConfig, mainTableColumns } from './UserConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
+import { App } from 'antd';
 
 export default function UserList() {
+  const { message: messageApi, modal: modalApi } = App.useApp();
   const { params, setParams, resetParams } = useUserQueryStore();
   const { hasPermission } = useAuthStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -136,12 +138,12 @@ export default function UserList() {
   const createMutation = useMutation({
     mutationFn: (values: any) => postApiV1User({ body: values }),
     onSuccess: () => {
-      message.success('新增成功');
+      messageApi.success('新增成功');
       setIsCreateDrawerOpen(false);
       queryClient.invalidateQueries({ queryKey: ['userList'] });
     },
     onError: (error: any) => {
-      Modal.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${error?.response?.data?.message || '未知錯誤'}` });
     }
   });
 
@@ -149,25 +151,25 @@ export default function UserList() {
     mutationFn: ({ id, values }: { id: string | number, values: any }) => 
       putApiV1UserById({ path: { id: id as any }, body: values }),
     onSuccess: () => {
-      message.success('更新成功');
+      messageApi.success('更新成功');
       setIsDrawerEditing(false);
       queryClient.invalidateQueries({ queryKey: ['userList'] });
       queryClient.invalidateQueries({ queryKey: ['userDetail'] });
     },
     onError: (error: any) => {
-      Modal.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${error?.response?.data?.message || '未知錯誤'}` });
     }
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string | number) => deleteApiV1UserById({ path: { id: id as any } }),
     onSuccess: () => {
-      message.success('刪除成功');
+      messageApi.success('刪除成功');
       queryClient.invalidateQueries({ queryKey: ['userList'] });
       queryClient.invalidateQueries({ queryKey: ['userDetail'] });
     },
     onError: (error: any) => {
-      Modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${error?.response?.data?.message || '未知錯誤'}` });
     }
   });
 
@@ -178,7 +180,7 @@ export default function UserList() {
       return postApiV1AuthResendActivation({ body: { email } });
     },
     onSuccess: (_, email) => {
-      message.success('已重新發送啟用信件');
+      messageApi.success('已重新發送啟用信件');
       
       // 直接更新本地快取，將該帳號的啟動狀態設為 false
       queryClient.setQueriesData({ queryKey: ['userList'] }, (oldData: any) => {
@@ -209,7 +211,7 @@ export default function UserList() {
       queryClient.invalidateQueries({ queryKey: ['userList'] });
     },
     onError: (error: any) => {
-      Modal.error({ centered: true, title: '錯誤提示', content: `重新啟用失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: `重新啟用失敗: ${error?.response?.data?.message || '未知錯誤'}` });
     }
   });
 
@@ -221,7 +223,7 @@ export default function UserList() {
       });
     },
     onSuccess: (_, record) => {
-      message.success(`已成功${record.isActive ? '停用' : '啟用'}帳號`);
+      messageApi.success(`已成功${record.isActive ? '停用' : '啟用'}帳號`);
       
       // 直接更新本地快取，讓畫面即時反應
       queryClient.setQueriesData({ queryKey: ['userList'] }, (oldData: any) => {
@@ -245,7 +247,7 @@ export default function UserList() {
       queryClient.invalidateQueries({ queryKey: ['userDetail'] });
     },
     onError: (error: any) => {
-      Modal.error({ centered: true, title: '錯誤提示', content: `狀態更新失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: `狀態更新失敗: ${error?.response?.data?.message || '未知錯誤'}` });
     }
   });
 
