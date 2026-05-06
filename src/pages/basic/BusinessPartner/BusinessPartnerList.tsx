@@ -49,11 +49,11 @@ import ContactList from './ContactList';
 export const useBPQueryStore = create((set) => ({
   params: {
     pageNumber: 1,
-    pageSize: 10,
+    pageSize: 20,
     CodeOrName: undefined,
   },
   setParams: (newParams: any) => set((state: any) => ({ params: { ...state.params, ...newParams } })),
-  resetParams: () => set({ params: { pageNumber: 1, pageSize: 10 } }),
+  resetParams: () => set({ params: { pageNumber: 1, pageSize: 20 } }),
 }));
 
 export default function BusinessPartnerList() {
