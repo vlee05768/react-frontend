@@ -153,7 +153,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
             return (
               <div key={groupName} style={{ marginBottom: '8px' }}>
                 <Divider 
-                  {...({ orientation: "left" } as any)}
+                  {...({ orientation: "center" } as any)}
                   plain 
                   style={{ 
                     marginTop: 0, 

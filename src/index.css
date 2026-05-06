@@ -28,3 +28,30 @@ body {
 .selected-table-row > td {
   background-color: var(--ant-color-primary-bg) !important;
 }
+
+/* === Tab 標籤頁辨識度優化 (支援亮/暗模式) === */
+.ant-tabs-nav .ant-tabs-tab {
+  padding: 10px 24px !important;
+  border-radius: 8px 8px 0 0 !important;
+  transition: all 0.3s ease !important;
+}
+
+.ant-tabs-nav .ant-tabs-tab:hover {
+  background-color: var(--ant-color-fill-tertiary) !important;
+}
+
+.ant-tabs-nav .ant-tabs-tab-active {
+  background-color: var(--ant-color-primary-bg) !important;
+  border-bottom-color: transparent !important; /* 隱藏預設底線，改用偽元素或維持原樣 */
+}
+
+.ant-tabs-nav .ant-tabs-tab-active .ant-tabs-tab-btn {
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  color: var(--ant-color-primary) !important;
+}
+
+.ant-tabs-ink-bar {
+  height: 3px !important;
+  border-radius: 3px 3px 0 0 !important;
+}
