@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Table, Button, Space, Popconfirm, Drawer } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getApiV1BusinessPartnersByBusinessPartnerCodeContacts,
@@ -88,12 +88,6 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
     setIsDrawerOpen(true);
   };
 
-  const openEditDrawer = (record: any) => {
-    setViewingData(null);
-    setEditingId(record.id);
-    setIsDrawerOpen(true);
-  };
-
   const openViewDrawer = (record: any) => {
     setViewingData(record);
     setEditingId(null);
@@ -106,6 +100,18 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
     } else {
       createMutation.mutate(values);
     }
+  };
+
+  const handleCancel = () => {
+    if (editingId) {
+      const record = listData.find((d: any) => d.id === editingId);
+      if (record) {
+        setViewingData(record);
+        setEditingId(null);
+        return;
+      }
+    }
+    setIsDrawerOpen(false);
   };
 
   const actionColumn = {
@@ -122,22 +128,14 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
           onClick={() => openViewDrawer(record)}
         />
         {isMasterViewMode && (
-          <>
-            <Button 
-              type="text" 
-              icon={<EditOutlined />} 
-              style={{ color: '#faad14' }} 
-              onClick={() => openEditDrawer(record)}
-            />
-            <Popconfirm
-              title="確定要刪除此筆聯絡人嗎？"
-              onConfirm={() => deleteMutation.mutate(record.id)}
-              okText="確定"
-              cancelText="取消"
-            >
-              <Button type="text" danger icon={<DeleteOutlined />} />
-            </Popconfirm>
-          </>
+          <Popconfirm
+            title="確定要刪除此筆聯絡人嗎？"
+            onConfirm={() => deleteMutation.mutate(record.id)}
+            okText="確定"
+            cancelText="取消"
+          >
+            <Button type="text" danger icon={<DeleteOutlined />} />
+          </Popconfirm>
         )}
       </Space>
     ),
@@ -202,20 +200,34 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
           formId="contactForm"
           hideDefaultFooter={true}
         />
-        {(!viewingData) && (
-          <div style={{ textAlign: 'right', padding: '16px 0', borderTop: '1px solid #f0f0f0', marginTop: 16 }}>
-            <Space>
-              <Button onClick={() => setIsDrawerOpen(false)}>取消</Button>
-              <Button 
-                type="primary" 
-                htmlType="submit"
-                form="contactForm"
-              >
-                儲存
-              </Button>
-            </Space>
-          </div>
-        )}
+        <div style={{ textAlign: 'right', padding: '16px 0', borderTop: '1px solid #f0f0f0', marginTop: 16 }}>
+          <Space>
+            {!!viewingData ? (
+              <>
+                <Button onClick={() => setIsDrawerOpen(false)}>關閉</Button>
+                {isMasterViewMode && (
+                  <Button type="primary" onClick={() => {
+                    setEditingId(viewingData.id);
+                    setViewingData(null);
+                  }}>
+                    編輯
+                  </Button>
+                )}
+              </>
+            ) : (
+              <>
+                <Button onClick={handleCancel}>取消</Button>
+                <Button 
+                  type="primary" 
+                  htmlType="submit"
+                  form="contactForm"
+                >
+                  儲存
+                </Button>
+              </>
+            )}
+          </Space>
+        </div>
       </Drawer>
     </div>
   );
