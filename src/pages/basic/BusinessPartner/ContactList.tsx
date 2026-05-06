@@ -190,7 +190,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
             moduleName="聯絡人"
             isCreate={!editingId && !viewingData}
             isEdit={!!editingId}
-            record={viewingData}
+            record={viewingData || (editingId ? listData.find((d: any) => d.id === editingId) : null)}
             displayField={(record: any) => `${record?.lastName || ''}${record?.firstName || ''}`}
           />
         }

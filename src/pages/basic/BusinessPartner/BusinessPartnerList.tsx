@@ -396,8 +396,11 @@ export default function BusinessPartnerList() {
             moduleName="商業夥伴"
             isCreate={isCreateDrawerOpen}
             isEdit={isDrawerEditing}
-            record={viewRes?.data}
-            displayField={(record) => `${record.code} - ${record.name}`}
+            record={viewData}
+            displayField={(record) => {
+              if (record.code && record.name) return `${record.code} - ${record.name}`;
+              return record.code || record.name || '';
+            }}
           />
         }
         placement="right"
