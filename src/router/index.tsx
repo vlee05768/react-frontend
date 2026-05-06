@@ -17,6 +17,7 @@ import GeneralTypeLayout from '@/pages/system/GeneralType/GeneralTypeLayout';
 import StorageList from '@/pages/warehouse/StorageList';
 import MoldList from '@/pages/production/MoldList';
 import MachineList from '@/pages/production/MachineList';
+import BusinessPartnerList from '@/pages/basic/BusinessPartner/BusinessPartnerList';
 import FormDemo from '@/pages/demo/FormDemo';
 import { useAuthStore } from '@/stores/useAuthStore';
 
@@ -55,6 +56,7 @@ export const router = createBrowserRouter([
       { path: 'warehouse/storages/:viewId?', element: <StorageList /> },
       { path: 'production-quality/molds/:viewId?', element: <MoldList /> },
       { path: 'production-quality/machines/:viewId?', element: <MachineList /> },
+      { path: 'business-partners/:viewId?', element: <BusinessPartnerList /> },
       { path: 'demo/form', element: <FormDemo /> }
     ]
   },

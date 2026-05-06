@@ -1,0 +1,417 @@
+// @ts-nocheck
+import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import {
+  Spin,
+  Table,
+  Button,
+  Modal,
+  Form,
+  Input,
+  Space,
+  Card,
+  Tag,
+  Tooltip,
+  Row,
+  Col,
+  Popconfirm,
+  Drawer,
+  Divider,
+  Tabs
+} from 'antd';
+import {
+  SearchOutlined,
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  ClearOutlined,
+  SaveOutlined,
+  EyeOutlined
+} from '@ant-design/icons';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { 
+  getApiV1BusinessPartners, 
+  getApiV1BusinessPartnersByCode,
+  postApiV1BusinessPartners,
+  putApiV1BusinessPartnersByCode,
+  deleteApiV1BusinessPartnersByCode
+} from '@/api/generated/sdk.gen';
+
+import { createStore } from 'zustand';
+import { DynamicForm } from '@/components/Form/DynamicForm';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { mainFormConfig, mainTableColumns } from './BusinessPartnerConfig';
+import { buildTableColumns } from '@/utils/tableUtils';
+import { App } from 'antd';
+import ContactList from './ContactList';
+
+// Local store for query params
+export const useBPQueryStore = createStore((set) => ({
+  params: {
+    pageNumber: 1,
+    pageSize: 10,
+    CodeOrName: undefined,
+  },
+  setParams: (newParams: any) => set((state: any) => ({ params: { ...state.params, ...newParams } })),
+  resetParams: () => set({ params: { pageNumber: 1, pageSize: 10 } }),
+}));
+
+export default function BusinessPartnerList() {
+  const { message: messageApi, modal: modalApi } = App.useApp();
+  const params = useBPQueryStore((state: any) => state.params);
+  const setParams = useBPQueryStore((state: any) => state.setParams);
+  
+  const { hasPermission } = useAuthStore();
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('1');
+
+  const [searchForm] = Form.useForm();
+  const [isDrawerEditing, setIsDrawerEditing] = useState(false);
+  const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
+  
+  useEffect(() => {
+    if (isCreateDrawerOpen || isDrawerEditing) {
+      setTimeout(() => {
+        const firstInput = document.querySelector('.ant-drawer-body form input:not([disabled]), .ant-drawer-body form textarea:not([disabled]), .ant-drawer-body form span.ant-select-selection-search-input:not([disabled])') as HTMLElement;
+        if (firstInput) {
+          firstInput.focus();
+        }
+      }, 100);
+    }
+  }, [isCreateDrawerOpen, isDrawerEditing]);
+  
+  const queryClient = useQueryClient();
+  const { viewId } = useParams<{ viewId: string }>(); // viewId represents "code" here
+  const navigate = useNavigate();
+
+  // Detail query
+  const { data: viewRes, isFetching: isFetchingView } = useQuery({
+    queryKey: ['bpDetail', viewId],
+    queryFn: () => getApiV1BusinessPartnersByCode({ path: { code: viewId as string } }),
+    enabled: !!viewId,
+  });
+  const viewData = viewRes?.data?.data || viewRes?.data;
+
+  // List query
+  const { data, isFetching } = useQuery({
+    queryKey: ['bpList', params],
+    queryFn: () => getApiV1BusinessPartners({ query: params as any }),
+  });
+
+  const listData = (data?.data as any)?.data?.data || (data?.data as any)?.data || [];
+  const totalRecords = (data?.data as any)?.data?.totalRecords || (data?.data as any)?.totalRecords || 0;
+  const currentPage = (data?.data as any)?.data?.pageNumber || params.pageNumber;
+  const currentPageSize = (data?.data as any)?.data?.pageSize || params.pageSize;
+
+  const createMutation = useMutation({
+    mutationFn: (values: any) => postApiV1BusinessPartners({ body: values }),
+    onSuccess: () => {
+      messageApi.success('新增成功');
+      setIsCreateDrawerOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['bpList'] });
+    },
+    onError: (error: any) => {
+      modalApi.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ code, values }: { code: string, values: any }) => 
+      putApiV1BusinessPartnersByCode({ path: { code }, body: values }),
+    onSuccess: () => {
+      messageApi.success('更新成功');
+      setIsDrawerEditing(false);
+      queryClient.invalidateQueries({ queryKey: ['bpList'] });
+      queryClient.invalidateQueries({ queryKey: ['bpDetail'] });
+    },
+    onError: (error: any) => {
+      modalApi.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (code: string) => deleteApiV1BusinessPartnersByCode({ path: { code } }),
+    onSuccess: () => {
+      messageApi.success('刪除成功');
+      queryClient.invalidateQueries({ queryKey: ['bpList'] });
+      queryClient.invalidateQueries({ queryKey: ['bpDetail'] });
+    },
+    onError: (error: any) => {
+      modalApi.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+    }
+  });
+
+  const openViewDrawer = (record: any) => {
+    setActiveTab('1');
+    navigate(`/business-partners/${record.code}`);
+  };
+
+  const closeViewDrawer = () => {
+    setIsCreateDrawerOpen(false);
+    setIsDrawerEditing(false);
+    if (viewId) {
+      navigate('/business-partners');
+    }
+  };
+
+  const handleCancel = () => {
+    if (isDrawerEditing) {
+      setIsDrawerEditing(false);
+    } else if (isCreateDrawerOpen) {
+      closeViewDrawer();
+    }
+  };
+
+  const openCreateDrawer = () => {
+    setActiveTab('1');
+    setIsCreateDrawerOpen(true);
+  };
+
+  const startEditMode = () => {
+    setIsDrawerEditing(true);
+    setActiveTab('1'); // Switch back to basic info when editing
+  };
+
+  const handleCrudSubmit = (values: any) => {
+    if (isCreateDrawerOpen) {
+      createMutation.mutate(values);
+    } else if (viewId) {
+      updateMutation.mutate({ code: viewId, values });
+    }
+  };
+
+  const actionColumn = {
+    title: '操作',
+    key: 'actions',
+    fixed: 'left' as const,
+    width: 120,
+    render: (_: any, record: any) => (
+      <Space>
+        {/* Permission logic usually has: hasPermission('BasicData.BusinessPartners.View') */}
+        <Tooltip title="檢視">
+          <Button 
+            type="text" 
+            icon={<EyeOutlined />} 
+            style={{ color: '#1890ff' }} 
+            onClick={() => openViewDrawer(record)}
+          />
+        </Tooltip>
+        <Tooltip title="刪除">
+          <Popconfirm
+            title="確定要刪除此筆資料嗎？"
+            onConfirm={() => deleteMutation.mutate(record.code)}
+            okText="確定"
+            cancelText="取消"
+          >
+            <Button type="text" danger icon={<DeleteOutlined />} />
+          </Popconfirm>
+        </Tooltip>
+      </Space>
+    ),
+  };
+
+  const columns = buildTableColumns(mainTableColumns(), actionColumn);
+
+  const handleSearch = (values: any) => {
+    const nextParams = { ...values };
+    if (nextParams.CodeOrName === '') nextParams.CodeOrName = undefined;
+
+    setParams({
+      ...nextParams,
+      pageNumber: 1,
+    });
+    setIsSearchModalOpen(false);
+  };
+
+  const handleSearchReset = () => {
+    searchForm.resetFields();
+  };
+
+  const renderSearchTags = () => {
+    const activeFilters: React.ReactNode[] = [];
+    if (params.CodeOrName) {
+      activeFilters.push(<Tag color="blue" key="CodeOrName">編號或名稱: {params.CodeOrName}</Tag>);
+    }
+    if (activeFilters.length === 0) return <Tag color="default">【全部資料】</Tag>;
+    return <Space size={[0, 8]} wrap>{activeFilters}</Space>;
+  };
+
+  const openSearchModal = () => {
+    searchForm.setFieldsValue(params);
+    setIsSearchModalOpen(true);
+  };
+
+  const tabItems = [
+    {
+      key: '1',
+      label: '基本資料',
+      children: (
+        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+          <DynamicForm
+            key={isCreateDrawerOpen ? 'create' : (viewId || 'empty')}
+            defaultValues={isCreateDrawerOpen ? { isTYCustomer: false } : viewData}
+            fields={mainFormConfig()}
+            onSubmit={handleCrudSubmit}
+            isUpdateMode={isDrawerEditing}
+            isViewMode={isViewMode}
+            formId="bpForm"
+            hideDefaultFooter={true}
+          />
+        </Spin>
+      )
+    },
+    // Contacts tab is disabled during creation because it needs a businessPartnerCode
+    {
+      key: '2',
+      label: '聯絡人清單',
+      disabled: isCreateDrawerOpen || !viewData,
+      children: viewData ? (
+        <ContactList businessPartnerCode={viewData.code} isViewMode={isViewMode} />
+      ) : null
+    }
+  ];
+
+  return (
+    <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
+      <Card
+        variant="borderless"
+        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        styles={{ 
+          header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
+          body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
+        }}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
+            <div style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>
+              商業夥伴管理
+            </div>
+          </div>
+        }
+        extra={
+          <Space separator={<Divider orientation="vertical" />}>
+            <Button
+              type="default"
+              icon={<SearchOutlined />}
+              onClick={openSearchModal}
+            >
+              進階查詢
+            </Button>
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />} 
+              onClick={openCreateDrawer}
+            >
+              新增資料
+            </Button>
+          </Space>
+        }
+      >
+        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: '#fafafa', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
+          <span style={{ fontSize: '14px', color: '#8c8c8c', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
+          {renderSearchTags()}
+        </div>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <style>{`
+            .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
+            .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-spin-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
+            .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
+            .ant-table-thead > tr > th { text-align: center !important; }
+            .view-mode-form .ant-input-disabled, .view-mode-form .ant-select-disabled {
+                color: rgba(0, 0, 0, 0.88) !important;
+                -webkit-text-fill-color: rgba(0, 0, 0, 0.88) !important;
+                background-color: rgba(0, 0, 0, 0.04) !important;
+            }
+          `}</style>
+          <Table
+            bordered
+            style={{ flex: 1 }}
+            columns={columns}
+            dataSource={listData}
+            rowKey="code"
+            loading={isFetching}
+            scroll={{ x: 'max-content', y: 300 }}
+            pagination={{
+              current: currentPage,
+              pageSize: currentPageSize,
+              total: totalRecords,
+              showSizeChanger: true,
+              showTotal: (total) => `共 ${total} 筆資料`,
+              onChange: (page, pageSize) => setParams({ pageNumber: page, pageSize }),
+            }}
+          />
+        </div>
+      </Card>
+
+      <Modal
+        title={
+          <div style={{ fontSize: '18px', fontWeight: 600, paddingBottom: '12px', borderBottom: '1px solid #f0f0f0', marginBottom: '8px' }}>
+            查詢條件設定
+          </div>
+        }
+        open={isSearchModalOpen}
+        onCancel={() => setIsSearchModalOpen(false)}
+        footer={
+          <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+            <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
+              清空重置
+            </Button>
+            <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
+              執行查詢
+            </Button>
+          </div>
+        }
+        width={'40vw'}
+      >
+        <Form form={searchForm} layout="vertical" onFinish={handleSearch}>
+          <Form.Item name="CodeOrName" label="編號或名稱">
+            <Input placeholder="請輸入編號或名稱模糊查詢" allowClear />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Drawer
+        title={
+          <div style={{ fontSize: '18px', fontWeight: 600 }}>
+            {isCreateDrawerOpen ? '新增商業夥伴' : (isDrawerEditing ? '編輯商業夥伴' : '檢視商業夥伴')}
+          </div>
+        }
+        placement="right"
+        size="large"
+        onClose={closeViewDrawer}
+        open={!!viewId || isCreateDrawerOpen}
+        extra={
+          (!isDrawerEditing && !isCreateDrawerOpen) && (
+            <Button type="primary" icon={<EditOutlined />} onClick={startEditMode}>編輯</Button>
+          )
+        }
+        footer={
+          (isDrawerEditing || isCreateDrawerOpen) && activeTab === '1' && (
+            <div style={{ textAlign: 'right', padding: '8px 0' }}>
+              <Space>
+                <Button onClick={handleCancel}>取消</Button>
+                <Button 
+                  type="primary" 
+                  htmlType="submit"
+                  form="bpForm"
+                  icon={<SaveOutlined />} 
+                  loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
+                >
+                  儲存
+                </Button>
+              </Space>
+            </div>
+          )
+        }
+      >
+        <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
+      </Drawer>
+    </div>
+  );
+}
