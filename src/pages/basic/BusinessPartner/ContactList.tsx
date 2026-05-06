@@ -187,11 +187,11 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
       <Drawer
         title={
           <DrawerTitle
-            moduleName="聯絡人"
+            moduleName={`聯絡人 (${businessPartnerCode})`}
             isCreate={!editingId && !viewingData}
             isEdit={!!editingId}
             record={viewingData || (editingId ? listData.find((d: any) => d.id === editingId) : null)}
-            displayField={(record: any) => `${record?.lastName || ''}${record?.firstName || ''}`}
+            displayField={(record: any) => `${record?.jobTitle || ''} - ${record?.name || ''}`.replace(/^ - | - $/g, '')}
           />
         }
         width={500}
