@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Table, Button, Space, Popconfirm, Drawer } from 'antd';
-import { PlusOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, EyeOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getApiV1BusinessPartnersByBusinessPartnerCodeContacts,
@@ -189,6 +189,34 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
         onClose={() => setIsDrawerOpen(false)}
         open={isDrawerOpen}
         destroyOnClose
+        extra={
+          (!!viewingData && isMasterViewMode) && (
+            <Button type="primary" icon={<EditOutlined />} onClick={() => {
+              setEditingId(viewingData.id);
+              setViewingData(null);
+            }}>
+              編輯
+            </Button>
+          )
+        }
+        footer={
+          (!viewingData) && (
+            <div style={{ textAlign: 'right', padding: '8px 0' }}>
+              <Space>
+                <Button onClick={handleCancel}>取消</Button>
+                <Button 
+                  type="primary" 
+                  htmlType="submit"
+                  form="contactForm"
+                  icon={<SaveOutlined />}
+                  loading={createMutation.isPending || updateMutation.isPending}
+                >
+                  儲存
+                </Button>
+              </Space>
+            </div>
+          )
+        }
       >
         <DynamicForm
           key={editingId ? `edit-${editingId}` : (viewingData ? `view-${viewingData.id}` : 'create')}
@@ -200,34 +228,6 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
           formId="contactForm"
           hideDefaultFooter={true}
         />
-        <div style={{ textAlign: 'right', padding: '16px 0', borderTop: '1px solid #f0f0f0', marginTop: 16 }}>
-          <Space>
-            {!!viewingData ? (
-              <>
-                <Button onClick={() => setIsDrawerOpen(false)}>關閉</Button>
-                {isMasterViewMode && (
-                  <Button type="primary" onClick={() => {
-                    setEditingId(viewingData.id);
-                    setViewingData(null);
-                  }}>
-                    編輯
-                  </Button>
-                )}
-              </>
-            ) : (
-              <>
-                <Button onClick={handleCancel}>取消</Button>
-                <Button 
-                  type="primary" 
-                  htmlType="submit"
-                  form="contactForm"
-                >
-                  儲存
-                </Button>
-              </>
-            )}
-          </Space>
-        </div>
       </Drawer>
     </div>
   );
