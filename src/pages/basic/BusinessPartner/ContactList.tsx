@@ -9,6 +9,7 @@ import {
   deleteApiV1BusinessPartnersByBusinessPartnerCodeContactsByContactId,
 } from '@/api/generated/sdk.gen';
 import { DynamicForm } from '@/components/Form/DynamicForm';
+import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { contactTableColumns, contactFormConfig } from './ContactConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { App } from 'antd';
@@ -184,7 +185,15 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
       </div>
 
       <Drawer
-        title={viewingData ? '檢視聯絡人' : (editingId ? '編輯聯絡人' : '新增聯絡人')}
+        title={
+          <DrawerTitle
+            moduleName="聯絡人"
+            isCreate={!editingId && !viewingData}
+            isEdit={!!editingId}
+            record={viewingData}
+            displayField={(record: any) => `${record?.lastName || ''}${record?.firstName || ''}`}
+          />
+        }
         width={500}
         onClose={() => setIsDrawerOpen(false)}
         open={isDrawerOpen}

@@ -39,6 +39,7 @@ import {
 
 import { create } from 'zustand';
 import { DynamicForm } from '@/components/Form/DynamicForm';
+import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { mainFormConfig, mainTableColumns } from './BusinessPartnerConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
@@ -391,9 +392,13 @@ export default function BusinessPartnerList() {
 
       <Drawer
         title={
-          <div style={{ fontSize: '18px', fontWeight: 600 }}>
-            {isCreateDrawerOpen ? '新增商業夥伴' : (isDrawerEditing ? '編輯商業夥伴' : '檢視商業夥伴')}
-          </div>
+          <DrawerTitle
+            moduleName="商業夥伴"
+            isCreate={isCreateDrawerOpen}
+            isEdit={isDrawerEditing}
+            record={viewRes?.data}
+            displayField={(record) => `${record.code} - ${record.name}`}
+          />
         }
         placement="right"
         size="large"
