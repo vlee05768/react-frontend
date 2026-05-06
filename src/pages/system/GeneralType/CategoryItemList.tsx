@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Table, Button, Space, Popconfirm, message, Typography, Drawer, Empty, Tooltip } from 'antd';
-import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   postApiV1GeneralTypes, 
@@ -169,6 +169,20 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
         open={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         destroyOnClose
+        extra={
+          <Space>
+            <Button onClick={() => setIsDrawerOpen(false)}>取消</Button>
+            <Button 
+              type="primary" 
+              htmlType="submit"
+              form="itemForm"
+              icon={<SaveOutlined />} 
+              loading={createMutation.isPending || updateMutation.isPending}
+            >
+              儲存
+            </Button>
+          </Space>
+        }
       >
         <DynamicForm
           defaultValues={editingItem ? editingItem : { type: selectedCode }}
@@ -176,6 +190,7 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
           onSubmit={handleSubmit}
           isUpdateMode={!!editingItem}
           isViewMode={false}
+          hideDefaultFooter={true}
           formId="itemForm"
         />
       </Drawer>

@@ -449,32 +449,25 @@ export default function StorageList() {
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={
-          (!isDrawerEditing && !isCreateDrawerOpen && false) && (
-            <Button 
-              type="primary" 
-              icon={<EditOutlined />} 
-              onClick={startEditMode}
-            >
-              編輯
-            </Button>
-          )
-        }
-        footer={
-          (isDrawerEditing || isCreateDrawerOpen) && (
-            <div style={{ textAlign: 'right', padding: '8px 0' }}>
-              <Space>
+          <Space>
+            {(!isDrawerEditing && !isCreateDrawerOpen && false) && (
+              <Button type="primary" icon={<EditOutlined />} onClick={startEditMode}>編輯</Button>
+            )}
+            {(isDrawerEditing || isCreateDrawerOpen) && (
+              <>
                 <Button onClick={handleCancel}>取消</Button>
                 <Button 
                   type="primary" 
+                  htmlType="submit"
+                  form="crud-form"
                   icon={<SaveOutlined />} 
-                  htmlType="submit" form="crud-form"
                   loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
                 >
                   儲存
                 </Button>
-              </Space>
-            </div>
-          )
+              </>
+            )}
+          </Space>
         }
       >
                 <Spin spinning={isFetchingView && !isCreateDrawerOpen}>

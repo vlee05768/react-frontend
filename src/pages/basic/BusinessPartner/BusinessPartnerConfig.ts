@@ -143,7 +143,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     componentType: "InputNumber",
     editable: "always",
     group: "商業條款",
-    colSpan: 1,
+    colSpan: 4,
   },
   {
     name: "leadTimeDays",
@@ -151,7 +151,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     componentType: "InputNumber",
     editable: "always",
     group: "商業條款",
-    colSpan: 1,
+    colSpan: 4,
   },
 
 ];

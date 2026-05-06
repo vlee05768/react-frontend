@@ -584,20 +584,12 @@ export default function UserList() {
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={
-          (!isDrawerEditing && !isCreateDrawerOpen && hasPermission('System.Users.Update')) && (
-            <Button 
-              type="primary" 
-              icon={<EditOutlined />} 
-              onClick={startEditMode}
-            >
-              編輯
-            </Button>
-          )
-        }
-        footer={
-          (isDrawerEditing || isCreateDrawerOpen) && (
-            <div style={{ textAlign: 'right', padding: '8px 0' }}>
-              <Space>
+          <Space>
+            {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('System.Users.Update')) && (
+              <Button type="primary" icon={<EditOutlined />} onClick={startEditMode}>編輯</Button>
+            )}
+            {(isDrawerEditing || isCreateDrawerOpen) && (
+              <>
                 <Button onClick={handleCancel}>取消</Button>
                 <Button 
                   type="primary" 
@@ -608,9 +600,9 @@ export default function UserList() {
                 >
                   儲存
                 </Button>
-              </Space>
-            </div>
-          )
+              </>
+            )}
+          </Space>
         }
       >
                 <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
