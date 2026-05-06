@@ -34,6 +34,8 @@ export interface FormFieldConfig<TValues = any> extends FieldDef<TValues> {
   editable?: DynamicProp<EditableType | boolean, TValues>;
   
   hidden?: DynamicProp<boolean, TValues>;
+  // 版面排版
+  group?: string;
   colSpan?: number;
   componentProps?: DynamicProp<Record<string, any>, TValues>;
   customRender?: (field: any, context: FormContext<TValues>) => ReactNode;

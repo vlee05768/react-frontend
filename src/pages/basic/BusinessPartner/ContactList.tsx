@@ -146,23 +146,44 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
   const columns = buildTableColumns(contactTableColumns(), actionColumn);
 
   return (
-    <div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end' }}>
-        {!isMasterViewMode && (
-          <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer}>
-            新增聯絡人
-          </Button>
-        )}
+    <div className="detail-container" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* 頂部操作列與客製化訊息區 */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: '16px',
+        padding: '8px 12px',
+        backgroundColor: 'var(--ant-color-fill-alter, #f5f5f5)',
+        borderRadius: '6px'
+      }}>
+        {/* 左側：客製化訊息區 */}
+        <div style={{ color: 'var(--ant-color-text-secondary, #8c8c8c)' }}>
+          目前共有 <span style={{ fontWeight: 600, color: 'var(--ant-color-primary)' }}>{listData.length}</span> 筆聯絡人資料
+        </div>
+        
+        {/* 右側：新增按鈕 (依檢視狀態隱藏) */}
+        <div>
+          {!isMasterViewMode && (
+            <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer}>
+              新增聯絡人
+            </Button>
+          )}
+        </div>
       </div>
 
-      <Table
-        dataSource={listData}
-        columns={columns}
-        rowKey="id"
-        loading={isFetching}
-        pagination={false}
-        size="small"
-      />
+      {/* 資料表格區 */}
+      <div style={{ flex: 1, overflow: 'hidden' }}>
+        <Table
+          dataSource={listData}
+          columns={columns}
+          rowKey="id"
+          loading={isFetching}
+          pagination={false}
+          size="small"
+          scroll={{ x: 'max-content' }}
+        />
+      </div>
 
       <Drawer
         title={viewingData ? '檢視聯絡人' : (editingId ? '編輯聯絡人' : '新增聯絡人')}

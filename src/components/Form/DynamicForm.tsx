@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import type { DefaultValues, Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Form, Button, Space, Row, Col } from 'antd';
+import { Form, Button, Space, Row, Col, Divider } from 'antd';
 import type { FieldConfig, FormContext } from './types';
 import { DynamicField } from './DynamicField';
 
@@ -96,37 +96,84 @@ export function DynamicForm<TValues extends Record<string, any>>({
     }
   }, [defaultValues, methods]);
 
+  // 表單群組化處理
+  const renderFieldList = (fieldList: FieldConfig<any>[]) => (
+    <Row gutter={[24, 0]}>
+      {fieldList.map((field) => {
+        // 根據使用者的定義：colSpan 表示「一行幾欄」，預設為 4。
+        // 將 form 分為 12 個 cell，colSpan=1 佔 12 cell，colSpan=3 佔 4 cell。
+        // Ant Design 的 Col 系統為 24 欄制，因此每個 cell 等於 2 個 span。
+        const columnsPerRow = Math.max(1, Math.min(12, field.colSpan || 4));
+        const cells = 12 / columnsPerRow; // 計算佔用幾個 cell
+        const antSpan = Math.max(2, Math.min(24, Math.floor(cells * 2))); // 轉換為 AntD 的 24 span 系統
+        
+        return (
+          <Col span={antSpan} key={String(field.name)}>
+            <DynamicField
+              config={field as FieldConfig<any>}
+              control={control as any}
+              setValue={setValue as any}
+              context={context as any}
+              isUpdateMode={isUpdateMode}
+              isViewMode={isViewMode}
+            />
+          </Col>
+        );
+      })}
+    </Row>
+  );
+
+  const groupedFields = useMemo(() => {
+    const groups: { [key: string]: FieldConfig<any>[] } = { _ungrouped: [] };
+    fields.forEach(field => {
+      // 處理 Form 靜態與動態隱藏邏輯
+      if (field.showInForm === false) return;
+      const isHidden = typeof field.hidden === 'function' ? field.hidden(context) : field.hidden;
+      if (isHidden) return;
+
+      const groupName = field.group || '_ungrouped';
+      if (!groups[groupName]) groups[groupName] = [];
+      groups[groupName].push(field as FieldConfig<any>);
+    });
+    return groups;
+  }, [fields, context]);
+
+  const hasGroups = Object.keys(groupedFields).filter(k => k !== '_ungrouped').length > 0;
+
   return (
     <Form layout="vertical" onFinish={handleSubmit(onSubmit)} id={formId} disabled={isViewMode} className={isViewMode ? 'view-mode-form' : ''}>
-      {/* 支援 grid 排版 */}
-      <Row gutter={[24, 0]}>
-        {fields.map((field) => {
-          // 處理 Form 靜態與動態隱藏邏輯
-          if (field.showInForm === false) return null;
-          const isHidden = typeof field.hidden === 'function' ? field.hidden(context) : field.hidden;
-          if (isHidden) return null;
-
-          // 根據使用者的定義：colSpan 表示「一行幾欄」，預設為 4。
-          // 將 form 分為 12 個 cell，colSpan=1 佔 12 cell，colSpan=3 佔 4 cell。
-          // Ant Design 的 Col 系統為 24 欄制，因此每個 cell 等於 2 個 span。
-          const columnsPerRow = Math.max(1, Math.min(12, field.colSpan || 4));
-          const cells = 12 / columnsPerRow; // 計算佔用幾個 cell
-          const antSpan = Math.max(2, Math.min(24, Math.floor(cells * 2))); // 轉換為 AntD 的 24 span 系統
-          
-          return (
-            <Col span={antSpan} key={String(field.name)}>
-              <DynamicField
-                config={field as FieldConfig<any>}
-                control={control as any}
-                setValue={setValue as any}
-                context={context as any}
-                isUpdateMode={isUpdateMode}
-                isViewMode={isViewMode}
-              />
-            </Col>
-          );
-        })}
-      </Row>
+      {/* 支援 grid 與群組排版 */}
+      {hasGroups ? (
+        <div className="dynamic-form-groups">
+          {Object.entries(groupedFields).map(([groupName, groupFields]) => {
+            if (groupFields.length === 0) return null;
+            if (groupName === '_ungrouped') {
+              return <div key="ungrouped">{renderFieldList(groupFields)}</div>;
+            }
+            return (
+              <div key={groupName} style={{ marginBottom: '8px' }}>
+                <Divider 
+                  {...({ orientation: "left" } as any)}
+                  plain 
+                  style={{ 
+                    marginTop: 0, 
+                    marginBottom: '20px', 
+                    color: 'var(--ant-color-primary)', 
+                    borderColor: 'var(--ant-color-border-secondary)',
+                    fontWeight: 600,
+                    fontSize: '15px'
+                  }}
+                >
+                  {groupName}
+                </Divider>
+                {renderFieldList(groupFields)}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        renderFieldList(groupedFields._ungrouped)
+      )}
       
       {/* 操作區塊 */}
       {!hideDefaultFooter && (

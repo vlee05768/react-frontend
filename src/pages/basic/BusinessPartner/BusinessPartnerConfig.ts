@@ -57,6 +57,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     componentType: 'Input',
     editable: 'createOnly',
     validation: z.string().min(1, '請輸入編號'),
+    group: '基本資訊',
     colSpan: 1,
   },
   {
@@ -65,6 +66,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     componentType: 'Input',
     editable: 'always',
     validation: z.string().min(1, '請輸入名稱'),
+    group: '基本資訊',
     colSpan: 1,
   },
   {
@@ -72,6 +74,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: '統一編號',
     componentType: 'Input',
     editable: 'always',
+    group: '基本資訊',
     colSpan: 1,
   },
   {
@@ -80,6 +83,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     componentType: 'Select',
     componentProps: { options: bpTypeOptions },
     editable: 'always',
+    group: '基本資訊',
     colSpan: 1,
   },
   {
@@ -87,6 +91,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: '東裕客戶',
     componentType: 'Switch',
     editable: 'always',
+    group: '基本資訊',
     colSpan: 1,
   },
   {
@@ -94,6 +99,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: '電話',
     componentType: 'Input',
     editable: 'always',
+    group: '聯絡資訊',
     colSpan: 1,
   },
   {
@@ -101,6 +107,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: '傳真',
     componentType: 'Input',
     editable: 'always',
+    group: '聯絡資訊',
     colSpan: 1,
   },
   {
@@ -108,6 +115,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: '官方網站',
     componentType: 'Input',
     editable: 'always',
+    group: '聯絡資訊',
     colSpan: 2,
   },
   {
@@ -115,6 +123,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: '地址',
     componentType: 'Input',
     editable: 'always',
+    group: '聯絡資訊',
     colSpan: 2,
   },
   {
@@ -122,6 +131,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: '備註',
     componentType: 'TextArea',
     editable: 'always',
+    group: '其他資訊',
     colSpan: 2,
   },
 ];

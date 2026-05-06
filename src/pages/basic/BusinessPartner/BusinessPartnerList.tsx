@@ -245,7 +245,7 @@ export default function BusinessPartnerList() {
   const tabItems = [
     {
       key: '1',
-      label: '基本資料',
+      label: '主要資料',
       children: (
         <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
           <DynamicForm
@@ -261,15 +261,13 @@ export default function BusinessPartnerList() {
         </Spin>
       )
     },
-    // Contacts tab is disabled during creation because it needs a businessPartnerCode
-    {
-      key: '2',
-      label: '聯絡人清單',
-      disabled: isCreateDrawerOpen || !viewData,
-      children: viewData ? (
-        <ContactList businessPartnerCode={viewData.code} isViewMode={isViewMode} />
-      ) : null
-    }
+    ...(!isCreateDrawerOpen && viewData ? [
+      {
+        key: '2',
+        label: '聯絡人清單',
+        children: <ContactList businessPartnerCode={viewData.code} isViewMode={isViewMode} />
+      }
+    ] : [])
   ];
 
   return (
