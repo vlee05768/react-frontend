@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Dropdown, Spin } from 'antd';
+import { Layout, Menu, Button, Dropdown, Spin, Modal } from 'antd';
 import { 
   SunOutlined, MoonOutlined,
   MenuUnfoldOutlined, 
@@ -13,7 +13,8 @@ import {
   ToolOutlined,
   ShoppingCartOutlined,
   SettingOutlined,
-  ContactsOutlined
+  ContactsOutlined,
+  ExclamationCircleFilled
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -204,8 +205,19 @@ export default function MainLayout() {
         label: '登出系統',
         danger: true,
         onClick: () => {
-          logout();
-          navigate(ROUTES.LOGIN);
+          Modal.confirm({
+            title: '確認登出',
+            icon: <ExclamationCircleFilled />,
+            content: '您確定要登出目前帳號嗎？',
+            okText: '登出',
+            okType: 'danger',
+            cancelText: '取消',
+            centered: true,
+            onOk() {
+              logout();
+              navigate(ROUTES.LOGIN);
+            },
+          });
         }
       }
     ]
