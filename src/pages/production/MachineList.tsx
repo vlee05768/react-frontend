@@ -369,7 +369,7 @@ export default function MachineList() {
           `}</style>
           <Table
             bordered
-            rowClassName={(record) => record.code === viewId ? 'selected-table-row' : ''}
+            rowClassName={(record) => String(record.code) === String(viewId) ? 'selected-table-row' : ''}
             style={{ flex: 1 }}
             columns={columns}
             dataSource={listData}

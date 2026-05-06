@@ -369,7 +369,7 @@ export default function RoleList() {
           `}</style>
           <Table
             bordered
-            rowClassName={(record) => record.id === viewId ? 'selected-table-row' : ''}
+            rowClassName={(record) => String(record.id) === String(viewId) ? 'selected-table-row' : ''}
             style={{ flex: 1 }}
             columns={columns}
             dataSource={listData}
