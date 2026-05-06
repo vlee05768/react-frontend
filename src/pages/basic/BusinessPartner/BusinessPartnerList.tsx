@@ -37,7 +37,7 @@ import {
   deleteApiV1BusinessPartnersByCode
 } from '@/api/generated/sdk.gen';
 
-import { createStore } from 'zustand';
+import { create } from 'zustand';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { mainFormConfig, mainTableColumns } from './BusinessPartnerConfig';
@@ -46,7 +46,7 @@ import { App } from 'antd';
 import ContactList from './ContactList';
 
 // Local store for query params
-export const useBPQueryStore = createStore((set) => ({
+export const useBPQueryStore = create((set) => ({
   params: {
     pageNumber: 1,
     pageSize: 10,
