@@ -308,8 +308,8 @@ export default function BusinessPartnerList() {
           </Space>
         }
       >
-        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: '#fafafa', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
-          <span style={{ fontSize: '14px', color: '#8c8c8c', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
+        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
+          <span style={{ fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
           {renderSearchTags()}
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
