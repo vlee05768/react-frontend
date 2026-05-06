@@ -34,6 +34,7 @@ export const mainFormConfig = (roleOptions: { label: string, value: string }[] =
     componentType: 'Select', 
     validation: z.any().optional().nullable(), 
     editable: 'always',
+    colSpan: 1,
     componentProps: {
       mode: 'multiple',
       options: roleOptions
