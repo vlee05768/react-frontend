@@ -201,7 +201,6 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
             )}
             {(!viewingData) && (
               <>
-                <Button onClick={handleCancel}>取消</Button>
                 <Button 
                   type="primary" 
                   htmlType="submit"
@@ -211,6 +210,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
                 >
                   儲存
                 </Button>
+                <Button onClick={handleCancel}>取消</Button>
               </>
             )}
           </Space>

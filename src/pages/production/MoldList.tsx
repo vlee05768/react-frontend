@@ -461,7 +461,6 @@ export default function MoldList() {
             )}
             {(isDrawerEditing || isCreateDrawerOpen) && (
               <>
-                <Button onClick={handleCancel}>取消</Button>
                 <Button 
                   type="primary" 
                   htmlType="submit"
@@ -471,6 +470,7 @@ export default function MoldList() {
                 >
                   儲存
                 </Button>
+                <Button onClick={handleCancel}>取消</Button>
               </>
             )}
           </Space>

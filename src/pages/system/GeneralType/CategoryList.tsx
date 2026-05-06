@@ -188,7 +188,6 @@ export default function CategoryList({ selectedCode, onSelect }: CategoryListPro
         destroyOnClose
         extra={
           <Space>
-            <Button onClick={() => setIsDrawerOpen(false)}>取消</Button>
             <Button 
               type="primary" 
               htmlType="submit"
@@ -198,6 +197,7 @@ export default function CategoryList({ selectedCode, onSelect }: CategoryListPro
             >
               儲存
             </Button>
+            <Button onClick={() => setIsDrawerOpen(false)}>取消</Button>
           </Space>
         }
       >

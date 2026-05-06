@@ -590,7 +590,6 @@ export default function UserList() {
             )}
             {(isDrawerEditing || isCreateDrawerOpen) && (
               <>
-                <Button onClick={handleCancel}>取消</Button>
                 <Button 
                   type="primary" 
                   htmlType="submit"
@@ -600,6 +599,7 @@ export default function UserList() {
                 >
                   儲存
                 </Button>
+                <Button onClick={handleCancel}>取消</Button>
               </>
             )}
           </Space>

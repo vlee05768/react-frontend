@@ -406,7 +406,6 @@ export default function BusinessPartnerList() {
             )}
             {(isDrawerEditing || isCreateDrawerOpen) && activeTab === '1' && (
               <>
-                <Button onClick={handleCancel}>取消</Button>
                 <Button 
                   type="primary" 
                   htmlType="submit"
@@ -416,6 +415,7 @@ export default function BusinessPartnerList() {
                 >
                   儲存
                 </Button>
+                <Button onClick={handleCancel}>取消</Button>
               </>
             )}
           </Space>
