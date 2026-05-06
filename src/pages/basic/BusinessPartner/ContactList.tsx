@@ -157,12 +157,12 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
         backgroundColor: 'var(--ant-color-fill-alter, #f5f5f5)',
         borderRadius: '6px'
       }}>
-        {/* 左側：客製化訊息區 */}
+        {/* 左側：訊息 */}
         <div style={{ color: 'var(--ant-color-text-secondary, #8c8c8c)' }}>
           目前共有 <span style={{ fontWeight: 600, color: 'var(--ant-color-primary)' }}>{listData.length}</span> 筆聯絡人資料
         </div>
         
-        {/* 右側：新增按鈕 (依檢視狀態隱藏) */}
+        {/* 右側：操作按鈕 */}
         <div>
           {!isMasterViewMode && (
             <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer}>
