@@ -51,6 +51,7 @@ import {
 
 import { useUserQueryStore } from '@/stores/systemStore';
 import { DynamicForm } from '@/components/Form/DynamicForm';
+import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useLoadingStore } from '@/stores/useLoadingStore';
 import { mainDictionary, mainFormConfig, mainTableColumns } from './UserConfig';
@@ -575,9 +576,13 @@ export default function UserList() {
 
       <Drawer
         title={
-          <div style={{ fontSize: '18px', fontWeight: 600 }}>
-            {isCreateDrawerOpen ? '新增用戶管理' : (isDrawerEditing ? '編輯用戶管理' : '檢視用戶管理')}
-          </div>
+          <DrawerTitle
+            moduleName="用戶管理"
+            isCreate={isCreateDrawerOpen}
+            isEdit={isDrawerEditing}
+            record={viewData}
+            displayField={(record) => `${record.userName || ''} - ${record.name || ''}`.replace(/^ - | - $/g, '')}
+          />
         }
         placement="right"
         size="large"

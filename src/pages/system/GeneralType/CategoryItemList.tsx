@@ -10,6 +10,7 @@ import {
 } from '@/api/generated/sdk.gen';
 import { itemFormConfig, itemTableColumns } from './GeneralTypeConfig';
 import { DynamicForm } from '@/components/Form/DynamicForm';
+import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { buildTableColumns } from '@/utils/tableUtils';
 
 interface CategoryItemListProps {
@@ -164,7 +165,15 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
       </div>
 
       <Drawer
-        title={editingItem ? `編輯項目 (${selectedCode})` : `新增項目 (${selectedCode})`}
+        title={
+          <DrawerTitle
+            moduleName={`項目 (${selectedCode})`}
+            isCreate={!editingItem}
+            isEdit={!!editingItem}
+            record={editingItem}
+            displayField={(record) => `${record.code || ''} - ${record.name || ''}`.replace(/^ - | - $/g, '')}
+          />
+        }
         size="large"
         open={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}

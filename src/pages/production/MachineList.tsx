@@ -47,6 +47,7 @@ import {
 import { useMachineQueryStore } from '@/stores/productionStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { DynamicForm } from '@/components/Form/DynamicForm';
+import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { mainDictionary, mainFormConfig, mainTableColumns } from './MachineConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 
@@ -434,9 +435,13 @@ export default function MachineList() {
 
       <Drawer
         title={
-          <div style={{ fontSize: '18px', fontWeight: 600 }}>
-            {isCreateDrawerOpen ? '新增機台管理' : (isDrawerEditing ? '編輯機台管理' : '檢視機台管理')}
-          </div>
+          <DrawerTitle
+            moduleName="機台管理"
+            isCreate={isCreateDrawerOpen}
+            isEdit={isDrawerEditing}
+            record={viewData}
+            displayField={(record) => `${record.code || ''} - ${record.name || ''}`.replace(/^ - | - $/g, '')}
+          />
         }
         placement="right"
         size="large"

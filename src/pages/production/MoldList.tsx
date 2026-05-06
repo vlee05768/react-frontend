@@ -47,6 +47,7 @@ import {
 import { useMoldQueryStore } from '@/stores/productionStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { DynamicForm } from '@/components/Form/DynamicForm';
+import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { mainDictionary, mainFormConfig, mainTableColumns } from './MoldConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 
@@ -446,9 +447,13 @@ export default function MoldList() {
 
       <Drawer
         title={
-          <div style={{ fontSize: '18px', fontWeight: 600 }}>
-            {isCreateDrawerOpen ? '新增模具管理' : (isDrawerEditing ? '編輯模具管理' : '檢視模具管理')}
-          </div>
+          <DrawerTitle
+            moduleName="模具管理"
+            isCreate={isCreateDrawerOpen}
+            isEdit={isDrawerEditing}
+            record={viewData}
+            displayField={(record) => `${record.code || ''} - ${record.name || ''}`.replace(/^ - | - $/g, '')}
+          />
         }
         placement="right"
         size="large"

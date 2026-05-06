@@ -47,6 +47,7 @@ import {
 import { useStorageQueryStore } from '@/stores/warehouseStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { DynamicForm } from '@/components/Form/DynamicForm';
+import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { mainDictionary, mainFormConfig, mainTableColumns } from './StorageConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 
@@ -440,9 +441,13 @@ export default function StorageList() {
 
       <Drawer
         title={
-          <div style={{ fontSize: '18px', fontWeight: 600 }}>
-            {isCreateDrawerOpen ? '新增儲位管理' : (isDrawerEditing ? '編輯儲位管理' : '檢視儲位管理')}
-          </div>
+          <DrawerTitle
+            moduleName="儲位管理"
+            isCreate={isCreateDrawerOpen}
+            isEdit={isDrawerEditing}
+            record={viewData}
+            displayField={(record) => `${record.storageCode || ''} - ${record.name || ''}`.replace(/^ - | - $/g, '')}
+          />
         }
         placement="right"
         size="large"

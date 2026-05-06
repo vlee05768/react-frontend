@@ -10,6 +10,7 @@ import {
 } from '@/api/generated/sdk.gen';
 import { categoryFormConfig } from './GeneralTypeConfig';
 import { DynamicForm } from '@/components/Form/DynamicForm';
+import { DrawerTitle } from '@/components/Form/DrawerTitle';
 
 interface CategoryListProps {
   selectedCode: string | null;
@@ -181,7 +182,15 @@ export default function CategoryList({ selectedCode, onSelect }: CategoryListPro
       </div>
 
       <Drawer
-        title={editingItem ? '編輯類別' : '新增類別'}
+        title={
+          <DrawerTitle
+            moduleName="類別"
+            isCreate={!editingItem}
+            isEdit={!!editingItem}
+            record={editingItem}
+            displayField={(record) => `${record.code || ''} - ${record.name || ''}`.replace(/^ - | - $/g, '')}
+          />
+        }
         size="default"
         open={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}

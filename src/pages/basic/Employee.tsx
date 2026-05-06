@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useParams, useNavigate } from 'react-router-dom';
 import { DynamicForm } from '@/components/Form/DynamicForm';
+import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { getEmployeeFormConfig } from './EmployeeFormConfig';
 
 import { useState, useRef, useEffect } from 'react';
@@ -477,9 +478,13 @@ export default function EmployeeList() {
 
       <Drawer
         title={
-          <div style={{ fontSize: '18px', fontWeight: 600 }}>
-            {isCreateDrawerOpen ? '新增員工基本檔' : (isDrawerEditing ? '編輯員工基本檔' : '檢視員工基本檔')}
-          </div>
+          <DrawerTitle
+            moduleName="員工基本檔"
+            isCreate={isCreateDrawerOpen}
+            isEdit={isDrawerEditing}
+            record={viewData}
+            displayField={(record) => `${record.employeeNo || ''} - ${record.name || ''}`.replace(/^ - | - $/g, '')}
+          />
         }
         placement="right"
         size="large"

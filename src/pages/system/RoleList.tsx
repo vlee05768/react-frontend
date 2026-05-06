@@ -47,6 +47,7 @@ import {
 import { useRoleQueryStore } from '@/stores/systemStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { DynamicForm } from '@/components/Form/DynamicForm';
+import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { mainDictionary, mainFormConfig, mainTableColumns } from './RoleConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 
@@ -430,9 +431,13 @@ export default function RoleList() {
 
       <Drawer
         title={
-          <div style={{ fontSize: '18px', fontWeight: 600 }}>
-            {isCreateDrawerOpen ? '新增角色管理' : (isDrawerEditing ? '編輯角色管理' : '檢視角色管理')}
-          </div>
+          <DrawerTitle
+            moduleName="角色管理"
+            isCreate={isCreateDrawerOpen}
+            isEdit={isDrawerEditing}
+            record={viewData}
+            displayField={(record) => `${record.roleCode || ''} - ${record.name || ''}`.replace(/^ - | - $/g, '')}
+          />
         }
         placement="right"
         size="large"
