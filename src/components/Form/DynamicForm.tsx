@@ -124,21 +124,24 @@ export function DynamicForm<TValues extends Record<string, any>>({
   );
 
   const groupedFields = useMemo(() => {
-    const groups: { [key: string]: FieldConfig<any>[] } = { _ungrouped: [] };
+    const groups: { [key: string]: FieldConfig<any>[] } = { '基本資訊': [] };
     fields.forEach(field => {
       // 處理 Form 靜態與動態隱藏邏輯
       if (field.showInForm === false) return;
       const isHidden = typeof field.hidden === 'function' ? field.hidden(context) : field.hidden;
       if (isHidden) return;
 
-      const groupName = field.group || '_ungrouped';
+      // 未設定 group 的欄位，自動歸類到 '基本資訊'
+      const groupName = field.group || '基本資訊';
       if (!groups[groupName]) groups[groupName] = [];
       groups[groupName].push(field as FieldConfig<any>);
     });
     return groups;
   }, [fields, context]);
 
-  const hasGroups = Object.keys(groupedFields).filter(k => k !== '_ungrouped').length > 0;
+  // 判斷是否要啟用群組樣式 (卡片與標題)
+  // 條件：只要有開發者手動設定了任何 group 屬性 (不管是不是基本資訊)，或者產生的 groups 數量大於 1
+  const hasGroups = fields.some(f => f.group !== undefined && f.group !== '') || Object.keys(groupedFields).length > 1;
 
   return (
     <Form layout="vertical" onFinish={handleSubmit(onSubmit)} id={formId} disabled={isViewMode} className={isViewMode ? 'view-mode-form' : ''}>
@@ -147,9 +150,6 @@ export function DynamicForm<TValues extends Record<string, any>>({
         <div className="dynamic-form-groups">
           {Object.entries(groupedFields).map(([groupName, groupFields]) => {
             if (groupFields.length === 0) return null;
-            if (groupName === '_ungrouped') {
-              return <div key="ungrouped">{renderFieldList(groupFields)}</div>;
-            }
             return (
               <div 
                 key={groupName} 
@@ -181,7 +181,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
           })}
         </div>
       ) : (
-        renderFieldList(groupedFields._ungrouped)
+        renderFieldList(groupedFields['基本資訊'])
       )}
       
       {/* 操作區塊 */}
