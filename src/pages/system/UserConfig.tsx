@@ -19,7 +19,7 @@ export const mainDictionary = {
   isActive: { name: 'isActive', label: '啟動狀態' },
 } as const;
 
-export const mainFormConfig = (): FormFieldConfig[] => [
+export const mainFormConfig = (roleOptions: { label: string, value: string }[] = []): FormFieldConfig[] => [
   { ...mainDictionary.userName, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'createOnly' },
   { ...mainDictionary.name, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
   { ...mainDictionary.employeeCode, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
@@ -29,7 +29,16 @@ export const mainFormConfig = (): FormFieldConfig[] => [
   { ...mainDictionary.extensionNumber, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
   { ...mainDictionary.mobile, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
   { ...mainDictionary.phoneNumber, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
-  { ...mainDictionary.roles, componentType: 'Select', validation: z.any().optional().nullable(), editable: 'always' },
+  { 
+    ...mainDictionary.roles, 
+    componentType: 'Select', 
+    validation: z.any().optional().nullable(), 
+    editable: 'always',
+    componentProps: {
+      mode: 'multiple',
+      options: roleOptions
+    }
+  },
 ];
 
 export const mainTableColumns = (): TableColumnConfig[] => [

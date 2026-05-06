@@ -42,6 +42,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   getApiV1User, 
   getApiV1UserById,
+  getApiV1Role,
   postApiV1User,
   putApiV1UserById,
   deleteApiV1UserById,
@@ -78,6 +79,19 @@ export default function UserList() {
   }, [isCreateDrawerOpen, isDrawerEditing]);
   
   const queryClient = useQueryClient();
+
+  const { data: roleData } = useQuery({
+    queryKey: ['roleList'],
+    queryFn: () => getApiV1Role({ query: { pageSize: 100 } as any }),
+  });
+  
+  const roleOptions = useMemo(() => {
+    const roles = (roleData?.data as any)?.data?.data || (roleData?.data as any)?.data || [];
+    return roles.map((role: any) => ({
+      label: role.caption || role.name,
+      value: role.name,
+    }));
+  }, [roleData]);
   const { viewId } = useParams<{ viewId: string }>();
   const navigate = useNavigate();
 
@@ -402,7 +416,7 @@ export default function UserList() {
     <DynamicForm
       key={isCreateDrawerOpen ? 'create' : (viewId || 'empty')}
       defaultValues={isCreateDrawerOpen ? { isActive: true } : formattedViewData}
-      fields={mainFormConfig()}
+      fields={mainFormConfig(roleOptions)}
       onSubmit={handleCrudSubmit}
       isUpdateMode={isEdit}
       isViewMode={isViewMode}
