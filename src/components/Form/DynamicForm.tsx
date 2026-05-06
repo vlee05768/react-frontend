@@ -151,7 +151,16 @@ export function DynamicForm<TValues extends Record<string, any>>({
               return <div key="ungrouped">{renderFieldList(groupFields)}</div>;
             }
             return (
-              <div key={groupName} style={{ marginBottom: '8px' }}>
+              <div 
+                key={groupName} 
+                style={{ 
+                  marginBottom: '24px',
+                  padding: '4px 24px 0 24px',
+                  border: '1px solid var(--ant-color-border)',
+                  borderRadius: '8px',
+                  backgroundColor: 'var(--ant-color-bg-container)'
+                }}
+              >
                 <Divider 
                   {...({ orientation: "center" } as any)}
                   plain 
