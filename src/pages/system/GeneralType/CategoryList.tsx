@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Input, Space, Popconfirm, message, Typography, Drawer } from 'antd';
+import { Button, Input, Space, Popconfirm, message, Typography, Drawer, Table, Tooltip } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -96,6 +96,50 @@ export default function CategoryList({ selectedCode, onSelect }: CategoryListPro
     }
   };
 
+  const columns = [
+    {
+      title: '類別代碼',
+      dataIndex: 'code',
+      key: 'code',
+      width: '40%',
+      render: (text: string, record: any) => (
+        <span style={{ fontWeight: selectedCode === record.code ? 600 : 400 }}>
+          {text}
+        </span>
+      ),
+    },
+    {
+      title: '敘述',
+      dataIndex: 'desc',
+      key: 'desc',
+      width: '40%',
+      ellipsis: true,
+    },
+    {
+      title: '操作',
+      key: 'action',
+      width: '20%',
+      align: 'center' as const,
+      render: (_: any, record: any) => (
+        <Space size="small" onClick={(e) => e.stopPropagation()}>
+          <Tooltip title="編輯">
+            <Button type="text" icon={<EditOutlined />} size="small" onClick={(e) => handleEdit(e, record)} />
+          </Tooltip>
+          <Tooltip title="刪除">
+            <Popconfirm
+              title="確定要刪除此類別？"
+              description="這將會影響關聯資料"
+              onConfirm={(e) => handleDelete(e as any, record)}
+              onCancel={(e) => e?.stopPropagation()}
+            >
+              <Button type="text" danger icon={<DeleteOutlined />} size="small" onClick={(e) => e.stopPropagation()} />
+            </Popconfirm>
+          </Tooltip>
+        </Space>
+      ),
+    },
+  ];
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '16px', borderBottom: '1px solid var(--ant-color-border-secondary, #f0f0f0)' }}>
@@ -107,6 +151,7 @@ export default function CategoryList({ selectedCode, onSelect }: CategoryListPro
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{ width: '100%' }}
+            allowClear
           />
           <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
             新增類別
@@ -115,54 +160,24 @@ export default function CategoryList({ selectedCode, onSelect }: CategoryListPro
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto' }}>
-        {isFetching ? (
-          <div style={{ padding: '16px', textAlign: 'center', color: 'var(--ant-color-text-description)' }}>載入中...</div>
-        ) : filteredData.length === 0 ? (
-          <div style={{ padding: '16px', textAlign: 'center', color: 'var(--ant-color-text-description)' }}>尚無類別資料</div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {filteredData.map((item: any) => {
-              const isSelected = selectedCode === item.code;
-              return (
-                <div
-                  key={item.id || item.code}
-                  onClick={() => onSelect(item.code)}
-                  style={{ 
-                    cursor: 'pointer', 
-                    padding: '12px 16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    backgroundColor: isSelected ? 'var(--ant-color-primary-bg)' : 'transparent',
-                    borderLeft: isSelected ? '3px solid var(--ant-color-primary)' : '3px solid transparent',
-                    borderBottom: '1px solid var(--ant-color-border-secondary, #f0f0f0)',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  <div style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
-                    <div style={{ fontWeight: isSelected ? 600 : 400, color: 'var(--ant-color-text)', marginBottom: 4 }}>
-                      {item.code}
-                    </div>
-                    <div style={{ fontSize: '12px', color: 'var(--ant-color-text-description)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {item.desc}
-                    </div>
-                  </div>
-                  <Space size="small" onClick={(e) => e.stopPropagation()}>
-                    <Button type="text" icon={<EditOutlined />} size="small" onClick={(e) => handleEdit(e, item)} />
-                    <Popconfirm
-                      title="確定要刪除此類別？"
-                      description="若刪除此類別，其底下所有項目請手動清除。"
-                      onConfirm={(e) => handleDelete(e as any, item)}
-                      onCancel={(e) => e?.stopPropagation()}
-                    >
-                      <Button type="text" danger icon={<DeleteOutlined />} size="small" onClick={(e) => e.stopPropagation()} />
-                    </Popconfirm>
-                  </Space>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <Table
+          size="small"
+          loading={isFetching}
+          dataSource={filteredData}
+          columns={columns}
+          rowKey={(record) => record.id || record.code}
+          pagination={false}
+          scroll={{ y: 'calc(100vh - 230px)' }} // Roughly account for header heights
+          onRow={(record) => ({
+            onClick: () => onSelect(record.code),
+            style: {
+              cursor: 'pointer',
+              backgroundColor: selectedCode === record.code ? 'var(--ant-color-primary-bg)' : undefined,
+              transition: 'background-color 0.2s',
+            }
+          })}
+          rowClassName={(record) => selectedCode === record.code ? 'category-list-row-selected' : ''}
+        />
       </div>
 
       <Drawer
@@ -181,6 +196,15 @@ export default function CategoryList({ selectedCode, onSelect }: CategoryListPro
           formId="categoryForm"
         />
       </Drawer>
+      <style>{`
+        .category-list-row-selected > td {
+          background-color: var(--ant-color-primary-bg) !important;
+        }
+        /* Hide hover effect override on selected row to keep it clearly selected */
+        .ant-table-wrapper .ant-table-tbody > tr.category-list-row-selected:hover > td {
+          background-color: var(--ant-color-primary-bg) !important;
+        }
+      `}</style>
     </div>
   );
 }

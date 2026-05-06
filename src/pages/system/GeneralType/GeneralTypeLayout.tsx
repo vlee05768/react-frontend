@@ -10,7 +10,7 @@ export default function GeneralTypeLayout() {
     <div style={{ padding: '16px', height: 'calc(100vh - 64px)', display: 'flex', gap: '16px' }}>
       {/* 左側：類別清單 */}
       <Card 
-        style={{ width: '320px', display: 'flex', flexDirection: 'column' }}
+        style={{ width: '450px', display: 'flex', flexDirection: 'column' }}
         styles={{ body: { padding: 0, flex: 1, overflow: 'hidden' } }}
         variant="borderless"
       >
