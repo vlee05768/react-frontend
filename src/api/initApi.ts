@@ -67,9 +67,11 @@ export function initializeApi() {
       useLoadingStore.getState().hideLoading();
       if (error.response) {
         if (error.response.status === 401) {
-          Modal.error({ centered: true, title: '錯誤提示', content: '請重新登入' });
-          useAuthStore.getState().logout();
-          window.location.href = '/login';
+          if (window.location.pathname !== '/login') {
+            Modal.error({ centered: true, title: '登入逾期', content: '登入狀態已失效，請重新登入' });
+            useAuthStore.getState().logout();
+            window.location.href = '/login';
+          }
         }
         
         // 正規化錯誤訊息，支援 .NET ProblemDetails 與自訂 ApiResponse
