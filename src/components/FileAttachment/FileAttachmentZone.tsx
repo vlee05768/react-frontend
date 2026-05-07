@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Button, List, Modal, message, Tooltip, Spin, Card } from 'antd';
+import { Upload, Button, Row, Col, Empty, Modal, message, Tooltip, Spin, Card } from 'antd';
 import dayjs from 'dayjs';
 import { 
   UploadOutlined, 
@@ -204,30 +204,33 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
           )}
         </div>
 
-        <List
-          grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4, xl: 4, xxl: 6 }}
-          dataSource={attachments}
-          renderItem={(item) => (
-            <List.Item>
-              <Card
-                hoverable
-                size="small"
-                actions={[
-                  <Tooltip title="檢視"><EyeOutlined key="view" onClick={() => handleView(item)} /></Tooltip>,
-                  <Tooltip title="下載"><DownloadOutlined key="download" onClick={() => handleDownload(item)} /></Tooltip>,
-                  ...(!readonly ? [<Tooltip title="刪除"><DeleteOutlined key="delete" onClick={() => handleDelete(item)} style={{ color: '#ff4d4f' }} /></Tooltip>] : []),
-                ]}
-              >
-                <Card.Meta
-                  avatar={getFileIcon(item.fileName)}
-                  title={<Tooltip title={item.fileName}><div style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.fileName || '未命名'}</div></Tooltip>}
-                  description={`${((item.fileSize || 0) / 1024).toFixed(2)} KB`}
-                />
-              </Card>
-            </List.Item>
+        <Row gutter={[16, 16]}>
+          {attachments.length === 0 ? (
+            <Col span={24}>
+              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暫無附件" />
+            </Col>
+          ) : (
+            attachments.map((item) => (
+              <Col xs={24} sm={12} md={8} lg={6} xl={6} xxl={4} key={item.id || item.fileName}>
+                <Card
+                  hoverable
+                  size="small"
+                  actions={[
+                    <Tooltip key="view" title="檢視"><EyeOutlined onClick={() => handleView(item)} /></Tooltip>,
+                    <Tooltip key="download" title="下載"><DownloadOutlined onClick={() => handleDownload(item)} /></Tooltip>,
+                    ...(!readonly ? [<Tooltip key="delete" title="刪除"><DeleteOutlined onClick={() => handleDelete(item)} style={{ color: '#ff4d4f' }} /></Tooltip>] : []),
+                  ]}
+                >
+                  <Card.Meta
+                    avatar={getFileIcon(item.fileName)}
+                    title={<Tooltip title={item.fileName}><div style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.fileName || '未命名'}</div></Tooltip>}
+                    description={`${((item.fileSize || 0) / 1024).toFixed(2)} KB`}
+                  />
+                </Card>
+              </Col>
+            ))
           )}
-          locale={{ emptyText: '暫無附件' }}
-        />
+        </Row>
       </Spin>
 
       <Modal
