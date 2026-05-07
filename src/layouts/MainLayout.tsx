@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Dropdown, Spin, Modal, Breadcrumb } from 'antd';
+import { Layout, Menu, Button, Dropdown, Spin, Modal, App, Breadcrumb } App } from 'antd';
 import { 
   SunOutlined, MoonOutlined,
   MenuUnfoldOutlined, 
@@ -63,6 +63,7 @@ const ROUTE_PERMISSION_MAP: Record<string, string> = {
 };
 
 export default function MainLayout() {
+  const { modal } = App.useApp();
   const [collapsed, setCollapsed] = useState(false);
   const [openKeys, setOpenKeys] = useState<string[]>([]);
   const navigate = useNavigate();
@@ -256,7 +257,7 @@ export default function MainLayout() {
         label: '登出系統',
         danger: true,
         onClick: () => {
-          Modal.confirm({
+          modal.confirm({
             title: '確認登出',
             icon: <ExclamationCircleFilled />,
             content: '您確定要登出目前帳號嗎？',
