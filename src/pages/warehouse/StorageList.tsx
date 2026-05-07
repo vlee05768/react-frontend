@@ -444,7 +444,7 @@ export default function StorageList() {
                 <Button 
                   type="primary" 
                   htmlType="submit"
-                  form="crud-form"
+                  form="storageForm"
                   icon={<SaveOutlined />} 
                   loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
                 >

@@ -443,7 +443,7 @@ export default function MachineList() {
                 <Button 
                   type="primary" 
                   htmlType="submit"
-                  form="crud-form"
+                  form="machineForm"
                   icon={<SaveOutlined />} 
                   loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
                 >

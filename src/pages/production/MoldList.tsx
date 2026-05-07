@@ -445,7 +445,7 @@ export default function MoldList() {
                 <Button 
                   type="primary" 
                   htmlType="submit"
-                  form="crud-form"
+                  form="moldForm"
                   icon={<SaveOutlined />} 
                   loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
                 >
