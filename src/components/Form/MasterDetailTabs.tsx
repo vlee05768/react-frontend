@@ -85,6 +85,7 @@ export const MasterDetailTabs: React.FC<MasterDetailTabsProps> = ({
       activeKey={activeTab} 
       onChange={onTabChange} 
       items={items} 
+      tabBarGutter={16}
     />
   );
 };
