@@ -44,4 +44,18 @@ export const detailTableColumns = {};
 export const storageSearchFormConfig = (): SearchFieldConfig[] => [
   { name: 'CodeOrName', label: '編號或名稱', componentType: 'Input', colSpan: 12 },
   { name: 'Type', label: '類型', componentType: 'Input', colSpan: 12 },
+  { name: 'Location', label: '地區', componentType: 'Input', colSpan: 12 },
+  { 
+    name: 'IsActive', 
+    label: '狀態', 
+    componentType: 'Select', 
+    componentProps: {
+      options: [
+        { label: '啟用', value: true },
+        { label: '停用', value: false }
+      ],
+      allowClear: true
+    },
+    colSpan: 12 
+  },
 ];

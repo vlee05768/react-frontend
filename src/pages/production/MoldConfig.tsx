@@ -54,4 +54,5 @@ export const moldSearchFormConfig = (): SearchFieldConfig[] => [
   { name: 'CodeOrName', label: '編號或名稱', componentType: 'Input', colSpan: 12 },
   { name: 'Type', label: '類型', componentType: 'Input', colSpan: 12 },
   { name: 'SupplierCode', label: '供應商', componentType: 'Input', colSpan: 12 },
+  { name: 'Shape', label: '形狀', componentType: 'Input', colSpan: 12 },
 ];

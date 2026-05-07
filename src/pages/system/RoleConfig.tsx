@@ -26,5 +26,5 @@ export const detailTableColumns = {};
 
 
 export const roleSearchFormConfig = (): SearchFieldConfig[] => [
-  // 角色目前無自訂查詢條件
+
 ];

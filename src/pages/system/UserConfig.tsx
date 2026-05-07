@@ -66,7 +66,5 @@ export const detailTableColumns = {};
 
 
 export const userSearchFormConfig = (): SearchFieldConfig[] => [
-  { name: 'userName', label: '帳號', componentType: 'Input', colSpan: 12 },
-  { name: 'name', label: '姓名', componentType: 'Input', colSpan: 12 },
-  { name: 'employeeCode', label: '員工代碼', componentType: 'Input', colSpan: 12 },
+  { name: 'name', label: '姓名/帳號/代碼 (模糊搜尋)', componentType: 'Input', colSpan: 12 },
 ];
