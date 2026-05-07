@@ -346,6 +346,7 @@ export default function MaterialList() {
             isEditMode={isDrawerEditing}
             viewId={viewId}
             entityType="Material"
+            showAttachments={true}
             masterContent={
               <DynamicForm
                 formId="materialForm"
