@@ -28,6 +28,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
 }: DynamicFormProps<TValues>) {
   
   // 1. 儲存最新的 Schema Reference
+  const formWrapperRef = useRef<HTMLDivElement>(null);
   const schemaRef = useRef<z.ZodTypeAny>(z.object({}));
 
   // 2. 初始化 RHF
@@ -148,12 +149,39 @@ export function DynamicForm<TValues extends Record<string, any>>({
     return groups;
   }, [fields, context]);
 
+
+  // 處理自動 Focus (所有 form 在編輯或新增模式時, 一出現當下應該把 focus 停留在第一個可以輸入的元件)
+  useEffect(() => {
+    if (!isViewMode) {
+      // 延遲 300ms 等待 Ant Design 的 Drawer/Modal 動畫完成
+      const timer = setTimeout(() => {
+        if (formWrapperRef.current) {
+          // 找出第一個可以輸入且沒有被 disabled/readonly 的元素
+          const focusableElements = formWrapperRef.current.querySelectorAll(
+            'input:not([disabled]):not([readonly]):not([type="hidden"]), textarea:not([disabled]):not([readonly])'
+          );
+          
+          for (let i = 0; i < focusableElements.length; i++) {
+            const el = focusableElements[i] as HTMLElement;
+            // 確保元素是可見的
+            if (el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0) {
+              el.focus();
+              break;
+            }
+          }
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isViewMode, defaultValues]); // 當進入編輯/新增模式，或是非同步載入資料完成時觸發
+
   // 判斷是否要啟用群組樣式 (卡片與標題)
   // 條件：只要有開發者手動設定了任何 group 屬性 (不管是不是基本資訊)，或者產生的 groups 數量大於 1
   const hasGroups = fields.some(f => f.group !== undefined && f.group !== '') || Object.keys(groupedFields).length > 1;
 
   return (
-    <Form layout="vertical" onFinish={handleSubmit(onSubmit)} id={formId} disabled={isViewMode} className={isViewMode ? 'view-mode-form' : ''}>
+    <div ref={formWrapperRef} className="dynamic-form-wrapper">
+      <Form layout="vertical" onFinish={handleSubmit(onSubmit)} id={formId} disabled={isViewMode} className={isViewMode ? 'view-mode-form' : ''}>
       {/* 支援 grid 與群組排版 */}
       {hasGroups ? (
         <div className="dynamic-form-groups">
@@ -205,5 +233,6 @@ export function DynamicForm<TValues extends Record<string, any>>({
         </div>
       )}
     </Form>
+    </div>
   );
 }
