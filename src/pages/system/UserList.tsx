@@ -425,7 +425,7 @@ export default function UserList() {
           </div>
         }
         extra={
-          <Space separator={<Divider type="vertical" />}>
+          <Space separator={<Divider orientation="vertical" />}>
             <Button
               type="default"
               icon={<SearchOutlined />}

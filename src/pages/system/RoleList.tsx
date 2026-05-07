@@ -306,7 +306,7 @@ export default function RoleList() {
           </div>
         }
         extra={
-          <Space separator={<Divider type="vertical" />}>
+          <Space separator={<Divider orientation="vertical" />}>
             <Button
               type="default"
               icon={<SearchOutlined />}

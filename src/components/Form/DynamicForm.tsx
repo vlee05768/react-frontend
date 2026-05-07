@@ -203,7 +203,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
                 }}
               >
                 <Divider 
-                  {...({ orientation: "center" } as any)}
+                  titlePlacement="center"
                   plain 
                   style={{ 
                     marginTop: 0, 

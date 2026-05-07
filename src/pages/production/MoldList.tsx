@@ -308,7 +308,7 @@ export default function MoldList() {
           </div>
         }
         extra={
-          <Space separator={<Divider type="vertical" />}>
+          <Space separator={<Divider orientation="vertical" />}>
             <Button
               type="default"
               icon={<SearchOutlined />}

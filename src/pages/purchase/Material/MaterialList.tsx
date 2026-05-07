@@ -218,7 +218,7 @@ export default function MaterialList() {
           </div>
         }
         extra={
-          <Space separator={<Divider type="vertical" />}>
+          <Space separator={<Divider orientation="vertical" />}>
             <Button type="default" icon={<SearchOutlined />} onClick={openSearchModal} style={{ fontWeight: 500 }}>
               進階查詢
             </Button>
