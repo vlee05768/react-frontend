@@ -2,6 +2,7 @@
 import { Form, Input, Select, DatePicker, InputNumber, Switch, Row, Col } from 'antd';
 import type { FormInstance } from 'antd';
 import type { SearchFieldConfig } from './types';
+import { DictSelect } from './DictSelect';
 
 const { RangePicker } = DatePicker;
 
@@ -23,6 +24,8 @@ export default function DynamicSearchForm({ config, form, onSearch, layout = 've
         return <Input.TextArea placeholder={`請輸入${field.label}`} allowClear {...props} />;
       case 'Select':
         return <Select placeholder={`請選擇${field.label}`} allowClear {...props} />;
+      case 'DictSelect':
+        return <DictSelect placeholder={`請選擇${field.label}`} allowClear {...(props as any)} />;
       case 'InputNumber':
         return <InputNumber placeholder={`請輸入${field.label}`} className="w-full" {...props} />;
       case 'DatePicker':
