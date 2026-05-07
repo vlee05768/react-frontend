@@ -2,7 +2,10 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
-import { getEmployeeFormConfig } from './EmployeeFormConfig';
+import { employeeFormConfig, employeeTableColumns, employeeSearchConfig } from './EmployeeConfig';
+import { buildTableColumns } from '@/utils/tableUtils';
+import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
+import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 
 import { useState, useRef, useEffect } from 'react';
 import type { InputRef } from 'antd';
@@ -202,8 +205,7 @@ export default function EmployeeList() {
     }
   };
 
-    const columns = [
-    {
+    const actionColumn = {
       title: '操作',
       key: 'actions',
       fixed: 'left' as const,
@@ -234,20 +236,13 @@ export default function EmployeeList() {
           )}
         </Space>
       ),
-    },
-    { title: '員工編號', dataIndex: 'employeeNo', key: 'employeeNo', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '姓名', dataIndex: 'name', key: 'name', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '部門名稱', dataIndex: 'departmentCode', key: 'departmentCode', render: (v: any) => <DictLabel dictKey="DEPARTMENT" value={v} /> },
-    { title: '聯絡電話', dataIndex: 'phone', key: 'phone', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '到職日期', dataIndex: 'hireDate', key: 'hireDate', align: 'center', render: (v: string) => v ? v.substring(0, 10) : '-' },
-    { title: '離職日期', dataIndex: 'resignDate', key: 'resignDate', align: 'center', render: (v: string) => v ? v.substring(0, 10) : '-' },
-    { title: '狀態', dataIndex: 'status', key: 'status', align: 'center', render: (v: number) => v === 1 ? <CheckOutlined style={{ color: 'green' }} /> : (v === 2 ? <CloseOutlined style={{ color: 'red' }} /> : null) },
-    { title: '備註', dataIndex: 'notes', key: 'notes', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-  ];
+    };
+
+    const columns = buildTableColumns(employeeTableColumns, actionColumn);
 
   const handleSearch = (values: any) => {
     // 確保清空的欄位能覆蓋 Zustand store 中的舊值
-    const searchKeys = ['employeeNo', 'name', 'status', 'departmentCode'];
+    const searchKeys = employeeSearchConfig.map(c => c.name);
     const nextParams = { ...values };
     
     searchKeys.forEach(key => {
@@ -433,37 +428,11 @@ export default function EmployeeList() {
         }}
         closeIcon={true}
       >
-        <Form
+        <DynamicSearchForm
+          config={employeeSearchConfig}
           form={searchForm}
-          layout="vertical"
-          onFinish={handleSearch}
-        >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="employeeNo" label="員工編號">
-                <Input placeholder="請輸入員工編號" allowClear />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="name" label="姓名">
-                <Input placeholder="請輸入姓名" allowClear />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="status" label="狀態">
-                <Select placeholder="請選擇狀態" allowClear style={{ width: '100%' }}>
-                  <Select.Option value={1}>在職</Select.Option>
-                  <Select.Option value={2}>離職</Select.Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="departmentCode" label="部門代碼">
-                <DictSelect dictKey="DEPARTMENT" placeholder="請選擇部門代碼" allowClear style={{ width: '100%' }} showSearch optionFilterProp="_displayName" />
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
+          onSearch={handleSearch}
+        />
       </Modal>
 
       <Drawer
@@ -505,7 +474,7 @@ export default function EmployeeList() {
                 <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
           <DynamicForm
             formId="employee-form"
-            fields={getEmployeeFormConfig()}
+            fields={employeeFormConfig}
             defaultValues={formDefaultValues}
             onSubmit={handleCrudSubmit}
             isUpdateMode={isDrawerEditing}
