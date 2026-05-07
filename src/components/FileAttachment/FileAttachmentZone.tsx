@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Button, Row, Col, Empty, Modal, message, Tooltip, Spin, Card } from 'antd';
+import { Upload, Button, Row, Col, Empty, Modal, App, Tooltip, Spin, Card } from 'antd';
 import dayjs from 'dayjs';
 import { 
   UploadOutlined, 
@@ -32,6 +32,7 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
   referenceId,
   readonly = false,
 }) => {
+  const { message, modal } = App.useApp();
   const [attachments, setAttachments] = useState<FileAttachmentDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
@@ -48,8 +49,12 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
           referenceId,
         }
       });
-      if (data) {
-        setAttachments(data);
+      // Handle ApiResponse wrapper or direct array
+      const resultData = (data as any)?.data || data;
+      if (Array.isArray(resultData)) {
+        setAttachments(resultData);
+      } else {
+        setAttachments([]);
       }
     } catch (error) {
       message.error('取得附件失敗');
@@ -87,7 +92,7 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
   };
 
   const handleDelete = (attachment: FileAttachmentDto) => {
-    Modal.confirm({
+    modal.confirm({
       title: '確認刪除',
       content: `確定要刪除檔案「${attachment.fileName || '未命名檔案'}」嗎？`,
       okText: '刪除',
