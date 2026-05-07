@@ -58,7 +58,7 @@ import { useLoadingStore } from '@/stores/useLoadingStore';
 import { mainDictionary, mainFormConfig, mainTableColumns , userSearchFormConfig} from './UserConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { App } from 'antd';
-import { DRAWER_WIDTH_MAIN } from '@/constants';
+import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN } from '@/constants';;
 
 export default function UserList() {
   const { message: messageApi, modal: modalApi } = App.useApp();
@@ -78,7 +78,7 @@ export default function UserList() {
         if (firstInput) {
           firstInput.focus();
         }
-      }, 100);
+      }, ANIMATION_DELAY_MS);
     }
   }, [isCreateDrawerOpen, isDrawerEditing]);
   

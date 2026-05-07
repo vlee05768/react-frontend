@@ -52,7 +52,7 @@ import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { mainDictionary, mainFormConfig, mainTableColumns , roleSearchFormConfig} from './RoleConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
-import { DRAWER_WIDTH_MAIN } from '@/constants';
+import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN } from '@/constants';;
 
 export default function RoleList() {
   const { params, setParams, resetParams } = useRoleQueryStore();
@@ -72,7 +72,7 @@ export default function RoleList() {
         if (firstInput) {
           firstInput.focus();
         }
-      }, 100);
+      }, ANIMATION_DELAY_MS);
     }
   }, [isCreateDrawerOpen, isDrawerEditing]);
   

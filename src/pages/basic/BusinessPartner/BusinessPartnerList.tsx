@@ -48,7 +48,7 @@ import { mainFormConfig, mainTableColumns, bpTypeOptions, bpSearchFormConfig } f
 import { buildTableColumns } from '@/utils/tableUtils';
 import { App } from 'antd';
 import ContactList from './ContactList';
-import { DRAWER_WIDTH_MAIN, DRAWER_WIDTH_SEARCH, DEFAULT_PAGE_SIZE } from '@/constants';
+import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, DRAWER_WIDTH_SEARCH } from '@/constants';;
 
 // Local store for query params
 export const useBPQueryStore = create((set) => ({
@@ -85,7 +85,7 @@ export default function BusinessPartnerList() {
         if (firstInput) {
           firstInput.focus();
         }
-      }, 100);
+      }, ANIMATION_DELAY_MS);
     }
   }, [isCreateDrawerOpen, isDrawerEditing]);
   

@@ -54,7 +54,7 @@ import { DictLabel } from '@/components/Form/DictLabel';
 import { DictSelect } from '@/components/Form/DictSelect';
 import { useEmployeeQueryStore } from '@/stores/employeeStore';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { DRAWER_WIDTH_MAIN } from '@/constants';
+import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN } from '@/constants';;
 
 export default function EmployeeList() {
   const { params, setParams, resetParams } = useEmployeeQueryStore();
@@ -74,7 +74,7 @@ export default function EmployeeList() {
         if (firstInput) {
           firstInput.focus();
         }
-      }, 100);
+      }, ANIMATION_DELAY_MS);
     }
   }, [isCreateDrawerOpen, isDrawerEditing]);
   
