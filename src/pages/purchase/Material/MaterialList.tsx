@@ -129,7 +129,7 @@ export default function MaterialList() {
   };
 
   const openCreateDrawer = () => {
-    setFormDefaultValues({ isActive: true, materialForm: 'R', primaryUoM: 'M²', secondaryUoM: 'ROLL', purchasingUoM: 'ROLL', length: 0 });
+    setFormDefaultValues({ isActive: true, materialForm: 'R', primaryUoM: 'M²', secondaryUoM: 'ROLL', purchasingUoM: 'ROLL', length: 0, conversionFactor: 1 });
     setIsCreateDrawerOpen(true);
   };
 

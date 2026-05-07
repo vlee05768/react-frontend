@@ -166,7 +166,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: '廠牌',
     componentType: 'Input',
     group: '基本規格',
-    colSpan: 6,
+    colSpan: 4,
     editable: 'createOnly',
     validation: z.string().min(1, '請輸入廠牌(英文大寫)'),
     componentProps: {
@@ -185,7 +185,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: '型號',
     componentType: 'Input',
     group: '基本規格',
-    colSpan: 6,
+    colSpan: 4,
     editable: 'createOnly',
     validation: z.string().min(1, '請輸入型號(英文大寫)'),
     componentProps: {
@@ -237,7 +237,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: '規格編碼',
     componentType: 'Input',
     group: '基本規格',
-    colSpan: 6,
+    colSpan: 4,
     autoGenerate: true,
   },
   {
@@ -252,7 +252,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: '規格描述',
     componentType: 'TextArea',
     group: '基本規格',
-    colSpan: 24,
+    colSpan: 1,
     componentProps: { rows: 3 }
   },
   // === Tab 2: 計量單位與成本 ===
