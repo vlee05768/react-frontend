@@ -153,13 +153,13 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
   };
 
   const getFileIcon = (attachment: FileAttachmentDto) => {
-    if (!attachment.fileName) return <FileOutlined style={{ fontSize: 24, color: '#8c8c8c' }} />;
+    if (!attachment.fileName) return <FileOutlined style={{ fontSize: 32, color: '#8c8c8c' }} />;
     const ext = attachment.fileName.split('.').pop()?.toLowerCase() || '';
     
     // 圖片檔案直接顯示縮圖 (如果有 url)
     if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext) && attachment.presignedUrl) {
       return (
-        <div style={{ width: 48, height: 48, overflow: 'hidden', borderRadius: 4 }}>
+        <div style={{ width: '100%', height: '100%', overflow: 'hidden', borderRadius: 4 }}>
           <img src={attachment.presignedUrl} alt={attachment.fileName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
       );
@@ -169,15 +169,15 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
     const iconName = getIconName(ext);
     if (iconList.includes(iconName)) {
       return (
-        <div style={{ width: 48, height: 48, overflow: 'hidden', borderRadius: 4 }}>
+        <div style={{ width: '100%', height: '100%', overflow: 'hidden', borderRadius: 4 }}>
           <img src={`/file-icons/${iconName}.jpg`} alt={ext} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         </div>
       );
     }
 
     // Fallback: 預設圖示
-    if (ext === 'pdf') return <FilePdfOutlined style={{ fontSize: 24, color: '#f5222d' }} />;
-    return <FileOutlined style={{ fontSize: 24, color: '#8c8c8c' }} />;
+    if (ext === 'pdf') return <FilePdfOutlined style={{ fontSize: 32, color: '#f5222d' }} />;
+    return <FileOutlined style={{ fontSize: 32, color: '#8c8c8c' }} />;
   };
 
   // 處理貼上事件
@@ -292,21 +292,49 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
                 <Card
                   hoverable
                   size="small"
-                  actions={[
-                    <Tooltip key="view" title="檢視"><EyeOutlined onClick={() => handleView(item)} /></Tooltip>,
-                    <Tooltip key="download" title="下載"><DownloadOutlined onClick={() => handleDownload(item)} /></Tooltip>,
-                    ...(!readonly ? [<Tooltip key="delete" title="刪除"><DeleteOutlined onClick={() => handleDelete(item)} style={{ color: '#ff4d4f' }} /></Tooltip>] : []),
-                  ]}
+                  styles={{ body: { padding: 0 } }}
                 >
-                  <Card.Meta
-                    avatar={
-                      <div style={{ width: 48, height: 48, display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5', borderRadius: 4 }}>
-                        {getFileIcon(item)}
+                  <div style={{ padding: '12px', display: 'flex', alignItems: 'center' }}>
+                    <div style={{ width: 64, height: 64, display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5', borderRadius: 4, flexShrink: 0, marginRight: 12 }}>
+                      {getFileIcon(item)}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Tooltip title={item.fileName}>
+                        <div style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, fontWeight: 500, color: '#434343' }}>
+                          {item.fileName || '未命名'}
+                        </div>
+                      </Tooltip>
+                      <div style={{ fontSize: 12, color: '#8c8c8c', marginTop: 4 }}>
+                        {`${((item.fileSize || 0) / 1024).toFixed(2)} KB`}
                       </div>
-                    }
-                    title={<Tooltip title={item.fileName}><div style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.fileName || '未命名'}</div></Tooltip>}
-                    description={`${((item.fileSize || 0) / 1024).toFixed(2)} KB`}
-                  />
+                    </div>
+                  </div>
+                  <div style={{ 
+                    borderTop: '1px solid #f0f0f0', 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center',
+                    padding: '8px 0',
+                    backgroundColor: '#fafafa',
+                    borderBottomLeftRadius: 8,
+                    borderBottomRightRadius: 8
+                  }}>
+                    <Tooltip title="檢視">
+                      <Button type="text" size="small" icon={<EyeOutlined />} onClick={() => handleView(item)} style={{ color: '#595959' }} />
+                    </Tooltip>
+                    <div style={{ width: 1, height: 16, backgroundColor: '#e8e8e8', margin: '0 8px' }} />
+                    <Tooltip title="下載">
+                      <Button type="text" size="small" icon={<DownloadOutlined />} onClick={() => handleDownload(item)} style={{ color: '#595959' }} />
+                    </Tooltip>
+                    {!readonly && (
+                      <>
+                        <div style={{ width: 1, height: 16, backgroundColor: '#e8e8e8', margin: '0 8px' }} />
+                        <Tooltip title="刪除">
+                          <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(item)} />
+                        </Tooltip>
+                      </>
+                    )}
+                  </div>
                 </Card>
               </Col>
             ))
