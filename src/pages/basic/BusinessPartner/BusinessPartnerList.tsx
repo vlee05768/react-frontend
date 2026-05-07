@@ -395,7 +395,7 @@ export default function BusinessPartnerList() {
             </Button>
           </div>
         }
-        width={DRAWER_WIDTH_SEARCH}
+        size={DRAWER_WIDTH_SEARCH}
       >
         
         <DynamicSearchForm 
@@ -420,7 +420,7 @@ export default function BusinessPartnerList() {
           />
         }
         placement="right"
-        width={DRAWER_WIDTH_MAIN}
+        size={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={

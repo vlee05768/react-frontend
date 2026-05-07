@@ -406,7 +406,7 @@ export default function RoleList() {
             </Button>
           </div>
         }
-        width={DRAWER_WIDTH_MAIN}
+        size={DRAWER_WIDTH_MAIN}
         style={{ top: '10vh' }}
         styles={{
           body: {
@@ -431,7 +431,7 @@ export default function RoleList() {
           />
         }
         placement="right"
-        width={DRAWER_WIDTH_MAIN}
+        size={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={

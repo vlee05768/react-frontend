@@ -294,7 +294,7 @@ export default function MaterialList() {
             <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>執行查詢</Button>
           </div>
         }
-        width={DRAWER_WIDTH_MAIN}
+        size={DRAWER_WIDTH_MAIN}
         style={{ top: '10vh' }}
         closeIcon={true}
       >
@@ -312,7 +312,7 @@ export default function MaterialList() {
           />
         }
         placement="right"
-        width={DRAWER_WIDTH_MAIN}
+        size={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={

@@ -408,7 +408,7 @@ export default function MoldList() {
             </Button>
           </div>
         }
-        width={DRAWER_WIDTH_MAIN}
+        size={DRAWER_WIDTH_MAIN}
         style={{ top: '10vh' }}
         styles={{
           body: {
@@ -433,7 +433,7 @@ export default function MoldList() {
           />
         }
         placement="right"
-        width={DRAWER_WIDTH_MAIN}
+        size={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={

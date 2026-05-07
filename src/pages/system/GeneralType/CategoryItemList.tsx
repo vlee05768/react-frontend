@@ -175,7 +175,7 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
             displayField={(record) => `${record.code || ''} - ${record.name || ''}`.replace(/^ - | - $/g, '')}
           />
         }
-        width={DRAWER_WIDTH_DETAIL}
+        size={DRAWER_WIDTH_DETAIL}
         open={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         destroyOnClose

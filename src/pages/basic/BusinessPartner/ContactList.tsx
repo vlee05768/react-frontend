@@ -195,7 +195,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
             displayField={(record: any) => `${record?.jobTitle || ''} - ${record?.name || ''}`.replace(/^ - | - $/g, '')}
           />
         }
-        width={DRAWER_WIDTH_DETAIL}
+        size={DRAWER_WIDTH_DETAIL}
         onClose={() => setIsDrawerOpen(false)}
         open={isDrawerOpen}
         destroyOnClose

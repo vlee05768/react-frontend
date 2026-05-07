@@ -525,7 +525,7 @@ export default function UserList() {
             </Button>
           </div>
         }
-        width={DRAWER_WIDTH_MAIN}
+        size={DRAWER_WIDTH_MAIN}
         style={{ top: '10vh' }}
         styles={{
           body: {
@@ -550,7 +550,7 @@ export default function UserList() {
           />
         }
         placement="right"
-        width={DRAWER_WIDTH_MAIN}
+        size={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={
