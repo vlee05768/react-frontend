@@ -1,7 +1,7 @@
 import React from 'react';
 import { Form, Input, Select, InputNumber, DatePicker, Switch, Tooltip } from 'antd';
 import { Controller } from 'react-hook-form';
-import type { Control, UseFormSetValue } from 'react-hook-form';
+import type { Control, UseFormSetValue, UseFormTrigger } from 'react-hook-form';
 import { z } from 'zod';
 import type { FieldConfig, FormContext } from './types';
 import { DictSelect } from './DictSelect';
@@ -10,12 +10,13 @@ interface DynamicFieldProps {
   config: FieldConfig;
   control: Control<any>;
   setValue: UseFormSetValue<any>;
+  trigger: UseFormTrigger<any>;
   context: FormContext<any>;
   isUpdateMode?: boolean;
   isViewMode?: boolean;
 }
 
-export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, setValue, context, isUpdateMode, isViewMode }) => {
+export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, setValue, trigger, context, isUpdateMode, isViewMode }) => {
   // 解析動態屬性
   const isHidden = typeof config.hidden === 'function' ? config.hidden(context) : config.hidden;
   if (isHidden) return null;
@@ -57,6 +58,11 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
       control={control}
       render={({ field, fieldState: { error } }) => {
         
+        // 解析個別欄位的驗證時機
+        const triggerTypes = Array.isArray(config.validateTrigger) 
+          ? config.validateTrigger 
+          : (config.validateTrigger ? [config.validateTrigger] : []);
+
         // 處理 onChange 連動
         const handleChange = (val: any) => {
           // Antd 的 Input 等事件帶的是 React.ChangeEvent，或者直接是 value
@@ -66,6 +72,18 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
           if (config.onChange) {
             // 觸發自訂連動邏輯
             config.onChange(value, context, setValue);
+          }
+          
+          if (triggerTypes.includes('onChange')) {
+            trigger(config.name);
+          }
+        };
+
+        // 處理 onBlur 連動
+        const handleBlur = () => {
+          field.onBlur();
+          if (triggerTypes.includes('onBlur')) {
+            trigger(config.name);
           }
         };
 
@@ -90,6 +108,7 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
           ...componentProps,
           className: componentProps?.className ? `${componentProps.className} w-full` : 'w-full',
           onChange: handleChange,
+          onBlur: handleBlur,
           disabled: finalDisabled,
           status: error ? 'error' as const : undefined,
           ...(isEllipsis ? {

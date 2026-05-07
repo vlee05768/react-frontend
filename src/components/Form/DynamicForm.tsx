@@ -15,6 +15,7 @@ interface DynamicFormProps<TValues extends Record<string, any>> {
   isViewMode?: boolean;
   formId?: string;
   hideDefaultFooter?: boolean;
+  validationMode?: 'onBlur' | 'onChange' | 'onSubmit' | 'onTouched' | 'all';
 }
 
 export function DynamicForm<TValues extends Record<string, any>>({
@@ -25,6 +26,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
   isViewMode = false,
   formId,
   hideDefaultFooter = false,
+  validationMode = 'onSubmit',
 }: DynamicFormProps<TValues>) {
   
   // 1. 儲存最新的 Schema Reference
@@ -34,14 +36,14 @@ export function DynamicForm<TValues extends Record<string, any>>({
   // 2. 初始化 RHF
   const methods = useForm<TValues>({
     defaultValues,
-    mode: 'onTouched', // 離開 input 時即時驗證
+    mode: validationMode, // 預設送出時驗證，可透過 props 覆寫
     resolver: async (data, context, options) => {
       // 永遠使用最新的動態 Schema 來進行驗證
       return (zodResolver(schemaRef.current as any) as Resolver<TValues>)(data, context, options);
     },
   });
 
-  const { control, handleSubmit, watch, setValue } = methods;
+  const { control, handleSubmit, watch, setValue, trigger } = methods;
 
   // 3. 監聽所有表單數值，建立執行期上下文 (Context)
   const currentValues = watch() as TValues;
@@ -123,6 +125,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
               config={field as FieldConfig<any>}
               control={control as any}
               setValue={setValue as any}
+              trigger={trigger as any}
               context={context as any}
               isUpdateMode={isUpdateMode}
               isViewMode={isViewMode}
