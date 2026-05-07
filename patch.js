@@ -1,11 +1,14 @@
 const fs = require('fs');
-let code = fs.readFileSync('src/components/Form/DynamicField.tsx', 'utf8');
-code = code.replace("import { Form, Input, Select, InputNumber, DatePicker, Switch, Tooltip } from 'antd';", 
-"import { Form, Input, Select, InputNumber, DatePicker, Switch, Tooltip } from 'antd';\nimport { CalendarOutlined } from '@ant-design/icons';");
+const path = 'src/pages/basic/BusinessPartner/BusinessPartnerConfig.ts';
+let content = fs.readFileSync(path, 'utf8');
 
-code = code.replace(
-  "<DatePicker {...commonProps} className=\"w-full\" />",
-  "<DatePicker {...commonProps} className=\"w-full\" suffixIcon={<CalendarOutlined style={{ color: 'rgba(255,255,255,0.65)' }} />} />"
+if (!content.includes('CheckOutlined')) {
+  content = content.replace('import { z } from "zod";', 'import { z } from "zod";\nimport { CheckOutlined, CloseOutlined } from "@ant-design/icons";\nimport React from "react";');
+}
+
+content = content.replace(
+  /render:\s*\(\s*val:\s*boolean\s*\)\s*=>\s*\(val\s*\?\s*"是"\s*:\s*"否"\)/,
+  "align: 'center',\n    render: (val: boolean | undefined | null) => val === true ? React.createElement(CheckOutlined, { style: { color: 'green' } }) : (val === false ? React.createElement(CloseOutlined, { style: { color: 'red' } }) : null)"
 );
 
-fs.writeFileSync('src/components/Form/DynamicField.tsx', code);
+fs.writeFileSync(path, content);

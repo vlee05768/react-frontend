@@ -20,7 +20,7 @@ export const mainDictionary = {
   isActive: { name: 'isActive', label: '啟動狀態' },
 } as const;
 
-export const mainFormConfig = (roleOptions: { label: string, value: string }[] = []): FormFieldConfig[] => [
+export const mainFormConfig = (): FormFieldConfig[] => [
   { ...mainDictionary.userName, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'createOnly' },
   { ...mainDictionary.name, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
   { ...mainDictionary.employeeCode, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
@@ -32,13 +32,13 @@ export const mainFormConfig = (roleOptions: { label: string, value: string }[] =
   { ...mainDictionary.phoneNumber, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
   { 
     ...mainDictionary.roles, 
-    componentType: 'Select', 
+    componentType: 'DictSelect', 
     validation: z.any().optional().nullable(), 
     editable: 'always',
     colSpan: 1,
     componentProps: {
       mode: 'multiple',
-      options: roleOptions
+      dictKey: 'USER_ROLE'
     }
   },
 ];

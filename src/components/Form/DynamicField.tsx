@@ -4,6 +4,7 @@ import { Controller } from 'react-hook-form';
 import type { Control, UseFormSetValue } from 'react-hook-form';
 import { z } from 'zod';
 import type { FieldConfig, FormContext } from './types';
+import { DictSelect } from './DictSelect';
 
 interface DynamicFieldProps {
   config: FieldConfig;
@@ -136,6 +137,9 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
             break;
           case 'Select':
             ComponentNode = renderWithTooltip(<Select {...commonProps} />);
+            break;
+          case 'DictSelect':
+            ComponentNode = renderWithTooltip(<DictSelect {...(commonProps as any)} />);
             break;
           case 'InputNumber':
             ComponentNode = renderWithTooltip(<InputNumber {...commonProps} />);
