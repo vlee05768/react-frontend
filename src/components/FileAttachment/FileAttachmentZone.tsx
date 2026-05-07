@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Button, Row, Col, Empty, Modal, App, Tooltip, Spin, Card } from 'antd';
+import { Upload, Button, Row, Col, Empty, Modal, App, Tooltip, Spin, Card, theme } from 'antd';
 import dayjs from 'dayjs';
 import { 
   UploadOutlined, 
@@ -31,6 +31,7 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
   referenceId,
   readonly = false,
 }) => {
+  const { token } = theme.useToken();
   const { message, modal } = App.useApp();
   const [attachments, setAttachments] = useState<FileAttachmentDto[]>([]);
   const [loading, setLoading] = useState(false);
@@ -176,8 +177,8 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
     }
 
     // Fallback: 預設圖示
-    if (ext === 'pdf') return <FilePdfOutlined style={{ fontSize: 32, color: '#f5222d' }} />;
-    return <FileOutlined style={{ fontSize: 32, color: '#8c8c8c' }} />;
+    if (ext === 'pdf') return <FilePdfOutlined style={{ fontSize: 32, color: token.colorError }} />;
+    return <FileOutlined style={{ fontSize: 32, color: token.colorTextSecondary }} />;
   };
 
   // 處理貼上事件
@@ -295,40 +296,40 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
                   styles={{ body: { padding: 0 } }}
                 >
                   <div style={{ padding: '12px', display: 'flex', alignItems: 'center' }}>
-                    <div style={{ width: 64, height: 64, display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5', borderRadius: 4, flexShrink: 0, marginRight: 12 }}>
+                    <div style={{ width: 64, height: 64, display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: token.colorFillAlter, borderRadius: 4, flexShrink: 0, marginRight: 12 }}>
                       {getFileIcon(item)}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <Tooltip title={item.fileName}>
-                        <div style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, fontWeight: 500, color: '#434343' }}>
+                        <div style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, fontWeight: 500, color: token.colorText }}>
                           {item.fileName || '未命名'}
                         </div>
                       </Tooltip>
-                      <div style={{ fontSize: 12, color: '#8c8c8c', marginTop: 4 }}>
+                      <div style={{ fontSize: 12, color: token.colorTextSecondary, marginTop: 4 }}>
                         {`${((item.fileSize || 0) / 1024).toFixed(2)} KB`}
                       </div>
                     </div>
                   </div>
                   <div style={{ 
-                    borderTop: '1px solid #f0f0f0', 
+                    borderTop: `1px solid ${token.colorBorderSecondary}`, 
                     display: 'flex', 
                     justifyContent: 'center', 
                     alignItems: 'center',
                     padding: '8px 0',
-                    backgroundColor: '#fafafa',
+                    backgroundColor: token.colorFillAlter,
                     borderBottomLeftRadius: 8,
                     borderBottomRightRadius: 8
                   }}>
                     <Tooltip title="檢視">
-                      <Button type="text" size="small" icon={<EyeOutlined />} onClick={() => handleView(item)} style={{ color: '#595959' }} />
+                      <Button type="text" size="small" icon={<EyeOutlined />} onClick={() => handleView(item)} style={{ color: token.colorTextSecondary }} />
                     </Tooltip>
-                    <div style={{ width: 1, height: 16, backgroundColor: '#e8e8e8', margin: '0 8px' }} />
+                    <div style={{ width: 1, height: 16, backgroundColor: token.colorSplit, margin: '0 8px' }} />
                     <Tooltip title="下載">
-                      <Button type="text" size="small" icon={<DownloadOutlined />} onClick={() => handleDownload(item)} style={{ color: '#595959' }} />
+                      <Button type="text" size="small" icon={<DownloadOutlined />} onClick={() => handleDownload(item)} style={{ color: token.colorTextSecondary }} />
                     </Tooltip>
                     {!readonly && (
                       <>
-                        <div style={{ width: 1, height: 16, backgroundColor: '#e8e8e8', margin: '0 8px' }} />
+                        <div style={{ width: 1, height: 16, backgroundColor: token.colorSplit, margin: '0 8px' }} />
                         <Tooltip title="刪除">
                           <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(item)} />
                         </Tooltip>
