@@ -6,6 +6,7 @@ import type {
 } from "@/components/Form/types";
 
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
+import { DictLabel } from "@/components/Form/DictLabel";
 
 export const materialFormOptions = [
   { label: "捲材 (R)", value: "R" },
@@ -107,8 +108,8 @@ export const materialSearchFormConfig = (): SearchFieldConfig[] => [
 ];
 
 export const mainTableColumns = (): TableColumnConfig[] => [
-  { label: "編號", name: "code", width: 220 },
-  { label: "名稱", name: "name", width: 300 },
+  { label: "編號", name: "code", width: 200 },
+  { label: "名稱", name: "name", width: 250 },
   {
     label: "型態",
     name: "materialForm",
@@ -118,11 +119,52 @@ export const mainTableColumns = (): TableColumnConfig[] => [
       return opt ? opt.label : v;
     },
   },
-  { label: "廠牌", name: "brand", width: 120 },
-  { label: "型號", name: "modelNo", width: 120 },
-  { label: "規格", name: "spec", width: 150 },
   {
-    label: "狀態",
+    label: "類別",
+    name: "type",
+    width: 120,
+    render: (v) => <DictLabel dictKey="MATERIAL_TYPE" value={v} />,
+  },
+  { label: "厚度(mm)", name: "thickness", width: 100 },
+  { label: "寬度(mm)", name: "width", width: 100 },
+  { label: "長度(mm)", name: "length", width: 100 },
+  {
+    label: "副計量單位",
+    name: "secondaryUoM",
+    width: 120,
+    render: (v) => {
+      const opt = secondaryUoMOptions.find((o) => o.value === v);
+      return opt ? opt.label : v;
+    },
+  },
+  { label: "轉換係數", name: "conversionFactor", width: 100 },
+  {
+    label: "庫存計量單位",
+    name: "primaryUoM",
+    width: 120,
+    render: (v) => {
+      const opt = primaryUoMOptions.find((o) => o.value === v);
+      return opt ? opt.label : v;
+    },
+  },
+  {
+    label: "採購單位",
+    name: "purchasingUoM",
+    width: 120,
+    render: (v) => {
+      const opt = purchasingUoMOptions.find((o) => o.value === v);
+      return opt ? opt.label : v;
+    },
+  },
+  { label: "成本", name: "cost", width: 100 },
+  {
+    label: "供應商",
+    name: "supplierCode",
+    width: 150,
+    render: (v) => <DictLabel dictKey="BP_SUPPLIER" value={v} />,
+  },
+  {
+    label: "啟用",
     name: "isActive",
     width: 80,
     align: "center",
@@ -133,6 +175,9 @@ export const mainTableColumns = (): TableColumnConfig[] => [
         <CloseOutlined style={{ color: "red" }} />
       ) : null,
   },
+  { label: "標籤", name: "tag", width: 120 },
+  { label: "規格描述", name: "specDescription", width: 200 },
+  { label: "備註", name: "notes", width: 200 },
 ];
 
 export const mainFormConfig = (): FormFieldConfig[] => [
