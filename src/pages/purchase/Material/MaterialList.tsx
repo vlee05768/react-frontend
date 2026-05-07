@@ -2,7 +2,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import {
-  Spin, Table, Button, Modal, Form, Space, Card, Tag, Tooltip, Divider, message, Popconfirm, Drawer
+  Spin, Table, Button, Modal, Form, Space, Card, Tag, Tooltip, Divider, message, Popconfirm, Drawer, Tabs
 } from 'antd';
 import {
   SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ClearOutlined, SaveOutlined, EyeOutlined
@@ -24,6 +24,7 @@ import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { mainFormConfig, mainTableColumns, materialSearchFormConfig } from './MaterialConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
+import { FileAttachmentZone } from '@/components/FileAttachment/FileAttachmentZone';
 import { DRAWER_WIDTH_MAIN } from '@/constants';
 
 export default function MaterialList() {
@@ -35,6 +36,14 @@ export default function MaterialList() {
   const [searchForm] = Form.useForm();
   const [formDefaultValues, setFormDefaultValues] = useState<any>({});
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState('master_info');
+
+  useEffect(() => {
+    if (isDrawerEditing || isCreateDrawerOpen) {
+      setActiveTab('master_info');
+    }
+  }, [isDrawerEditing, isCreateDrawerOpen]);
+
   
   const queryClient = useQueryClient();
   const { viewId } = useParams<{ viewId: string }>();
@@ -330,14 +339,37 @@ export default function MaterialList() {
         }
       >
         <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
-          <DynamicForm
-            formId="materialForm"
-            fields={mainFormConfig()}
-            defaultValues={formDefaultValues}
-            onSubmit={handleCrudSubmit}
-            isUpdateMode={isDrawerEditing}
-            isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
-            hideDefaultFooter={true}
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            items={[
+              {
+                key: 'master_info',
+                label: '主要資訊',
+                forceRender: true,
+                children: (
+                  <DynamicForm
+                    formId="materialForm"
+                    fields={mainFormConfig()}
+                    defaultValues={formDefaultValues}
+                    onSubmit={handleCrudSubmit}
+                    isUpdateMode={isDrawerEditing}
+                    isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
+                    hideDefaultFooter={true}
+                  />
+                )
+              },
+              {
+                key: 'sys_attachments',
+                label: '附件管理',
+                disabled: isDrawerEditing || isCreateDrawerOpen || !viewId,
+                children: (
+                  <div style={{ padding: '16px 0' }}>
+                    {viewId && <FileAttachmentZone referenceType="Material" referenceId={viewId} readonly={false} />}
+                  </div>
+                )
+              }
+            ]}
           />
         </Spin>
       </Drawer>

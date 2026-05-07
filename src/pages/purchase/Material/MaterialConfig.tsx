@@ -6,7 +6,6 @@ import type {
 } from "@/components/Form/types";
 
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
-import { FileAttachmentZone } from "@/components/FileAttachment/FileAttachmentZone";
 
 export const materialFormOptions = [
   { label: "捲材 (R)", value: "R" },
@@ -363,23 +362,6 @@ export const mainFormConfig = (): FormFieldConfig[] => [
   },
 
   // === Tab 3: 附件備註 ===
-  {
-    name: "attachments",
-    label: "附件",
-    componentType: "Custom",
-    group: "附件備註",
-    colSpan: 4,
-    customRender: (fieldProps, context) => {
-      // 透過 context 取得目前表單模式與代碼
-      const code = context.values.code;
-      // 當建立模式時 code 可能為空，可以根據需求判斷是否要隱藏附件區塊，或者等到儲存後才允許上傳
-      if (!code) {
-        return <div className="text-gray-400">請先儲存原料以產生編號，才能上傳附件。</div>;
-      }
-      // 此處我們假設 readonly 狀態由上層傳入的 fieldProps.disabled
-      return <FileAttachmentZone referenceType="Material" referenceId={code} readonly={fieldProps.disabled} />;
-    }
-  },
   {
     name: "notes",
     label: "備註",
