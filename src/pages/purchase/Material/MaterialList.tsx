@@ -24,7 +24,7 @@ import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { mainFormConfig, mainTableColumns, materialSearchFormConfig } from './MaterialConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
-import { FileAttachmentZone } from '@/components/FileAttachment/FileAttachmentZone';
+import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import { DRAWER_WIDTH_MAIN } from '@/constants';
 
 export default function MaterialList() {
@@ -339,37 +339,24 @@ export default function MaterialList() {
         }
       >
         <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
-          <Tabs
-            activeKey={activeTab}
-            onChange={setActiveTab}
-            items={[
-              {
-                key: 'master_info',
-                label: '主要資訊',
-                forceRender: true,
-                children: (
-                  <DynamicForm
-                    formId="materialForm"
-                    fields={mainFormConfig()}
-                    defaultValues={formDefaultValues}
-                    onSubmit={handleCrudSubmit}
-                    isUpdateMode={isDrawerEditing}
-                    isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
-                    hideDefaultFooter={true}
-                  />
-                )
-              },
-              {
-                key: 'sys_attachments',
-                label: '附件管理',
-                disabled: isDrawerEditing || isCreateDrawerOpen || !viewId,
-                children: (
-                  <div style={{ padding: '16px 0' }}>
-                    {viewId && <FileAttachmentZone referenceType="Material" referenceId={viewId} readonly={false} />}
-                  </div>
-                )
-              }
-            ]}
+          <MasterDetailTabs
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            isCreateMode={isCreateDrawerOpen}
+            isEditMode={isDrawerEditing}
+            viewId={viewId}
+            entityType="Material"
+            masterContent={
+              <DynamicForm
+                formId="materialForm"
+                fields={mainFormConfig()}
+                defaultValues={formDefaultValues}
+                onSubmit={handleCrudSubmit}
+                isUpdateMode={isDrawerEditing}
+                isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
+                hideDefaultFooter={true}
+              />
+            }
           />
         </Spin>
       </Drawer>

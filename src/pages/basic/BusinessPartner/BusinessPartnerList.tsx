@@ -257,34 +257,7 @@ export default function BusinessPartnerList() {
     setIsSearchModalOpen(true);
   };
 
-  const tabItems = [
-    {
-      key: '1',
-      label: '主要資料',
-      children: (
-        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
-          <DynamicForm
-            key={isCreateDrawerOpen ? 'create' : (viewId || 'empty')}
-            defaultValues={isCreateDrawerOpen ? { isTYCustomer: false } : viewData}
-            fields={mainFormConfig()}
-            onSubmit={handleCrudSubmit}
-            isUpdateMode={isDrawerEditing}
-            isViewMode={isViewMode}
-            formId="bpForm"
-            hideDefaultFooter={true}
-          />
-        </Spin>
-      )
-    },
-    ...(!isCreateDrawerOpen && viewData ? [
-      {
-        key: '2',
-        label: '聯絡人清單',
-        children: <ContactList businessPartnerCode={viewData.code} isViewMode={isViewMode} />
-      }
-    ] : [])
-  ];
-
+  
   return (
     <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
       <Card
@@ -445,7 +418,35 @@ export default function BusinessPartnerList() {
           </Space>
         }
       >
-        <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
+        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+          <MasterDetailTabs
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            isCreateMode={isCreateDrawerOpen}
+            isEditMode={isDrawerEditing}
+            viewId={viewId}
+            entityType="BusinessPartner"
+            masterContent={
+              <DynamicForm
+                key={isCreateDrawerOpen ? 'create' : (viewId || 'empty')}
+                defaultValues={isCreateDrawerOpen ? { isTYCustomer: false } : viewData}
+                fields={mainFormConfig()}
+                onSubmit={handleCrudSubmit}
+                isUpdateMode={isDrawerEditing}
+                isViewMode={isViewMode}
+                formId="bpForm"
+                hideDefaultFooter={true}
+              />
+            }
+            detailTabs={[
+              {
+                key: 'detail_contacts',
+                label: '聯絡人清單',
+                children: <ContactList businessPartnerCode={viewData?.code} isViewMode={isViewMode} />
+              }
+            ]}
+          />
+        </Spin>
       </Drawer>
     </div>
   );
