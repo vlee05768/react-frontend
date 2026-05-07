@@ -1,3 +1,4 @@
+import type { SearchFieldConfig } from '@/components/Form/types';
 import { z } from 'zod';
 import type { FormFieldConfig, TableColumnConfig } from '@/components/Form/types';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
@@ -47,3 +48,10 @@ export const mainTableColumns = (): TableColumnConfig[] => [
 export const detailDictionaries = {} as const;
 export const detailFormConfigs = {};
 export const detailTableColumns = {};
+
+
+export const moldSearchFormConfig = (): SearchFieldConfig[] => [
+  { name: 'CodeOrName', label: '編號或名稱', componentType: 'Input', colSpan: 12 },
+  { name: 'Type', label: '類型', componentType: 'Input', colSpan: 12 },
+  { name: 'SupplierCode', label: '供應商', componentType: 'Input', colSpan: 12 },
+];

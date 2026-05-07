@@ -48,7 +48,9 @@ import { useMachineQueryStore } from '@/stores/productionStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
-import { mainDictionary, mainFormConfig, mainTableColumns } from './MachineConfig';
+import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
+import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
+import { mainDictionary, mainFormConfig, mainTableColumns , machineSearchFormConfig} from './MachineConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 
 export default function MachineList() {
@@ -236,16 +238,12 @@ export default function MachineList() {
   const columns = buildTableColumns(mainTableColumns(), actionColumn);
 
   const handleSearch = (values: any) => {
-    // 確保清空的欄位能覆蓋 Zustand store 中的舊值
-    const searchKeys = ['CodeOrName'];
     const nextParams = { ...values };
-    
-    searchKeys.forEach(key => {
-      if (nextParams[key] === '' || nextParams[key] === null) {
-        nextParams[key] = undefined;
+    machineSearchFormConfig().forEach(field => {
+      if (nextParams[field.name] === '' || nextParams[field.name] === null) {
+        nextParams[field.name] = undefined;
       }
     });
-
     setParams({
       ...nextParams,
       pageNumber: 1,
@@ -331,7 +329,7 @@ export default function MachineList() {
       >
         <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
           <span style={{ fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
-          {renderSearchTags()}
+          <DynamicSearchTags config={machineSearchFormConfig()} params={params} onClose={(key) => setParams({ [key]: undefined, pageNumber: 1 })} />
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                     <style>{`
@@ -418,19 +416,7 @@ export default function MachineList() {
         }}
         closeIcon={true}
       >
-        <Form
-          form={searchForm}
-          layout="vertical"
-          onFinish={handleSearch}
-        >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="CodeOrName" label="編號或名稱">
-                <Input placeholder="請輸入編號或名稱" allowClear />
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
+        <DynamicSearchForm config={machineSearchFormConfig()} form={searchForm} onSearch={handleSearch} />
       </Modal>
 
       <Drawer

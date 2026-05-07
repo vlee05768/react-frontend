@@ -1,3 +1,4 @@
+import type { SearchFieldConfig } from '@/components/Form/types';
 import { z } from 'zod';
 import type { FormFieldConfig, TableColumnConfig } from '@/components/Form/types';
 
@@ -22,3 +23,8 @@ export const mainTableColumns = (): TableColumnConfig[] => [
 export const detailDictionaries = {} as const;
 export const detailFormConfigs = {};
 export const detailTableColumns = {};
+
+
+export const roleSearchFormConfig = (): SearchFieldConfig[] => [
+  // 角色目前無自訂查詢條件
+];

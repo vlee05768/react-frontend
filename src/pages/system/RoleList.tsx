@@ -48,7 +48,9 @@ import { useRoleQueryStore } from '@/stores/systemStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
-import { mainDictionary, mainFormConfig, mainTableColumns } from './RoleConfig';
+import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
+import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
+import { mainDictionary, mainFormConfig, mainTableColumns , roleSearchFormConfig} from './RoleConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 
 export default function RoleList() {
@@ -236,16 +238,12 @@ export default function RoleList() {
   const columns = buildTableColumns(mainTableColumns(), actionColumn);
 
   const handleSearch = (values: any) => {
-    // 確保清空的欄位能覆蓋 Zustand store 中的舊值
-    const searchKeys = [];
     const nextParams = { ...values };
-    
-    searchKeys.forEach(key => {
-      if (nextParams[key] === '' || nextParams[key] === null) {
-        nextParams[key] = undefined;
+    roleSearchFormConfig().forEach(field => {
+      if (nextParams[field.name] === '' || nextParams[field.name] === null) {
+        nextParams[field.name] = undefined;
       }
     });
-
     setParams({
       ...nextParams,
       pageNumber: 1,
@@ -331,7 +329,7 @@ export default function RoleList() {
       >
         <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
           <span style={{ fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
-          {renderSearchTags()}
+          <DynamicSearchTags config={roleSearchFormConfig()} params={params} onClose={(key) => setParams({ [key]: undefined, pageNumber: 1 })} />
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                     <style>{`
@@ -418,15 +416,7 @@ export default function RoleList() {
         }}
         closeIcon={true}
       >
-        <Form
-          form={searchForm}
-          layout="vertical"
-          onFinish={handleSearch}
-        >
-          <Row gutter={16}>
-
-          </Row>
-        </Form>
+        <DynamicSearchForm config={roleSearchFormConfig()} form={searchForm} onSearch={handleSearch} />
       </Modal>
 
       <Drawer

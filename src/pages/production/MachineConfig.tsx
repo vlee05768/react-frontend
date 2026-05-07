@@ -1,3 +1,4 @@
+import type { SearchFieldConfig } from '@/components/Form/types';
 import { z } from 'zod';
 import type { FormFieldConfig, TableColumnConfig } from '@/components/Form/types';
 
@@ -25,3 +26,8 @@ export const mainTableColumns = (): TableColumnConfig[] => [
 export const detailDictionaries = {} as const;
 export const detailFormConfigs = {};
 export const detailTableColumns = {};
+
+
+export const machineSearchFormConfig = (): SearchFieldConfig[] => [
+  { name: 'CodeOrName', label: '編號或名稱', componentType: 'Input', colSpan: 24 },
+];
