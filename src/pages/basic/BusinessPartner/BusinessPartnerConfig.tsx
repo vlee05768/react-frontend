@@ -60,7 +60,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     name: "code",
     label: "編號",
     componentType: "Input",
-    editable: "createOnly",
+    autoGenerate: true,
     validation: z.string().min(1, "請輸入編號"),
     colSpan: 4,
   },

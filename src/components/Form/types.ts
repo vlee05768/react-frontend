@@ -33,6 +33,8 @@ export interface FormFieldConfig<TValues = any> extends FieldDef<TValues> {
   
   // 權限整合控制
   editable?: DynamicProp<EditableType | boolean, TValues>;
+  // 是否為系統自動產生 (若為 true，新增時不驗證必填並提示「系統自動產生」，且強制唯讀)
+  autoGenerate?: boolean;
   
   hidden?: DynamicProp<boolean, TValues>;
   // 版面排版
