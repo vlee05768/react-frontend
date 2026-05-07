@@ -1,4 +1,5 @@
 import { getApiV1Role, getApiV1GeneralTypesGetTypes, getApiV1BusinessPartners } from '@/api/generated/sdk.gen';
+import { MAX_PAGE_SIZE } from '@/constants';
 
 export const DICTIONARY_REGISTRY = {
   // 純靜態選項，直接定義原型
@@ -13,7 +14,7 @@ export const DICTIONARY_REGISTRY = {
   // 角色選單
   USER_ROLE: {
     queryFn: async () => {
-      const res = await getApiV1Role({ query: { pageSize: 100 } as any });
+      const res = await getApiV1Role({ query: { pageSize: MAX_PAGE_SIZE } as any });
       const rawData = (res.data as any)?.data?.data || (res.data as any)?.data || [];
       return rawData.map((item: any) => ({
         ...item,
@@ -83,7 +84,7 @@ export const DICTIONARY_REGISTRY = {
   // 供應商選單 (Type P 或 S)
   BP_SUPPLIER: {
     queryFn: async () => {
-      const res = await getApiV1BusinessPartners({ query: { Types: ['P', 'S'], pageSize: 100 } as any });
+      const res = await getApiV1BusinessPartners({ query: { Types: ['P', 'S'], pageSize: MAX_PAGE_SIZE } as any });
       const rawData = (res.data as any)?.data?.data || (res.data as any)?.data || [];
       return rawData.map((item: any) => ({
         ...item,

@@ -58,6 +58,7 @@ import { useLoadingStore } from '@/stores/useLoadingStore';
 import { mainDictionary, mainFormConfig, mainTableColumns , userSearchFormConfig} from './UserConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { App } from 'antd';
+import { DRAWER_WIDTH_MAIN } from '@/constants';
 
 export default function UserList() {
   const { message: messageApi, modal: modalApi } = App.useApp();
@@ -524,7 +525,7 @@ export default function UserList() {
             </Button>
           </div>
         }
-        width={'60vw'}
+        width={DRAWER_WIDTH_MAIN}
         style={{ top: '10vh' }}
         styles={{
           body: {
@@ -549,7 +550,7 @@ export default function UserList() {
           />
         }
         placement="right"
-        width={'60vw'}
+        width={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={

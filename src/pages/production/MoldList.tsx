@@ -52,6 +52,7 @@ import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { mainDictionary, mainFormConfig, mainTableColumns , moldSearchFormConfig} from './MoldConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
+import { DRAWER_WIDTH_MAIN } from '@/constants';
 
 export default function MoldList() {
   const { params, setParams, resetParams } = useMoldQueryStore();
@@ -407,7 +408,7 @@ export default function MoldList() {
             </Button>
           </div>
         }
-        width={'60vw'}
+        width={DRAWER_WIDTH_MAIN}
         style={{ top: '10vh' }}
         styles={{
           body: {
@@ -432,7 +433,7 @@ export default function MoldList() {
           />
         }
         placement="right"
-        width={'60vw'}
+        width={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={

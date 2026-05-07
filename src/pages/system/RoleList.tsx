@@ -52,6 +52,7 @@ import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { mainDictionary, mainFormConfig, mainTableColumns , roleSearchFormConfig} from './RoleConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
+import { DRAWER_WIDTH_MAIN } from '@/constants';
 
 export default function RoleList() {
   const { params, setParams, resetParams } = useRoleQueryStore();
@@ -405,7 +406,7 @@ export default function RoleList() {
             </Button>
           </div>
         }
-        width={'60vw'}
+        width={DRAWER_WIDTH_MAIN}
         style={{ top: '10vh' }}
         styles={{
           body: {
@@ -430,7 +431,7 @@ export default function RoleList() {
           />
         }
         placement="right"
-        width={'60vw'}
+        width={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={

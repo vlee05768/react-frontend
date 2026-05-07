@@ -24,6 +24,7 @@ import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { mainFormConfig, mainTableColumns, materialSearchFormConfig } from './MaterialConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
+import { DRAWER_WIDTH_MAIN } from '@/constants';
 
 export default function MaterialList() {
   const { params, setParams, resetParams } = useMaterialQueryStore();
@@ -293,7 +294,7 @@ export default function MaterialList() {
             <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>執行查詢</Button>
           </div>
         }
-        width={'60vw'}
+        width={DRAWER_WIDTH_MAIN}
         style={{ top: '10vh' }}
         closeIcon={true}
       >
@@ -311,7 +312,7 @@ export default function MaterialList() {
           />
         }
         placement="right"
-        width={'60vw'}
+        width={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={

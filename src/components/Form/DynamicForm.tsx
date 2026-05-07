@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { Form, Button, Space, Row, Col, Divider } from 'antd';
 import type { FieldConfig, FormContext } from './types';
 import { DynamicField } from './DynamicField';
+import { ANIMATION_DELAY_MS } from '@/constants';
 
 interface DynamicFormProps<TValues extends Record<string, any>> {
   fields: FieldConfig<TValues>[];
@@ -173,7 +174,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
             }
           }
         }
-      }, 300);
+      }, ANIMATION_DELAY_MS);
       return () => clearTimeout(timer);
     }
   }, [isViewMode, defaultValues]); // 當進入編輯/新增模式，或是非同步載入資料完成時觸發

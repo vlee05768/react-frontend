@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { DEFAULT_PAGE_SIZE } from '@/constants';
 
 // 基礎查詢條件介面
 export interface BaseQueryParams {
@@ -19,7 +20,7 @@ export interface ListQueryState<T extends BaseQueryParams = BaseQueryParams> {
 // 預設參數
 const defaultParams: BaseQueryParams = {
   pageNumber: 1,
-  pageSize: 20, // 企業內部常見預設 20
+  pageSize: DEFAULT_PAGE_SIZE, // 企業內部常見預設 20
   keyword: '',
   isActive: null,
 };

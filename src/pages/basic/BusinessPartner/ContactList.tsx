@@ -13,6 +13,7 @@ import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { contactTableColumns, contactFormConfig } from './ContactConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { App } from 'antd';
+import { DRAWER_WIDTH_DETAIL, MAX_PAGE_SIZE } from '@/constants';
 
 export default function ContactList({ businessPartnerCode, isViewMode: isMasterViewMode }: { businessPartnerCode: string; isViewMode: boolean }) {
   const { message: messageApi, modal: modalApi } = App.useApp();
@@ -29,7 +30,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
     queryKey: ['partnerContactList', businessPartnerCode],
     queryFn: () => getApiV1BusinessPartnersByBusinessPartnerCodeContacts({ 
       path: { businessPartnerCode },
-      query: { pageSize: 100 }
+      query: { pageSize: MAX_PAGE_SIZE }
     }),
     enabled: !!businessPartnerCode,
   });
@@ -194,7 +195,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
             displayField={(record: any) => `${record?.jobTitle || ''} - ${record?.name || ''}`.replace(/^ - | - $/g, '')}
           />
         }
-        width={'55vw'}
+        width={DRAWER_WIDTH_DETAIL}
         onClose={() => setIsDrawerOpen(false)}
         open={isDrawerOpen}
         destroyOnClose

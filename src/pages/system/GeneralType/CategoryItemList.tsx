@@ -12,6 +12,7 @@ import { itemFormConfig, itemTableColumns } from './GeneralTypeConfig';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { buildTableColumns } from '@/utils/tableUtils';
+import { DRAWER_WIDTH_DETAIL } from '@/constants';
 
 interface CategoryItemListProps {
   selectedCode: string | null;
@@ -174,7 +175,7 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
             displayField={(record) => `${record.code || ''} - ${record.name || ''}`.replace(/^ - | - $/g, '')}
           />
         }
-        width={'55vw'}
+        width={DRAWER_WIDTH_DETAIL}
         open={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         destroyOnClose

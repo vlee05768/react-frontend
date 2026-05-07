@@ -54,6 +54,7 @@ import { DictLabel } from '@/components/Form/DictLabel';
 import { DictSelect } from '@/components/Form/DictSelect';
 import { useEmployeeQueryStore } from '@/stores/employeeStore';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { DRAWER_WIDTH_MAIN } from '@/constants';
 
 export default function EmployeeList() {
   const { params, setParams, resetParams } = useEmployeeQueryStore();
@@ -417,7 +418,7 @@ export default function EmployeeList() {
             </Button>
           </div>
         }
-        width={'60vw'}
+        width={DRAWER_WIDTH_MAIN}
         style={{ top: '10vh' }}
         styles={{
           body: {
@@ -446,7 +447,7 @@ export default function EmployeeList() {
           />
         }
         placement="right"
-        width={'60vw'}
+        width={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={

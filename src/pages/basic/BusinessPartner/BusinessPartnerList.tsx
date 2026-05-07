@@ -48,19 +48,20 @@ import { mainFormConfig, mainTableColumns, bpTypeOptions, bpSearchFormConfig } f
 import { buildTableColumns } from '@/utils/tableUtils';
 import { App } from 'antd';
 import ContactList from './ContactList';
+import { DRAWER_WIDTH_MAIN, DRAWER_WIDTH_SEARCH, DEFAULT_PAGE_SIZE } from '@/constants';
 
 // Local store for query params
 export const useBPQueryStore = create((set) => ({
   params: {
     pageNumber: 1,
-    pageSize: 20,
+    pageSize: DEFAULT_PAGE_SIZE,
     CodeOrName: undefined,
     Types: undefined,
     IsTYCustomer: undefined,
     Others: undefined,
   },
   setParams: (newParams: any) => set((state: any) => ({ params: { ...state.params, ...newParams } })),
-  resetParams: () => set({ params: { pageNumber: 1, pageSize: 20, CodeOrName: undefined, Types: undefined, IsTYCustomer: undefined, Others: undefined } }),
+  resetParams: () => set({ params: { pageNumber: 1, pageSize: DEFAULT_PAGE_SIZE, CodeOrName: undefined, Types: undefined, IsTYCustomer: undefined, Others: undefined } }),
 }));
 
 export default function BusinessPartnerList() {
@@ -394,7 +395,7 @@ export default function BusinessPartnerList() {
             </Button>
           </div>
         }
-        width={'40vw'}
+        width={DRAWER_WIDTH_SEARCH}
       >
         
         <DynamicSearchForm 
@@ -419,7 +420,7 @@ export default function BusinessPartnerList() {
           />
         }
         placement="right"
-        width={'60vw'}
+        width={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={
