@@ -319,10 +319,19 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     colSpan: 1,
     componentProps: { rows: 3 },
   },
+  {
+    name: "notes",
+    label: "備註",
+    componentType: "TextArea",
+    colSpan: 1,
+    group: "基本規格",    
+    componentProps: { rows: 4 },
+  },
+
   // === Tab 2: 計量單位與成本 ===
   {
     name: "primaryUoM",
-    label: "庫存主計量單位",
+    label: "主計量單位",
     componentType: "Select",
     group: "計量單位與成本",
     colSpan: 6,
@@ -330,7 +339,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
   },
   {
     name: "secondaryUoM",
-    label: "庫存副計量單位",
+    label: "副計量單位",
     componentType: "Select",
     group: "計量單位與成本",
     colSpan: 6,
@@ -357,17 +366,8 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: "成本",
     componentType: "InputNumber",
     group: "計量單位與成本",
-    colSpan: 6,
+    colSpan: 3,
     componentProps: { min: 0, style: { width: "100%" } },
   },
 
-  // === Tab 3: 附件備註 ===
-  {
-    name: "notes",
-    label: "備註",
-    componentType: "TextArea",
-    group: "附件備註",
-    colSpan: 1,
-    componentProps: { rows: 4 },
-  },
 ];

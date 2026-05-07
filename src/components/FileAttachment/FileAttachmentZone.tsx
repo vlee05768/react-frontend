@@ -295,21 +295,24 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
                   size="small"
                   styles={{ body: { padding: 0 } }}
                 >
-                  <div style={{ padding: '12px', display: 'flex', alignItems: 'center' }}>
-                    <div style={{ width: 64, height: 64, display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: token.colorFillAlter, borderRadius: 4, flexShrink: 0, marginRight: 12 }}>
-                      {getFileIcon(item)}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <Tooltip title={item.fileName}>
+                  <Tooltip title={`${item.fileName || '未命名'} - ${((item.fileSize || 0) / 1024).toFixed(2)} KB`}>
+                    <div 
+                      style={{ padding: '12px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                      onClick={() => handleView(item)}
+                    >
+                      <div style={{ width: 64, height: 64, display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: token.colorFillAlter, borderRadius: 4, flexShrink: 0, marginRight: 12 }}>
+                        {getFileIcon(item)}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, fontWeight: 500, color: token.colorText }}>
                           {item.fileName || '未命名'}
                         </div>
-                      </Tooltip>
-                      <div style={{ fontSize: 12, color: token.colorTextSecondary, marginTop: 4 }}>
-                        {`${((item.fileSize || 0) / 1024).toFixed(2)} KB`}
+                        <div style={{ fontSize: 12, color: token.colorTextSecondary, marginTop: 4 }}>
+                          {`${((item.fileSize || 0) / 1024).toFixed(2)} KB`}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </Tooltip>
                   <div style={{ 
                     borderTop: `1px solid ${token.colorBorderSecondary}`, 
                     display: 'flex', 
