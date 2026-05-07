@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
 import type {
   FormFieldConfig,
   TableColumnConfig,
@@ -30,7 +31,8 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     label: "東裕客戶",
     name: "isTYCustomer",
     width: 100,
-    render: (val: boolean) => (val ? "是" : "否"),
+    align: 'center',
+    render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{ color: 'green' }} /> : (v === false ? <CloseOutlined style={{ color: 'red' }} /> : null),
   },
   {
     label: "廠商客戶檔類型",
