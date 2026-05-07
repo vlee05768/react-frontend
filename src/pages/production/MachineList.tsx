@@ -430,7 +430,7 @@ export default function MachineList() {
           />
         }
         placement="right"
-        size="large"
+        width={'60vw'}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={
