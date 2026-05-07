@@ -7,7 +7,6 @@ import {
   EyeOutlined, 
   DownloadOutlined,
   FilePdfOutlined,
-  FileImageOutlined,
   FileOutlined,
   InboxOutlined
 } from '@ant-design/icons';
@@ -139,12 +138,39 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
     }
   };
 
-  const getFileIcon = (fileName?: string | null) => {
-    if (!fileName) return <FileOutlined />;
-    const ext = fileName.split('.').pop()?.toLowerCase() || '';
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return <FileImageOutlined style={{ color: '#1890ff' }} />;
-    if (ext === 'pdf') return <FilePdfOutlined style={{ color: '#f5222d' }} />;
-    return <FileOutlined style={{ color: '#8c8c8c' }} />;
+  const iconList = [
+    'xls', 'wav', 'txt', 'svg', 'raw', 'rar', 'psd', 'ppt', 'png', 'php',
+    'pdf', 'mp4', 'mp3', 'mov', 'js', 'jpg', 'html', 'gif', 'exe', 'eps',
+    'doc', 'dll', 'csv', 'css', 'avi', 'ai', 'zip'
+  ];
+
+  const getFileIcon = (attachment: FileAttachmentDto) => {
+    if (!attachment.fileName) return <FileOutlined style={{ fontSize: 32, color: '#8c8c8c' }} />;
+    const ext = attachment.fileName.split('.').pop()?.toLowerCase() || '';
+    
+    // 圖片檔案直接顯示縮圖 (如果有 url)
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext) && attachment.presignedUrl) {
+      return (
+        <div style={{ width: 48, height: 48, overflow: 'hidden', borderRadius: 4 }}>
+          <img src={attachment.presignedUrl} alt={attachment.fileName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        </div>
+      );
+    }
+    
+    // 其他檔案或無 url 的圖片，判斷是否有我們自訂的圖示
+    // jpeg 統一使用 jpg 的 icon
+    const iconName = ext === 'jpeg' ? 'jpg' : ext;
+    if (iconList.includes(iconName)) {
+      return (
+        <div style={{ width: 48, height: 48, overflow: 'hidden', borderRadius: 4 }}>
+          <img src={`/file-icons/${iconName}.jpg`} alt={ext} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        </div>
+      );
+    }
+
+    // Fallback: 預設圖示
+    if (ext === 'pdf') return <FilePdfOutlined style={{ fontSize: 24, color: '#f5222d' }} />;
+    return <FileOutlined style={{ fontSize: 24, color: '#8c8c8c' }} />;
   };
 
   // 處理貼上事件
@@ -185,6 +211,7 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
   const uploadProps: UploadProps = {
     multiple: true,
     fileList,
+    listType: "picture",
     onRemove: (file) => {
       const index = fileList.indexOf(file);
       const newFileList = fileList.slice();
@@ -208,6 +235,31 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
       });
       return false; // 防止自動上傳
     },
+    itemRender: (originNode, file) => {
+      // 這裡可以針對 Dragger 裡面的檔案做渲染處理
+      // 因為尚未上傳所以沒有 presignedUrl，但如果是圖片可以轉 base64，非圖片則顯示對應靜態 icon
+      const ext = file.name.split('.').pop()?.toLowerCase() || '';
+      const iconName = ext === 'jpeg' ? 'jpg' : ext;
+      
+      if (iconList.includes(iconName)) {
+        return (
+          <div className="ant-upload-list-item ant-upload-list-item-done" style={{ marginTop: 8 }}>
+            <div className="ant-upload-list-item-info">
+              <span className="ant-upload-span">
+                <div className="ant-upload-list-item-thumbnail" style={{ width: 48, height: 48 }}>
+                  <img src={`/file-icons/${iconName}.jpg`} alt={ext} style={{ objectFit: 'contain', width: '100%', height: '100%' }} />
+                </div>
+                <span className="ant-upload-list-item-name" title={file.name}>{file.name}</span>
+              </span>
+            </div>
+            <span className="ant-upload-list-item-actions">
+              <Button type="text" danger icon={<DeleteOutlined />} onClick={() => uploadProps.onRemove?.(file)} />
+            </span>
+          </div>
+        );
+      }
+      return originNode;
+    }
   };
 
   return (
@@ -240,7 +292,11 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
                   ]}
                 >
                   <Card.Meta
-                    avatar={getFileIcon(item.fileName)}
+                    avatar={
+                      <div style={{ width: 48, height: 48, display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5', borderRadius: 4 }}>
+                        {getFileIcon(item)}
+                      </div>
+                    }
                     title={<Tooltip title={item.fileName}><div style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.fileName || '未命名'}</div></Tooltip>}
                     description={`${((item.fileSize || 0) / 1024).toFixed(2)} KB`}
                   />
