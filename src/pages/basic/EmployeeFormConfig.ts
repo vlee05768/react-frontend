@@ -1,10 +1,7 @@
 import { z } from 'zod';
 import type { FieldConfig } from '@/components/Form/types';
 
-export const getEmployeeFormConfig = (
-  departmentOptions: { label: string; value: string }[],
-  isFetchingDepartments: boolean
-): FieldConfig<any>[] => [
+export const getEmployeeFormConfig = (): FieldConfig<any>[] => [
   {
     name: 'employeeNo',
     label: '員工編號',
@@ -38,19 +35,12 @@ export const getEmployeeFormConfig = (
   {
     name: 'departmentCode',
     label: '部門代碼',
-    componentType: 'Select',
+    componentType: 'DictSelect',
     validation: z.string().min(1, '請選擇部門代碼'),
-    // 使用 function 實作 ellipsis：動態從 context 中反查正確的選項名稱顯示為 Tooltip hint
-    ellipsis: (value) => {
-      const opt = departmentOptions.find(o => o.value === value);
-      return opt ? opt.label : value;
-    },
     componentProps: {
-      options: departmentOptions,
-      loading: isFetchingDepartments,
+      dictKey: 'DEPARTMENT',
       showSearch: true,
-      filterOption: (input: string, option: any) => 
-        (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase()),
+      optionFilterProp: '_displayName',
     }
   },
   {

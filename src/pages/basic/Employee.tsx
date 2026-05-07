@@ -47,7 +47,8 @@ import {
   putApiV1EmployeeById,
   deleteApiV1EmployeeById
 } from '@/api/generated/sdk.gen';
-import { getApiV1GeneralTypesGetTypes } from '@/api/generated/sdk.gen';
+import { DictLabel } from '@/components/Form/DictLabel';
+import { DictSelect } from '@/components/Form/DictSelect';
 import { useEmployeeQueryStore } from '@/stores/employeeStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 
@@ -112,17 +113,6 @@ export default function EmployeeList() {
   const currentPage = (data?.data as any)?.data?.pageNumber || params.pageNumber;
   const currentPageSize = (data?.data as any)?.data?.pageSize || params.pageSize;
 
-  // 獲取部門選單
-  const { data: deptRes, isFetching: isFetchingDepartments } = useQuery({
-    queryKey: ['departmentOptions'],
-    queryFn: () => getApiV1GeneralTypesGetTypes({ query: { types: ['Department'] } }),
-    staleTime: 1000 * 60 * 5,
-  });
-  
-  const departmentOptions = ((deptRes?.data as any)?.data?.Department || (deptRes?.data as any)?.Department || []).map((d: any) => ({
-    label: d.desc || d.code || '',
-    value: d.code || ''
-  }));
 
   // Mutations
   const createMutation = useMutation({
@@ -247,7 +237,7 @@ export default function EmployeeList() {
     },
     { title: '員工編號', dataIndex: 'employeeNo', key: 'employeeNo', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
     { title: '姓名', dataIndex: 'name', key: 'name', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
-    { title: '部門名稱', dataIndex: 'departmentName', key: 'departmentName', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
+    { title: '部門名稱', dataIndex: 'departmentCode', key: 'departmentCode', render: (v: any) => <DictLabel dictKey="DEPARTMENT" value={v} /> },
     { title: '聯絡電話', dataIndex: 'phone', key: 'phone', render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v },
     { title: '到職日期', dataIndex: 'hireDate', key: 'hireDate', align: 'center', render: (v: string) => v ? v.substring(0, 10) : '-' },
     { title: '離職日期', dataIndex: 'resignDate', key: 'resignDate', align: 'center', render: (v: string) => v ? v.substring(0, 10) : '-' },
@@ -291,7 +281,7 @@ export default function EmployeeList() {
         if (key === 'name') label = '姓名';
         if (key === 'status') valueStr = params[key] === 1 ? '在職' : (params[key] === 2 ? '離職' : String(params[key]));
         if (key === 'status') label = '狀態';
-        if (key === 'departmentCode') valueStr = departmentOptions?.find((o: any) => o.value === params[key])?.label || String(params[key]);
+        if (key === 'departmentCode') valueStr = String(params[key]); // TODO: 可以考慮用 useDictionary 翻譯
         if (key === 'departmentCode') label = '部門代碼';
         activeFilters.push(<Tag color="blue" key={key} style={{ fontSize: '13px', padding: '2px 8px' }}>{label}: {valueStr}</Tag>);
       }
@@ -469,7 +459,7 @@ export default function EmployeeList() {
             </Col>
             <Col span={12}>
               <Form.Item name="departmentCode" label="部門代碼">
-                <Select placeholder="請選擇部門代碼" allowClear style={{ width: '100%' }} options={departmentOptions} loading={isFetchingDepartments} showSearch filterOption={(input, option) => (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())} />
+                <DictSelect dictKey="DEPARTMENT" placeholder="請選擇部門代碼" allowClear style={{ width: '100%' }} showSearch optionFilterProp="_displayName" />
               </Form.Item>
             </Col>
           </Row>
@@ -515,7 +505,7 @@ export default function EmployeeList() {
                 <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
           <DynamicForm
             formId="employee-form"
-            fields={getEmployeeFormConfig(departmentOptions, isFetchingDepartments)}
+            fields={getEmployeeFormConfig()}
             defaultValues={formDefaultValues}
             onSubmit={handleCrudSubmit}
             isUpdateMode={isDrawerEditing}
