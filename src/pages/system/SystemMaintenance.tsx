@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Button, Modal, message, Typography, Divider, Row, Col } from 'antd';
+import { Card, Button, Modal, Typography, Divider, Row, Col, Descriptions } from 'antd';
 import { ExclamationCircleFilled, CalculatorOutlined } from '@ant-design/icons';
 import { useMutation } from '@tanstack/react-query';
 import { postApiV1StorageCalculateInventory } from '@/api/generated/sdk.gen';
@@ -14,12 +14,73 @@ const SystemMaintenance: React.FC = () => {
   // Mutation for calculating inventory
   const { mutateAsync: calculateInventory, isPending: isCalculating } = useMutation({
     mutationFn: () => postApiV1StorageCalculateInventory(),
-    onSuccess: () => {
-      message.success('重算庫存已成功完成！');
+    onSuccess: (res) => {
+      const apiResponse = res.data;
+      const resultData = apiResponse?.data;
+      
+      if (!apiResponse?.success) {
+        Modal.error({ 
+          centered: true, 
+          title: '重算庫存失敗', 
+          content: apiResponse?.message || '伺服器回傳失敗狀態。' 
+        });
+        return;
+      }
+
+      if (resultData) {
+        const { totalCalculatedItems, itemsToUpdate, updatedItems, isSuccess, errorMessage } = resultData;
+        
+        if (isSuccess) {
+          Modal.success({
+            title: '重算庫存完成',
+            width: 400,
+            centered: true,
+            content: (
+              <div className="mt-4">
+                <Descriptions column={1} bordered size="small">
+                  <Descriptions.Item label="總檢查項目數">{totalCalculatedItems ?? 0}</Descriptions.Item>
+                  <Descriptions.Item label="需更新項目數">{itemsToUpdate ?? 0}</Descriptions.Item>
+                  <Descriptions.Item label="實際更新數">{updatedItems ?? 0}</Descriptions.Item>
+                </Descriptions>
+                <div className="mt-4 text-gray-500 text-sm">
+                  {apiResponse.message || '庫存資料已重新計算並覆寫完成。'}
+                </div>
+              </div>
+            ),
+          });
+        } else {
+          Modal.warning({
+            title: '重算庫存未完全成功',
+            width: 400,
+            centered: true,
+            content: (
+              <div className="mt-4">
+                <p className="text-red-500 mb-4">{errorMessage || '執行過程中發生部分錯誤。'}</p>
+                <Descriptions column={1} bordered size="small">
+                  <Descriptions.Item label="總檢查項目數">{totalCalculatedItems ?? 0}</Descriptions.Item>
+                  <Descriptions.Item label="需更新項目數">{itemsToUpdate ?? 0}</Descriptions.Item>
+                  <Descriptions.Item label="實際更新數">{updatedItems ?? 0}</Descriptions.Item>
+                </Descriptions>
+              </div>
+            ),
+          });
+        }
+      } else {
+        Modal.success({
+          centered: true,
+          title: '重算庫存完成',
+          content: '重算庫存已成功完成！'
+        });
+      }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Calculate inventory error:', error);
-      message.error('重算庫存失敗，請稍後再試或聯繫系統管理員。');
+      const errorMsg = error?.response?.data?.message || '重算庫存失敗，請稍後再試或聯繫系統管理員。';
+      Modal.error({
+        centered: true,
+        title: '重算庫存發生錯誤',
+        content: errorMsg,
+      });
     },
   });
 
