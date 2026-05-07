@@ -40,9 +40,11 @@ import {
 
 import { create } from 'zustand';
 import { DynamicForm } from '@/components/Form/DynamicForm';
+import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
+import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { mainFormConfig, mainTableColumns, bpTypeOptions } from './BusinessPartnerConfig';
+import { mainFormConfig, mainTableColumns, bpTypeOptions, bpSearchFormConfig } from './BusinessPartnerConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { App } from 'antd';
 import ContactList from './ContactList';
@@ -235,24 +237,19 @@ export default function BusinessPartnerList() {
     searchForm.resetFields();
   };
 
+  
   const renderSearchTags = () => {
-    const activeFilters: React.ReactNode[] = [];
-    if (params.CodeOrName) {
-      activeFilters.push(<Tag color="blue" key="CodeOrName">編號或名稱: {params.CodeOrName}</Tag>);
-    }
-    if (params.Types && params.Types.length > 0) {
-      const typeLabels = params.Types.map((val: string) => bpTypeOptions.find(o => o.value === val)?.label || val).join(', ');
-      activeFilters.push(<Tag color="blue" key="Types">類型: {typeLabels}</Tag>);
-    }
-    if (params.IsTYCustomer !== undefined && params.IsTYCustomer !== null) {
-      activeFilters.push(<Tag color="blue" key="IsTYCustomer">東裕客戶: {params.IsTYCustomer ? '是' : '否'}</Tag>);
-    }
-    if (params.Others) {
-      activeFilters.push(<Tag color="blue" key="Others">其他: {params.Others}</Tag>);
-    }
-    if (activeFilters.length === 0) return <Tag color="default">【全部資料】</Tag>;
-    return <Space size={[0, 8]} wrap>{activeFilters}</Space>;
+    return (
+      <DynamicSearchTags 
+        config={bpSearchFormConfig()} 
+        params={params} 
+        onClose={(key) => {
+          setParams({ [key]: undefined, pageNumber: 1 });
+        }} 
+      />
+    );
   };
+
 
   const openSearchModal = () => {
     searchForm.setFieldsValue(params);
@@ -399,28 +396,13 @@ export default function BusinessPartnerList() {
         }
         width={'40vw'}
       >
-        <Form form={searchForm} layout="vertical" onFinish={handleSearch}>
-          <Form.Item name="CodeOrName" label="編號或名稱">
-            <Input placeholder="請輸入編號或名稱模糊查詢" allowClear />
-          </Form.Item>
-          <Form.Item name="Types" label="商業夥伴類型">
-            <Select 
-              mode="multiple" 
-              placeholder="請選擇夥伴類型" 
-              options={bpTypeOptions} 
-              allowClear 
-            />
-          </Form.Item>
-          <Form.Item name="IsTYCustomer" label="是否為東裕客戶">
-            <Select placeholder="請選擇" allowClear>
-              <Select.Option value={true}>是</Select.Option>
-              <Select.Option value={false}>否</Select.Option>
-            </Select>
-          </Form.Item>
-          <Form.Item name="Others" label="其他雜項">
-            <Input placeholder="請輸入其他雜項查詢" allowClear />
-          </Form.Item>
-        </Form>
+        
+        <DynamicSearchForm 
+          config={bpSearchFormConfig()} 
+          form={searchForm} 
+          onSearch={handleSearch} 
+        />
+
       </Modal>
 
       <Drawer

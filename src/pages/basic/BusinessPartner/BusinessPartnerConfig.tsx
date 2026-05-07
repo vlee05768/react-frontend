@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
-import type {
+import type { SearchFieldConfig,
   FormFieldConfig,
   TableColumnConfig,
 } from "@/components/Form/types";
@@ -156,4 +156,42 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     colSpan: 4,
   },
 
+];
+
+
+export const bpSearchFormConfig = (): SearchFieldConfig[] => [
+  {
+    name: "CodeOrName",
+    label: "代碼/名稱/統編",
+    componentType: "Input",
+    colSpan: 24,
+  },
+  {
+    name: "Types",
+    label: "夥伴類型",
+    componentType: "Select",
+    componentProps: { 
+      mode: 'multiple', 
+      options: bpTypeOptions 
+    },
+    colSpan: 24,
+  },
+  {
+    name: "IsTYCustomer",
+    label: "是否為東裕客戶",
+    componentType: "Select",
+    componentProps: {
+      options: [
+        { label: "是", value: true },
+        { label: "否", value: false },
+      ]
+    },
+    colSpan: 12,
+  },
+  {
+    name: "Others",
+    label: "其他雜項",
+    componentType: "Input",
+    colSpan: 12,
+  },
 ];

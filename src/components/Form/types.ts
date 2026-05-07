@@ -61,3 +61,15 @@ export interface FieldConfig<TValues = any> extends Omit<FormFieldConfig<TValues
   required?: DynamicProp<boolean, TValues>;
   table?: boolean | TableColumnConfig<TValues>;
 }
+
+// ================= 查詢條件架構 (Config-driven Search) =================
+export interface SearchFieldConfig<TValues = any> extends FieldDef<TValues> {
+  componentType: ComponentType | 'DateRangePicker';
+  componentProps?: Record<string, any>;
+  colSpan?: number; // 版面佔比，預設 24
+  defaultValue?: any;
+  // 當此條件有值時，上方 Tag 要怎麼顯示？
+  // 如果是 Select，會自動對應 options label。
+  // 若需要客製化 (例如 boolean, 日期區間) 可透過 formatTag 覆寫。
+  formatTag?: (value: any) => string;
+}
