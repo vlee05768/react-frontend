@@ -191,7 +191,7 @@ export default function CategoryList({ selectedCode, onSelect }: CategoryListPro
         size="default"
         open={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        destroyOnClose
+        destroyOnHidden
         extra={
           <Space>
             <Button 

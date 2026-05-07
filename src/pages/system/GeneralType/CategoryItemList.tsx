@@ -178,7 +178,7 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
         size={DRAWER_WIDTH_DETAIL}
         open={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        destroyOnClose
+        destroyOnHidden
         extra={
           <Space>
             <Button 

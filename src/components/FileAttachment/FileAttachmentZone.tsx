@@ -244,7 +244,7 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
         okButtonProps={{ disabled: fileList.length === 0 }}
         width={600}
         centered
-        destroyOnClose
+        destroyOnHidden
       >
         <div style={{ marginBottom: 16, color: '#8c8c8c' }}>
           💡 提示：您可以直接在彈窗開啟時 <strong>Ctrl+V / Cmd+V</strong> 貼上截圖。

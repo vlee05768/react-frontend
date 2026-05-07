@@ -32,7 +32,7 @@ export const DictSelect: React.FC<DictSelectProps> = ({
       options={rawOptions || []} 
       fieldNames={fieldNames} 
       loading={isLoading || isFetching}
-      dropdownRender={(menu) => (
+      popupRender={(menu) => (
         <>
           {menu}
           {showRefresh && (

@@ -198,7 +198,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
         size={DRAWER_WIDTH_DETAIL}
         onClose={() => setIsDrawerOpen(false)}
         open={isDrawerOpen}
-        destroyOnClose
+        destroyOnHidden
         extra={
           <Space>
             {(!!viewingData && isMasterViewMode) && (
