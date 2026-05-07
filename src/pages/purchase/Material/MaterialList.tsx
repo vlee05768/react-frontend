@@ -115,6 +115,7 @@ export default function MaterialList() {
   });
 
   const openViewDrawer = (record: any) => {
+    setActiveTab('master_info');
     navigate(`/purchase/materials/${record.code}`);
   };
 
@@ -138,6 +139,7 @@ export default function MaterialList() {
   };
 
   const openCreateDrawer = () => {
+    setActiveTab('master_info');
     setFormDefaultValues({ isActive: true, materialForm: 'R', primaryUoM: 'M²', secondaryUoM: 'ROLL', purchasingUoM: 'ROLL', length: 0, conversionFactor: 1 });
     setIsCreateDrawerOpen(true);
   };

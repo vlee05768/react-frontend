@@ -73,7 +73,7 @@ export default function BusinessPartnerList() {
   const { hasPermission } = useAuthStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('1');
+  const [activeTab, setActiveTab] = useState('master_info');
 
   const [searchForm] = Form.useForm();
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
@@ -152,7 +152,7 @@ export default function BusinessPartnerList() {
   });
 
   const openViewDrawer = (record: any) => {
-    setActiveTab('1');
+    setActiveTab('master_info');
     navigate(`/business-partners/${record.code}`);
   };
 
@@ -173,13 +173,13 @@ export default function BusinessPartnerList() {
   };
 
   const openCreateDrawer = () => {
-    setActiveTab('1');
+    setActiveTab('master_info');
     setIsCreateDrawerOpen(true);
   };
 
   const startEditMode = () => {
     setIsDrawerEditing(true);
-    setActiveTab('1'); // Switch back to basic info when editing
+    setActiveTab('master_info'); // Switch back to basic info when editing
   };
 
   const handleCrudSubmit = (values: any) => {
@@ -402,7 +402,7 @@ export default function BusinessPartnerList() {
             {(!isDrawerEditing && !isCreateDrawerOpen) && (
               <Button type="primary" icon={<EditOutlined />} onClick={startEditMode}>編輯</Button>
             )}
-            {(isDrawerEditing || isCreateDrawerOpen) && activeTab === '1' && (
+            {(isDrawerEditing || isCreateDrawerOpen) && activeTab === 'master_info' && (
               <>
                 <Button 
                   type="primary" 
