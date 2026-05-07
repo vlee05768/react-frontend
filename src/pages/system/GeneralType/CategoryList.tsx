@@ -8,7 +8,8 @@ import {
   deleteApiV1GeneralTypesById,
   getApiV1GeneralTypesGetTypes
 } from '@/api/generated/sdk.gen';
-import { categoryFormConfig } from './GeneralTypeConfig';
+import { categoryFormConfig, categoryTableColumns } from './GeneralTypeConfig';
+import { buildTableColumns } from '@/utils/tableUtils';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 
@@ -97,25 +98,21 @@ export default function CategoryList({ selectedCode, onSelect }: CategoryListPro
     }
   };
 
+  const baseCols = buildTableColumns(categoryTableColumns());
   const columns = [
-    {
-      title: '類別代碼',
-      dataIndex: 'code',
-      key: 'code',
-      width: '40%',
-      render: (text: string, record: any) => (
-        <span style={{ fontWeight: selectedCode === record.code ? 600 : 400 }}>
-          {text}
-        </span>
-      ),
-    },
-    {
-      title: '敘述',
-      dataIndex: 'desc',
-      key: 'desc',
-      width: '40%',
-      ellipsis: true,
-    },
+    ...baseCols.map(col => {
+      if (col.key === 'code') {
+        return {
+          ...col,
+          render: (text: string, record: any) => (
+            <span style={{ fontWeight: selectedCode === record.code ? 600 : 400 }}>
+              {text}
+            </span>
+          )
+        };
+      }
+      return col;
+    }),
     {
       title: '操作',
       key: 'action',
