@@ -44,7 +44,6 @@ const generateCode = (context: any, setValue: any) => {
     (materialForm === "S" && length == null);
 
   if (isMissingFields) {
-    setValue("spec", "");
     setValue("code", "");
     setValue("name", "");
     return;
@@ -66,7 +65,6 @@ const generateCode = (context: any, setValue: any) => {
   }
 
   const code = `${materialForm}-${brand}-${modelNo}-${formattedThickness}-${spec}`;
-  setValue("spec", spec);
   setValue("code", code);
 
   const formLabel = materialForm === "R" ? "捲材" : "片材";
@@ -286,7 +284,6 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     componentType: "Input",
     group: "基本規格",
     colSpan: 4,
-    autoGenerate: true,
   },
   {
     name: "isActive",
