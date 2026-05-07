@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useMemo } from 'react';
+import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import {
   Spin,
   Table,
