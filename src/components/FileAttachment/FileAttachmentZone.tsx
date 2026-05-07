@@ -144,8 +144,16 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
     'doc', 'dll', 'csv', 'css', 'avi', 'ai', 'zip'
   ];
 
+  const getIconName = (ext: string) => {
+    if (ext === 'jpeg') return 'jpg';
+    if (ext === 'xlsx') return 'xls';
+    if (ext === 'docx') return 'doc';
+    if (ext === 'pptx') return 'ppt';
+    return ext;
+  };
+
   const getFileIcon = (attachment: FileAttachmentDto) => {
-    if (!attachment.fileName) return <FileOutlined style={{ fontSize: 32, color: '#8c8c8c' }} />;
+    if (!attachment.fileName) return <FileOutlined style={{ fontSize: 24, color: '#8c8c8c' }} />;
     const ext = attachment.fileName.split('.').pop()?.toLowerCase() || '';
     
     // 圖片檔案直接顯示縮圖 (如果有 url)
@@ -158,8 +166,7 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
     }
     
     // 其他檔案或無 url 的圖片，判斷是否有我們自訂的圖示
-    // jpeg 統一使用 jpg 的 icon
-    const iconName = ext === 'jpeg' ? 'jpg' : ext;
+    const iconName = getIconName(ext);
     if (iconList.includes(iconName)) {
       return (
         <div style={{ width: 48, height: 48, overflow: 'hidden', borderRadius: 4 }}>
@@ -239,7 +246,7 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
       // 這裡可以針對 Dragger 裡面的檔案做渲染處理
       // 因為尚未上傳所以沒有 presignedUrl，但如果是圖片可以轉 base64，非圖片則顯示對應靜態 icon
       const ext = file.name.split('.').pop()?.toLowerCase() || '';
-      const iconName = ext === 'jpeg' ? 'jpg' : ext;
+      const iconName = getIconName(ext);
       
       if (iconList.includes(iconName)) {
         return (
