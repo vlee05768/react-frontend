@@ -164,7 +164,10 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     editable: "createOnly",
     validation: z.string().min(1, "請選擇類別"),
     componentProps: { dictKey: "MATERIAL_TYPE", allowClear: true },
-    onChange: (_val, ctx, setValue) => generateCode(ctx, setValue),
+    onChange: (val, ctx, setValue) => {
+      ctx.values.type = val;
+      generateCode(ctx, setValue);
+    },
   },
   {
     name: "materialForm",
@@ -176,13 +179,16 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     validation: z.string().min(1, "請選擇型態"),
     componentProps: { options: materialFormOptions, allowClear: true },
     onChange: (val, ctx, setValue) => {
+      ctx.values.materialForm = val;
       if (val === "R") {
         setValue("length", 0);
+        ctx.values.length = 0;
         setValue("primaryUoM", "M²");
         setValue("secondaryUoM", "ROLL");
         setValue("purchasingUoM", "ROLL");
       } else if (val === "S") {
         setValue("length", undefined);
+        ctx.values.length = undefined;
         setValue("primaryUoM", "PCS");
         setValue("secondaryUoM", "PKG");
         setValue("purchasingUoM", "BOX");
@@ -237,7 +243,10 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     editable: "createOnly",
     validation: z.number({ invalid_type_error: "請輸入厚度" }).min(0),
     componentProps: { min: 0, style: { width: "100%" } },
-    onChange: (_val, ctx, setValue) => generateCode(ctx, setValue),
+    onChange: (val, ctx, setValue) => {
+      ctx.values.thickness = val;
+      generateCode(ctx, setValue);
+    },
   },
   {
     name: "width",
@@ -248,7 +257,10 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     editable: "createOnly",
     validation: z.number({ invalid_type_error: "請輸入寬度" }).min(0),
     componentProps: { min: 0, style: { width: "100%" } },
-    onChange: (_val, ctx, setValue) => generateCode(ctx, setValue),
+    onChange: (val, ctx, setValue) => {
+      ctx.values.width = val;
+      generateCode(ctx, setValue);
+    },
   },
   {
     name: "length",
@@ -263,7 +275,10 @@ export const mainFormConfig = (): FormFieldConfig[] => [
         ? z.number({ invalid_type_error: "片材請輸入長度" }).min(0)
         : z.any().optional(),
     componentProps: { min: 0, style: { width: "100%" } },
-    onChange: (_val, ctx, setValue) => generateCode(ctx, setValue),
+    onChange: (val, ctx, setValue) => {
+      ctx.values.length = val;
+      generateCode(ctx, setValue);
+    },
   },
   {
     name: "spec",
