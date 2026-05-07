@@ -2,6 +2,7 @@ import type { SearchFieldConfig } from '@/components/Form/types';
 import { z } from 'zod';
 import type { FormFieldConfig, TableColumnConfig } from '@/components/Form/types';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import { DictLabel } from '@/components/Form/DictLabel';
 
 export const mainDictionary = {
   code: { name: 'code', label: '編號' },
@@ -20,9 +21,9 @@ export const mainDictionary = {
 export const mainFormConfig = (): FormFieldConfig[] => [
   { ...mainDictionary.code, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'createOnly' },
   { ...mainDictionary.name, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
-  { ...mainDictionary.type, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
+  { ...mainDictionary.type, componentType: 'DictSelect', validation: z.any().optional().nullable(), editable: 'always', componentProps: { dictKey: 'MOLD_TYPE' } },
   { ...mainDictionary.supplierCode, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
-  { ...mainDictionary.shape, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
+  { ...mainDictionary.shape, componentType: 'DictSelect', validation: z.any().optional().nullable(), editable: 'always', componentProps: { dictKey: 'MOLD_SHAPE' } },
   { ...mainDictionary.dimensionLMm, componentType: 'InputNumber', validation: z.any().optional().nullable(), editable: 'always' },
   { ...mainDictionary.dimensionWMm, componentType: 'InputNumber', validation: z.any().optional().nullable(), editable: 'always' },
   { ...mainDictionary.dimensionHMm, componentType: 'InputNumber', validation: z.any().optional().nullable(), editable: 'always' },
@@ -34,9 +35,9 @@ export const mainFormConfig = (): FormFieldConfig[] => [
 export const mainTableColumns = (): TableColumnConfig[] => [
   { ...mainDictionary.code, width: 120 },
   { ...mainDictionary.name, width: 150 },
-  { ...mainDictionary.type, width: 120 },
+  { ...mainDictionary.type, width: 120, render: (v: any) => <DictLabel dictKey="MOLD_TYPE" value={v} /> },
   { ...mainDictionary.supplierCode, width: 120 },
-  { ...mainDictionary.shape, width: 120 },
+  { ...mainDictionary.shape, width: 120, render: (v: any) => <DictLabel dictKey="MOLD_SHAPE" value={v} /> },
   { ...mainDictionary.dimensionLMm, width: 120, align: 'right' },
   { ...mainDictionary.dimensionWMm, width: 120, align: 'right' },
   { ...mainDictionary.dimensionHMm, width: 120, align: 'right' },
@@ -52,7 +53,7 @@ export const detailTableColumns = {};
 
 export const moldSearchFormConfig = (): SearchFieldConfig[] => [
   { name: 'CodeOrName', label: '編號或名稱', componentType: 'Input', colSpan: 12 },
-  { name: 'Type', label: '類型', componentType: 'Input', colSpan: 12 },
+  { name: 'Type', label: '類型', componentType: 'DictSelect', colSpan: 12, componentProps: { dictKey: 'MOLD_TYPE' } },
   { name: 'SupplierCode', label: '供應商', componentType: 'Input', colSpan: 12 },
-  { name: 'Shape', label: '形狀', componentType: 'Input', colSpan: 12 },
+  { name: 'Shape', label: '形狀', componentType: 'DictSelect', colSpan: 12, componentProps: { dictKey: 'MOLD_SHAPE' } },
 ];
