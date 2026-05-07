@@ -63,7 +63,7 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
   }, [referenceType, referenceId]);
 
   const handleUploadSubmit = async () => {
-    const files = fileList.map(f => f.originFileObj as Blob).filter(Boolean);
+    const files = fileList.map(f => (f.originFileObj || f) as Blob).filter(Boolean);
     if (files.length === 0) return;
 
     setUploading(true);
@@ -187,7 +187,20 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
       setFileList(newFileList);
     },
     beforeUpload: (file) => {
-      setFileList([...fileList, file]);
+      setFileList(prev => {
+        // 防止重複加入同一個檔案
+        if (prev.some(f => f.uid === file.uid)) return prev;
+        
+        const newFile: UploadFile = {
+          uid: file.uid,
+          name: file.name,
+          status: 'done',
+          size: file.size,
+          type: file.type,
+          originFileObj: file,
+        };
+        return [...prev, newFile];
+      });
       return false; // 防止自動上傳
     },
   };
