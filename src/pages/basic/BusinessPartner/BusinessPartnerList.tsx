@@ -17,7 +17,8 @@ import {
   Popconfirm,
   Drawer,
   Divider,
-  Tabs
+  Tabs,
+  Select
 } from 'antd';
 import {
   SearchOutlined,
@@ -41,7 +42,7 @@ import { create } from 'zustand';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { mainFormConfig, mainTableColumns } from './BusinessPartnerConfig';
+import { mainFormConfig, mainTableColumns, bpTypeOptions } from './BusinessPartnerConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { App } from 'antd';
 import ContactList from './ContactList';
@@ -52,9 +53,12 @@ export const useBPQueryStore = create((set) => ({
     pageNumber: 1,
     pageSize: 20,
     CodeOrName: undefined,
+    Types: undefined,
+    IsTYCustomer: undefined,
+    Others: undefined,
   },
   setParams: (newParams: any) => set((state: any) => ({ params: { ...state.params, ...newParams } })),
-  resetParams: () => set({ params: { pageNumber: 1, pageSize: 20 } }),
+  resetParams: () => set({ params: { pageNumber: 1, pageSize: 20, CodeOrName: undefined, Types: undefined, IsTYCustomer: undefined, Others: undefined } }),
 }));
 
 export default function BusinessPartnerList() {
@@ -216,7 +220,9 @@ export default function BusinessPartnerList() {
 
   const handleSearch = (values: any) => {
     const nextParams = { ...values };
-    if (nextParams.CodeOrName === '') nextParams.CodeOrName = undefined;
+    if (!nextParams.CodeOrName) nextParams.CodeOrName = undefined;
+    if (nextParams.Types && nextParams.Types.length === 0) nextParams.Types = undefined;
+    if (!nextParams.Others) nextParams.Others = undefined;
 
     setParams({
       ...nextParams,
@@ -233,6 +239,16 @@ export default function BusinessPartnerList() {
     const activeFilters: React.ReactNode[] = [];
     if (params.CodeOrName) {
       activeFilters.push(<Tag color="blue" key="CodeOrName">編號或名稱: {params.CodeOrName}</Tag>);
+    }
+    if (params.Types && params.Types.length > 0) {
+      const typeLabels = params.Types.map((val: string) => bpTypeOptions.find(o => o.value === val)?.label || val).join(', ');
+      activeFilters.push(<Tag color="blue" key="Types">類型: {typeLabels}</Tag>);
+    }
+    if (params.IsTYCustomer !== undefined && params.IsTYCustomer !== null) {
+      activeFilters.push(<Tag color="blue" key="IsTYCustomer">東裕客戶: {params.IsTYCustomer ? '是' : '否'}</Tag>);
+    }
+    if (params.Others) {
+      activeFilters.push(<Tag color="blue" key="Others">其他: {params.Others}</Tag>);
     }
     if (activeFilters.length === 0) return <Tag color="default">【全部資料】</Tag>;
     return <Space size={[0, 8]} wrap>{activeFilters}</Space>;
@@ -386,6 +402,23 @@ export default function BusinessPartnerList() {
         <Form form={searchForm} layout="vertical" onFinish={handleSearch}>
           <Form.Item name="CodeOrName" label="編號或名稱">
             <Input placeholder="請輸入編號或名稱模糊查詢" allowClear />
+          </Form.Item>
+          <Form.Item name="Types" label="商業夥伴類型">
+            <Select 
+              mode="multiple" 
+              placeholder="請選擇夥伴類型" 
+              options={bpTypeOptions} 
+              allowClear 
+            />
+          </Form.Item>
+          <Form.Item name="IsTYCustomer" label="是否為東裕客戶">
+            <Select placeholder="請選擇" allowClear>
+              <Select.Option value={true}>是</Select.Option>
+              <Select.Option value={false}>否</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item name="Others" label="其他雜項">
+            <Input placeholder="請輸入其他雜項查詢" allowClear />
           </Form.Item>
         </Form>
       </Modal>
