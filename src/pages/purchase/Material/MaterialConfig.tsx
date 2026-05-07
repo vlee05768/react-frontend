@@ -109,7 +109,7 @@ export const materialSearchFormConfig = (): SearchFieldConfig[] => [
 
 export const mainTableColumns = (): TableColumnConfig[] => [
   { label: "編號", name: "code", width: 200 },
-  { label: "名稱", name: "name", width: 250 },
+  { label: "名稱", name: "name", width: 250, ellipsis: true },
   {
     label: "型態",
     name: "materialForm",
@@ -176,8 +176,8 @@ export const mainTableColumns = (): TableColumnConfig[] => [
       ) : null,
   },
   { label: "標籤", name: "tag", width: 120 },
-  { label: "規格描述", name: "specDescription", width: 200 },
-  { label: "備註", name: "notes", width: 200 },
+  { label: "規格描述", name: "specDescription", width: 200, ellipsis: true },
+  { label: "備註", name: "notes", width: 200, ellipsis: true },
 ];
 
 export const mainFormConfig = (): FormFieldConfig[] => [

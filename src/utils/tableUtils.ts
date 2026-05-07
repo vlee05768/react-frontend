@@ -1,4 +1,6 @@
 import type { FieldConfig, TableColumnConfig } from '@/components/Form/types';
+import { EllipsisText } from '@/components/Table/EllipsisText';
+import React from 'react';
 
 /**
  * 將 FieldConfig 陣列轉換為 Ant Design Table 支援的 columns 格式。
@@ -57,16 +59,32 @@ export function buildTableColumns<TValues>(
   columnConfigs: TableColumnConfig<TValues>[],
   actionColumn?: any
 ) {
-  const columns = columnConfigs.map(config => ({
-    title: config.label,
-    dataIndex: config.name,
-    key: config.name,
-    width: config.width,
-    align: config.align || 'left',
-    render: config.render,
-    sorter: config.sortable ? true : undefined,
-    fixed: config.fixed,
-  }));
+  const columns = columnConfigs.map(config => {
+    // 預設 render 函數
+    let render = config.render;
+
+    // 若設定了 ellipsis 且沒有提供自訂 render，或是在 custom render 之外想套用 tooltip
+    // 在這裡我們可以覆寫 render，讓它自動包裝 EllipsisText
+    if (config.ellipsis) {
+      const originalRender = config.render;
+      render = (value: any, record: TValues, index: number) => {
+        // 如果原本就有提供 render，先取得它的結果，否則直接使用 value
+        const content = originalRender ? originalRender(value, record, index) : value;
+        return React.createElement(EllipsisText, { text: content, maxWidth: config.width ? config.width - 32 : 300 });
+      };
+    }
+
+    return {
+      title: config.label,
+      dataIndex: config.name,
+      key: config.name,
+      width: config.width,
+      align: config.align || 'left',
+      render: render,
+      sorter: config.sortable ? true : undefined,
+      fixed: config.fixed,
+    };
+  });
 
   if (actionColumn) {
     columns.unshift(actionColumn);
