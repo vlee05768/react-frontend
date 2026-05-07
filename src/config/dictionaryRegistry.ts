@@ -1,4 +1,4 @@
-import { getApiV1Role, getApiV1GeneralTypesGetTypes } from '@/api/generated/sdk.gen';
+import { getApiV1Role, getApiV1GeneralTypesGetTypes, getApiV1BusinessPartners } from '@/api/generated/sdk.gen';
 
 export const DICTIONARY_REGISTRY = {
   // 純靜態選項，直接定義原型
@@ -49,6 +49,20 @@ export const DICTIONARY_REGISTRY = {
       }));
     },
     fieldNames: { label: '_displayName', value: '_value' }
+  },
+
+  // 供應商選單 (Type P 或 S)
+  BP_SUPPLIER: {
+    queryFn: async () => {
+      const res = await getApiV1BusinessPartners({ query: { Types: ['P', 'S'], pageSize: 100 } as any });
+      const rawData = (res.data as any)?.data?.data || (res.data as any)?.data || [];
+      return rawData.map((item: any) => ({
+        ...item,
+        // 顯示為 "公司名稱 (代碼)"
+        _displayName: `${item.name} (${item.code})`, 
+      }));
+    },
+    fieldNames: { label: '_displayName', value: 'code' },
   }
 };
 
