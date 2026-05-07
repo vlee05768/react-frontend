@@ -23,6 +23,21 @@ export const DICTIONARY_REGISTRY = {
     },
     fieldNames: { label: '_displayName', value: 'name' },
   },
+
+  // 原料類型
+  MATERIAL_TYPE: {
+    queryFn: async () => {
+      const res = await getApiV1GeneralTypesGetTypes({ query: { types: ['MaterialType'] } });
+      const rawData = (res.data as any)?.data?.MaterialType || (res.data as any)?.MaterialType || [];
+      return rawData.map((item: any) => ({
+        ...item,
+        _displayName: item.desc || item.code || item,
+        _value: item.code || item
+      }));
+    },
+    fieldNames: { label: '_displayName', value: '_value' }
+  },
+
   // 模具類型
   MOLD_TYPE: {
     queryFn: async () => {

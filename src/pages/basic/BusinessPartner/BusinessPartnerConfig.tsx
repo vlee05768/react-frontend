@@ -78,6 +78,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: "公司名稱",
     componentType: "Input",
     editable: "always",
+    validateTrigger: "onChange",
     validation: z.string().min(1, "請輸入公司名稱"),
     colSpan: 2,
   },

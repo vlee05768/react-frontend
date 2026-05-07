@@ -43,6 +43,7 @@ const ROUTE_MAPPING: Record<string, string> = {
   'System.GeneralTypes': '/system/general-types',
   'System.SystemMaintenance': '/system/maintenance',
   'Warehouse.Storages': '/warehouse/storages',
+  'Warehouse.Materials': '/purchase/materials',
   'ProductionQuality.Molds': '/production-quality/molds',
   'ProductionQuality.Machines': '/production-quality/machines',
 };
@@ -56,6 +57,7 @@ const ROUTE_PERMISSION_MAP: Record<string, string> = {
   '/system/general-types': 'System.GeneralTypes.View',
   '/system/maintenance': 'System.SystemMaintenance.View',
   '/warehouse/storages': 'Warehouse.Storages.View',
+  '/purchase/materials': 'Warehouse.Materials.View',
   '/production-quality/molds': 'ProductionQuality.Molds.View',
   '/production-quality/machines': 'ProductionQuality.Machines.View',
 };
