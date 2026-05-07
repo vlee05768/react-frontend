@@ -35,13 +35,13 @@ export const mainFormConfig = (): FormFieldConfig[] => [
 export const mainTableColumns = (): TableColumnConfig[] => [
   { ...mainDictionary.code, width: 120 },
   { ...mainDictionary.name, width: 150 },
-  { ...mainDictionary.type, width: 120, render: (v: any) => <DictLabel dictKey="MOLD_TYPE" value={v} /> },
-  { ...mainDictionary.supplierCode, width: 120, render: (v: any) => <DictLabel dictKey="BP_SUPPLIER" value={v} /> },
-  { ...mainDictionary.shape, width: 120, render: (v: any) => <DictLabel dictKey="MOLD_SHAPE" value={v} /> },
+  { ...mainDictionary.isShareable, width: 100, align: 'center', render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{ color: 'green' }} /> : (v === false ? <CloseOutlined style={{ color: 'red' }} /> : null) },
+  { ...mainDictionary.type, width: 100, render: (v: any) => <DictLabel dictKey="MOLD_TYPE" value={v} /> },
+  { ...mainDictionary.supplierCode, width: 210, render: (v: any) => <DictLabel dictKey="BP_SUPPLIER" value={v} /> },
+  { ...mainDictionary.shape, width: 100, render: (v: any) => <DictLabel dictKey="MOLD_SHAPE" value={v} /> },
   { ...mainDictionary.dimensionLMm, width: 120, align: 'right' },
   { ...mainDictionary.dimensionWMm, width: 120, align: 'right' },
   { ...mainDictionary.dimensionHMm, width: 120, align: 'right' },
-  { ...mainDictionary.isShareable, width: 100, align: 'center', render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{ color: 'green' }} /> : (v === false ? <CloseOutlined style={{ color: 'red' }} /> : null) },
   { ...mainDictionary.description, width: 200 },
   { ...mainDictionary.notes, width: 200 },
 ];

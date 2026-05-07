@@ -37,6 +37,20 @@ export const DICTIONARY_REGISTRY = {
     fieldNames: { label: '_displayName', value: '_value' }
   },
   
+  // 部門
+  DEPARTMENT: {
+    queryFn: async () => {
+      const res = await getApiV1GeneralTypesGetTypes({ query: { types: ['Department'] } });
+      const rawData = (res.data as any)?.data?.Department || (res.data as any)?.Department || [];
+      return rawData.map((item: any) => ({
+        ...item,
+        _displayName: item.desc || item.code || item,
+        _value: item.code || item
+      }));
+    },
+    fieldNames: { label: '_displayName', value: '_value' }
+  },
+  
   // 模具形狀
   MOLD_SHAPE: {
     queryFn: async () => {

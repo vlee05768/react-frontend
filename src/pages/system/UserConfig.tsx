@@ -2,6 +2,7 @@ import type { SearchFieldConfig } from '@/components/Form/types';
 import { z } from 'zod';
 import type { FormFieldConfig, TableColumnConfig } from '@/components/Form/types';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import { DictLabel } from '@/components/Form/DictLabel';
 
 // ==========================================
 // 1. 主表 (Master) 設定
@@ -26,7 +27,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
   { ...mainDictionary.employeeCode, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
   { ...mainDictionary.position, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
   { ...mainDictionary.email, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
-  { ...mainDictionary.department, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
+  { ...mainDictionary.department, componentType: 'DictSelect', validation: z.any().optional().nullable(), editable: 'always', componentProps: { dictKey: 'DEPARTMENT', showSearch: true, optionFilterProp: '_displayName' } },
   { ...mainDictionary.extensionNumber, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
   { ...mainDictionary.mobile, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
   { ...mainDictionary.phoneNumber, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
@@ -50,7 +51,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   { ...mainDictionary.employeeCode, width: 120 },
   { ...mainDictionary.position, width: 120 },
   { ...mainDictionary.email, width: 200 },
-  { ...mainDictionary.department, width: 120 },
+  { ...mainDictionary.department, width: 120, render: (v: any) => <DictLabel dictKey="DEPARTMENT" value={v} /> },
   { ...mainDictionary.extensionNumber, width: 120 },
   { ...mainDictionary.mobile, width: 120 },
   { ...mainDictionary.phoneNumber, width: 120 },
@@ -67,4 +68,5 @@ export const detailTableColumns = {};
 
 export const userSearchFormConfig = (): SearchFieldConfig[] => [
   { name: 'name', label: '姓名/帳號/代碼 (模糊搜尋)', componentType: 'Input', colSpan: 12 },
+  { name: 'department', label: '部門', componentType: 'DictSelect', colSpan: 12, componentProps: { dictKey: 'DEPARTMENT', showSearch: true, optionFilterProp: '_displayName' } },
 ];
