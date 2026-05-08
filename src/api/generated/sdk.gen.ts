@@ -438,7 +438,7 @@ export const postApiV1CommonTestSmtp = <ThrowOnError extends boolean = false>(op
 /**
  * 分頁查詢員工
  */
-export const getApiV1Employee = <ThrowOnError extends boolean = false>(options: Options<GetApiV1EmployeeData, ThrowOnError>) => (options.client ?? client).get<GetApiV1EmployeeResponses, unknown, ThrowOnError>({
+export const getApiV1Employee = <ThrowOnError extends boolean = false>(options?: Options<GetApiV1EmployeeData, ThrowOnError>) => (options?.client ?? client).get<GetApiV1EmployeeResponses, unknown, ThrowOnError>({
     responseType: 'json',
     security: [{ name: 'Authorization', type: 'apiKey' }],
     url: '/api/v1/Employee',

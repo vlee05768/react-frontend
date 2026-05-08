@@ -28,12 +28,10 @@ export default function StorageInventoryList() {
     queryFn: async () => {
       const res = await getApiV1StorageInventory({
         query: {
-          ...queryParams,
-          pageNumber: 1,
-          pageSize: 10000, // Fetch large dataset to ensure grouping is accurate
+          ...queryParams
         }
       });
-      return res.data?.data?.data || [];
+      return res.data?.data || [];
     }
   });
 
