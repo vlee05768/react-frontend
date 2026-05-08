@@ -160,7 +160,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   {
     label: "供應商",
     name: "supplierCode",
-    width: 150,
+    width: 210,
     render: (v) => <DictLabel dictKey="BP_SUPPLIER" value={v} />,
   },
   {
