@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 
 import { inventoryTypeOptions } from './StorageInventoryConfig';
 import { EllipsisText } from '@/components/Table/EllipsisText';
+import { DictSelect } from '@/components/Form/DictSelect';
 
 const { TabPane } = Tabs;
 
@@ -184,8 +185,8 @@ export default function StorageInventoryList() {
         }
       >
         <Form form={form} layout="inline" className="mb-4" onFinish={handleSearch}>
-          <Form.Item name="StorageCode" label="儲位編號">
-            <Input placeholder="請輸入儲位編號" allowClear />
+          <Form.Item name="StorageCode" label="儲位">
+            <DictSelect dictKey="STORAGE" placeholder="請選擇儲位" style={{ width: 180 }} allowClear />
           </Form.Item>
           <Form.Item name="InventoryCode" label="物料編號">
             <Input placeholder="請輸入物料編號" allowClear />
