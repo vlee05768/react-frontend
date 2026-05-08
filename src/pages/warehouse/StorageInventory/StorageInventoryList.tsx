@@ -48,7 +48,7 @@ export default function StorageInventoryList() {
   // Grouping logic
   const inventoryGroups = useMemo(() => {
     const map = new Map();
-    (data || []).forEach(item => {
+    (data || []).forEach((item: any) => {
       const key = item.inventoryCode || '';
       if (!map.has(key)) {
         map.set(key, {
@@ -70,7 +70,7 @@ export default function StorageInventoryList() {
 
   const storageGroups = useMemo(() => {
     const map = new Map();
-    (data || []).forEach(item => {
+    (data || []).forEach((item: any) => {
       const key = item.storageCode || '';
       if (!map.has(key)) {
         map.set(key, {
@@ -196,7 +196,7 @@ export default function StorageInventoryList() {
                   />
                 ),
               }}
-              pagination={{ defaultPageSize: 20, showSizeChanger: true }}
+              pagination={false}
             />
           </TabPane>
           <TabPane tab="依儲位分組" key="2">
@@ -217,7 +217,7 @@ export default function StorageInventoryList() {
                   />
                 ),
               }}
-              pagination={{ defaultPageSize: 20, showSizeChanger: true }}
+              pagination={false}
             />
           </TabPane>
         </Tabs>

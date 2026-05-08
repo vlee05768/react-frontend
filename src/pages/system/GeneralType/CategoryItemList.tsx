@@ -21,10 +21,6 @@ interface CategoryItemListProps {
 export default function CategoryItemList({ selectedCode }: CategoryItemListProps) {
   const queryClient = useQueryClient();
   
-  // Pagination and Search states
-  const [pageNumber, setPageNumber] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  
   // Drawer states
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -44,7 +40,6 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
   const dictData = apiResponse.data || {};
   const listDataRaw = Array.isArray(dictData) ? dictData : (dictData[selectedCode as string] || []);
   const listData = Array.isArray(listDataRaw) ? listDataRaw : [];
-  const totalRecords = listData.length;
 
   // Mutations
   const createMutation = useMutation({
@@ -147,21 +142,12 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
       <div style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
         <Table
           loading={isFetching}
-          dataSource={listData.slice((pageNumber - 1) * pageSize, pageNumber * pageSize)}
+          dataSource={listData}
           columns={columns as any}
           rowKey="id"
           size="middle"
           scroll={{ x: 'max-content' }}
-          pagination={{
-            current: pageNumber,
-            pageSize,
-            total: totalRecords,
-            showSizeChanger: true,
-            onChange: (page, size) => {
-              setPageNumber(page);
-              setPageSize(size);
-            },
-          }}
+          pagination={false}
         />
       </div>
 
