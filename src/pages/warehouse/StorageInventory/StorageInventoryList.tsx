@@ -25,10 +25,18 @@ export default function StorageInventoryList() {
     Type: searchParams.get('type') || undefined,
   });
 
+  const [activeTab, setActiveTab] = useState<string>('1');
+
   useEffect(() => {
     const newStorageCode = searchParams.get('storageCode') || undefined;
     const newInventoryCode = searchParams.get('inventoryCode') || undefined;
     const newType = searchParams.get('type') || undefined;
+
+    if (newStorageCode) {
+      setActiveTab('2');
+    } else {
+      setActiveTab('1');
+    }
 
     setQueryParams(prev => {
       if (prev.StorageCode !== newStorageCode || prev.InventoryCode !== newInventoryCode || prev.Type !== newType) {
@@ -202,7 +210,7 @@ export default function StorageInventoryList() {
           </Form.Item>
         </Form>
 
-        <Tabs defaultActiveKey="1">
+        <Tabs activeKey={activeTab} onChange={(key) => setActiveTab(key)}>
           <TabPane tab="依物料分組" key="1">
             <Table
               rowKey="inventoryCode"
