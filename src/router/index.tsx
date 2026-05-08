@@ -16,6 +16,7 @@ import RoleList from '@/pages/system/RoleList';
 import SystemMaintenance from '@/pages/system/SystemMaintenance';
 import GeneralTypeLayout from '@/pages/system/GeneralType/GeneralTypeLayout';
 import StorageList from '@/pages/warehouse/StorageList';
+import StorageInventoryList from '@/pages/warehouse/StorageInventory/StorageInventoryList';
 import MaterialList from '@/pages/purchase/Material/MaterialList';
 import MoldList from '@/pages/production/MoldList';
 import MachineList from '@/pages/production/MachineList';
@@ -57,6 +58,7 @@ export const router = createBrowserRouter([
       { path: 'system/maintenance', element: <SystemMaintenance /> },
       { path: 'system/general-types', element: <GeneralTypeLayout /> },
       { path: 'warehouse/storages/:viewId?', element: <StorageList /> },
+      { path: 'warehouse/inventory', element: <StorageInventoryList /> },
       { path: 'purchase/materials/:viewId?', element: <MaterialList /> },
       { path: 'production-quality/molds/:viewId?', element: <MoldList /> },
       { path: 'production-quality/machines/:viewId?', element: <MachineList /> },
