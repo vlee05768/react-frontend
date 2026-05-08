@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Card, Table, Tabs, Button, Space, Form, Input, Select } from 'antd';
 import { SearchOutlined, ClearOutlined, SyncOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { getApiV1StorageInventory } from '@/api/generated/sdk.gen';
 import { useThemeStore } from '@/stores/useThemeStore';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 import { inventoryTypeOptions } from './StorageInventoryConfig';
@@ -15,13 +15,37 @@ const { TabPane } = Tabs;
 export default function StorageInventoryList() {
   const { mode } = useThemeStore();
   const [form] = Form.useForm();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const [queryParams, setQueryParams] = useState({
-    StorageCode: undefined,
-    InventoryCode: undefined,
-    Type: undefined,
+    StorageCode: searchParams.get('storageCode') || undefined,
+    InventoryCode: searchParams.get('inventoryCode') || undefined,
+    Type: searchParams.get('type') || undefined,
   });
+
+  useEffect(() => {
+    const newStorageCode = searchParams.get('storageCode') || undefined;
+    const newInventoryCode = searchParams.get('inventoryCode') || undefined;
+    const newType = searchParams.get('type') || undefined;
+
+    setQueryParams(prev => {
+      if (prev.StorageCode !== newStorageCode || prev.InventoryCode !== newInventoryCode || prev.Type !== newType) {
+        return {
+          StorageCode: newStorageCode,
+          InventoryCode: newInventoryCode,
+          Type: newType,
+        };
+      }
+      return prev;
+    });
+
+    form.setFieldsValue({
+      StorageCode: newStorageCode,
+      InventoryCode: newInventoryCode,
+      Type: newType,
+    });
+  }, [searchParams, form]);
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ['storage-inventory', queryParams],
@@ -108,7 +132,7 @@ export default function StorageInventoryList() {
       <Button 
         type="link" 
         style={{ color, padding: 0, fontWeight: 600, textDecoration: 'underline' }}
-        onClick={() => navigate(`/warehouse/transactions/list?storageCode=${record.storageCode}&inventoryCode=${record.inventoryCode}`)}
+        onClick={() => navigate(`/warehouse/inventory-movements?storageCode=${record.storageCode}&inventoryCode=${record.inventoryCode}`)}
       >
         {val.toLocaleString('zh-TW')}
       </Button>
