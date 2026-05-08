@@ -31,7 +31,17 @@ export default function StorageInventoryList() {
           ...queryParams
         }
       });
-      return res.data?.data || [];
+      
+      const payload = res.data?.data;
+      // 處理新型態：直接是陣列
+      if (Array.isArray(payload)) {
+        return payload;
+      }
+      // 相容舊型態：PagedResult { data: [], totalRecords: ... }
+      if (payload && Array.isArray((payload as any).data)) {
+        return (payload as any).data;
+      }
+      return [];
     }
   });
 
