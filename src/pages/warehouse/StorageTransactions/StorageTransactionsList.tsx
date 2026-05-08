@@ -116,7 +116,7 @@ export default function StorageTransactionsList() {
     {
       title: '儲位編號',
       dataIndex: 'storageCode',
-      width: 140,
+      width: 160,
       fixed: 'left',
       render: (val: string) => val ? (
         <div className="flex items-center gap-2">
@@ -147,7 +147,7 @@ export default function StorageTransactionsList() {
               message.success('已複製物料編號');
             }} 
           />
-          <a onClick={() => navigate(`/warehouse/products/list?inventoryCode=${encodeURIComponent(val)}`)} className="font-semibold text-blue-600 dark:text-blue-400">
+          <a onClick={() => navigate(`/warehouse/inventory?inventoryCode=${encodeURIComponent(val)}`)} className="font-semibold text-blue-600 dark:text-blue-400">
             {val}
           </a>
         </div>

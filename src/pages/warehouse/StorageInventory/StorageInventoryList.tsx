@@ -186,10 +186,10 @@ export default function StorageInventoryList() {
       >
         <Form form={form} layout="inline" className="mb-4" onFinish={handleSearch}>
           <Form.Item name="StorageCode" label="儲位">
-            <DictSelect dictKey="STORAGE" placeholder="請選擇儲位" style={{ width: 180 }} allowClear />
+            <DictSelect dictKey="STORAGE" placeholder="請選擇儲位" style={{ width: 220 }} allowClear />
           </Form.Item>
           <Form.Item name="InventoryCode" label="物料編號">
-            <Input placeholder="請輸入物料編號" allowClear />
+            <Input placeholder="請輸入物料編號" allowClear style={{ width: 220 }} />
           </Form.Item>
           <Form.Item name="Type" label="庫存類型">
             <Select placeholder="請選擇類型" allowClear style={{ width: 120 }} options={inventoryTypeOptions} />
