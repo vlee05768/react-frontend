@@ -1,68 +1,62 @@
 // @ts-nocheck
-import { getApiErrorMessage } from "@/utils/apiError";
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
-import type { InputRef } from 'antd';
+import { useState, useEffect } from 'react';
+import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import {
-  Spin,
-  Table,
-  Button,
-  Modal,
-  Form,
-  Input,
-  Select,
-  Space,
-  Card,
-  Tag,
-  Tooltip,
-  Row,
-  Col,
-  message,
-  Popconfirm,
-  Drawer,
-  Descriptions,
-  Switch,
-  Divider
+  Spin, Table, Button, Modal, Form, Space, Card, Tooltip, Popconfirm, Drawer, Divider, App
 } from 'antd';
 import {
-  SearchOutlined,
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  ClearOutlined,
-  SaveOutlined,
-  EyeOutlined,
-  AppstoreOutlined,
-  CheckOutlined,
-  CloseOutlined
+  SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ClearOutlined, SaveOutlined, EyeOutlined
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
-  getApiV1Storage, 
-  getApiV1StorageByCode,
-  postApiV1Storage,
-  putApiV1StorageByCode,
-  deleteApiV1StorageByCode
+  getApiV1Product, 
+  getApiV1ProductByCode,
+  postApiV1Product,
+  putApiV1ProductByCode,
+  deleteApiV1ProductByCode
 } from '@/api/generated/sdk.gen';
 
-import { useStorageQueryStore } from '@/stores/warehouseStore';
-import { useAuthStore } from '@/stores/useAuthStore';
+import { getApiErrorMessage } from '@/utils/apiError';
+import { create } from 'zustand';
 import { DynamicForm } from '@/components/Form/DynamicForm';
-import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
-import { mainDictionary, mainFormConfig, mainTableColumns , storageSearchFormConfig} from './StorageConfig';
+import { DrawerTitle } from '@/components/Form/DrawerTitle';
+import { mainFormConfig, mainTableColumns, productSearchFormConfig } from './ProductConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
-import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN } from '@/constants';;
+import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, DRAWER_WIDTH_SEARCH } from '@/constants';
 
-export default function StorageList() {
-  const { params, setParams, resetParams } = useStorageQueryStore();
-  const { hasPermission } = useAuthStore();
+// Detail Tabs
+import ProductMolds from './Tabs/ProductMolds';
+import ProductBom from './Tabs/ProductBom';
+import ProductAttachments from './Tabs/ProductAttachments';
+
+// Local store for query params
+export const useProductQueryStore = create((set) => ({
+  params: {
+    pageNumber: 1,
+    pageSize: DEFAULT_PAGE_SIZE,
+    CodeOrName: undefined,
+    Types: undefined,
+    Customer: undefined,
+    CustomerProductId: undefined,
+    Others: undefined,
+  },
+  setParams: (newParams: any) => set((state: any) => ({ params: { ...state.params, ...newParams } })),
+  resetParams: () => set({ params: { pageNumber: 1, pageSize: DEFAULT_PAGE_SIZE, CodeOrName: undefined, Types: undefined, Customer: undefined, CustomerProductId: undefined, Others: undefined } }),
+}));
+
+export default function ProductsList() {
+  const { message: messageApi, modal: modalApi } = App.useApp();
+  const params = useProductQueryStore((state: any) => state.params);
+  const setParams = useProductQueryStore((state: any) => state.setParams);
+  
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('master_info');
 
   const [searchForm] = Form.useForm();
-  const [formDefaultValues, setFormDefaultValues] = useState<any>({});
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   
@@ -78,37 +72,21 @@ export default function StorageList() {
   }, [isCreateDrawerOpen, isDrawerEditing]);
   
   const queryClient = useQueryClient();
-  const { viewId } = useParams<{ viewId: string }>();
+  const { viewId } = useParams<{ viewId: string }>(); // viewId represents "code" here
   const navigate = useNavigate();
 
-  // 單筆資料查詢 (Drawer)
+  // Detail query
   const { data: viewRes, isFetching: isFetchingView } = useQuery({
-    queryKey: ['storageDetail', viewId],
-    queryFn: () => getApiV1StorageByCode({ path: { code: viewId as any } }),
+    queryKey: ['productDetail', viewId],
+    queryFn: () => getApiV1ProductByCode({ path: { code: viewId as string } }),
     enabled: !!viewId,
   });
   const viewData = viewRes?.data?.data || viewRes?.data;
 
-  // 當獲取到單筆資料時，更新表單內容 (為了 View Mode 能看到資料)
-  useEffect(() => {
-    if (viewData) {
-      const formattedData = { ...viewData };
-      Object.keys(formattedData).forEach(key => {
-        if (key.toLowerCase().includes('date') && formattedData[key] && typeof formattedData[key] === 'string') {
-          formattedData[key] = formattedData[key].substring(0, 10);
-        }
-      });
-      setFormDefaultValues(formattedData);
-    }
-  }, [viewData]);
-
-  // API 查詢
+  // List query
   const { data, isFetching } = useQuery({
-    queryKey: ['storageList', params],
-    queryFn: () =>
-      getApiV1Storage({
-        query: params as any,
-      }),
+    queryKey: ['productList', params],
+    queryFn: () => getApiV1Product({ query: params as any }),
   });
 
   const listData = (data?.data as any)?.data?.data || (data?.data as any)?.data || [];
@@ -116,91 +94,80 @@ export default function StorageList() {
   const currentPage = (data?.data as any)?.data?.pageNumber || params.pageNumber;
   const currentPageSize = (data?.data as any)?.data?.pageSize || params.pageSize;
 
-  // Mutations
   const createMutation = useMutation({
-    mutationFn: (values: any) => postApiV1Storage({ body: values }),
+    mutationFn: (values: any) => postApiV1Product({ body: values }),
     onSuccess: () => {
-      message.success('新增成功');
+      messageApi.success('新增成功');
       setIsCreateDrawerOpen(false);
-      setFormDefaultValues({});
-      queryClient.invalidateQueries({ queryKey: ['storageList'] });
+      queryClient.invalidateQueries({ queryKey: ['productList'] });
     },
     onError: (error: any) => {
-      Modal.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(error)}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(error)}` });
     }
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ code, values }: { code: string | number, values: any }) => 
-      putApiV1StorageByCode({ path: { code: code as any }, body: values }),
+    mutationFn: ({ code, values }: { code: string, values: any }) => 
+      putApiV1ProductByCode({ path: { code }, body: values }),
     onSuccess: () => {
-      message.success('更新成功');
+      messageApi.success('更新成功');
       setIsDrawerEditing(false);
-      setFormDefaultValues({});
-      queryClient.invalidateQueries({ queryKey: ['storageList'] });
-      queryClient.invalidateQueries({ queryKey: ['storageDetail'] });
+      queryClient.invalidateQueries({ queryKey: ['productList'] });
+      queryClient.invalidateQueries({ queryKey: ['productDetail'] });
     },
     onError: (error: any) => {
-      Modal.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${getApiErrorMessage(error)}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${getApiErrorMessage(error)}` });
     }
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (code: string | number) => deleteApiV1StorageByCode({ path: { code: code as any } }),
+    mutationFn: (code: string) => deleteApiV1ProductByCode({ path: { code } }),
     onSuccess: () => {
-      message.success('刪除成功');
-      queryClient.invalidateQueries({ queryKey: ['storageList'] });
-      queryClient.invalidateQueries({ queryKey: ['storageDetail'] });
+      messageApi.success('刪除成功');
+      queryClient.invalidateQueries({ queryKey: ['productList'] });
+      queryClient.invalidateQueries({ queryKey: ['productDetail'] });
     },
     onError: (error: any) => {
-      Modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
     }
   });
 
   const openViewDrawer = (record: any) => {
-    navigate(`/warehouse/storages/${record.code}`);
+    setActiveTab('master_info');
+    navigate(`/warehouse/products/${record.code}`);
   };
 
   const closeViewDrawer = () => {
     setIsCreateDrawerOpen(false);
     setIsDrawerEditing(false);
     if (viewId) {
-      navigate('/warehouse/storages');
+      navigate('/warehouse/products');
     }
   };
 
   const handleCancel = () => {
     if (isDrawerEditing) {
       setIsDrawerEditing(false);
-      if (viewData) {
-        const formattedData = { ...viewData };
-        Object.keys(formattedData).forEach(key => {
-          if (key.toLowerCase().includes('date') && formattedData[key] && typeof formattedData[key] === 'string') {
-            formattedData[key] = formattedData[key].substring(0, 10);
-          }
-        });
-        setFormDefaultValues(formattedData);
-      }
     } else if (isCreateDrawerOpen) {
       closeViewDrawer();
     }
   };
 
   const openCreateDrawer = () => {
-    setFormDefaultValues({});
-    setFormDefaultValues({ isActive: true });
+    setActiveTab('master_info');
     setIsCreateDrawerOpen(true);
   };
 
   const startEditMode = () => {
     setIsDrawerEditing(true);
+    setActiveTab('master_info'); // Switch back to basic info when editing
   };
 
   const handleCrudSubmit = (values: any) => {
     if (isCreateDrawerOpen) {
       createMutation.mutate(values);
     } else if (viewId) {
-      updateMutation.mutate({ code: viewId as any, values });
+      updateMutation.mutate({ code: viewId, values });
     }
   };
 
@@ -211,28 +178,24 @@ export default function StorageList() {
     width: 120,
     render: (_: any, record: any) => (
       <Space>
-        {hasPermission('Warehouse.Storages.View') && (
-          <Tooltip title="檢視">
-            <Button 
-              type="text" 
-              icon={<EyeOutlined />} 
-              style={{ color: '#1890ff' }} 
-              onClick={() => openViewDrawer(record)}
-            />
-          </Tooltip>
-        )}
-        {false && (
-          <Tooltip title="刪除">
-            <Popconfirm
-              title="確定要刪除此筆資料嗎？"
-              onConfirm={() => deleteMutation.mutate(record.code)}
-              okText="確定"
-              cancelText="取消"
-            >
-              <Button type="text" danger icon={<DeleteOutlined />} />
-            </Popconfirm>
-          </Tooltip>
-        )}
+        <Tooltip title="檢視">
+          <Button 
+            type="text" 
+            icon={<EyeOutlined />} 
+            style={{ color: '#1890ff' }} 
+            onClick={() => openViewDrawer(record)}
+          />
+        </Tooltip>
+        <Tooltip title="刪除">
+          <Popconfirm
+            title="確定要刪除此筆資料嗎？"
+            onConfirm={() => deleteMutation.mutate(record.code)}
+            okText="確定"
+            cancelText="取消"
+          >
+            <Button type="text" danger icon={<DeleteOutlined />} />
+          </Popconfirm>
+        </Tooltip>
       </Space>
     ),
   };
@@ -241,11 +204,12 @@ export default function StorageList() {
 
   const handleSearch = (values: any) => {
     const nextParams = { ...values };
-    storageSearchFormConfig().forEach(field => {
-      if (nextParams[field.name] === '' || nextParams[field.name] === null) {
-        nextParams[field.name] = undefined;
-      }
-    });
+    if (!nextParams.CodeOrName) nextParams.CodeOrName = undefined;
+    if (nextParams.Types && nextParams.Types.length === 0) nextParams.Types = undefined;
+    if (!nextParams.Customer) nextParams.Customer = undefined;
+    if (!nextParams.CustomerProductId) nextParams.CustomerProductId = undefined;
+    if (!nextParams.Others) nextParams.Others = undefined;
+
     setParams({
       ...nextParams,
       pageNumber: 1,
@@ -255,29 +219,18 @@ export default function StorageList() {
 
   const handleSearchReset = () => {
     searchForm.resetFields();
-    // 僅清空表單，不呼叫 resetParams()，避免自動觸發 API 查詢
   };
 
-
   const renderSearchTags = () => {
-    const searchKeys = ['CodeOrName', 'Type'];
-    const activeFilters: React.ReactNode[] = [];
-    
-    searchKeys.forEach(key => {
-      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
-        let label = key;
-        let valueStr = String(params[key]);
-        if (key === 'CodeOrName') label = '編號或名稱';
-        if (key === 'Type') label = '類型';
-        activeFilters.push(<Tag color="blue" key={key} style={{ fontSize: '13px', padding: '2px 8px' }}>{label}: {valueStr}</Tag>);
-      }
-    });
-
-    if (activeFilters.length === 0) {
-      return <Tag color="default" style={{ margin: 0, fontSize: '13px', padding: '2px 8px' }}>【全部資料】</Tag>;
-    }
-    
-    return <Space size={[0, 8]} wrap>{activeFilters}</Space>;
+    return (
+      <DynamicSearchTags 
+        config={productSearchFormConfig()} 
+        params={params} 
+        onClose={(key) => {
+          setParams({ [key]: undefined, pageNumber: 1 });
+        }} 
+      />
+    );
   };
 
   const openSearchModal = () => {
@@ -296,14 +249,9 @@ export default function StorageList() {
         }}
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              width: '4px',
-              height: '24px',
-              backgroundColor: '#1677ff',
-              borderRadius: '2px'
-            }} />
-            <div style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: 'var(--ant-color-text, inherit)', lineHeight: '24px' }}>
-              儲位管理
+            <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
+            <div style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>
+              產品管理
             </div>
           </div>
         }
@@ -313,29 +261,25 @@ export default function StorageList() {
               type="default"
               icon={<SearchOutlined />}
               onClick={openSearchModal}
-              style={{ fontWeight: 500 }}
             >
               進階查詢
             </Button>
-            {false && (
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />} 
-                onClick={openCreateDrawer}
-                style={{ fontWeight: 500 }}
-              >
-                新增資料
-              </Button>
-            )}
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />} 
+              onClick={openCreateDrawer}
+            >
+              新增產品
+            </Button>
           </Space>
         }
       >
-        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
-          <span style={{ fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
-          <DynamicSearchTags config={storageSearchFormConfig()} params={params} onClose={(key) => setParams({ [key]: undefined, pageNumber: 1 })} />
+        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
+          <span style={{ fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
+          {renderSearchTags()}
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                    <style>{`
+          <style>{`
             .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
             .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
             .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -345,7 +289,6 @@ export default function StorageList() {
             .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
             .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
             .ant-table-thead > tr > th { text-align: center !important; }
-
             /* View-Mode Styling for Single Form */
             .view-mode-form .ant-input-disabled,
             .view-mode-form .ant-input[disabled],
@@ -362,11 +305,8 @@ export default function StorageList() {
                 cursor: default !important;
             }
             .view-mode-form .ant-switch-disabled {
-                opacity: 1 !important;
-                cursor: default !important;
-            }
-            .view-mode-form .ant-select-arrow {
-                display: none !important;
+               opacity: 1 !important;
+               cursor: default !important;
             }
           `}</style>
           <Table
@@ -377,10 +317,10 @@ export default function StorageList() {
             dataSource={listData}
             rowKey="code"
             loading={isFetching}
-            scroll={{ x: 'max-content', y: 300 }}
+            scroll={{ x: 3500, y: 300 }}
             pagination={{
-              current: currentPage,
-              pageSize: currentPageSize,
+              current: params.pageNumber,
+              pageSize: params.pageSize,
               total: totalRecords,
               showSizeChanger: true,
               showTotal: (total) => `共 ${total} 筆資料`,
@@ -408,49 +348,47 @@ export default function StorageList() {
             </Button>
           </div>
         }
-        size={DRAWER_WIDTH_MAIN}
-        style={{ top: '10vh' }}
-        styles={{
-          body: {
-            maxHeight: '80vh',
-            overflowY: 'auto',
-            padding: '24px 24px 0 24px'
-          }
-        }}
-        closeIcon={true}
+        width={DRAWER_WIDTH_SEARCH}
       >
-        <DynamicSearchForm config={storageSearchFormConfig()} form={searchForm} onSearch={handleSearch} />
+        <DynamicSearchForm 
+          config={productSearchFormConfig()} 
+          form={searchForm} 
+          onSearch={handleSearch} 
+        />
       </Modal>
 
       <Drawer
         title={
           <DrawerTitle
-            moduleName="儲位管理"
+            moduleName="產品管理"
             isCreate={isCreateDrawerOpen}
             isEdit={isDrawerEditing}
             record={viewData}
-            displayField={(record) => `${record.storageCode || ''} - ${record.name || ''}`.replace(/^ - | - $/g, '')}
+            displayField={(record) => {
+              if (record.code && record.name) return `${record.code} - ${record.name}`;
+              return record.code || record.name || '';
+            }}
           />
         }
         placement="right"
-        size={DRAWER_WIDTH_MAIN}
+        width={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={
           <Space>
-            {(!isDrawerEditing && !isCreateDrawerOpen && false) && (
-              <Button type="primary" icon={<EditOutlined />} onClick={startEditMode}>編輯</Button>
+            {(!isDrawerEditing && !isCreateDrawerOpen) && (
+              <Button type="primary" icon={<EditOutlined />} onClick={startEditMode}>編輯主檔</Button>
             )}
-            {(isDrawerEditing || isCreateDrawerOpen) && (
+            {(isDrawerEditing || isCreateDrawerOpen) && activeTab === 'master_info' && (
               <>
                 <Button 
                   type="primary" 
                   htmlType="submit"
-                  form="storageForm"
+                  form="productForm"
                   icon={<SaveOutlined />} 
                   loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
                 >
-                  儲存
+                  儲存主檔
                 </Button>
                 <Button onClick={handleCancel}>取消</Button>
               </>
@@ -458,15 +396,48 @@ export default function StorageList() {
           </Space>
         }
       >
-                <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
-          <DynamicForm
-            formId="storageForm"
-            fields={mainFormConfig()}
-            defaultValues={formDefaultValues}
-            onSubmit={handleCrudSubmit}
-            isUpdateMode={isDrawerEditing}
-            isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
-            hideDefaultFooter={true}
+        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+          <MasterDetailTabs
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            isCreateMode={isCreateDrawerOpen}
+            isEditMode={isDrawerEditing}
+            viewId={viewId}
+            entityType="Product"
+            masterContent={
+              <DynamicForm
+                key={isCreateDrawerOpen ? 'create' : (viewId || 'empty')}
+                defaultValues={isCreateDrawerOpen ? { 
+                  isActive: true,
+                  type: '0002', // 0002 預設對應 "量產"
+                  customerMoldFee: 0,
+                  unitPrice: 0
+                } : viewData}
+                fields={mainFormConfig()}
+                onSubmit={handleCrudSubmit}
+                isUpdateMode={isDrawerEditing}
+                isViewMode={isViewMode}
+                formId="productForm"
+                hideDefaultFooter={true}
+              />
+            }
+            detailTabs={[
+              {
+                key: 'attachments',
+                label: '附件檔案',
+                children: <ProductAttachments productCode={viewData?.code} isViewMode={isViewMode} />
+              },
+              {
+                key: 'molds',
+                label: '模具規格',
+                children: <ProductMolds productCode={viewData?.code} isViewMode={isViewMode} />
+              },
+              {
+                key: 'bom',
+                label: 'BOM 表',
+                children: <ProductBom productCode={viewData?.code} isViewMode={isViewMode} />
+              }
+            ]}
           />
         </Spin>
       </Drawer>

@@ -39,6 +39,20 @@ export const DICTIONARY_REGISTRY = {
     fieldNames: { label: '_displayName', value: '_value' }
   },
 
+  // 產品類型
+  PRODUCT_TYPE: {
+    queryFn: async () => {
+      const res = await getApiV1GeneralTypesGetTypes({ query: { types: ['FPType'] } });
+      const rawData = (res.data as any)?.data?.FPType || (res.data as any)?.FPType || [];
+      return rawData.map((item: any) => ({
+        ...item,
+        _displayName: item.desc || item.code || item,
+        _value: item.code || item
+      }));
+    },
+    fieldNames: { label: '_displayName', value: '_value' }
+  },
+
   // 模具類型
   MOLD_TYPE: {
     queryFn: async () => {
@@ -106,6 +120,20 @@ export const DICTIONARY_REGISTRY = {
       }));
     },
     fieldNames: { label: '_displayName', value: 'code' },
+  },
+
+  // 組成方式
+  COMPOSITION_TYPE: {
+    queryFn: async () => {
+      const res = await getApiV1GeneralTypesGetTypes({ query: { types: ['CompositionType'] } });
+      const rawData = (res.data as any)?.data?.CompositionType || (res.data as any)?.CompositionType || [];
+      return rawData.map((item: any) => ({
+        ...item,
+        _displayName: item.desc || item.code || item,
+        _value: item.code || item
+      }));
+    },
+    fieldNames: { label: '_displayName', value: '_value' }
   }
 };
 

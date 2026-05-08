@@ -18,6 +18,7 @@ import GeneralTypeLayout from '@/pages/system/GeneralType/GeneralTypeLayout';
 import StorageList from '@/pages/warehouse/StorageList';
 import StorageInventoryList from '@/pages/warehouse/StorageInventory/StorageInventoryList';
 import StorageTransactionsList from '@/pages/warehouse/StorageTransactions/StorageTransactionsList';
+import ProductsList from '@/pages/warehouse/Products/ProductsList';
 import MaterialList from '@/pages/purchase/Material/MaterialList';
 import MoldList from '@/pages/production/MoldList';
 import MachineList from '@/pages/production/MachineList';
@@ -61,6 +62,7 @@ export const router = createBrowserRouter([
       { path: 'warehouse/storages/:viewId?', element: <StorageList /> },
       { path: 'warehouse/inventory', element: <StorageInventoryList /> },
       { path: 'warehouse/inventory-movements', element: <StorageTransactionsList /> },
+      { path: 'warehouse/products/:viewId?', element: <ProductsList /> },
       { path: 'purchase/materials/:viewId?', element: <MaterialList /> },
       { path: 'production-quality/molds/:viewId?', element: <MoldList /> },
       { path: 'production-quality/machines/:viewId?', element: <MachineList /> },

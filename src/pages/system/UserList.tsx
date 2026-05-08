@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { getApiErrorMessage } from "@/utils/apiError";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import type { InputRef } from 'antd';
@@ -135,7 +136,7 @@ export default function UserList() {
       queryClient.invalidateQueries({ queryKey: ['userList'] });
     },
     onError: (error: any) => {
-      modalApi.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(error)}` });
     }
   });
 
@@ -149,7 +150,7 @@ export default function UserList() {
       queryClient.invalidateQueries({ queryKey: ['userDetail'] });
     },
     onError: (error: any) => {
-      modalApi.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${getApiErrorMessage(error)}` });
     }
   });
 
@@ -161,7 +162,7 @@ export default function UserList() {
       queryClient.invalidateQueries({ queryKey: ['userDetail'] });
     },
     onError: (error: any) => {
-      modalApi.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
     }
   });
 
@@ -203,7 +204,7 @@ export default function UserList() {
       queryClient.invalidateQueries({ queryKey: ['userList'] });
     },
     onError: (error: any) => {
-      modalApi.error({ centered: true, title: '錯誤提示', content: `重新啟用失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: `重新啟用失敗: ${getApiErrorMessage(error)}` });
     }
   });
 
@@ -239,7 +240,7 @@ export default function UserList() {
       queryClient.invalidateQueries({ queryKey: ['userDetail'] });
     },
     onError: (error: any) => {
-      modalApi.error({ centered: true, title: '錯誤提示', content: `狀態更新失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: `狀態更新失敗: ${getApiErrorMessage(error)}` });
     }
   });
 

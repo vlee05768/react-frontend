@@ -5,6 +5,7 @@ import type { Control, UseFormSetValue, UseFormTrigger } from 'react-hook-form';
 import { z } from 'zod';
 import type { FieldConfig, FormContext } from './types';
 import { DictSelect } from './DictSelect';
+import { AsyncSelect } from './AsyncSelect';
 
 interface DynamicFieldProps {
   config: FieldConfig;
@@ -66,7 +67,15 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
         // 處理 onChange 連動
         const handleChange = (val: any) => {
           // Antd 的 Input 等事件帶的是 React.ChangeEvent，或者直接是 value
-          const value = val?.target ? val.target.value : val;
+          let value = val?.target ? val.target.value : val;
+          
+          // 代碼類 (Code) 欄位處理：轉大寫並過濾非 ASCII 字符 (如中文)
+          if (componentProps?.isCode) {
+             if (typeof value === 'string') {
+                value = value.toUpperCase().replace(/[^\x20-\x7E]/g, '');
+             }
+          }
+
           field.onChange(value); // 更新 RHF 狀態
           
           if (config.onChange) {
@@ -170,6 +179,9 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
             break;
           case 'DictSelect':
             ComponentNode = renderWithTooltip(<DictSelect {...(commonProps as any)} />);
+            break;
+          case 'AsyncSelect':
+            ComponentNode = renderWithTooltip(<AsyncSelect {...(commonProps as any)} />);
             break;
           case 'InputNumber':
             ComponentNode = renderWithTooltip(<InputNumber {...commonProps} />);

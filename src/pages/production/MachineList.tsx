@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { getApiErrorMessage } from "@/utils/apiError";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import type { InputRef } from 'antd';
@@ -125,7 +126,7 @@ export default function MachineList() {
       queryClient.invalidateQueries({ queryKey: ['machineList'] });
     },
     onError: (error: any) => {
-      Modal.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      Modal.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(error)}` });
     }
   });
 
@@ -140,7 +141,7 @@ export default function MachineList() {
       queryClient.invalidateQueries({ queryKey: ['machineDetail'] });
     },
     onError: (error: any) => {
-      Modal.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      Modal.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${getApiErrorMessage(error)}` });
     }
   });
 
@@ -152,7 +153,7 @@ export default function MachineList() {
       queryClient.invalidateQueries({ queryKey: ['machineDetail'] });
     },
     onError: (error: any) => {
-      Modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      Modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
     }
   });
 

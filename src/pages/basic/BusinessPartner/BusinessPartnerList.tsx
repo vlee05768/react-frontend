@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { getApiErrorMessage } from "@/utils/apiError";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useMemo } from 'react';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
@@ -121,7 +122,7 @@ export default function BusinessPartnerList() {
       queryClient.invalidateQueries({ queryKey: ['bpList'] });
     },
     onError: (error: any) => {
-      modalApi.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(error)}` });
     }
   });
 
@@ -135,7 +136,7 @@ export default function BusinessPartnerList() {
       queryClient.invalidateQueries({ queryKey: ['bpDetail'] });
     },
     onError: (error: any) => {
-      modalApi.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${getApiErrorMessage(error)}` });
     }
   });
 
@@ -147,7 +148,7 @@ export default function BusinessPartnerList() {
       queryClient.invalidateQueries({ queryKey: ['bpDetail'] });
     },
     onError: (error: any) => {
-      modalApi.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${error?.response?.data?.message || '未知錯誤'}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
     }
   });
 

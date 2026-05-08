@@ -6,6 +6,7 @@ export type ComponentType =
   | 'TextArea'
   | 'Select' 
   | 'DictSelect'
+  | 'AsyncSelect'
   | 'InputNumber' 
   | 'DatePicker' 
   | 'Switch' 

@@ -10,7 +10,7 @@ export const DRAWER_WIDTH_SEARCH = '40vw'; // 查詢側邊欄 (例如：進階�
 
 // --- Pagination 分頁設定 ---
 export const DEFAULT_PAGE_SIZE = 20;       // 預設每頁筆數
-export const MAX_PAGE_SIZE = 100;          // 下拉選單、字典檔無分頁時預設抓取的最大筆數
+export const MAX_PAGE_SIZE = 100;
 export const PAGE_SIZE_OPTIONS = ['10', '20', '50', '100']; // 可選每頁筆數
 
 // --- 時間/延遲設定 ---
