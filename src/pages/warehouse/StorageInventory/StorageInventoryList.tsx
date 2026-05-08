@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Card, Table, Tabs, Button, Space, Form, Input, Select } from 'antd';
+import { Card, Table, Tabs, Button, Space, Form, Input, Select, ConfigProvider } from 'antd';
 import { SearchOutlined, ClearOutlined, SyncOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { getApiV1StorageInventory } from '@/api/generated/sdk.gen';
@@ -142,34 +142,34 @@ export default function StorageInventoryList() {
 
   // Shared Sub Columns
   const subColumnsForInventory = [
-    { title: '儲位編號', dataIndex: 'storageCode', width: 120 },
-    { title: '儲位名稱', dataIndex: 'storageName', render: (val: string) => <EllipsisText text={val} /> },
     { title: '儲位類別', dataIndex: 'storageType', align: 'center', width: 100 },
+    { title: '儲位編號', dataIndex: 'storageCode', width: 200 },
+    { title: '儲位名稱', dataIndex: 'storageName', render: (val: string) => <EllipsisText text={val} /> },
     { title: '庫存量', dataIndex: 'quantity', align: 'right', width: 120, render: renderQuantity },
     { title: '最後更新時間', dataIndex: 'updatedAt', width: 180, render: (val: string) => val ? dayjs(val).format('YYYY/MM/DD HH:mm:ss') : '-' },
   ];
 
   const subColumnsForStorage = [
+    { title: '庫存類型', dataIndex: 'type', align: 'center', width: 100, render: (val: string) => inventoryTypeOptions.find(o => o.value === val)?.label || '-' },
     { title: '物料編號', dataIndex: 'inventoryCode', width: 150 },
     { title: '物料名稱', dataIndex: 'inventoryName', render: (val: string) => <EllipsisText text={val} /> },
-    { title: '庫存類型', dataIndex: 'type', align: 'center', width: 100, render: (val: string) => inventoryTypeOptions.find(o => o.value === val)?.label || '-' },
     { title: '庫存量', dataIndex: 'quantity', align: 'right', width: 120, render: renderQuantity },
     { title: '最後更新時間', dataIndex: 'updatedAt', width: 180, render: (val: string) => val ? dayjs(val).format('YYYY/MM/DD HH:mm:ss') : '-' },
   ];
 
   // Master Columns
   const inventoryMasterColumns = [
-    { title: '物料編號', dataIndex: 'inventoryCode', width: 150 },
-    { title: '物料名稱', dataIndex: 'inventoryName', render: (val: string) => <EllipsisText text={val} /> },
     { title: '庫存類型', dataIndex: 'type', align: 'center', width: 100, render: (val: string) => inventoryTypeOptions.find(o => o.value === val)?.label || '-' },
+    { title: '物料編號', dataIndex: 'inventoryCode', width: 250 },
+    { title: '物料名稱', dataIndex: 'inventoryName', render: (val: string) => <EllipsisText text={val} /> },
     { title: '總庫存量', dataIndex: 'totalQuantity', align: 'right', width: 120, render: (val: number) => val.toLocaleString('zh-TW') },
     { title: '儲位數', dataIndex: 'storageCount', align: 'right', width: 100 },
   ];
 
   const storageMasterColumns = [
-    { title: '儲位編號', dataIndex: 'storageCode', width: 150 },
-    { title: '儲位名稱', dataIndex: 'storageName', render: (val: string) => <EllipsisText text={val} /> },
     { title: '儲位類別', dataIndex: 'storageType', align: 'center', width: 100 },
+    { title: '儲位編號', dataIndex: 'storageCode', width: 200 },
+    { title: '儲位名稱', dataIndex: 'storageName', render: (val: string) => <EllipsisText text={val} /> },
     { title: '總庫存量', dataIndex: 'totalQuantity', align: 'right', width: 120, render: (val: number) => val.toLocaleString('zh-TW') },
     { title: '物料數', dataIndex: 'inventoryCount', align: 'right', width: 100 },
   ];
@@ -211,14 +211,33 @@ export default function StorageInventoryList() {
               columns={inventoryMasterColumns as any}
               expandable={{
                 expandedRowRender: (record) => (
-                  <Table
-                    rowKey={(r) => r.storageCode + r.updatedAt}
-                    columns={subColumnsForInventory as any}
-                    dataSource={record.items}
-                    pagination={false}
-                    size="small"
-                    style={{ margin: '8px 0', backgroundColor: mode === 'dark' ? '#1f1f1f' : '#fafafa' }}
-                  />
+                  <ConfigProvider
+                    theme={{
+                      components: {
+                        Table: {
+                          colorBgContainer: mode === 'dark' ? '#1a1a1a' : '#f8fafc',
+                          headerBg: mode === 'dark' ? '#262626' : '#e2e8f0',
+                          headerColor: mode === 'dark' ? '#d4d4d4' : '#475569',
+                          borderColor: mode === 'dark' ? '#303030' : '#cbd5e1',
+                        },
+                      },
+                    }}
+                  >
+                    <div className={`mx-4 my-2 p-4 rounded-lg border-l-4 ${mode === 'dark' ? 'bg-[#1a1a1a] border-blue-600 shadow-inner' : 'bg-slate-50 border-blue-500 shadow-sm'}`}>
+                      <div className="mb-3 text-sm font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block"></span>
+                        物料 ({record.inventoryCode}) 於各儲位分布明細
+                      </div>
+                      <Table
+                        rowKey={(r) => r.storageCode + r.updatedAt}
+                        columns={subColumnsForInventory as any}
+                        dataSource={record.items}
+                        pagination={false}
+                        size="small"
+                        bordered
+                      />
+                    </div>
+                  </ConfigProvider>
                 ),
               }}
               pagination={false}
@@ -232,14 +251,33 @@ export default function StorageInventoryList() {
               columns={storageMasterColumns as any}
               expandable={{
                 expandedRowRender: (record) => (
-                  <Table
-                    rowKey={(r) => r.inventoryCode + r.updatedAt}
-                    columns={subColumnsForStorage as any}
-                    dataSource={record.items}
-                    pagination={false}
-                    size="small"
-                    style={{ margin: '8px 0', backgroundColor: mode === 'dark' ? '#1f1f1f' : '#fafafa' }}
-                  />
+                  <ConfigProvider
+                    theme={{
+                      components: {
+                        Table: {
+                          colorBgContainer: mode === 'dark' ? '#1a1a1a' : '#f0fdf4',
+                          headerBg: mode === 'dark' ? '#262626' : '#dcfce7',
+                          headerColor: mode === 'dark' ? '#d4d4d4' : '#166534',
+                          borderColor: mode === 'dark' ? '#303030' : '#bbf7d0',
+                        },
+                      },
+                    }}
+                  >
+                    <div className={`mx-4 my-2 p-4 rounded-lg border-l-4 ${mode === 'dark' ? 'bg-[#1a1a1a] border-green-600 shadow-inner' : 'bg-green-50 border-green-500 shadow-sm'}`}>
+                      <div className="mb-3 text-sm font-bold text-green-700 dark:text-green-400 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
+                        儲位 ({record.storageCode}) 之物料庫存明細
+                      </div>
+                      <Table
+                        rowKey={(r) => r.inventoryCode + r.updatedAt}
+                        columns={subColumnsForStorage as any}
+                        dataSource={record.items}
+                        pagination={false}
+                        size="small"
+                        bordered
+                      />
+                    </div>
+                  </ConfigProvider>
                 ),
               }}
               pagination={false}
