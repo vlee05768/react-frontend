@@ -27,6 +27,10 @@ export default function StorageInventoryList() {
 
   const [activeTab, setActiveTab] = useState<string>('1');
 
+  // Add states for expanded rows
+  const [expandedInventoryKeys, setExpandedInventoryKeys] = useState<readonly React.Key[]>([]);
+  const [expandedStorageKeys, setExpandedStorageKeys] = useState<readonly React.Key[]>([]);
+
   useEffect(() => {
     const newStorageCode = searchParams.get('storageCode') || undefined;
     const newInventoryCode = searchParams.get('inventoryCode') || undefined;
@@ -34,8 +38,14 @@ export default function StorageInventoryList() {
 
     if (newStorageCode) {
       setActiveTab('2');
+      setExpandedStorageKeys([newStorageCode]);
+      setExpandedInventoryKeys([]);
     } else {
       setActiveTab('1');
+      if (newInventoryCode) {
+        setExpandedInventoryKeys([newInventoryCode]);
+        setExpandedStorageKeys([]);
+      }
     }
 
     setQueryParams(prev => {
@@ -218,6 +228,8 @@ export default function StorageInventoryList() {
               dataSource={inventoryGroups}
               columns={inventoryMasterColumns as any}
               expandable={{
+                expandedRowKeys: expandedInventoryKeys,
+                onExpandedRowsChange: setExpandedInventoryKeys,
                 expandedRowRender: (record) => (
                   <ConfigProvider
                     theme={{
@@ -258,6 +270,8 @@ export default function StorageInventoryList() {
               dataSource={storageGroups}
               columns={storageMasterColumns as any}
               expandable={{
+                expandedRowKeys: expandedStorageKeys,
+                onExpandedRowsChange: setExpandedStorageKeys,
                 expandedRowRender: (record) => (
                   <ConfigProvider
                     theme={{
