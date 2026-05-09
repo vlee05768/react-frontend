@@ -140,10 +140,10 @@ export default function InventoryAdjustmentList() {
 
   const confirmMutation = useMutation({
     mutationFn: (id: string) => postApiV1InventoryAdjustmentByMovementNumberConfirm({ path: { movementNumber: id } }),
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       messageApi.success('確認成功');
       queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentList'] });
-      queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentDetail', viewId] });
+      queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentDetail', id] });
     },
     onError: (err: any) => {
       messageApi.error(getApiErrorMessage(err, '確認失敗'));
@@ -152,10 +152,10 @@ export default function InventoryAdjustmentList() {
 
   const cancelConfirmMutation = useMutation({
     mutationFn: (id: string) => postApiV1InventoryAdjustmentByMovementNumberCancelConfirm({ path: { movementNumber: id } }),
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       messageApi.success('取消確認成功');
       queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentList'] });
-      queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentDetail', viewId] });
+      queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentDetail', id] });
     },
     onError: (err: any) => {
       messageApi.error(getApiErrorMessage(err, '取消確認失敗'));
@@ -210,7 +210,7 @@ export default function InventoryAdjustmentList() {
                   centered: true,
                   width: 400,
                   okButtonProps: { danger: true },
-                  onOk: () => deleteMutation.mutate(record.documentNumber)
+                  onOk: () => deleteMutation.mutateAsync(record.documentNumber)
                 });
               }}
             />
@@ -365,7 +365,7 @@ export default function InventoryAdjustmentList() {
                         content: '確定要確認此單據？',
                         centered: true,
                         width: 400,
-                        onOk: () => confirmMutation.mutate(viewData?.documentNumber)
+                        onOk: () => confirmMutation.mutateAsync(viewData?.documentNumber)
                       });
                     }}
                     loading={confirmMutation.isPending}
@@ -386,7 +386,7 @@ export default function InventoryAdjustmentList() {
                         centered: true,
                         width: 400,
                         okButtonProps: { danger: true },
-                        onOk: () => cancelConfirmMutation.mutate(viewData?.documentNumber)
+                        onOk: () => cancelConfirmMutation.mutateAsync(viewData?.documentNumber)
                       });
                     }}
                   >
