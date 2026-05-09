@@ -34,7 +34,13 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
     enabled: !!documentNumber,
   });
 
-  const listData: any[] = (data?.data as any)?.data || data?.data || [];
+  const listData: any[] = Array.isArray((data?.data as any)?.data?.data) 
+    ? (data?.data as any).data.data 
+    : Array.isArray((data?.data as any)?.data) 
+      ? (data?.data as any).data 
+      : Array.isArray(data?.data)
+        ? data.data
+        : [];
   
   // Notice to parent about our edit state
   React.useEffect(() => {
