@@ -58,6 +58,7 @@ export default function ProductsList() {
 
   const [searchForm] = Form.useForm();
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
+  const [isBomEditing, setIsBomEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   
   useEffect(() => {
@@ -371,13 +372,13 @@ export default function ProductsList() {
           />
         }
         placement="right"
-        width={DRAWER_WIDTH_MAIN}
+        size={DRAWER_WIDTH_MAIN as any}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
         extra={
           <Space>
             {(!isDrawerEditing && !isCreateDrawerOpen) && (
-              <Button type="primary" icon={<EditOutlined />} onClick={startEditMode}>編輯主檔</Button>
+              <Button type="primary" icon={<EditOutlined />} onClick={startEditMode} disabled={isBomEditing}>編輯主檔</Button>
             )}
             {(isDrawerEditing || isCreateDrawerOpen) && activeTab === 'master_info' && (
               <>
@@ -404,6 +405,7 @@ export default function ProductsList() {
             isEditMode={isDrawerEditing}
             viewId={viewId}
             entityType="Product"
+            disableTabSwitching={isBomEditing} // 新增此行，當 BOM 在編輯狀態時鎖定所有 Tab 切換
             masterContent={
               <DynamicForm
                 key={isCreateDrawerOpen ? 'create' : (viewId || 'empty')}
@@ -435,7 +437,7 @@ export default function ProductsList() {
               {
                 key: 'bom',
                 label: 'BOM 表',
-                children: <ProductBom productCode={viewData?.code} isViewMode={isViewMode} />
+                children: <ProductBom productCode={viewData?.code} isViewMode={isViewMode} onEditingChange={setIsBomEditing} />
               }
             ]}
           />

@@ -1,13 +1,19 @@
 import { useState } from 'react';
 import { Table, Button, message, Select, Popconfirm, Tag, theme } from 'antd';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueries, useQueryClient } from '@tanstack/react-query';
 import { 
   getApiV1ProductByProductCodeMolds, 
-  getApiV1Mold,
+  getApiV1ProductAvailableMolds,
   postApiV1ProductByProductCodeMoldsBatch,
-  deleteApiV1ProductByProductCodeMoldsByMoldCode
+  deleteApiV1ProductByProductCodeMoldsByMoldCode,
+  getApiV1MoldByCode
 } from '@/api/generated/sdk.gen';
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+
+import { productMoldTableColumns } from '../ProductConfig';
+import { buildTableColumns } from '@/utils/tableUtils';
+
+import { DictLabel } from '@/components/Form/DictLabel';
 
 interface Props {
   productCode: string;
@@ -20,24 +26,45 @@ export default function ProductMolds({ productCode, isViewMode: isMasterViewMode
   const [selectedMold, setSelectedMold] = useState<string | null>(null);
 
   // 取得目前已關聯的模具
-  const { data: linkedMolds, isLoading } = useQuery({
-    queryKey: ['productMolds', productCode],
-    queryFn: async () => {
-      const res = await getApiV1ProductByProductCodeMolds({ path: { productCode } });
-      return res.data?.data?.data || [];
-    },
-    enabled: !!productCode
-  });
+    const { data: linkedMolds, isLoading: linkedMoldsLoading } = useQuery({
+      queryKey: ['productMolds', productCode],
+      queryFn: async () => {
+        const res = await getApiV1ProductByProductCodeMolds({ path: { productCode }, query: { pageSize: 100 } });
+        return res.data?.data?.data || [];
+      },
+      enabled: !!productCode
+    });
 
-  // 取得所有可用模具 (用於 Select 搜尋)
-  const { data: allMoldsData, isLoading: moldsLoading } = useQuery({
-    queryKey: ['moldsForSelect'],
-    queryFn: async () => {
-      // 假設可用 getApiV1Mold 取得模具清單 (視實際 API 狀況調整，也可以用 autocomplete)
-      const res = await getApiV1Mold({ query: { pageSize: 1000 } });
-      return (res.data as any)?.data?.data || [];
-    }
-  });
+    // 取得所有已關聯模具的詳細資料 (因為 availableMolds 可能會排除已被使用的模具)
+    const moldDetailsQueries = useQueries({
+      queries: (linkedMolds || []).map((m: any) => ({
+        queryKey: ['moldDetails', m.moldCode],
+        queryFn: async () => {
+          const res = await getApiV1MoldByCode({ path: { code: m.moldCode } });
+          return res.data?.data || {};
+        },
+        enabled: !!m.moldCode,
+        staleTime: 5 * 60 * 1000, // 快取 5 分鐘
+      }))
+    });
+
+    // 將所有詳情結果組成 mapping 方便查找
+    const moldDetailsMap = moldDetailsQueries.reduce((acc: any, query: any, index: number) => {
+      const moldCode = linkedMolds?.[index]?.moldCode;
+      if (moldCode && query.data) {
+        acc[moldCode] = query.data;
+      }
+      return acc;
+    }, {});
+
+    // 取得所有可用模具 (用於 Select 搜尋)
+    const { data: allMoldsData, isLoading: moldsLoading } = useQuery({
+      queryKey: ['moldsForSelect'],
+      queryFn: async () => {
+        const res = await getApiV1ProductAvailableMolds();
+        return (res.data as any)?.data || [];
+      }
+    });
 
   const handleAdd = async () => {
     if (!selectedMold) {
@@ -73,34 +100,30 @@ export default function ProductMolds({ productCode, isViewMode: isMasterViewMode
   const linkedMoldCodes = linkedMolds?.map((m: any) => m.moldCode) || [];
   const availableMolds = allMoldsData?.filter((m: any) => !linkedMoldCodes.includes(m.code)) || [];
 
-  const columns = [
-    { title: '模具編號', dataIndex: 'moldCode', key: 'moldCode', width: 150 },
-    { title: '模具名稱', dataIndex: 'moldName', key: 'moldName', width: 200 },
-    { 
-      title: '狀態', 
-      dataIndex: 'isActive', 
-      key: 'isActive', 
-      width: 100,
-      render: (isActive: boolean) => (
-        <Tag color={isActive ? 'success' : 'error'}>
-          {isActive ? '啟用' : '停用'}
-        </Tag>
-      )
-    },
-    {
-      title: '操作',
-      key: 'action',
-      width: 100,
-      render: (_: any, record: any) => isMasterViewMode ? (
-        <Popconfirm 
-          title="確定要移除此關聯？" 
-          onConfirm={() => handleDelete(record.moldCode)}
-        >
-          <Button type="text" danger icon={<DeleteOutlined />} />
-        </Popconfirm>
-      ) : null
-    }
-  ];
+  const enrichedLinkedMolds = linkedMolds?.map((linked: any) => {
+    const detail = moldDetailsMap[linked.moldCode] || {};
+    return {
+      ...detail, // 將詳情資料混入，提供類別、尺寸、形狀等欄位
+      ...linked, // 保留原有的關聯狀態 (例如：isActive)
+    };
+  }) || [];
+
+  const actionColumn = {
+    title: '操作',
+    key: 'action',
+    width: 70,
+    align: 'center' as const,
+    render: (_: any, record: any) => isMasterViewMode ? (
+      <Popconfirm 
+        title="確定要移除此關聯？" 
+        onConfirm={() => handleDelete(record.moldCode)}
+      >
+        <Button type="text" danger icon={<DeleteOutlined />} size="small" />
+      </Popconfirm>
+    ) : null
+  };
+
+  const columns = buildTableColumns(productMoldTableColumns(), actionColumn);
 
   return (
     <div className="flex flex-col gap-4">
@@ -123,9 +146,38 @@ export default function ProductMolds({ productCode, isViewMode: isMasterViewMode
             onChange={setSelectedMold}
             loading={moldsLoading}
             options={availableMolds.map((m: any) => ({
-              label: `${m.code} - ${m.name}`,
-              value: m.code
+              label: m.name?.trim() ? `${m.code} (${m.name})` : m.code,
+              value: m.code,
+              ...m
             }))}
+            optionRender={(option) => {
+              const m = option.data;
+              return (
+                <div className="flex flex-col py-1">
+                  <div className="font-medium text-[14px]">
+                    {m.name?.trim() ? `${m.code} (${m.name})` : m.code}
+                  </div>
+                  <div className="text-[12px] mt-1 flex flex-wrap gap-2 items-center leading-none opacity-60">
+                    {(m.type || m.typeName) && (
+                      <Tag bordered={false} className="m-0 leading-none py-0.5 text-blue-600 bg-blue-50">
+                        <DictLabel dictKey="MOLD_TYPE" value={m.type || m.typeName} />
+                      </Tag>
+                    )}
+                    {(m.shape || m.shapeName) && (
+                      <span>
+                        形狀: <DictLabel dictKey="MOLD_SHAPE" value={m.shape || m.shapeName} />
+                      </span>
+                    )}
+                    {(m.dimensionLMm != null || m.dimensionWMm != null || m.dimensionHMm != null) ? (
+                      <span>
+                        尺寸: {m.dimensionLMm || 0}x{m.dimensionWMm || 0}x{m.dimensionHMm || 0}
+                      </span>
+                    ) : null}
+                    {m.supplierName && <span>供應商: {m.supplierName}</span>}
+                  </div>
+                </div>
+              );
+            }}
           />
           <Button 
             type="primary" 
@@ -140,11 +192,12 @@ export default function ProductMolds({ productCode, isViewMode: isMasterViewMode
 
       <Table
         columns={columns}
-        dataSource={linkedMolds || []}
+        dataSource={enrichedLinkedMolds}
         rowKey="moldCode"
         size="small"
-        loading={isLoading}
+        loading={linkedMoldsLoading || moldsLoading || moldDetailsQueries.some(q => q.isLoading)}
         pagination={false}
+        scroll={{ x: 'max-content' }}
       />
     </div>
   );

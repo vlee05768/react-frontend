@@ -254,7 +254,7 @@ export default function StorageTransactionsList() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Card bordered={false} className="shadow-sm">
+      <Card variant="borderless" className="shadow-sm">
         <Form 
           form={form} 
           layout="vertical"
@@ -318,7 +318,7 @@ export default function StorageTransactionsList() {
         </Form>
       </Card>
 
-      <Card bordered={false} className="shadow-sm" bodyStyle={{ padding: 0 }}>
+      <Card variant="borderless" className="shadow-sm" bodyStyle={{ padding: 0 }}>
         <Table
           rowKey={(record: InventoryTransactionDto) => `${record.transactionId}_${record.createdAt}`}
           dataSource={listData}

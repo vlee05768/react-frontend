@@ -112,10 +112,12 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
         // 判斷是否為必填
         const isRequired = typeof config.required === 'function' ? config.required(context) : config.required;
 
+        const { isCode, ...safeComponentProps } = componentProps || {};
+
         const commonProps = {
           ...field,
-          ...componentProps,
-          className: componentProps?.className ? `${componentProps.className} w-full` : 'w-full',
+          ...safeComponentProps,
+          className: safeComponentProps?.className ? `${safeComponentProps.className} w-full` : 'w-full',
           onChange: handleChange,
           onBlur: handleBlur,
           disabled: finalDisabled,
@@ -126,10 +128,10 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
               textOverflow: 'ellipsis',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
-              ...componentProps?.style,
+              ...safeComponentProps?.style,
             }
           } : {
-            style: { width: '100%', ...componentProps?.style },
+            style: { width: '100%', ...safeComponentProps?.style },
           }),
         };
 

@@ -8,6 +8,8 @@ import { Tag } from "antd";
 import { EllipsisText } from "@/components/Table/EllipsisText";
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
 
+import { DictLabel } from "@/components/Form/DictLabel";
+
 export const mainTableColumns = (): TableColumnConfig[] => [
   { label: "產品代碼", name: "code", width: 180 },
   {
@@ -21,6 +23,18 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     name: "typeName",
     width: 70,
     render: (val: string) => (val ? <Tag color="blue">{val}</Tag> : null),
+  },
+  {
+    label: "有 BOM",
+    name: "hasBom",
+    width: 90,
+    align: "center",
+    render: (v: boolean | undefined | null) =>
+      v === true ? (
+        <CheckOutlined style={{ color: "green" }} />
+      ) : v === false ? (
+        <CloseOutlined style={{ color: "red" }} />
+      ) : null,
   },
   { label: "單位", name: "unit", width: 70 },
   {
@@ -85,18 +99,6 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   { label: "包裝方式", name: "packingMethod", width: 120 },
   { label: "安全庫存", name: "safetyStock", width: 120, align: "right" },
   { label: "再訂購點", name: "reorderPoint", width: 120, align: "right" },
-  {
-    label: "有 BOM",
-    name: "hasBom",
-    width: 90,
-    align: "center",
-    render: (v: boolean | undefined | null) =>
-      v === true ? (
-        <CheckOutlined style={{ color: "green" }} />
-      ) : v === false ? (
-        <CloseOutlined style={{ color: "red" }} />
-      ) : null,
-  },
   {
     label: "狀態",
     name: "isActive",
@@ -346,5 +348,112 @@ export const productSearchFormConfig = (): SearchFieldConfig[] => [
     label: "其他雜項",
     componentType: "Input",
     colSpan: 24,
+  },
+];
+
+export const productMoldTableColumns = (): TableColumnConfig[] => [
+  { name: 'moldCode', label: '模具編號', width: 140 },
+  { name: 'moldName', label: '模具名稱', width: 180 },
+  { 
+    name: 'type', 
+    label: '模具類別', 
+    width: 100,
+    render: (val: any, record: any) => <DictLabel dictKey="MOLD_TYPE" value={val || record.typeName} />
+  },
+  { 
+    name: 'shape', 
+    label: '形狀', 
+    width: 100, 
+    render: (val: any, record: any) => <DictLabel dictKey="MOLD_SHAPE" value={val || record.shapeName} /> 
+  },
+  { 
+    name: 'dimensions', 
+    label: '尺寸 (L x W x H)', 
+    width: 140,
+    render: (_: any, record: any) => {
+      if (record.dimensionLMm != null || record.dimensionWMm != null || record.dimensionHMm != null) {
+        return `${record.dimensionLMm || 0} x ${record.dimensionWMm || 0} x ${record.dimensionHMm || 0}`;
+      }
+      return '-';
+    }
+  },
+  { name: 'supplierName', label: '供應商', width: 150, render: (val: string) => val || '-' },
+  { 
+    name: 'isActive', 
+    label: '狀態', 
+    width: 80,
+    align: 'center',
+    render: (isActive: boolean) => (
+      <Tag color={isActive ? 'success' : 'error'} className="m-0">
+        {isActive ? '啟用' : '停用'}
+      </Tag>
+    )
+  }
+];
+
+export const bomItemTableColumns = (): TableColumnConfig[] => [
+  { name: 'materialCode', label: '原料編號', width: 140 },
+  { name: 'materialName', label: '原料名稱', width: 180 },
+  { 
+    name: 'quantity', 
+    label: '需求用量', 
+    width: 110, 
+    align: 'right',
+    render: (val: number) => val != null ? Number(val.toFixed(4)).toLocaleString() : '-'
+  },
+  { 
+    name: 'scrapPercentage', 
+    label: '預計損耗率(%)', 
+    width: 120, 
+    align: 'right',
+    render: (val: number) => val != null ? `${val}%` : '-'
+  },
+  { 
+    name: 'width', 
+    label: '幅寬(mm)', 
+    width: 100, 
+    align: 'right',
+    render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-'
+  },
+  { name: 'specification', label: '規格', width: 140 },
+  { name: 'notes', label: '備註', width: 200 },
+];
+
+export const bomHeaderFormConfig = (): FormFieldConfig[] => [
+  {
+    name: "defaultMachineType",
+    label: "預設機台",
+    componentType: "DictSelect",
+    componentProps: { dictKey: "MACHINE", showSearch: true, optionFilterProp: "_displayName" },
+    editable: "always",
+    colSpan: 4,
+  },
+  {
+    name: "defaultToolingRangeMm",
+    label: "預設跳距(mm)",
+    componentType: "InputNumber",
+    editable: "always",
+    colSpan: 4,
+  },
+  {
+    name: "defaultPunchHolesCount",
+    label: "預設刀穴數",
+    componentType: "InputNumber",
+    editable: "always",
+    colSpan: 4,
+  },
+  {
+    name: "pcsPerSheet",
+    label: "PCS/單張片數",
+    componentType: "InputNumber",
+    editable: "always",
+    colSpan: 4,
+  },
+  {
+    name: "notes",
+    label: "備註",
+    componentType: "TextArea",
+    editable: "always",
+    colSpan: 1,
   },
 ];

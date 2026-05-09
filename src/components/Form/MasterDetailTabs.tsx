@@ -12,6 +12,7 @@ export interface MasterDetailTabsProps {
   masterContent: ReactNode;
   entityType?: string; // e.g. "Material", "BusinessPartner"
   showAttachments?: boolean; // 新增控制是否顯示附件管理的屬性
+  disableTabSwitching?: boolean; // 是否全面停用分頁切換
   detailTabs?: {
     key: string;
     label: string;
@@ -29,14 +30,15 @@ export const MasterDetailTabs: React.FC<MasterDetailTabsProps> = ({
   masterContent,
   entityType,
   showAttachments = false,
+  disableTabSwitching = false,
   detailTabs = [],
 }) => {
   const isViewMode = !isCreateMode && !isEditMode;
 
   // Automatically switch back to master_info if entering create or edit mode
-  // while on the sys_attachments tab (to prevent getting stuck on a disabled tab)
+  // while on a detail tab (to prevent getting stuck on a disabled tab)
   useEffect(() => {
-    if ((isCreateMode || isEditMode) && activeTab === 'sys_attachments') {
+    if ((isCreateMode || isEditMode) && activeTab !== 'master_info') {
       onTabChange('master_info');
     }
   }, [isCreateMode, isEditMode, activeTab, onTabChange]);
@@ -46,6 +48,7 @@ export const MasterDetailTabs: React.FC<MasterDetailTabsProps> = ({
       key: 'master_info',
       label: '主要資訊',
       forceRender: true,
+      disabled: disableTabSwitching,
       children: masterContent,
     },
   ];
@@ -54,7 +57,7 @@ export const MasterDetailTabs: React.FC<MasterDetailTabsProps> = ({
     items.push({
       key: 'sys_attachments',
       label: '附件管理',
-      disabled: !isViewMode || !viewId,
+      disabled: disableTabSwitching || !isViewMode || !viewId,
       children: (
         <div style={{ padding: '16px 0' }}>
           {viewId && (
@@ -74,7 +77,7 @@ export const MasterDetailTabs: React.FC<MasterDetailTabsProps> = ({
       items.push({
         key: tab.key,
         label: tab.label,
-        disabled: tab.disabled || (!isViewMode && !isEditMode) || !viewId,
+        disabled: disableTabSwitching || tab.disabled || !isViewMode || !viewId,
         children: tab.children,
       });
     });

@@ -21,7 +21,8 @@ export const MaterialSelect: React.FC<SelectProps<any>> = (props) => {
       placeholder="搜尋原料編號或名稱"
       options={data?.map((m: any) => ({
         label: `${m.code} - ${m.name}`,
-        value: m.code
+        value: m.code,
+        raw: m
       })) || []}
       {...props}
     />

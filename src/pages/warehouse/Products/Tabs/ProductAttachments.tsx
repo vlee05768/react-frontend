@@ -8,7 +8,7 @@ interface Props {
 
 export default function ProductAttachments({ productCode, isViewMode: isMasterViewMode }: Props) {
   return (
-    <Card size="small" title="產品附件" bordered={false} className="shadow-none">
+    <Card size="small" title="產品附件" variant="borderless" className="shadow-none">
       <FileAttachmentZone
         referenceType="Product"
         referenceId={productCode}

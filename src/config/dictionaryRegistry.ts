@@ -1,4 +1,4 @@
-import { getApiV1Role, getApiV1GeneralTypesGetTypes, getApiV1BusinessPartners, getApiV1Storage } from '@/api/generated/sdk.gen';
+import { getApiV1Role, getApiV1GeneralTypesGetTypes, getApiV1BusinessPartners, getApiV1Storage, getApiV1Machine } from '@/api/generated/sdk.gen';
 import { MAX_PAGE_SIZE } from '@/constants';
 
 export const DICTIONARY_REGISTRY = {
@@ -134,6 +134,20 @@ export const DICTIONARY_REGISTRY = {
       }));
     },
     fieldNames: { label: '_displayName', value: '_value' }
+  },
+
+  // 機台
+  MACHINE: {
+    queryFn: async () => {
+      const res = await getApiV1Machine({ query: { pageSize: MAX_PAGE_SIZE } as any });
+      const rawData = (res.data as any)?.data?.data || (res.data as any)?.data || [];
+      return rawData.map((item: any) => ({
+        ...item,
+        // 顯示為 "機台名稱 (代碼)"
+        _displayName: `${item.name} (${item.code})`, 
+      }));
+    },
+    fieldNames: { label: '_displayName', value: 'code' },
   }
 };
 
