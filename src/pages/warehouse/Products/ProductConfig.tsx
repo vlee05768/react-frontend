@@ -6,7 +6,7 @@ import type {
 } from "@/components/Form/types";
 import { Tag } from "antd";
 import { EllipsisText } from "@/components/Table/EllipsisText";
-import { MaterialSelect } from "@/components/Form/MaterialSelect";
+import { AsyncSelect } from "@/components/Form/AsyncSelect";
 
 export const bomItemFormConfig = (isUpdateMode: boolean = false): FormFieldConfig[] => [
   {
@@ -17,13 +17,14 @@ export const bomItemFormConfig = (isUpdateMode: boolean = false): FormFieldConfi
     hidden: isUpdateMode,
     validation: z.string().min(1, "請選擇原料"),
     customRender: (field, _context, setValue) => (
-      <MaterialSelect
+      <AsyncSelect
         {...field}
+        configKey="MATERIAL"
         onChange={(val: any, opt: any) => {
           field.onChange(val);
-          if (opt?.raw) {
-            setValue("materialName", opt.raw.name);
-            setValue("width", opt.raw.width || undefined);
+          if (opt?.originalData) {
+            setValue("materialName", opt.originalData.name);
+            setValue("width", opt.originalData.width || undefined);
           } else {
             setValue("materialName", "");
             setValue("width", undefined);
@@ -31,14 +32,13 @@ export const bomItemFormConfig = (isUpdateMode: boolean = false): FormFieldConfi
         }}
       />
     ),
-    colSpan: 4,
+    colSpan: 12,
   },
   {
     name: "materialName",
     label: "原料名稱",
     componentType: "Input",
     editable: "never",
-    hidden: isUpdateMode,
     componentProps: { placeholder: "自動帶入" },
     colSpan: 4,
   },
@@ -49,7 +49,7 @@ export const bomItemFormConfig = (isUpdateMode: boolean = false): FormFieldConfi
     editable: "always",
     componentProps: { className: "w-full", min: 0 },
     validation: z.number().min(0, "請輸入需求用量"),
-    colSpan: 12,
+    colSpan: 4,
   },
   {
     name: "scrapPercentage",
@@ -57,7 +57,7 @@ export const bomItemFormConfig = (isUpdateMode: boolean = false): FormFieldConfi
     componentType: "InputNumber",
     editable: "always",
     componentProps: { className: "w-full", min: 0, max: 100 },
-    colSpan: 12,
+    colSpan: 4,
   },
   {
     name: "width",
@@ -65,7 +65,7 @@ export const bomItemFormConfig = (isUpdateMode: boolean = false): FormFieldConfi
     componentType: "InputNumber",
     editable: "always",
     componentProps: { className: "w-full", min: 0 },
-    colSpan: 12,
+    colSpan: 4,
   },
   {
     name: "specification",
