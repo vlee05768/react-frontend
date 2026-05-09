@@ -51,6 +51,8 @@ import { buildTableColumns } from '@/utils/tableUtils';
 import { App } from 'antd';
 import ContactList from './ContactList';
 import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, DRAWER_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';;
+import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
+
 
 // Local store for query params
 export const useBPQueryStore = create((set) => ({
@@ -202,7 +204,7 @@ export default function BusinessPartnerList() {
         <Tooltip title="檢視">
           <Button 
             type="text" 
-            icon={<EyeOutlined />} 
+            icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
             style={{ color: '#1890ff' }} 
             onClick={() => openViewDrawer(record)}
           />
@@ -214,7 +216,7 @@ export default function BusinessPartnerList() {
             okText="確定"
             cancelText="取消"
           >
-            <Button type="text" danger icon={<DeleteOutlined />} />
+            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
           </Popconfirm>
         </Tooltip>
       </Space>
@@ -288,7 +290,7 @@ export default function BusinessPartnerList() {
             </Button>
             <Button 
               type="primary" 
-              icon={<PlusOutlined />} 
+              icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
               onClick={openCreateDrawer}
             >
               新增資料
@@ -410,7 +412,7 @@ export default function BusinessPartnerList() {
         extra={
           <Space>
             {(!isDrawerEditing && !isCreateDrawerOpen) && (
-              <Button type="primary" icon={<EditOutlined />} onClick={startEditMode}>編輯</Button>
+              <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode}>編輯</Button>
             )}
             {(isDrawerEditing || isCreateDrawerOpen) && activeTab === 'master_info' && (
               <>

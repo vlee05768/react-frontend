@@ -12,6 +12,8 @@ import { categoryFormConfig, categoryTableColumns } from './GeneralTypeConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
+import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
+
 
 interface CategoryListProps {
   selectedCode: string | null;
@@ -121,7 +123,7 @@ export default function CategoryList({ selectedCode, onSelect }: CategoryListPro
       render: (_: any, record: any) => (
         <Space size="small" onClick={(e) => e.stopPropagation()}>
           <Tooltip title="編輯">
-            <Button type="text" icon={<EditOutlined />} size="small" onClick={(e) => handleEdit(e, record)} />
+            <Button type="text" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} size="small" onClick={(e) => handleEdit(e, record)} />
           </Tooltip>
           <Tooltip title="刪除">
             <Popconfirm
@@ -130,7 +132,7 @@ export default function CategoryList({ selectedCode, onSelect }: CategoryListPro
               onConfirm={(e) => handleDelete(e as any, record)}
               onCancel={(e) => e?.stopPropagation()}
             >
-              <Button type="text" danger icon={<DeleteOutlined />} size="small" onClick={(e) => e.stopPropagation()} />
+              <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} size="small" onClick={(e) => e.stopPropagation()} />
             </Popconfirm>
           </Tooltip>
         </Space>
@@ -151,7 +153,7 @@ export default function CategoryList({ selectedCode, onSelect }: CategoryListPro
             style={{ width: '100%' }}
             allowClear
           />
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+          <Button type="primary" icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={handleAdd}>
             新增類別
           </Button>
         </Space>

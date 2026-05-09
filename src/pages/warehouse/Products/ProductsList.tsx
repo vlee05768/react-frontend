@@ -31,6 +31,8 @@ import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, DRAWER_WIDTH_
 import ProductMolds from './Tabs/ProductMolds';
 import ProductBom from './Tabs/ProductBom';
 import ProductAttachments from './Tabs/ProductAttachments';
+import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
+
 
 // Local store for query params
 export const useProductQueryStore = create((set) => ({
@@ -182,7 +184,7 @@ export default function ProductsList() {
         <Tooltip title="檢視">
           <Button 
             type="text" 
-            icon={<EyeOutlined />} 
+            icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
             style={{ color: '#1890ff' }} 
             onClick={() => openViewDrawer(record)}
           />
@@ -194,7 +196,7 @@ export default function ProductsList() {
             okText="確定"
             cancelText="取消"
           >
-            <Button type="text" danger icon={<DeleteOutlined />} />
+            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
           </Popconfirm>
         </Tooltip>
       </Space>
@@ -267,7 +269,7 @@ export default function ProductsList() {
             </Button>
             <Button 
               type="primary" 
-              icon={<PlusOutlined />} 
+              icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
               onClick={openCreateDrawer}
             >
               新增產品
@@ -386,7 +388,7 @@ export default function ProductsList() {
         extra={
           <Space>
             {(!isDrawerEditing && !isCreateDrawerOpen) && (
-              <Button type="primary" icon={<EditOutlined />} onClick={startEditMode} disabled={isBomEditing}>編輯主檔</Button>
+              <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode} disabled={isBomEditing}>編輯主檔</Button>
             )}
             {(isDrawerEditing || isCreateDrawerOpen) && activeTab === 'master_info' && (
               <>

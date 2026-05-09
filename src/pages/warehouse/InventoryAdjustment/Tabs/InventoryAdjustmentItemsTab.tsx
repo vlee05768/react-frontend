@@ -12,6 +12,8 @@ import { getApiErrorMessage } from '@/utils/apiError';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { itemTableColumns, itemFormConfig } from '../InventoryAdjustmentConfig';
+import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
+
 
 interface Props {
   documentNumber: string;
@@ -106,13 +108,13 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
             <Button 
               size="small" 
               type="text" 
-              icon={canEdit ? <EditOutlined /> : <EyeOutlined />} 
+              icon={canEdit ? <EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} /> : <EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
               onClick={() => setEditingItem(record)} 
             />
           </Tooltip>
           {canEdit && (
             <Popconfirm title="確定要刪除？" onConfirm={() => deleteMutation.mutate(record.lineNumber)}>
-              <Button size="small" type="text" danger icon={<DeleteOutlined />} />
+              <Button size="small" type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
             </Popconfirm>
           )}
         </Space>
@@ -187,7 +189,7 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
         </div>
         <div>
           {canEdit && (
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsCreating(true)}>
+            <Button type="primary" icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => setIsCreating(true)}>
               新增明細
             </Button>
           )}

@@ -19,3 +19,4 @@ export const PAGE_SIZE_OPTIONS = ['10', '20', '50', '100']; // 可選每頁筆�
 
 // --- 時間/延遲設定 ---
 export const ANIMATION_DELAY_MS = 300;     // Drawer/Modal 等待動畫完成的延遲時間 (ms)
+export const TABLE_ACTION_ICON_SIZE = 18; // Table 操作按鈕的 Icon 大小，在不撐大列高的前提下放大

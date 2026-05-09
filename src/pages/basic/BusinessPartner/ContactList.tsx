@@ -15,6 +15,8 @@ import { contactTableColumns, contactFormConfig } from './ContactConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { App } from 'antd';
 import { DRAWER_WIDTH_DETAIL, MAX_PAGE_SIZE } from '@/constants';
+import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
+
 
 export default function ContactList({ businessPartnerCode, isViewMode: isMasterViewMode }: { businessPartnerCode: string; isViewMode: boolean }) {
   const { message: messageApi, modal: modalApi } = App.useApp();
@@ -126,7 +128,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
       <Space>
         <Button 
           type="text" 
-          icon={<EyeOutlined />} 
+          icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
           style={{ color: '#1890ff' }} 
           onClick={() => openViewDrawer(record)}
         />
@@ -137,7 +139,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
             okText="確定"
             cancelText="取消"
           >
-            <Button type="text" danger icon={<DeleteOutlined />} />
+            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
           </Popconfirm>
         )}
       </Space>
@@ -166,7 +168,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
         {/* 右側：操作按鈕 */}
         <div>
           {isMasterViewMode && (
-            <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer}>
+            <Button type="primary" icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={openCreateDrawer}>
               新增聯絡人
             </Button>
           )}
@@ -203,7 +205,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
         extra={
           <Space>
             {(!!viewingData && isMasterViewMode) && (
-              <Button type="primary" icon={<EditOutlined />} onClick={() => {
+              <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => {
                 setEditingId(viewingData.id);
                 setViewingData(null);
               }}>

@@ -13,6 +13,8 @@ import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { DRAWER_WIDTH_DETAIL } from '@/constants';
+import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
+
 
 interface CategoryItemListProps {
   selectedCode: string | null;
@@ -104,14 +106,14 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
         render: (_: any, record: any) => (
           <Space size="middle">
             <Tooltip title="編輯">
-              <Button type="text" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+              <Button type="text" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => handleEdit(record)} />
             </Tooltip>
             <Tooltip title="刪除">
               <Popconfirm
                 title="確定要刪除？"
                 onConfirm={() => handleDelete(record)}
               >
-                <Button type="text" danger icon={<DeleteOutlined />} />
+                <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
               </Popconfirm>
             </Tooltip>
           </Space>
@@ -134,7 +136,7 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
         <Typography.Title level={5} style={{ margin: 0 }}>
           {selectedCode} 項目清單
         </Typography.Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+        <Button type="primary" icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={handleAdd}>
           新增項目
         </Button>
       </div>

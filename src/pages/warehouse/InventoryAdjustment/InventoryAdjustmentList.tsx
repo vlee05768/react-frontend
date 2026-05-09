@@ -31,6 +31,8 @@ import dayjs from 'dayjs';
 
 // Detail Tabs
 import InventoryAdjustmentItemsTab from './Tabs/InventoryAdjustmentItemsTab';
+import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
+
 
 // Local store for query params
 export const useInventoryAdjustmentQueryStore = create((set) => ({
@@ -193,11 +195,11 @@ export default function InventoryAdjustmentList() {
       render: (_: any, record: any) => (
         <Space>
           <Tooltip title="檢視">
-            <Button size="small" type="text" icon={<EyeOutlined />} onClick={() => openViewDrawer(record)} />
+            <Button size="small" type="text" icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => openViewDrawer(record)} />
           </Tooltip>
           {record.status === 'Unconfirmed' && (
             <Popconfirm title="確定要刪除？" onConfirm={() => deleteMutation.mutate(record.documentNumber)}>
-              <Button size="small" type="text" danger icon={<DeleteOutlined />} />
+              <Button size="small" type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
             </Popconfirm>
           )}
         </Space>
@@ -249,7 +251,7 @@ export default function InventoryAdjustmentList() {
             <Button type="default" icon={<SearchOutlined />} onClick={() => setIsSearchModalOpen(true)}>
               進階查詢
             </Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer}>
+            <Button type="primary" icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={openCreateDrawer}>
               新增單據
             </Button>
           </Space>
@@ -340,7 +342,7 @@ export default function InventoryAdjustmentList() {
             {(!isDrawerEditing && !isCreateDrawerOpen) && (
               <>
                 {viewData?.status === 'Unconfirmed' && (
-                  <Button type="primary" icon={<EditOutlined />} onClick={openEditDrawer} disabled={isHeaderEditing}>
+                  <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={openEditDrawer} disabled={isHeaderEditing}>
                     編輯主檔
                   </Button>
                 )}

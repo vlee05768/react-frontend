@@ -27,6 +27,8 @@ import { mainFormConfig, mainTableColumns, materialSearchFormConfig } from './Ma
 import { buildTableColumns } from '@/utils/tableUtils';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import { DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
+import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
+
 
 export default function MaterialList() {
   const { params, setParams, resetParams } = useMaterialQueryStore();
@@ -168,7 +170,7 @@ export default function MaterialList() {
           <Tooltip title="檢視">
             <Button 
               type="text" 
-              icon={<EyeOutlined />} 
+              icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
               style={{ color: '#1890ff' }} 
               onClick={() => openViewDrawer(record)}
             />
@@ -182,7 +184,7 @@ export default function MaterialList() {
               okText="確定"
               cancelText="取消"
             >
-              <Button type="text" danger icon={<DeleteOutlined />} />
+              <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
             </Popconfirm>
           </Tooltip>
         )}
@@ -235,7 +237,7 @@ export default function MaterialList() {
               進階查詢
             </Button>
             {hasPermission('Warehouse.Materials.Create') && (
-              <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer} style={{ fontWeight: 500 }}>
+              <Button type="primary" icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={openCreateDrawer} style={{ fontWeight: 500 }}>
                 新增資料
               </Button>
             )}
@@ -338,7 +340,7 @@ export default function MaterialList() {
         extra={
           <Space>
             {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('Warehouse.Materials.Update')) && (
-              <Button type="primary" icon={<EditOutlined />} onClick={startEditMode}>編輯</Button>
+              <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode}>編輯</Button>
             )}
             {(isDrawerEditing || isCreateDrawerOpen) && (
               <>
