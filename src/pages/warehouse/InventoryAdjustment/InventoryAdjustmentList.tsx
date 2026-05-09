@@ -20,6 +20,7 @@ import {
 } from '@/api/generated/sdk.gen';
 import { getApiErrorMessage } from '@/utils/apiError';
 import { create } from 'zustand';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
@@ -54,6 +55,7 @@ export default function InventoryAdjustmentList() {
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('master_info');
 
+  const { user } = useAuthStore();
   const [searchForm] = Form.useForm();
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
@@ -390,7 +392,10 @@ export default function InventoryAdjustmentList() {
                 key={isCreateDrawerOpen ? 'create' : (viewId || 'empty')}
                 formId={isCreateDrawerOpen ? "inventoryAdjustmentCreateForm" : "inventoryAdjustmentEditForm"}
                 fields={mainFormConfig(isDrawerEditing)}
-                defaultValues={isCreateDrawerOpen ? undefined : {
+                defaultValues={isCreateDrawerOpen ? {
+                  documentDate: dayjs(),
+                  responsibleEmployee: user?.employeeCode || undefined
+                } : {
                   ...viewData,
                   documentDate: viewData?.documentDate ? dayjs(viewData.documentDate) : undefined
                 }}
