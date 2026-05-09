@@ -92,7 +92,7 @@ export const mainFormConfig = (_isUpdateMode: boolean = false): FormFieldConfig[
     colSpan: 2,
   },
   {
-    name: "responsibleById",
+    name: "responsibleEmployeeCode",
     label: "負責人員",
     componentType: "Custom",
     editable: "always",
