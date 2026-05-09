@@ -184,7 +184,7 @@ export const itemFormConfig = (_isUpdateMode: boolean = false): FormFieldConfig[
         <AsyncSelect
           {...field}
           configKey={configKey as any}
-          disabled={!type}
+          disabled={field.disabled || !type}
           onChange={(val: any, opt: any) => {
             field.onChange(val);
             if (opt?.originalData) {
