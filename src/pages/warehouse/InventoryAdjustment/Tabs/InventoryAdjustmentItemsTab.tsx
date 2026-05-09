@@ -124,6 +124,18 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
   ];
 
   const handleSubmit = (values: any) => {
+    // 檢查料號是否重複 (同張調整單, 一個料號只能出現在一個明細)
+    const isDuplicate = listData.some(
+      (item) => 
+        item.inventoryCode === values.inventoryCode && 
+        item.lineNumber !== editingItem?.lineNumber
+    );
+
+    if (isDuplicate) {
+      messageApi.error(`此產品/原料代碼 (${values.inventoryCode}) 已存在於明細中，同張調整單不可重複新增相同的料號`);
+      return;
+    }
+
     if (isCreating) {
       createMutation.mutate(values);
     } else if (editingItem) {
