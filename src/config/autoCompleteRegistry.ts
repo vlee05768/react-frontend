@@ -29,7 +29,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       return (res.data as any)?.data;
     },
     fieldNames: {
-      label: (item: any) => `${item.code} - ${item.name}`,
+      label: 'name',
       value: 'code'
     },
     triggerLength: 1
@@ -51,7 +51,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       return (res.data as any)?.data;
     },
     fieldNames: {
-      label: (item: any) => `${item.code} - ${item.name}`,
+      label: 'name',
       value: 'code'
     },
     triggerLength: 1
@@ -73,7 +73,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       return (res.data as any)?.data;
     },
     fieldNames: {
-      label: (item: any) => `${item.code} - ${item.name}`,
+      label: 'name',
       value: 'code'
     },
     triggerLength: 1
@@ -96,7 +96,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       return (res.data as any)?.data;
     },
     fieldNames: {
-      label: (item: any) => `${item.code} - ${item.name}`,
+      label: 'name',
       value: 'code'
     },
     triggerLength: 1

@@ -10,6 +10,8 @@ export interface AsyncSelectProps extends Omit<SelectProps<any>, 'options' | 'on
   configKey: AutoCompleteKey;
   additionalParams?: any;
   excludeValues?: any[];
+  /** 自訂選項的渲染方式，如果提供將覆蓋預設的 value (label) 顯示 */
+  optionRender?: (option: any, info: { index: number }) => React.ReactNode;
 }
 
 export const AsyncSelect: React.FC<AsyncSelectProps> = ({ 
@@ -18,6 +20,7 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
   onChange, 
   additionalParams,
   excludeValues = [],
+  optionRender,
   ...props 
 }) => {
   const config = AUTO_COMPLETE_REGISTRY[configKey];
@@ -51,14 +54,23 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
     staleTime: Infinity,
   });
 
-
+  // 輔助函數：格式化成 value (label) 或者只有 value
+  const formatLabel = (val: string, lbl?: string) => {
+    if (!lbl || lbl.trim() === '') return val;
+    return `${val} (${lbl})`;
+  };
 
   useEffect(() => {
     if (valueData) {
-      const label = typeof config.fieldNames.label === 'function' 
+      const rawLabel = typeof config.fieldNames.label === 'function' 
         ? config.fieldNames.label(valueData) 
         : valueData[config.fieldNames.label];
-      setInitialOption({ label, value: valueData[config.fieldNames.value], originalData: valueData });
+      const val = valueData[config.fieldNames.value];
+      setInitialOption({ 
+        label: formatLabel(val, rawLabel), 
+        value: val, 
+        originalData: valueData 
+      });
     }
   }, [valueData, config]);
 
@@ -66,11 +78,15 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
   const options = useMemo(() => {
     const list = searchData || [];
     let mapped = list.map((item: any) => {
-      const label = typeof config.fieldNames.label === 'function' 
+      const rawLabel = typeof config.fieldNames.label === 'function' 
         ? config.fieldNames.label(item) 
         : item[config.fieldNames.label];
       const val = item[config.fieldNames.value];
-      return { label, value: val, originalData: item };
+      return { 
+        label: formatLabel(val, rawLabel), 
+        value: val, 
+        originalData: item 
+      };
     });
 
     // 排除特定值
@@ -99,6 +115,7 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
       options={options}
       value={value}
       onChange={onChange}
+      optionRender={optionRender}
       {...props}
     />
   );
