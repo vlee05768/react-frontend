@@ -401,7 +401,7 @@ export default function InventoryAdjustmentList() {
                 fields={mainFormConfig(isDrawerEditing)}
                 defaultValues={isCreateDrawerOpen ? {
                   documentDate: dayjs(),
-                  responsibleEmployee: user?.employeeCode || undefined
+                  responsibleEmployeeCode: user?.employeeCode || undefined
                 } : {
                   ...viewData,
                   documentDate: viewData?.documentDate ? dayjs(viewData.documentDate) : undefined
