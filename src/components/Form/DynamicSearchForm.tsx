@@ -54,17 +54,24 @@ export default function DynamicSearchForm({ config, form, onSearch, layout = 've
       }, {} as Record<string, any>)}
     >
       <Row gutter={16}>
-        {config.map((field) => (
-          <Col span={field.colSpan || 24} key={field.name}>
-            <Form.Item 
-              name={field.name} 
-              label={field.label}
-              valuePropName={field.componentType === 'Switch' ? 'checked' : 'value'}
-            >
-              {renderComponent(field)}
-            </Form.Item>
-          </Col>
-        ))}
+        {config.map((field) => {
+          // 根據 DynamicForm 邏輯：colSpan 代表「一行幾欄」，將 form 分為 12 個 cell
+          const columnsPerRow = Math.max(1, Math.min(12, field.colSpan || 4));
+          const cells = 12 / columnsPerRow;
+          const antSpan = Math.max(2, Math.min(24, Math.floor(cells * 2)));
+
+          return (
+            <Col span={antSpan} key={field.name}>
+              <Form.Item 
+                name={field.name} 
+                label={field.label}
+                valuePropName={field.componentType === 'Switch' ? 'checked' : 'value'}
+              >
+                {renderComponent(field)}
+              </Form.Item>
+            </Col>
+          );
+        })}
       </Row>
     </Form>
   );

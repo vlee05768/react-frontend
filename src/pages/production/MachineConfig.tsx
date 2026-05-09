@@ -29,5 +29,5 @@ export const detailTableColumns = {};
 
 
 export const machineSearchFormConfig = (): SearchFieldConfig[] => [
-  { name: 'CodeOrName', label: '編號或名稱', componentType: 'Input', colSpan: 12 },
+  { name: 'CodeOrName', label: '編號或名稱', componentType: 'Input', colSpan: 2 },
 ];

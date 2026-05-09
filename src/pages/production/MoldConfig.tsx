@@ -52,8 +52,8 @@ export const detailTableColumns = {};
 
 
 export const moldSearchFormConfig = (): SearchFieldConfig[] => [
-  { name: 'CodeOrName', label: '編號或名稱', componentType: 'Input', colSpan: 12 },
-  { name: 'Type', label: '類型', componentType: 'DictSelect', colSpan: 12, componentProps: { dictKey: 'MOLD_TYPE' } },
-  { name: 'SupplierCode', label: '供應商', componentType: 'DictSelect', colSpan: 12, componentProps: { dictKey: 'BP_SUPPLIER', showSearch: true, optionFilterProp: '_displayName' } },
-  { name: 'Shape', label: '形狀', componentType: 'DictSelect', colSpan: 12, componentProps: { dictKey: 'MOLD_SHAPE' } },
+  { name: 'CodeOrName', label: '編號或名稱', componentType: 'Input', colSpan: 2 },
+  { name: 'Type', label: '類型', componentType: 'DictSelect', colSpan: 2, componentProps: { dictKey: 'MOLD_TYPE' } },
+  { name: 'SupplierCode', label: '供應商', componentType: 'DictSelect', colSpan: 2, componentProps: { dictKey: 'BP_SUPPLIER', showSearch: true, optionFilterProp: '_displayName' } },
+  { name: 'Shape', label: '形狀', componentType: 'DictSelect', colSpan: 2, componentProps: { dictKey: 'MOLD_SHAPE' } },
 ];

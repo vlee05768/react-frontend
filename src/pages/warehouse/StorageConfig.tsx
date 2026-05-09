@@ -42,13 +42,14 @@ export const detailTableColumns = {};
 
 
 export const storageSearchFormConfig = (): SearchFieldConfig[] => [
-  { name: 'CodeOrName', label: '編號或名稱', componentType: 'Input', colSpan: 12 },
-  { name: 'Type', label: '類型', componentType: 'Input', colSpan: 12 },
-  { name: 'Location', label: '地區', componentType: 'Input', colSpan: 12 },
+  { name: 'CodeOrName', label: '編號或名稱', componentType: 'Input', colSpan: 2 },
+  { name: 'Type', label: '類型', componentType: 'Input', colSpan: 2 },
+  { name: 'Location', label: '地區', componentType: 'Input', colSpan: 2 },
   { 
     name: 'IsActive', 
     label: '狀態', 
     componentType: 'Select', 
+    colSpan: 2, 
     componentProps: {
       options: [
         { label: '啟用', value: true },
@@ -56,6 +57,5 @@ export const storageSearchFormConfig = (): SearchFieldConfig[] => [
       ],
       allowClear: true
     },
-    colSpan: 12 
-  },
+  }
 ];

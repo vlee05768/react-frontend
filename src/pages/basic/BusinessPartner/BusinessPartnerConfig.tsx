@@ -165,7 +165,7 @@ export const bpSearchFormConfig = (): SearchFieldConfig[] => [
     name: "CodeOrName",
     label: "代碼/名稱/統編",
     componentType: "Input",
-    colSpan: 24,
+    colSpan: 1,
   },
   {
     name: "Types",
@@ -175,7 +175,7 @@ export const bpSearchFormConfig = (): SearchFieldConfig[] => [
       mode: 'multiple', 
       options: bpTypeOptions 
     },
-    colSpan: 24,
+    colSpan: 1,
   },
   {
     name: "IsTYCustomer",
@@ -187,7 +187,7 @@ export const bpSearchFormConfig = (): SearchFieldConfig[] => [
         { label: "否", value: false },
       ]
     },
-    colSpan: 12,
+    colSpan: 2,
   },
   {
     name: "Others",

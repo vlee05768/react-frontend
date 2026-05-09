@@ -395,7 +395,7 @@ export const productSearchFormConfig = (): SearchFieldConfig[] => [
     name: "CodeOrName",
     label: "代碼/名稱",
     componentType: "Input",
-    colSpan: 24,
+    colSpan: 1,
   },
   {
     name: "Types",
@@ -405,26 +405,26 @@ export const productSearchFormConfig = (): SearchFieldConfig[] => [
       dictKey: "PRODUCT_TYPE",
       mode: "multiple",
     },
-    colSpan: 24,
+    colSpan: 1,
   },
   {
     name: "Customer",
     label: "客戶",
     componentType: "AsyncSelect",
     componentProps: { configKey: "CUSTOMER" },
-    colSpan: 12,
+    colSpan: 2,
   },
   {
     name: "CustomerProductId",
     label: "客戶產品號碼",
     componentType: "Input",
-    colSpan: 12,
+    colSpan: 2,
   },
   {
     name: "Others",
     label: "其他雜項",
     componentType: "Input",
-    colSpan: 24,
+    colSpan: 1,
   },
 ];
 
