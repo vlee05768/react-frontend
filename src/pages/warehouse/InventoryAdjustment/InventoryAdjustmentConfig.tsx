@@ -129,7 +129,7 @@ export const itemTableColumns = (): TableColumnConfig[] => [
     }
   },
   { 
-    label: "存貨類型", 
+    label: "庫存類型", 
     name: "inventoryType", 
     width: 90,
     align: "center",
@@ -170,24 +170,10 @@ export const itemTableColumns = (): TableColumnConfig[] => [
 ];
 
 export const itemFormConfig = (_isUpdateMode: boolean = false): FormFieldConfig[] => [
-  {
-    name: "inventoryType",
-    label: "存貨類型",
-    componentType: "Select",
-    editable: "createOnly",
-    componentProps: {
-      options: [
-        { label: "產品", value: "P" },
-        { label: "原料", value: "M" },
-        { label: "半成品", value: "S" },
-      ]
-    },
-    validation: z.string().min(1, "請選擇存貨類型"),
-    colSpan: 4,
-  },
+
   {
     name: "inventoryCode",
-    label: "存貨代碼",
+    label: "產品代碼",
     componentType: "Custom",
     editable: "createOnly",
     validation: z.string().min(1, "請選擇存貨"),
@@ -221,11 +207,26 @@ export const itemFormConfig = (_isUpdateMode: boolean = false): FormFieldConfig[
     componentProps: { placeholder: "自動帶入" },
     colSpan: 2,
   },
+    {
+    name: "inventoryType",
+    label: "庫存類型",
+    componentType: "Select",
+    editable: "createOnly",
+    componentProps: {
+      options: [
+        { label: "產品", value: "P" },
+        { label: "原料", value: "M" },
+        { label: "半成品", value: "S" },
+      ]
+    },
+    validation: z.string().min(1, "請選擇存貨類型"),
+    colSpan: 4,
+  },
   {
     name: "targetStorageCode",
     label: "調整庫位",
     componentType: "Custom",
-    editable: "always",
+    editable: "never",
     validation: z.string().min(1, "請選擇庫位"),
     customRender: (field) => (
       <DictSelect
@@ -233,7 +234,7 @@ export const itemFormConfig = (_isUpdateMode: boolean = false): FormFieldConfig[
         dictKey="STORAGE"
       />
     ),
-    colSpan: 2,
+    colSpan: 4,
   },
   {
     name: "quantity",
@@ -242,7 +243,7 @@ export const itemFormConfig = (_isUpdateMode: boolean = false): FormFieldConfig[
     editable: "always",
     componentProps: { className: "w-full" },
     validation: z.number({ required_error: "請輸入數量" }).refine(val => val !== 0, "數量不能為 0"),
-    colSpan: 2,
+    colSpan: 4,
   },
   {
     name: "unitPrice",
@@ -257,7 +258,7 @@ export const itemFormConfig = (_isUpdateMode: boolean = false): FormFieldConfig[
     label: "備註",
     componentType: "TextArea",
     editable: "always",
-    componentProps: { rows: 2 },
-    colSpan: 2,
+    componentProps: { rows: 4 },
+    colSpan: 1,
   },
 ];
