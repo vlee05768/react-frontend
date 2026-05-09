@@ -398,16 +398,6 @@ export const productSearchFormConfig = (): SearchFieldConfig[] => [
     colSpan: 1,
   },
   {
-    name: "Types",
-    label: "產品類別",
-    componentType: "DictSelect",
-    componentProps: {
-      dictKey: "PRODUCT_TYPE",
-      mode: "multiple",
-    },
-    colSpan: 1,
-  },
-  {
     name: "Customer",
     label: "客戶",
     componentType: "AsyncSelect",
@@ -419,6 +409,16 @@ export const productSearchFormConfig = (): SearchFieldConfig[] => [
     label: "客戶產品號碼",
     componentType: "Input",
     colSpan: 2,
+  },
+  {
+    name: "Types",
+    label: "產品類別",
+    componentType: "DictSelect",
+    componentProps: {
+      dictKey: "PRODUCT_TYPE",
+      mode: "multiple",
+    },
+    colSpan: 4,
   },
   {
     name: "Others",

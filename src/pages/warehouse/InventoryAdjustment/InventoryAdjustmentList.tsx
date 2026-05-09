@@ -212,11 +212,19 @@ export default function InventoryAdjustmentList() {
   };
 
   const handleCreateSubmit = (values: any) => {
-    createMutation.mutate(values);
+    const payload = {
+      ...values,
+      documentDate: values.documentDate ? values.documentDate.format('YYYY-MM-DD') : undefined
+    };
+    createMutation.mutate(payload);
   };
 
   const handleEditSubmit = (values: any) => {
-    updateMutation.mutate(values);
+    const payload = {
+      ...values,
+      documentDate: values.documentDate ? values.documentDate.format('YYYY-MM-DD') : undefined
+    };
+    updateMutation.mutate(payload);
   };
 
   return (

@@ -140,17 +140,17 @@ export const employeeSearchConfig: SearchFieldConfig<any>[] = [
   {
     ...employeeDictionary.employeeNo,
     componentType: 'Input',
-    colSpan: 12,
+    colSpan: 2,
   },
   {
     ...employeeDictionary.name,
     componentType: 'Input',
-    colSpan: 12,
+    colSpan: 2,
   },
   {
     ...employeeDictionary.status,
     componentType: 'Select',
-    colSpan: 12,
+    colSpan: 2,
     componentProps: {
       options: [
         { label: '在職', value: 1 },
@@ -162,7 +162,7 @@ export const employeeSearchConfig: SearchFieldConfig<any>[] = [
   {
     ...employeeDictionary.departmentCode,
     componentType: 'DictSelect',
-    colSpan: 12,
+    colSpan: 2,
     componentProps: {
       dictKey: 'DEPARTMENT',
       showSearch: true,
