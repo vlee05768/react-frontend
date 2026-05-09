@@ -10,9 +10,10 @@ interface Props {
   productCode: string;
   initialData: any;
   onSuccess: () => void;
+  existingMaterialCodes?: string[];
 }
 
-export default function BomItemModal({ open, onClose, productCode, initialData, onSuccess }: Props) {
+export default function BomItemModal({ open, onClose, productCode, initialData, onSuccess, existingMaterialCodes = [] }: Props) {
   const [loading, setLoading] = useState(false);
   const isCreate = !initialData;
 
@@ -63,7 +64,7 @@ export default function BomItemModal({ open, onClose, productCode, initialData, 
       <div className="pt-4">
         <DynamicForm
           formId="bomItemForm"
-          fields={bomItemFormConfig(!isCreate)}
+          fields={bomItemFormConfig(!isCreate, existingMaterialCodes)}
           defaultValues={initialData || { quantity: undefined, scrapPercentage: 0 }}
           onSubmit={handleFinish}
           hideDefaultFooter={true}

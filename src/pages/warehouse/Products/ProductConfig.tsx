@@ -8,7 +8,7 @@ import { Tag } from "antd";
 import { EllipsisText } from "@/components/Table/EllipsisText";
 import { AsyncSelect } from "@/components/Form/AsyncSelect";
 
-export const bomItemFormConfig = (isUpdateMode: boolean = false): FormFieldConfig[] => [
+export const bomItemFormConfig = (isUpdateMode: boolean = false, existingMaterialCodes: string[] = []): FormFieldConfig[] => [
   {
     name: "materialCode",
     label: "原料編號",
@@ -20,6 +20,7 @@ export const bomItemFormConfig = (isUpdateMode: boolean = false): FormFieldConfi
       <AsyncSelect
         {...field}
         configKey="MATERIAL"
+        excludeValues={existingMaterialCodes}
         onChange={(val: any, opt: any) => {
           field.onChange(val);
           if (opt?.originalData) {
@@ -32,7 +33,7 @@ export const bomItemFormConfig = (isUpdateMode: boolean = false): FormFieldConfi
         }}
       />
     ),
-    colSpan: 12,
+    colSpan: 4,
   },
   {
     name: "materialName",

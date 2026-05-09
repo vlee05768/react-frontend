@@ -202,6 +202,7 @@ export default function ProductBom({ productCode, isViewMode: isMasterViewMode, 
           onClose={() => setItemModalOpen(false)}
           productCode={productCode}
           initialData={editingItem}
+          existingMaterialCodes={bomData?.items?.map((item: any) => item.materialCode) || []}
           onSuccess={() => {
             setItemModalOpen(false);
             refetch();

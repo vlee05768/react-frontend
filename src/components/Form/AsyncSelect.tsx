@@ -9,6 +9,7 @@ import type { SelectProps } from 'antd';
 export interface AsyncSelectProps extends Omit<SelectProps<any>, 'options' | 'onSearch'> {
   configKey: AutoCompleteKey;
   additionalParams?: any;
+  excludeValues?: any[];
 }
 
 export const AsyncSelect: React.FC<AsyncSelectProps> = ({ 
@@ -16,6 +17,7 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
   value, 
   onChange, 
   additionalParams,
+  excludeValues = [],
   ...props 
 }) => {
   const config = AUTO_COMPLETE_REGISTRY[configKey];
@@ -63,7 +65,7 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
   // 3. 處理選項對映
   const options = useMemo(() => {
     const list = searchData || [];
-    const mapped = list.map((item: any) => {
+    let mapped = list.map((item: any) => {
       const label = typeof config.fieldNames.label === 'function' 
         ? config.fieldNames.label(item) 
         : item[config.fieldNames.label];
@@ -71,13 +73,18 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
       return { label, value: val, originalData: item };
     });
 
+    // 排除特定值
+    if (excludeValues && excludeValues.length > 0) {
+      mapped = mapped.filter((item: any) => !excludeValues.includes(item.value));
+    }
+
     // 保留已選值，避免從畫面中消失
-    if (value && !mapped.find(m => m.value === value)) {
+    if (value && !mapped.find((m: any) => m.value === value)) {
       mapped.push(initialOption || { label: value, value: value });
     }
 
     return mapped;
-  }, [searchData, value, config, initialOption]);
+  }, [searchData, value, config, initialOption, excludeValues]);
 
   return (
     <Select
