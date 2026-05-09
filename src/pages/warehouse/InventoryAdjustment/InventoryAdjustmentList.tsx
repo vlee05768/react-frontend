@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
@@ -6,7 +5,7 @@ import {
   Spin, Table, Button, Form, Space, Card, Tooltip, Popconfirm, Drawer, App, Divider, Modal
 } from 'antd';
 import {
-  SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ClearOutlined, SaveOutlined, EyeOutlined, CheckCircleOutlined, SyncOutlined
+  SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, EyeOutlined, CheckCircleOutlined, SyncOutlined
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -27,7 +26,7 @@ import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { mainFormConfig, mainTableColumns, mainSearchFormConfig } from './InventoryAdjustmentConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
-import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, DRAWER_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
+import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 import dayjs from 'dayjs';
 
 // Detail Tabs
@@ -47,7 +46,7 @@ export const useInventoryAdjustmentQueryStore = create((set) => ({
 }));
 
 export default function InventoryAdjustmentList() {
-  const { message: messageApi, modal: modalApi } = App.useApp();
+  const { message: messageApi } = App.useApp();
   const params = useInventoryAdjustmentQueryStore((state: any) => state.params);
   const setParams = useInventoryAdjustmentQueryStore((state: any) => state.setParams);
   
@@ -82,7 +81,7 @@ export default function InventoryAdjustmentList() {
     queryFn: () => getApiV1InventoryAdjustmentByMovementNumber({ path: { movementNumber: viewId as string } }),
     enabled: !!viewId,
   });
-  const viewData = viewRes?.data?.data || viewRes?.data;
+  const viewData = (viewRes?.data?.data || viewRes?.data) as any;
 
   // List query
   const { data, isFetching } = useQuery({
