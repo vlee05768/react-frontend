@@ -1005,7 +1005,7 @@ export type CreateOrderDto = {
     /**
      * 業務員ID
      */
-    salespersonId?: number | null;
+    salespersonEmployeeCode?: string | null;
     /**
      * 備註
      */
@@ -3360,7 +3360,7 @@ export type OrderDto = {
     /**
      * 業務員ID
      */
-    salespersonId?: number | null;
+    salespersonEmployeeCode?: string | null;
     /**
      * 業務員名稱
      */
@@ -6146,7 +6146,7 @@ export type UpdateOrderDto = {
     /**
      * 業務員ID
      */
-    salespersonId?: number | null;
+    salespersonEmployeeCode?: string | null;
     /**
      * 備註
      */
@@ -8053,7 +8053,7 @@ export type OrderDtoWritable = {
     /**
      * 業務員ID
      */
-    salespersonId?: number | null;
+    salespersonEmployeeCode?: string | null;
     /**
      * 業務員名稱
      */
