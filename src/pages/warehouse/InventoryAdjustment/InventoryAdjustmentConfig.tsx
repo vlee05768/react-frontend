@@ -154,17 +154,6 @@ export const itemTableColumns = (): TableColumnConfig[] => [
     align: "right",
     render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : "-"
   },
-  {
-    label: "小計",
-    name: "lineAmount",
-    width: 120,
-    align: "right",
-    render: (_: any, record: any) => {
-      const u = typeof record.unitPrice === 'number' ? record.unitPrice : 0;
-      const q = typeof record.quantity === 'number' ? record.quantity : 0;
-      return (Math.round(u * q)).toLocaleString();
-    }
-  },
   { label: "調整庫位", name: "targetStorageCode", width: 110, align: "center" },
   { label: "備註", name: "notes", width: 150, render: (val: string) => <EllipsisText text={val} maxWidth={130} /> },
 ];
