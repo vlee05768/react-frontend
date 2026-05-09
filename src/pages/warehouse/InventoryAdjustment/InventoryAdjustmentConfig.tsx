@@ -134,8 +134,8 @@ export const itemTableColumns = (): TableColumnConfig[] => [
     width: 90,
     align: "center",
     render: (val: string) => {
-      const map: Record<string, string> = { P: '產品', M: '原料', S: '半成品' };
-      return map[val] || val || '產品';
+      const map: Record<string, string> = { P: '商品', M: '原料', S: '半成品' };
+      return map[val] || val || '商品';
     }
   },
   { label: "產品/原料代碼", name: "inventoryCode", width: 140 },
@@ -211,10 +211,10 @@ export const itemFormConfig = (_isUpdateMode: boolean = false): FormFieldConfig[
     name: "inventoryType",
     label: "庫存類型",
     componentType: "Select",
-    editable: "createOnly",
+    editable: "never",
     componentProps: {
       options: [
-        { label: "產品", value: "P" },
+        { label: "商品", value: "P" },
         { label: "原料", value: "M" },
         { label: "半成品", value: "S" },
       ]
