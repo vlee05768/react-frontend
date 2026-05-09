@@ -25,7 +25,7 @@ import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { mainFormConfig, mainTableColumns, productSearchFormConfig } from './ProductConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
-import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, DRAWER_WIDTH_SEARCH } from '@/constants';
+import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, DRAWER_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 
 // Detail Tabs
 import ProductMolds from './Tabs/ProductMolds';
@@ -349,7 +349,15 @@ export default function ProductsList() {
             </Button>
           </div>
         }
-        width={DRAWER_WIDTH_SEARCH}
+        width={MODAL_WIDTH_SEARCH}
+        style={{ top: '10vh' }}
+        styles={{
+          body: {
+            maxHeight: MODAL_BODY_MAX_HEIGHT,
+            overflowY: 'auto',
+            padding: '24px 24px 0 24px'
+          }
+        }}
       >
         <DynamicSearchForm 
           config={productSearchFormConfig()} 

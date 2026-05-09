@@ -26,7 +26,7 @@ import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { mainFormConfig, mainTableColumns, materialSearchFormConfig } from './MaterialConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
-import { DRAWER_WIDTH_MAIN } from '@/constants';
+import { DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 
 export default function MaterialList() {
   const { params, setParams, resetParams } = useMaterialQueryStore();
@@ -306,7 +306,15 @@ export default function MaterialList() {
             <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>執行查詢</Button>
           </div>
         }
-        size={DRAWER_WIDTH_MAIN}
+        width={MODAL_WIDTH_SEARCH}
+        style={{ top: '10vh' }}
+        styles={{
+          body: {
+            maxHeight: MODAL_BODY_MAX_HEIGHT,
+            overflowY: 'auto',
+            padding: '24px 24px 0 24px'
+          }
+        }}
         style={{ top: '10vh' }}
         closeIcon={true}
       >

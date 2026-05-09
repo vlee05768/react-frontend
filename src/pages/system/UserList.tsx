@@ -59,7 +59,7 @@ import { useLoadingStore } from '@/stores/useLoadingStore';
 import { mainDictionary, mainFormConfig, mainTableColumns , userSearchFormConfig} from './UserConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { App } from 'antd';
-import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN } from '@/constants';;
+import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';;
 
 export default function UserList() {
   const { message: messageApi, modal: modalApi } = App.useApp();
@@ -526,11 +526,11 @@ export default function UserList() {
             </Button>
           </div>
         }
-        size={DRAWER_WIDTH_MAIN}
+        width={MODAL_WIDTH_SEARCH}
         style={{ top: '10vh' }}
         styles={{
           body: {
-            maxHeight: '80vh',
+            maxHeight: MODAL_BODY_MAX_HEIGHT,
             overflowY: 'auto',
             padding: '24px 24px 0 24px'
           }

@@ -55,7 +55,7 @@ import { DictLabel } from '@/components/Form/DictLabel';
 import { DictSelect } from '@/components/Form/DictSelect';
 import { useEmployeeQueryStore } from '@/stores/employeeStore';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN } from '@/constants';;
+import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';;
 
 export default function EmployeeList() {
   const { params, setParams, resetParams } = useEmployeeQueryStore();
@@ -419,11 +419,11 @@ export default function EmployeeList() {
             </Button>
           </div>
         }
-        size={DRAWER_WIDTH_MAIN}
+        width={MODAL_WIDTH_SEARCH}
         style={{ top: '10vh' }}
         styles={{
           body: {
-            maxHeight: '80vh',
+            maxHeight: MODAL_BODY_MAX_HEIGHT,
             overflowY: 'auto',
             padding: '24px 24px 0 24px'
           }

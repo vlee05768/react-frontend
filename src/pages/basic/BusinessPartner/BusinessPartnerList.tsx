@@ -50,7 +50,7 @@ import { mainFormConfig, mainTableColumns, bpTypeOptions, bpSearchFormConfig } f
 import { buildTableColumns } from '@/utils/tableUtils';
 import { App } from 'antd';
 import ContactList from './ContactList';
-import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, DRAWER_WIDTH_SEARCH } from '@/constants';;
+import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, DRAWER_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';;
 
 // Local store for query params
 export const useBPQueryStore = create((set) => ({
@@ -370,7 +370,16 @@ export default function BusinessPartnerList() {
             </Button>
           </div>
         }
-        size={DRAWER_WIDTH_SEARCH}
+        width={MODAL_WIDTH_SEARCH}
+        style={{ top: '10vh' }}
+        styles={{
+          body: {
+            maxHeight: MODAL_BODY_MAX_HEIGHT,
+            overflowY: 'auto',
+            padding: '24px 24px 0 24px'
+          }
+        }}
+        closeIcon={true}
       >
         
         <DynamicSearchForm 
