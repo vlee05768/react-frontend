@@ -30,7 +30,7 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
   // Queries
   const { data, isFetching } = useQuery({
     queryKey: ['inventoryAdjustmentItems', documentNumber],
-    queryFn: () => getApiV1InventoryAdjustmentByMovementNumberItems({ path: { movementNumber: documentNumber } }),
+    queryFn: () => getApiV1InventoryAdjustmentByMovementNumberItems({ path: { movementNumber: documentNumber }, query: { pageSize: 100 } }),
     enabled: !!documentNumber,
   });
 

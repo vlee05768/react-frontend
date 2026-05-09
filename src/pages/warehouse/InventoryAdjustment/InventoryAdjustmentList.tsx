@@ -103,6 +103,7 @@ export default function InventoryAdjustmentList() {
       if (newId) {
         setIsCreateDrawerOpen(false);
         setIsDrawerEditing(false);
+        setActiveTab('items');
         navigate(`/warehouse/inventory-adjustments/${newId}`, { replace: true });
       }
     },
