@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import {
-  Spin, Table, Button, Form, Space, Card, Tooltip, Popconfirm, Drawer, App, Divider, Modal
+  Spin, Table, Button, Form, Space, Card, Tooltip, Drawer, App, Divider, Modal
 } from 'antd';
 import {
   SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, EyeOutlined, CheckCircleOutlined, SyncOutlined
@@ -48,7 +48,7 @@ export const useInventoryAdjustmentQueryStore = create((set) => ({
 }));
 
 export default function InventoryAdjustmentList() {
-  const { message: messageApi } = App.useApp();
+  const { message: messageApi, modal } = App.useApp();
   const params = useInventoryAdjustmentQueryStore((state: any) => state.params);
   const setParams = useInventoryAdjustmentQueryStore((state: any) => state.setParams);
   
@@ -198,9 +198,22 @@ export default function InventoryAdjustmentList() {
             <Button size="small" type="text" icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => openViewDrawer(record)} />
           </Tooltip>
           {record.status === 'Unconfirmed' && (
-            <Popconfirm title="確定要刪除？" onConfirm={() => deleteMutation.mutate(record.documentNumber)}>
-              <Button size="small" type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-            </Popconfirm>
+            <Button 
+              size="small" 
+              type="text" 
+              danger 
+              icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
+              onClick={() => {
+                modal.confirm({
+                  title: '確定要刪除？',
+                  content: '刪除後將無法還原此單據。',
+                  centered: true,
+                  width: 400,
+                  okButtonProps: { danger: true },
+                  onOk: () => deleteMutation.mutate(record.documentNumber)
+                });
+              }}
+            />
           )}
         </Space>
       ),
@@ -342,16 +355,19 @@ export default function InventoryAdjustmentList() {
             {(!isDrawerEditing && !isCreateDrawerOpen) && (
               <>
                 {viewData?.status === 'Unconfirmed' && (
-                  <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={openEditDrawer} disabled={isHeaderEditing}>
-                    編輯主檔
-                  </Button>
-                )}
-                {viewData?.status === 'Unconfirmed' && (
                   <Button 
                     type="primary" 
                     style={{ backgroundColor: '#52c41a' }} 
                     icon={<CheckCircleOutlined />} 
-                    onClick={() => confirmMutation.mutate(viewData?.documentNumber)}
+                    onClick={() => {
+                      modal.confirm({
+                        title: '確認單據',
+                        content: '確定要確認此單據？',
+                        centered: true,
+                        width: 400,
+                        onOk: () => confirmMutation.mutate(viewData?.documentNumber)
+                      });
+                    }}
                     loading={confirmMutation.isPending}
                     disabled={isHeaderEditing}
                   >
@@ -359,9 +375,28 @@ export default function InventoryAdjustmentList() {
                   </Button>
                 )}
                 {viewData?.status === 'Confirmed' && (
-                  <Popconfirm title="確定要取消確認？" onConfirm={() => cancelConfirmMutation.mutate(viewData?.documentNumber)}>
-                    <Button icon={<SyncOutlined />} loading={cancelConfirmMutation.isPending} disabled={isHeaderEditing}>取消確認</Button>
-                  </Popconfirm>
+                  <Button 
+                    icon={<SyncOutlined />} 
+                    loading={cancelConfirmMutation.isPending} 
+                    disabled={isHeaderEditing}
+                    onClick={() => {
+                      modal.confirm({
+                        title: '取消確認',
+                        content: '確定要取消確認此單據？',
+                        centered: true,
+                        width: 400,
+                        okButtonProps: { danger: true },
+                        onOk: () => cancelConfirmMutation.mutate(viewData?.documentNumber)
+                      });
+                    }}
+                  >
+                    取消確認
+                  </Button>
+                )}
+                {viewData?.status === 'Unconfirmed' && (
+                  <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={openEditDrawer} disabled={isHeaderEditing}>
+                    編輯主檔
+                  </Button>
                 )}
               </>
             )}

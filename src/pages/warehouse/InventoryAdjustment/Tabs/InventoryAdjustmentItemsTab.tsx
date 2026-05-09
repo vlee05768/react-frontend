@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Table, Button, Space, App, Popconfirm, Tooltip } from 'antd';
+import { Table, Button, Space, App, Tooltip } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -23,7 +23,7 @@ interface Props {
 }
 
 export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterViewMode, masterStatus, onEditingChange }: Props) {
-  const { message: messageApi } = App.useApp();
+  const { message: messageApi, modal } = App.useApp();
   const queryClient = useQueryClient();
   
   const [isCreating, setIsCreating] = useState(false);
@@ -113,9 +113,22 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
             />
           </Tooltip>
           {canEdit && (
-            <Popconfirm title="確定要刪除？" onConfirm={() => deleteMutation.mutate(record.lineNumber)}>
-              <Button size="small" type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-            </Popconfirm>
+            <Button 
+              size="small" 
+              type="text" 
+              danger 
+              icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
+              onClick={() => {
+                modal.confirm({
+                  title: '確定要刪除？',
+                  content: '刪除後將無法還原此明細。',
+                  centered: true,
+                  width: 400,
+                  okButtonProps: { danger: true },
+                  onOk: () => deleteMutation.mutate(record.lineNumber)
+                });
+              }}
+            />
           )}
         </Space>
       ),
