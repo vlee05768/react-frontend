@@ -8,12 +8,13 @@ import { Tag } from "antd";
 import { EllipsisText } from "@/components/Table/EllipsisText";
 import { MaterialSelect } from "@/components/Form/MaterialSelect";
 
-export const bomItemFormConfig = (): FormFieldConfig[] => [
+export const bomItemFormConfig = (isUpdateMode: boolean = false): FormFieldConfig[] => [
   {
     name: "materialCode",
     label: "原料編號",
     componentType: "Custom",
     editable: "createOnly",
+    hidden: isUpdateMode,
     validation: z.string().min(1, "請選擇原料"),
     customRender: (field, _context, setValue) => (
       <MaterialSelect
@@ -30,15 +31,16 @@ export const bomItemFormConfig = (): FormFieldConfig[] => [
         }}
       />
     ),
-    colSpan: 12,
+    colSpan: 4,
   },
   {
     name: "materialName",
     label: "原料名稱",
     componentType: "Input",
     editable: "never",
+    hidden: isUpdateMode,
     componentProps: { placeholder: "自動帶入" },
-    colSpan: 12,
+    colSpan: 4,
   },
   {
     name: "quantity",
@@ -47,7 +49,7 @@ export const bomItemFormConfig = (): FormFieldConfig[] => [
     editable: "always",
     componentProps: { className: "w-full", min: 0, precision: 4 },
     validation: z.number().min(0, "請輸入需求用量"),
-    colSpan: 12,
+    colSpan: 4,
   },
   {
     name: "scrapPercentage",
@@ -55,7 +57,7 @@ export const bomItemFormConfig = (): FormFieldConfig[] => [
     componentType: "InputNumber",
     editable: "always",
     componentProps: { className: "w-full", min: 0, max: 100, precision: 2 },
-    colSpan: 12,
+    colSpan: 4,
   },
   {
     name: "width",
@@ -63,14 +65,14 @@ export const bomItemFormConfig = (): FormFieldConfig[] => [
     componentType: "InputNumber",
     editable: "always",
     componentProps: { className: "w-full", min: 0, precision: 2 },
-    colSpan: 12,
+    colSpan: 4,
   },
   {
     name: "specification",
     label: "規格",
     componentType: "Input",
     editable: "always",
-    colSpan: 12,
+    colSpan: 4,
   },
   {
     name: "notes",
@@ -78,7 +80,7 @@ export const bomItemFormConfig = (): FormFieldConfig[] => [
     componentType: "TextArea",
     editable: "always",
     componentProps: { rows: 3 },
-    colSpan: 24,
+    colSpan: 1,
   },
 ];
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";

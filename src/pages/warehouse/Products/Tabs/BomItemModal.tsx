@@ -51,19 +51,19 @@ export default function BomItemModal({ open, onClose, productCode, initialData, 
 
   return (
     <Modal
-      title={isCreate ? '新增 BOM 物料' : '編輯 BOM 物料'}
+      title={isCreate ? '新增 BOM 物料' : `編輯 BOM 明細原料設定=>${initialData?.materialCode}-(${initialData?.materialName || ''})`}
       open={open}
       onCancel={onClose}
       okButtonProps={{ form: 'bomItemForm', htmlType: 'submit' }}
       cancelButtonProps={{ onClick: onClose }}
       confirmLoading={loading}
       destroyOnClose
-      width={700}
+      width={"50vw"}
     >
       <div className="pt-4">
         <DynamicForm
           formId="bomItemForm"
-          fields={bomItemFormConfig()}
+          fields={bomItemFormConfig(!isCreate)}
           defaultValues={initialData || { quantity: undefined, scrapPercentage: 0 }}
           onSubmit={handleFinish}
           hideDefaultFooter={true}
