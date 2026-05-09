@@ -109,6 +109,20 @@ export const DICTIONARY_REGISTRY = {
     fieldNames: { label: '_displayName', value: 'code' },
   },
 
+  // 員工
+  EMPLOYEE: {
+    queryFn: async () => {
+      const { getApiV1Employee } = await import('@/api/generated/sdk.gen');
+      const res = await getApiV1Employee({ query: { pageSize: MAX_PAGE_SIZE } as any });
+      const rawData = (res.data as any)?.data?.data || (res.data as any)?.data || [];
+      return rawData.map((item: any) => ({
+        ...item,
+        _displayName: `${item.name} (${item.employeeNo})`,
+      }));
+    },
+    fieldNames: { label: '_displayName', value: 'employeeNo' },
+  },
+
   // 儲位
   STORAGE: {
     queryFn: async () => {

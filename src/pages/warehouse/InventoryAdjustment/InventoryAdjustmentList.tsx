@@ -1,0 +1,415 @@
+// @ts-nocheck
+import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
+import {
+  Spin, Table, Button, Form, Space, Card, Tooltip, Popconfirm, Drawer, App, Divider, Modal
+} from 'antd';
+import {
+  SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ClearOutlined, SaveOutlined, EyeOutlined, CheckCircleOutlined, SyncOutlined
+} from '@ant-design/icons';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { 
+  getApiV1InventoryAdjustment, 
+  getApiV1InventoryAdjustmentByMovementNumber,
+  postApiV1InventoryAdjustment,
+  putApiV1InventoryAdjustmentByMovementNumber,
+  deleteApiV1InventoryAdjustmentByMovementNumber,
+  postApiV1InventoryAdjustmentByMovementNumberConfirm,
+  postApiV1InventoryAdjustmentByMovementNumberCancelConfirm
+} from '@/api/generated/sdk.gen';
+import { getApiErrorMessage } from '@/utils/apiError';
+import { create } from 'zustand';
+import { DynamicForm } from '@/components/Form/DynamicForm';
+import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
+import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
+import { DrawerTitle } from '@/components/Form/DrawerTitle';
+import { mainFormConfig, mainTableColumns, mainSearchFormConfig } from './InventoryAdjustmentConfig';
+import { buildTableColumns } from '@/utils/tableUtils';
+import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, DRAWER_WIDTH_SEARCH } from '@/constants';
+import dayjs from 'dayjs';
+
+// Detail Tabs
+import InventoryAdjustmentItemsTab from './Tabs/InventoryAdjustmentItemsTab';
+
+// Local store for query params
+export const useInventoryAdjustmentQueryStore = create((set) => ({
+  params: {
+    pageNumber: 1,
+    pageSize: DEFAULT_PAGE_SIZE,
+    DocumentNumber: undefined,
+    DateRange: undefined,
+    Others: undefined,
+  },
+  setParams: (newParams: any) => set((state: any) => ({ params: { ...state.params, ...newParams } })),
+  resetParams: () => set({ params: { pageNumber: 1, pageSize: DEFAULT_PAGE_SIZE, DocumentNumber: undefined, DateRange: undefined, Others: undefined } }),
+}));
+
+export default function InventoryAdjustmentList() {
+  const { message: messageApi, modal: modalApi } = App.useApp();
+  const params = useInventoryAdjustmentQueryStore((state: any) => state.params);
+  const setParams = useInventoryAdjustmentQueryStore((state: any) => state.setParams);
+  
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('master_info');
+
+  const [searchForm] = Form.useForm();
+  const [isDrawerEditing, setIsDrawerEditing] = useState(false);
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const isViewMode = !isDrawerEditing && !isCreateDrawerOpen && !isHeaderEditing;
+  
+  useEffect(() => {
+    if (isCreateDrawerOpen || isDrawerEditing) {
+      setTimeout(() => {
+        const firstInput = document.querySelector('.ant-drawer-body form input:not([disabled]), .ant-drawer-body form textarea:not([disabled]), .ant-drawer-body form span.ant-select-selection-search-input:not([disabled])') as HTMLElement;
+        if (firstInput) {
+          firstInput.focus();
+        }
+      }, ANIMATION_DELAY_MS);
+    }
+  }, [isCreateDrawerOpen, isDrawerEditing]);
+  
+  const queryClient = useQueryClient();
+  const { viewId } = useParams<{ viewId: string }>(); 
+  const navigate = useNavigate();
+
+  // Detail query
+  const { data: viewRes, isFetching: isFetchingView } = useQuery({
+    queryKey: ['inventoryAdjustmentDetail', viewId],
+    queryFn: () => getApiV1InventoryAdjustmentByMovementNumber({ path: { movementNumber: viewId as string } }),
+    enabled: !!viewId,
+  });
+  const viewData = viewRes?.data?.data || viewRes?.data;
+
+  // List query
+  const { data, isFetching } = useQuery({
+    queryKey: ['inventoryAdjustmentList', params],
+    queryFn: () => getApiV1InventoryAdjustment({ query: params as any }),
+  });
+
+  const listData = (data?.data as any)?.data?.data || (data?.data as any)?.data || [];
+  const totalRecords = (data?.data as any)?.data?.totalRecords || (data?.data as any)?.totalRecords || 0;
+  const currentPage = (data?.data as any)?.data?.pageNumber || params.pageNumber;
+  const currentPageSize = (data?.data as any)?.data?.pageSize || params.pageSize;
+
+  const createMutation = useMutation({
+    mutationFn: (values: any) => postApiV1InventoryAdjustment({ body: values }),
+    onSuccess: (res: any) => {
+      messageApi.success('新增成功');
+      queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentList'] });
+      const newId = res?.data?.data?.documentNumber || res?.data?.documentNumber;
+      if (newId) {
+        setIsCreateDrawerOpen(false);
+        setIsDrawerEditing(false);
+        navigate(`/warehouse/inventory-adjustments/${newId}`, { replace: true });
+      }
+    },
+    onError: (err: any) => {
+      messageApi.error(getApiErrorMessage(err, '新增失敗'));
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (values: any) => putApiV1InventoryAdjustmentByMovementNumber({ path: { movementNumber: viewId! }, body: values }),
+    onSuccess: () => {
+      messageApi.success('更新成功');
+      queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentList'] });
+      queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentDetail', viewId] });
+      setIsDrawerEditing(false);
+    },
+    onError: (err: any) => {
+      messageApi.error(getApiErrorMessage(err, '更新失敗'));
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteApiV1InventoryAdjustmentByMovementNumber({ path: { movementNumber: id } }),
+    onSuccess: () => {
+      messageApi.success('刪除成功');
+      queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentList'] });
+    },
+    onError: (err: any) => {
+      messageApi.error(getApiErrorMessage(err, '刪除失敗'));
+    }
+  });
+
+  const confirmMutation = useMutation({
+    mutationFn: (id: string) => postApiV1InventoryAdjustmentByMovementNumberConfirm({ path: { movementNumber: id } }),
+    onSuccess: () => {
+      messageApi.success('確認成功');
+      queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentList'] });
+      queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentDetail', viewId] });
+    },
+    onError: (err: any) => {
+      messageApi.error(getApiErrorMessage(err, '確認失敗'));
+    }
+  });
+
+  const cancelConfirmMutation = useMutation({
+    mutationFn: (id: string) => postApiV1InventoryAdjustmentByMovementNumberCancelConfirm({ path: { movementNumber: id } }),
+    onSuccess: () => {
+      messageApi.success('取消確認成功');
+      queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentList'] });
+      queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentDetail', viewId] });
+    },
+    onError: (err: any) => {
+      messageApi.error(getApiErrorMessage(err, '取消確認失敗'));
+    }
+  });
+
+  const openCreateDrawer = () => {
+    setActiveTab('master_info');
+    setIsCreateDrawerOpen(true);
+  };
+
+  const closeCreateDrawer = () => {
+    setIsCreateDrawerOpen(false);
+  };
+
+  const openViewDrawer = (record: any) => {
+    setActiveTab('master_info');
+    navigate(`/warehouse/inventory-adjustments/${record.documentNumber}`);
+  };
+
+  const closeViewDrawer = () => {
+    navigate('/warehouse/inventory-adjustments');
+    setIsDrawerEditing(false);
+    setIsHeaderEditing(false);
+  };
+
+  const openEditDrawer = () => {
+    setIsDrawerEditing(true);
+  };
+
+  const columns = [
+    {
+      title: '操作',
+      key: 'actions',
+      width: 100,
+      fixed: 'left' as const,
+      render: (_: any, record: any) => (
+        <Space>
+          <Tooltip title="檢視">
+            <Button size="small" type="text" icon={<EyeOutlined />} onClick={() => openViewDrawer(record)} />
+          </Tooltip>
+          {record.status === 'Unconfirmed' && (
+            <Popconfirm title="確定要刪除？" onConfirm={() => deleteMutation.mutate(record.documentNumber)}>
+              <Button size="small" type="text" danger icon={<DeleteOutlined />} />
+            </Popconfirm>
+          )}
+        </Space>
+      ),
+    },
+    ...buildTableColumns(mainTableColumns()),
+  ];
+
+  const handleSearch = (values: any) => {
+    setParams({ ...values, pageNumber: 1 });
+    setIsSearchModalOpen(false);
+  };
+
+  const handleCreateSubmit = (values: any) => {
+    createMutation.mutate(values);
+  };
+
+  const handleEditSubmit = (values: any) => {
+    updateMutation.mutate(values);
+  };
+
+  return (
+    <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
+      <Card
+        variant="borderless"
+        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        styles={{ 
+          header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
+          body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
+        }}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
+            <div style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>
+              庫存調整單
+            </div>
+          </div>
+        }
+        extra={
+          <Space separator={<Divider orientation="vertical" />}>
+            <Button type="default" icon={<SearchOutlined />} onClick={() => setIsSearchModalOpen(true)}>
+              進階查詢
+            </Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer}>
+              新增單據
+            </Button>
+          </Space>
+        }
+      >
+        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
+          <span style={{ fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
+          <DynamicSearchTags
+            config={mainSearchFormConfig()}
+            params={params}
+            onClose={(key) => setParams({ [key]: undefined, pageNumber: 1 })}
+          />
+        </div>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <style>{`
+            .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
+            .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-spin-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
+            .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
+            .ant-table-thead > tr > th { text-align: center !important; }
+          `}</style>
+          <Table
+            rowKey={(r: any) => r.documentNumber || r.id}
+            columns={columns}
+            dataSource={listData}
+            loading={isFetching}
+            scroll={{ x: 'max-content' }}
+            pagination={{
+              current: currentPage,
+              pageSize: currentPageSize,
+              total: totalRecords,
+              showSizeChanger: true,
+              onChange: (page, pageSize) => setParams({ pageNumber: page, pageSize }),
+            }}
+            size="small"
+          />
+        </div>
+      </Card>
+
+      <Modal
+        title="進階查詢"
+        open={isSearchModalOpen}
+        onCancel={() => setIsSearchModalOpen(false)}
+        footer={
+          <div style={{ textAlign: 'right' }}>
+            <Button onClick={() => searchForm.resetFields()}>重設</Button>
+            <Button type="primary" onClick={() => searchForm.submit()}>查詢</Button>
+          </div>
+        }
+        width={DRAWER_WIDTH_SEARCH}
+      >
+        <DynamicSearchForm 
+          config={mainSearchFormConfig()} 
+          form={searchForm} 
+          onSearch={handleSearch} 
+        />
+      </Modal>
+
+      <Drawer
+        title={
+          <DrawerTitle
+            moduleName="庫存調整單"
+            isCreate={isCreateDrawerOpen}
+            isEdit={isDrawerEditing}
+            record={viewData}
+            displayField={(r) => r?.documentDate ? dayjs(r.documentDate).format("YYYY-MM-DD") : ""}
+          />
+        }
+        size={DRAWER_WIDTH_MAIN as any}
+        open={!!viewId || isCreateDrawerOpen}
+        onClose={isCreateDrawerOpen ? closeCreateDrawer : closeViewDrawer}
+        destroyOnClose
+        maskClosable={!isDrawerEditing && !isCreateDrawerOpen}
+        extra={
+          <Space>
+            {(!isDrawerEditing && !isCreateDrawerOpen) && (
+              <>
+                {viewData?.status === 'Unconfirmed' && (
+                  <Button type="primary" icon={<EditOutlined />} onClick={openEditDrawer} disabled={isHeaderEditing}>
+                    編輯主檔
+                  </Button>
+                )}
+                {viewData?.status === 'Unconfirmed' && (
+                  <Button 
+                    type="primary" 
+                    style={{ backgroundColor: '#52c41a' }} 
+                    icon={<CheckCircleOutlined />} 
+                    onClick={() => confirmMutation.mutate(viewData?.documentNumber)}
+                    loading={confirmMutation.isPending}
+                    disabled={isHeaderEditing}
+                  >
+                    確認
+                  </Button>
+                )}
+                {viewData?.status === 'Confirmed' && (
+                  <Popconfirm title="確定要取消確認？" onConfirm={() => cancelConfirmMutation.mutate(viewData?.documentNumber)}>
+                    <Button icon={<SyncOutlined />} loading={cancelConfirmMutation.isPending} disabled={isHeaderEditing}>取消確認</Button>
+                  </Popconfirm>
+                )}
+              </>
+            )}
+            {(isDrawerEditing || isCreateDrawerOpen) && activeTab === 'master_info' && (
+              <>
+                <Button 
+                  type="primary" 
+                  htmlType="submit"
+                  form={isCreateDrawerOpen ? "inventoryAdjustmentCreateForm" : "inventoryAdjustmentEditForm"}
+                  icon={<SaveOutlined />} 
+                  loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
+                >
+                  儲存主檔
+                </Button>
+                <Button onClick={() => {
+                  if (isDrawerEditing) {
+                    setIsDrawerEditing(false);
+                  } else {
+                    closeCreateDrawer();
+                  }
+                }}>取消</Button>
+              </>
+            )}
+          </Space>
+        }
+      >
+        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+          <MasterDetailTabs
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            isCreateMode={isCreateDrawerOpen}
+            isEditMode={isDrawerEditing}
+            viewId={viewId}
+            entityType="InventoryAdjustment"
+            disableTabSwitching={isHeaderEditing}
+            masterContent={
+              <DynamicForm
+                key={isCreateDrawerOpen ? 'create' : (viewId || 'empty')}
+                formId={isCreateDrawerOpen ? "inventoryAdjustmentCreateForm" : "inventoryAdjustmentEditForm"}
+                fields={mainFormConfig(isDrawerEditing)}
+                defaultValues={isCreateDrawerOpen ? undefined : {
+                  ...viewData,
+                  documentDate: viewData?.documentDate ? dayjs(viewData.documentDate) : undefined
+                }}
+                onSubmit={isCreateDrawerOpen ? handleCreateSubmit : handleEditSubmit}
+                hideDefaultFooter
+                isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
+                isUpdateMode={isDrawerEditing}
+              />
+            }
+            detailTabs={[
+              {
+                key: 'items',
+                label: '調整明細',
+                children: viewData ? (
+                  <InventoryAdjustmentItemsTab 
+                    documentNumber={viewData.documentNumber} 
+                    isMasterViewMode={isViewMode} 
+                    masterStatus={viewData.status}
+                    onEditingChange={setIsHeaderEditing}
+                  />
+                ) : <Spin />,
+                disabled: isCreateDrawerOpen // Cannot add details before creating master
+              }
+            ]}
+          />
+        </Spin>
+      </Drawer>
+    </div>
+  );
+}

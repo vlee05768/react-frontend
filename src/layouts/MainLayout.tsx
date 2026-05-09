@@ -47,6 +47,7 @@ const ROUTE_MAPPING: Record<string, string> = {
   'Warehouse.Products': '/warehouse/products',
   'Warehouse.Inventory': '/warehouse/inventory',
   'Warehouse.InventoryMovements': '/warehouse/inventory-movements',
+  'Warehouse.InventoryAdjustments': '/warehouse/inventory-adjustments',
   'ProductionQuality.Molds': '/production-quality/molds',
   'ProductionQuality.Machines': '/production-quality/machines',
 };
@@ -64,6 +65,7 @@ const ROUTE_PERMISSION_MAP: Record<string, string> = {
   '/warehouse/products': 'Warehouse.Products.View',
   '/warehouse/inventory': 'Warehouse.Inventory.View',
   '/warehouse/inventory-movements': 'Warehouse.InventoryMovements.View',
+  '/warehouse/inventory-adjustments': 'Warehouse.InventoryAdjustments.View',
   '/production-quality/molds': 'ProductionQuality.Molds.View',
   '/production-quality/machines': 'ProductionQuality.Machines.View',
 };

@@ -1,4 +1,4 @@
-import { getApiV1BusinessPartners, getApiV1BusinessPartnersByCode, getApiV1Material, getApiV1MaterialByCode } from '@/api/generated/sdk.gen';
+import { getApiV1BusinessPartners, getApiV1BusinessPartnersByCode, getApiV1Material, getApiV1MaterialByCode, getApiV1Product, getApiV1ProductByCode } from '@/api/generated/sdk.gen';
 
 export interface AutoCompleteConfig {
   /** 搜尋用的 API 呼叫 (依特性: 會有固定條件、預設 pageSize=100) */
@@ -48,6 +48,51 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
     },
     fetchByValue: async (code: string) => {
       const res = await getApiV1MaterialByCode({ path: { code } });
+      return (res.data as any)?.data;
+    },
+    fieldNames: {
+      label: (item: any) => `${item.code} - ${item.name}`,
+      value: 'code'
+    },
+    triggerLength: 1
+  },
+
+  // 產品 (Product)
+  PRODUCT: {
+    queryFn: async (keyword: string) => {
+      const res = await getApiV1Product({
+        query: {
+          CodeOrName: keyword || undefined,
+          pageSize: 100
+        } as any
+      });
+      return (res.data as any)?.data?.data || (res.data as any)?.data || [];
+    },
+    fetchByValue: async (code: string) => {
+      const res = await getApiV1ProductByCode({ path: { code } });
+      return (res.data as any)?.data;
+    },
+    fieldNames: {
+      label: (item: any) => `${item.code} - ${item.name}`,
+      value: 'code'
+    },
+    triggerLength: 1
+  },
+
+  // 半成品 (Semi-finished)
+  SEMI_FINISHED: {
+    queryFn: async (keyword: string) => {
+      const res = await getApiV1Product({
+        query: {
+          CodeOrName: keyword || undefined,
+          Types: ['S'],
+          pageSize: 100
+        } as any
+      });
+      return (res.data as any)?.data?.data || (res.data as any)?.data || [];
+    },
+    fetchByValue: async (code: string) => {
+      const res = await getApiV1ProductByCode({ path: { code } });
       return (res.data as any)?.data;
     },
     fieldNames: {

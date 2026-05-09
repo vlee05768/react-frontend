@@ -8,13 +8,12 @@ import { Tag } from "antd";
 import { EllipsisText } from "@/components/Table/EllipsisText";
 import { AsyncSelect } from "@/components/Form/AsyncSelect";
 
-export const bomItemFormConfig = (isUpdateMode: boolean = false, existingMaterialCodes: string[] = []): FormFieldConfig[] => [
+export const bomItemFormConfig = (_isUpdateMode: boolean = false, existingMaterialCodes: string[] = []): FormFieldConfig[] => [
   {
     name: "materialCode",
     label: "原料編號",
     componentType: "Custom",
     editable: "createOnly",
-    hidden: isUpdateMode,
     validation: z.string().min(1, "請選擇原料"),
     customRender: (field, _context, setValue) => (
       <AsyncSelect
@@ -33,7 +32,7 @@ export const bomItemFormConfig = (isUpdateMode: boolean = false, existingMateria
         }}
       />
     ),
-    colSpan: 4,
+    colSpan: 2,
   },
   {
     name: "materialName",
@@ -41,7 +40,7 @@ export const bomItemFormConfig = (isUpdateMode: boolean = false, existingMateria
     componentType: "Input",
     editable: "never",
     componentProps: { placeholder: "自動帶入" },
-    colSpan: 4,
+    colSpan: 2,
   },
   {
     name: "quantity",
