@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Select, Spin } from 'antd';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { debounce } from 'lodash-es';
 import { AUTO_COMPLETE_REGISTRY } from '@/config/autoCompleteRegistry';
 import type { AutoCompleteKey } from '@/config/autoCompleteRegistry';
@@ -38,6 +38,7 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
     queryKey: ['async-select', configKey, keyword, additionalParams],
     queryFn: () => config.queryFn(keyword, additionalParams),
     enabled: shouldFetch,
+    placeholderData: keepPreviousData,
   });
 
   // 2. 表單初始值資料補齊機制 (解決 value 有值但沒有名稱的問題)
@@ -47,6 +48,8 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
     enabled: !!value && !!config.fetchByValue && !searchData?.find((item: any) => item[config.fieldNames.value] === value),
     staleTime: Infinity,
   });
+
+
 
   useEffect(() => {
     if (valueData) {
