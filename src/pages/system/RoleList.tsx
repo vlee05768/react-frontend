@@ -308,14 +308,14 @@ export default function RoleList() {
         }
         extra={
           <Space separator={<Divider orientation="vertical" />}>
-            <Button
-              type="default"
-              icon={<SearchOutlined />}
+{/* <Button 
+              type="default" 
+              icon={<SearchOutlined />} 
               onClick={openSearchModal}
               style={{ fontWeight: 500 }}
             >
               進階查詢
-            </Button>
+            </Button> */}
             {hasPermission('System.Roles.Create') && (
               <Button 
                 type="primary" 
@@ -329,10 +329,10 @@ export default function RoleList() {
           </Space>
         }
       >
-        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
+        {/* <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
           <span style={{ fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
           <DynamicSearchTags config={roleSearchFormConfig()} params={params} onClose={(key) => setParams({ [key]: undefined, pageNumber: 1 })} />
-        </div>
+        </div> */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                     <style>{`
             .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
@@ -389,7 +389,7 @@ export default function RoleList() {
         </div>
       </Card>
 
-      <Modal
+      {/* <Modal
         title={
           <div style={{ fontSize: '18px', fontWeight: 600, paddingBottom: '12px', borderBottom: '1px solid #f0f0f0', marginBottom: '8px' }}>
             查詢條件設定
@@ -419,7 +419,7 @@ export default function RoleList() {
         closeIcon={true}
       >
         <DynamicSearchForm config={roleSearchFormConfig()} form={searchForm} onSearch={handleSearch} />
-      </Modal>
+      </Modal> */}
 
       <Drawer
         title={
