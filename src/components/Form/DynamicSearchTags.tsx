@@ -41,7 +41,20 @@ export default function DynamicSearchTags({ config, params, onClose, emptyNode =
         displayValue = opt ? opt.label : value;
       }
     } 
-    // 3. Switch 預設轉為是/否
+    // 3. 處理日期區間元件 (DateRangePicker) 或陣列包含日期的情況
+    else if (field.componentType === 'DateRangePicker' || (Array.isArray(value) && (value.length === 2) && typeof value[0] === 'string' && value[0].includes('GMT'))) {
+      const formatTime = (timeStr: string) => {
+        const d = new Date(timeStr);
+        if (!isNaN(d.getTime())) {
+          return d.toISOString().split('T')[0]; // 擷取 YYYY-MM-DD
+        }
+        return timeStr;
+      };
+      if (Array.isArray(value)) {
+        displayValue = value.map(formatTime).join(' ~ ');
+      }
+    }
+    // 4. Switch 預設轉為是/否
     else if (field.componentType === 'Switch' || typeof value === 'boolean') {
       displayValue = value ? '是' : '否';
     }
