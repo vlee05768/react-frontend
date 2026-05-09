@@ -6,6 +6,81 @@ import type {
 } from "@/components/Form/types";
 import { Tag } from "antd";
 import { EllipsisText } from "@/components/Table/EllipsisText";
+import { MaterialSelect } from "@/components/Form/MaterialSelect";
+
+export const bomItemFormConfig = (): FormFieldConfig[] => [
+  {
+    name: "materialCode",
+    label: "原料編號",
+    componentType: "Custom",
+    editable: "createOnly",
+    validation: z.string().min(1, "請選擇原料"),
+    customRender: (field, _context, setValue) => (
+      <MaterialSelect
+        {...field}
+        onChange={(val: any, opt: any) => {
+          field.onChange(val);
+          if (opt?.raw) {
+            setValue("materialName", opt.raw.name);
+            setValue("width", opt.raw.width || undefined);
+          } else {
+            setValue("materialName", "");
+            setValue("width", undefined);
+          }
+        }}
+      />
+    ),
+    colSpan: 12,
+  },
+  {
+    name: "materialName",
+    label: "原料名稱",
+    componentType: "Input",
+    editable: "never",
+    componentProps: { placeholder: "自動帶入" },
+    colSpan: 12,
+  },
+  {
+    name: "quantity",
+    label: "需求用量",
+    componentType: "InputNumber",
+    editable: "always",
+    componentProps: { className: "w-full", min: 0, precision: 4 },
+    validation: z.number().min(0, "請輸入需求用量"),
+    colSpan: 12,
+  },
+  {
+    name: "scrapPercentage",
+    label: "預計損耗率 (%)",
+    componentType: "InputNumber",
+    editable: "always",
+    componentProps: { className: "w-full", min: 0, max: 100, precision: 2 },
+    colSpan: 12,
+  },
+  {
+    name: "width",
+    label: "幅寬 (mm)",
+    componentType: "InputNumber",
+    editable: "always",
+    componentProps: { className: "w-full", min: 0, precision: 2 },
+    colSpan: 12,
+  },
+  {
+    name: "specification",
+    label: "規格",
+    componentType: "Input",
+    editable: "always",
+    colSpan: 12,
+  },
+  {
+    name: "notes",
+    label: "備註",
+    componentType: "TextArea",
+    editable: "always",
+    componentProps: { rows: 3 },
+    colSpan: 24,
+  },
+];
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
 
 import { DictLabel } from "@/components/Form/DictLabel";

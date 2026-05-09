@@ -47,7 +47,7 @@ export interface FormFieldConfig<TValues = any> extends FieldDef<TValues> {
   group?: string;
   colSpan?: number;
   componentProps?: DynamicProp<Record<string, any>, TValues>;
-  customRender?: (field: any, context: FormContext<TValues>) => ReactNode;
+  customRender?: (field: any, context: FormContext<TValues>, setValue: (name: Extract<keyof TValues, string>, val: any, options?: any) => void) => ReactNode;
   onChange?: (value: any, context: FormContext<TValues>, setValue: (name: Extract<keyof TValues, string>, val: any, options?: any) => void) => void;
   ellipsis?: boolean | ((value: any, context: FormContext<TValues>) => boolean | React.ReactNode);
 }
