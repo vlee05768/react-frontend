@@ -58,7 +58,7 @@ export default function InventoryAdjustmentList() {
   const [searchForm] = Form.useForm();
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
-  const isViewMode = !isDrawerEditing && !isCreateDrawerOpen && !isHeaderEditing;
+  const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   
   useEffect(() => {
     if (isCreateDrawerOpen || isDrawerEditing) {
