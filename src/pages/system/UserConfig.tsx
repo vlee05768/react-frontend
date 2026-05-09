@@ -24,7 +24,7 @@ export const mainDictionary = {
 export const mainFormConfig = (): FormFieldConfig[] => [
   { ...mainDictionary.userName, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'createOnly' },
   { ...mainDictionary.name, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
-  { ...mainDictionary.employeeCode, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
+  { ...mainDictionary.employeeCode, componentType: 'DictSelect', validation: z.any().optional().nullable(), editable: 'always', componentProps: { dictKey: 'EMPLOYEE', showSearch: true, optionFilterProp: '_displayName' } },
   { ...mainDictionary.position, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
   { ...mainDictionary.email, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
   { ...mainDictionary.department, componentType: 'DictSelect', validation: z.any().optional().nullable(), editable: 'always', componentProps: { dictKey: 'DEPARTMENT', showSearch: true, optionFilterProp: '_displayName' } },
@@ -48,7 +48,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   { ...mainDictionary.isActive, width: 80, align: 'center', render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{ color: 'green' }} /> : (v === false ? <CloseOutlined style={{ color: 'red' }} /> : null) },
   { ...mainDictionary.userName, width: 120 },
   { ...mainDictionary.name, width: 120 },
-  { ...mainDictionary.employeeCode, width: 120 },
+  { ...mainDictionary.employeeCode, width: 120, render: (v: any) => <DictLabel dictKey="EMPLOYEE" value={v} /> },
   { ...mainDictionary.position, width: 120 },
   { ...mainDictionary.email, width: 200 },
   { ...mainDictionary.department, width: 120, render: (v: any) => <DictLabel dictKey="DEPARTMENT" value={v} /> },
