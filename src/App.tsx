@@ -33,6 +33,12 @@ export default function App() {
             borderRadius: 6,
           },
           components: {
+            Button: {
+              // 讓所有 disabled 按鈕的背景變成明顯的灰色，文字也調整為對應的深灰色
+              colorBgContainerDisabled: mode === 'dark' ? '#434343' : '#cccccc',
+              colorTextDisabled: mode === 'dark' ? '#8c8c8c' : '#666666',
+              borderColorDisabled: mode === 'dark' ? '#434343' : '#cccccc',
+            },
             Table: {
               // 高資訊密度列表設計
               padding: 8,
