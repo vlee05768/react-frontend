@@ -409,6 +409,8 @@ export default function BusinessPartnerList() {
         size={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
+        maskClosable={isViewMode}
+        keyboard={isViewMode}
         extra={
           <Space>
             {(!isDrawerEditing && !isCreateDrawerOpen) && (

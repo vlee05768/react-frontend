@@ -1,0 +1,155 @@
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { Select, Button, Space, Modal, App } from 'antd';
+import { PlusOutlined, SaveOutlined } from '@ant-design/icons';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { 
+  getApiV1BusinessPartnersByBusinessPartnerCodeContacts,
+  postApiV1BusinessPartnersByBusinessPartnerCodeContacts 
+} from '@/api/generated/sdk.gen';
+import { DynamicForm } from '@/components/Form/DynamicForm';
+import { contactFormConfig } from '@/pages/basic/BusinessPartner/ContactConfig';
+import { getApiErrorMessage } from '@/utils/apiError';
+
+interface ContactSelectWithCreateProps {
+  value?: number;
+  onChange?: (val: number | undefined) => void;
+  disabled?: boolean;
+  businessPartnerCode?: string;
+}
+
+export const ContactSelectWithCreate: React.FC<ContactSelectWithCreateProps> = ({
+  value,
+  onChange,
+  disabled,
+  businessPartnerCode
+}) => {
+  const { message: messageApi, modal: modalApi } = App.useApp();
+  const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // 取得該客戶的聯絡人清單
+  const { data, isFetching } = useQuery({
+    queryKey: ['partnerContactList', businessPartnerCode],
+    queryFn: () => getApiV1BusinessPartnersByBusinessPartnerCodeContacts({
+      path: { businessPartnerCode: businessPartnerCode! },
+      query: { pageSize: 100 } as any // 確保拿足夠數量
+    }),
+    enabled: !!businessPartnerCode,
+  });
+
+  const listData = useMemo(() => {
+    return (data?.data as any)?.data?.data || (data?.data as any)?.data || [];
+  }, [data]);
+
+  const options = listData.map((contact: any) => ({
+    label: `${contact.name} ${contact.jobTitle ? `(${contact.jobTitle})` : ''}`,
+    value: contact.id
+  }));
+
+  // 記錄前一次執行過自動回填的客戶代碼
+  const lastAutoFillBpCodeRef = useRef<string | undefined>(businessPartnerCode);
+
+  // 自動選取邏輯：如果該客戶只有一筆聯絡人，且目前尚未選取，則自動填入
+  useEffect(() => {
+    // 只有在「切換/載入新客戶」且 API 抓取完成的當下，才嘗試判斷並回填
+    if (!isFetching && businessPartnerCode && lastAutoFillBpCodeRef.current !== businessPartnerCode) {
+      lastAutoFillBpCodeRef.current = businessPartnerCode;
+      if (listData.length === 1 && !value && onChange) {
+        onChange(listData[0].id);
+      }
+    }
+  }, [businessPartnerCode, listData, isFetching, value, onChange]);
+
+  // 新增聯絡人
+  const createMutation = useMutation({
+    mutationFn: (values: any) => postApiV1BusinessPartnersByBusinessPartnerCodeContacts({ 
+      path: { businessPartnerCode: businessPartnerCode! }, 
+      body: values 
+    }),
+    onSuccess: (res) => {
+      messageApi.success('聯絡人新增成功');
+      setIsModalOpen(false);
+      
+      // 嘗試從回傳值抓取新增的 ID，以自動選取
+      const newId = (res?.data as any)?.data?.id || (res?.data as any)?.id;
+      if (newId && onChange) {
+        onChange(newId);
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ['partnerContactList', businessPartnerCode] });
+    },
+    onError: (error: any) => {
+      modalApi.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(error)}` });
+    }
+  });
+
+  const handleCreateSubmit = (values: any) => {
+    createMutation.mutate(values);
+  };
+
+  const hasNoContacts = !!businessPartnerCode && !isFetching && options.length === 0;
+
+  return (
+    <>
+      <Space.Compact style={{ width: '100%' }}>
+        <Select
+          style={{ width: '100%' }}
+          value={value}
+          onChange={onChange}
+          disabled={disabled || !businessPartnerCode}
+          loading={isFetching}
+          options={options}
+          allowClear
+          placeholder={hasNoContacts ? "沒有任何聯絡人，請新增聯絡人" : "請選擇聯絡人"}
+          notFoundContent={hasNoContacts ? "沒有任何聯絡人" : undefined}
+          showSearch
+          filterOption={(input, option) =>
+            String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+          }
+        />
+        <Button 
+          type="primary" 
+          icon={<PlusOutlined />} 
+          disabled={disabled || !businessPartnerCode || !!value}
+          onClick={() => setIsModalOpen(true)}
+          title="新增聯絡人"
+        />
+      </Space.Compact>
+
+      <Modal
+        title={`新增客戶聯絡人 (${businessPartnerCode})`}
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        destroyOnClose
+        centered
+        width={800}
+        maskClosable={false}
+        keyboard={false}
+        footer={[
+          <Button key="cancel" onClick={() => setIsModalOpen(false)}>
+            取消
+          </Button>,
+          <Button 
+            key="submit" 
+            type="primary" 
+            htmlType="submit" 
+            form="contactModalForm"
+            loading={createMutation.isPending}
+            icon={<SaveOutlined />}
+          >
+            儲存並選取
+          </Button>
+        ]}
+      >
+        <div style={{ paddingTop: 16 }}>
+          <DynamicForm
+            fields={contactFormConfig()}
+            onSubmit={handleCreateSubmit}
+            formId="contactModalForm"
+            hideDefaultFooter={true}
+          />
+        </div>
+      </Modal>
+    </>
+  );
+};

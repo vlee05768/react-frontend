@@ -65,7 +65,8 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
           : (config.validateTrigger ? [config.validateTrigger] : []);
 
         // 處理 onChange 連動
-        const handleChange = (val: any) => {
+        const handleChange = (...args: any[]) => {
+          const val = args[0];
           // Antd 的 Input 等事件帶的是 React.ChangeEvent，或者直接是 value
           let value = val?.target ? val.target.value : val;
           
@@ -80,7 +81,7 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
           
           if (config.onChange) {
             // 觸發自訂連動邏輯
-            config.onChange(value, context, setValue);
+            config.onChange(value, context, setValue, ...args);
           }
           
           if (triggerTypes.includes('onChange')) {

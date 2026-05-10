@@ -39,6 +39,7 @@ export default function MaterialList() {
   const [searchForm] = Form.useForm();
   const [formDefaultValues, setFormDefaultValues] = useState<any>({});
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
+  const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   const [activeTab, setActiveTab] = useState('master_info');
 
   useEffect(() => {
@@ -301,6 +302,8 @@ export default function MaterialList() {
       <Modal
         title={<div style={{ fontSize: '18px', fontWeight: 600, paddingBottom: '12px', borderBottom: '1px solid #f0f0f0', marginBottom: '8px' }}>查詢條件設定</div>}
         open={isSearchModalOpen}
+        maskClosable={isViewMode}
+        keyboard={isViewMode}
         onCancel={() => setIsSearchModalOpen(false)}
         footer={
           <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
@@ -337,6 +340,8 @@ export default function MaterialList() {
         size={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
+        maskClosable={isViewMode}
+        keyboard={isViewMode}
         extra={
           <Space>
             {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('Warehouse.Materials.Update')) && (

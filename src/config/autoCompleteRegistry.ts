@@ -4,7 +4,7 @@ export interface AutoCompleteConfig {
   /** 搜尋用的 API 呼叫 (依特性: 會有固定條件、預設 pageSize=100) */
   queryFn: (keyword: string, additionalParams?: any) => Promise<any[]>;
   /** 若編輯表單需要顯示初始值的對應名稱，可定義此函數以單獨撈取 (可選) */
-  fetchByValue?: (value: any) => Promise<any>;
+  fetchByValue?: (value: any, additionalParams?: any) => Promise<any>;
   /** 選項的鍵值對映 (支援函數組合) */
   fieldNames: { label: string | ((item: any) => string); value: string };
   /** 至少輸入幾個字才觸發 API 呼叫 (預設 1) */
@@ -47,9 +47,14 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       });
       return (res.data as any)?.data || res.data || [];
     },
-    fetchByValue: async (_id: number) => {
-       // You'd ideally fetch a single contact here if an API exists, but for now we might just resolve empty or mock 
-       return null; 
+    fetchByValue: async (id: number, additionalParams?: any) => {
+      const bpCode = additionalParams?.businessPartnerCode;
+      if (!bpCode || !id) return null;
+      const { getApiV1BusinessPartnersByBusinessPartnerCodeContactsByContactId } = await import('@/api/generated/sdk.gen');
+      const res = await getApiV1BusinessPartnersByBusinessPartnerCodeContactsByContactId({
+        path: { businessPartnerCode: String(bpCode), contactId: id }
+      });
+      return (res.data as any)?.data || res.data;
     },
     fieldNames: { label: 'name', value: 'id' },
   },

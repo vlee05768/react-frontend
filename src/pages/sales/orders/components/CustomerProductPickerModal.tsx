@@ -116,6 +116,8 @@ export function CustomerProductPickerModal({
           <InputNumber
             min={0}
             precision={2}
+            formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+            parser={(value) => value!.replace(/\$\s?|(,*)/g, '') as unknown as number}
             value={currentPrice}
             disabled={!isSelected}
             onChange={(val) => handlePriceChange(record.code!, val)}
@@ -136,6 +138,8 @@ export function CustomerProductPickerModal({
         return (
           <InputNumber
             min={1}
+            formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+            parser={(value) => value!.replace(/\$\s?|(,*)/g, '') as unknown as number}
             value={currentQty}
             disabled={!isSelected}
             onChange={(val) => handleQuantityChange(record.code!, val)}

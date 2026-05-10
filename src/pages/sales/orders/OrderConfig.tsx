@@ -239,20 +239,20 @@ export const getItemColumns = (isViewMode: boolean, onEdit: (record: OrderItemDt
       if (isViewMode) return null;
       return (
         <Space size="small">
-          <Button type="text" size="small" icon={<EditOutlined />} onClick={() => onEdit(record)} />
-          <Button type="text" danger size="small" icon={<DeleteOutlined />} onClick={() => onDelete(record)} />
+          <Button type="text" icon={<EditOutlined style={{ fontSize: '16px' }} />} onClick={() => onEdit(record)} />
+          <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: '16px' }} />} onClick={() => onDelete(record)} />
         </Space>
       );
     },
   },
-  { title: '行號', dataIndex: 'lineNumber', width: 60, align: 'center' },
+  { title: '項次', dataIndex: 'serialNumber', width: 60, align: 'left' },
   { title: '類型', dataIndex: 'goodsType', width: 80, align: 'center', render: (val) => val === 'P' ? '產品' : val === 'M' ? '原物料' : '其他' },
-  { title: '編碼', dataIndex: 'goodsCode', width: 140, align: 'center' },
+  { title: '編碼', dataIndex: 'goodsCode', width: 140, align: 'left' },
   { title: '名稱', dataIndex: 'goodsName', width: 220, ellipsis: true },
-  { title: '客戶產品代碼', dataIndex: 'customerProductId', width: 140, align: 'center' },
-  { title: '數量', dataIndex: 'quantity', width: 100, align: 'right' },
-  { title: '單價', dataIndex: 'unitPrice', width: 100, align: 'right' },
-  { title: '小計', dataIndex: 'lineAmount', width: 100, align: 'right' },
+  { title: '客戶產品代碼', dataIndex: 'customerProductId', width: 140, align: 'left' },
+  { title: '數量', dataIndex: 'quantity', width: 100, align: 'right', render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-' },
+  { title: '單價', dataIndex: 'unitPrice', width: 100, align: 'right', render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-' },
+  { title: '小計', dataIndex: 'lineAmount', width: 100, align: 'right', render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-' },
   { title: '要求交期', dataIndex: 'requestedDeliveryDate', width: 120, align: 'center', render: (d) => d ? dayjs(d).format('YYYY-MM-DD') : '-' },
 ];
 

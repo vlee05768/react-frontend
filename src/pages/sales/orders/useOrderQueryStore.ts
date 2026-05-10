@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { DEFAULT_PAGE_SIZE } from '@/constants/ui';
 
 interface OrderQueryState {
   params: Record<string, any>;
@@ -8,7 +9,7 @@ interface OrderQueryState {
 
 const defaultParams = {
   page: 1,
-  pageSize: 10,
+  pageSize: DEFAULT_PAGE_SIZE,
 };
 
 const useOrderQueryStore = create<OrderQueryState>((set) => ({

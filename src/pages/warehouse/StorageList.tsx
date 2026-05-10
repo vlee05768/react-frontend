@@ -399,6 +399,8 @@ export default function StorageList() {
           </div>
         }
         open={isSearchModalOpen}
+        maskClosable={isViewMode}
+        keyboard={isViewMode}
         onCancel={() => setIsSearchModalOpen(false)}
         footer={
           <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
@@ -438,6 +440,8 @@ export default function StorageList() {
         size={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
+        maskClosable={isViewMode}
+        keyboard={isViewMode}
         extra={
           <Space>
             {(!isDrawerEditing && !isCreateDrawerOpen && false) && (

@@ -48,8 +48,8 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
 
   // 2. 表單初始值資料補齊機制 (解決 value 有值但沒有名稱的問題)
   const { data: valueData, isFetching: isFetchingValue } = useQuery({
-    queryKey: ['async-select-initial', configKey, value],
-    queryFn: () => config.fetchByValue ? config.fetchByValue(value) : Promise.resolve(null),
+    queryKey: ['async-select-initial', configKey, value, additionalParams],
+    queryFn: () => config.fetchByValue ? config.fetchByValue(value, additionalParams) : Promise.resolve(null),
     enabled: !!value && !!config.fetchByValue && !searchData?.find((item: any) => item[config.fieldNames.value] === value),
     staleTime: Infinity,
   });

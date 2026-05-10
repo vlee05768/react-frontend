@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react';
 import { Card, Table, Button, Space, Tooltip, App, Form, Divider, Modal } from 'antd';
-import { EyeOutlined, PlusOutlined, SearchOutlined, ClearOutlined, CheckCircleOutlined, CloseCircleOutlined, LockOutlined, UnlockOutlined, DeleteOutlined } from '@ant-design/icons';
+import { EyeOutlined, PlusOutlined, SearchOutlined, ClearOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { getApiV1Orders, deleteApiV1OrdersByOrderNumber, postApiV1OrdersByOrderNumberConfirm, postApiV1OrdersByOrderNumberCancelConfirm, postApiV1OrdersByOrderNumberClose, postApiV1OrdersByOrderNumberCancelClose } from '@/api/generated/sdk.gen';
+import { getApiV1Orders, deleteApiV1OrdersByOrderNumber } from '@/api/generated/sdk.gen';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 ;
-import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
+import { TABLE_ACTION_ICON_SIZE, DEFAULT_PAGE_SIZE } from '@/constants/ui';
 import { useAuthStore } from '@/stores/useAuthStore';
 import type { OrderDto } from '@/api/generated/types.gen';
 import useOrderQueryStore from './useOrderQueryStore';
@@ -44,37 +44,7 @@ export default function OrdersList() {
     },
   });
 
-  const confirmMutation = useMutation({
-    mutationFn: (id: string) => postApiV1OrdersByOrderNumberConfirm({ path: { orderNumber: id } }),
-    onSuccess: () => {
-      message.success('確認成功');
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-    },
-  });
 
-  const cancelConfirmMutation = useMutation({
-    mutationFn: (id: string) => postApiV1OrdersByOrderNumberCancelConfirm({ path: { orderNumber: id } }),
-    onSuccess: () => {
-      message.success('取消確認成功');
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-    },
-  });
-
-  const closeMutation = useMutation({
-    mutationFn: (id: string) => postApiV1OrdersByOrderNumberClose({ path: { orderNumber: id } }),
-    onSuccess: () => {
-      message.success('結案成功');
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-    },
-  });
-
-  const cancelCloseMutation = useMutation({
-    mutationFn: (id: string) => postApiV1OrdersByOrderNumberCancelClose({ path: { orderNumber: id } }),
-    onSuccess: () => {
-      message.success('取消結案成功');
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-    },
-  });
 
   const handleTableChange = (pagination: any) => {
     setParams({ page: pagination.current, pageSize: pagination.pageSize });
@@ -92,8 +62,6 @@ export default function OrdersList() {
         const canUpdate = hasPermission('Sales.Orders.Update');
         const canDelete = hasPermission('Sales.Orders.Delete');
         const isDraft = record.status === 'Draft';
-        const isConfirmed = record.status === 'Confirmed';
-        const isFinished = record.status === 'Finished';
 
         return (
           <Space size="middle">
@@ -104,70 +72,6 @@ export default function OrdersList() {
                   style={{ color: '#1890ff' }}
                   icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />}
                   onClick={() => navigate(`/sales/orders/${record.orderNumber}`)}
-                />
-              </Tooltip>
-            )}
-
-            {canUpdate && isDraft && (
-              <Tooltip title="確認">
-                <Button
-                  type="text"
-                  icon={<CheckCircleOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE, color: 'var(--ant-color-success)' }} />}
-                  onClick={() => modal.confirm({
-                    title: '確認訂單',
-                    content: `確定要確認訂單 ${record.orderNumber} 嗎？`,
-                    centered: true,
-                    width: 400,
-                    onOk: () => confirmMutation.mutateAsync(record.orderNumber!),
-                  })}
-                />
-              </Tooltip>
-            )}
-
-            {canUpdate && isConfirmed && (
-              <Tooltip title="取消確認">
-                <Button
-                  type="text"
-                  icon={<CloseCircleOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE, color: 'var(--ant-color-warning)' }} />}
-                  onClick={() => modal.confirm({
-                    title: '取消確認',
-                    content: `確定要取消確認訂單 ${record.orderNumber} 嗎？`,
-                    centered: true,
-                    width: 400,
-                    onOk: () => cancelConfirmMutation.mutateAsync(record.orderNumber!),
-                  })}
-                />
-              </Tooltip>
-            )}
-
-            {canUpdate && isConfirmed && (
-              <Tooltip title="結案">
-                <Button
-                  type="text"
-                  icon={<LockOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE, color: 'var(--ant-color-text-secondary)' }} />}
-                  onClick={() => modal.confirm({
-                    title: '訂單結案',
-                    content: `確定要結案訂單 ${record.orderNumber} 嗎？`,
-                    centered: true,
-                    width: 400,
-                    onOk: () => closeMutation.mutateAsync(record.orderNumber!),
-                  })}
-                />
-              </Tooltip>
-            )}
-
-            {canUpdate && isFinished && (
-              <Tooltip title="取消結案">
-                <Button
-                  type="text"
-                  icon={<UnlockOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE, color: 'var(--ant-color-primary)' }} />}
-                  onClick={() => modal.confirm({
-                    title: '取消結案',
-                    content: `確定要取消結案訂單 ${record.orderNumber} 嗎？`,
-                    centered: true,
-                    width: 400,
-                    onOk: () => cancelCloseMutation.mutateAsync(record.orderNumber!),
-                  })}
                 />
               </Tooltip>
             )}
@@ -191,10 +95,9 @@ export default function OrdersList() {
             )}
           </Space>
         );
-      },
-    });
+      },    });
     return baseColumns;
-  }, [hasPermission, navigate, modal, confirmMutation, cancelConfirmMutation, closeMutation, cancelCloseMutation, deleteMutation]);
+  }, [hasPermission, navigate, modal, deleteMutation]);
 
   return (
     <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
@@ -268,7 +171,7 @@ export default function OrdersList() {
         size="middle"
         pagination={{
           current: params.page || 1,
-          pageSize: params.pageSize || 10,
+          pageSize: params.pageSize || DEFAULT_PAGE_SIZE,
           total,
           showSizeChanger: true,
           showTotal: (total) => `共 ${total} 筆資料`,

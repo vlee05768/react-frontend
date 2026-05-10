@@ -192,6 +192,8 @@ export default function CategoryList({ selectedCode, onSelect }: CategoryListPro
         }
         size="default"
         open={isDrawerOpen}
+        maskClosable={false}
+        keyboard={false}
         onClose={() => setIsDrawerOpen(false)}
         destroyOnHidden
         extra={

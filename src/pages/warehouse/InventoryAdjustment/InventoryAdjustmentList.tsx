@@ -350,7 +350,8 @@ export default function InventoryAdjustmentList() {
         open={!!viewId || isCreateDrawerOpen}
         onClose={isCreateDrawerOpen ? closeCreateDrawer : closeViewDrawer}
         destroyOnClose
-        maskClosable={!isDrawerEditing && !isCreateDrawerOpen}
+        maskClosable={isViewMode}
+        keyboard={isViewMode}
         extra={
           <Space>
             {(!isDrawerEditing && !isCreateDrawerOpen) && (
