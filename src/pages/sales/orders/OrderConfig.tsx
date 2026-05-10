@@ -221,10 +221,46 @@ export const getFormConfig = (): any[] => [
     colSpan: 2,
   },
   {
+    name: 'subTotal',
+    label: '小計',
+    componentType: 'InputNumber',
+    colSpan: 2,
+    editable: 'never',
+    componentProps: {
+      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, '') as unknown as number,
+      style: { width: '100%' }
+    }
+  },
+  {
+    name: 'taxAmount',
+    label: '稅額',
+    componentType: 'InputNumber',
+    colSpan: 2,
+    editable: 'never',
+    componentProps: {
+      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, '') as unknown as number,
+      style: { width: '100%' }
+    }
+  },
+  {
+    name: 'totalAmount',
+    label: '總金額',
+    componentType: 'InputNumber',
+    colSpan: 2,
+    editable: 'never',
+    componentProps: {
+      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, '') as unknown as number,
+      style: { width: '100%' }
+    }
+  },
+  {
     name: 'notes',
     label: '備註',
     componentType: 'TextArea',
-    colSpan: 1,
+    colSpan: 2,
   },
 ];
 
