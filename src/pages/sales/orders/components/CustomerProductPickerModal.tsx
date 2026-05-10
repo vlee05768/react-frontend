@@ -157,7 +157,7 @@ export function CustomerProductPickerModal({
       onCancel={onCancel}
       width="80vw"
       centered
-      styles={{ body: { height: 'calc(80vh - 110px)', overflowY: 'auto' } }}
+      styles={{ body: { height: 'calc(80vh - 110px)', overflow: 'hidden', display: 'flex', flexDirection: 'column' } }}
       maskClosable={false}
       footer={[
         <div key="footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -183,16 +183,16 @@ export function CustomerProductPickerModal({
         </div>
       ]}
     >
-      <Space direction="vertical" style={{ width: '100%' }} size="middle">
-        <Space>
-          <Input.Search
-            placeholder="搜尋產品名稱或編號"
-            allowClear
-            onSearch={setSearchTerm}
-            style={{ width: 300 }}
-          />
-        </Space>
-        
+      <div style={{ marginBottom: 16, flexShrink: 0 }}>
+        <Input.Search
+          placeholder="搜尋產品名稱或編號"
+          allowClear
+          onSearch={setSearchTerm}
+          style={{ width: 300 }}
+        />
+      </div>
+      
+      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
         <Table
           rowSelection={{
             type: 'checkbox',
@@ -205,7 +205,7 @@ export function CustomerProductPickerModal({
           rowKey="code"
           size="small"
           loading={isLoading}
-          scroll={{ y: 'calc(80vh - 250px)' }}
+          scroll={{ y: 'calc(80vh - 290px)' }}
           pagination={{
             current: page,
             pageSize: pageSize,
@@ -218,7 +218,7 @@ export function CustomerProductPickerModal({
             showTotal: (total) => `共 ${total} 筆`,
           }}
         />
-      </Space>
+      </div>
     </Modal>
   );
 }
