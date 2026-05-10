@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getApiV1ProductCustomerByCustomerCodeSearch } from '@/api/generated/sdk.gen';
 import type { ProductDto } from '@/api/generated/types.gen';
 import { DEFAULT_PAGE_SIZE } from '@/constants';
+import { DictSelect } from '@/components/Form/DictSelect';
 
 interface SelectedProduct extends ProductDto {
   orderUnitPrice: number;
@@ -99,10 +100,19 @@ export function CustomerProductPickerModal({
     }
   };
 
+  const handleTypeChange = (code: string, val: string) => {
+    const newMap = new Map(selectedMap);
+    const item = newMap.get(code);
+    if (item) {
+      newMap.set(code, { ...item, type: val });
+      setSelectedMap(newMap);
+    }
+  };
+
   const columns = [
-    { title: '產品代碼', dataIndex: 'code', key: 'code', width: 120, align: 'center' as const },
-    { title: '產品名稱', dataIndex: 'name', key: 'name', width: 200, ellipsis: true, align: 'center' as const },
-    { title: '客戶產品代碼', dataIndex: 'customerProductId', key: 'customerProductId', width: 140, align: 'center' as const },
+    { title: '產品代碼', dataIndex: 'code', key: 'code', width: 120, align: 'left' as const },
+    { title: '產品名稱', dataIndex: 'name', key: 'name', width: 200, ellipsis: true, align: 'left' as const },
+    { title: '客戶產品代碼', dataIndex: 'customerProductId', key: 'customerProductId', width: 140, align: 'left' as const },
     {
       title: '單價',
       key: 'orderUnitPrice',
@@ -144,7 +154,26 @@ export function CustomerProductPickerModal({
         );
       }
     },
-    { title: '類型', dataIndex: 'type', key: 'type', width: 100, align: 'center' as const },
+    {
+      title: '類型',
+      key: 'type',
+      width: 140,
+      align: 'center' as const,
+      render: (_: any, record: ProductDto) => {
+        const isSelected = selectedMap.has(record.code!);
+        const currentType = isSelected ? selectedMap.get(record.code!)!.type : record.type;
+        return (
+          <DictSelect
+            dictKey="PRODUCT_TYPE"
+            value={currentType}
+            disabled={!isSelected}
+            onChange={(val) => handleTypeChange(record.code!, val)}
+            size="small"
+            style={{ width: '100%' }}
+          />
+        );
+      }
+    },
     { title: '單位', dataIndex: 'unit', key: 'unit', width: 80, align: 'center' as const },
   ];
 
