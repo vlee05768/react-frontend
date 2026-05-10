@@ -100,7 +100,7 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
       centered: true,
       width: 400,
       okButtonProps: { danger: true },
-      onOk: () => deleteMutation.mutateAsync(record.lineNumber!),
+      onOk: () => { deleteMutation.mutate(record.lineNumber!); },
     });
   };
 

@@ -93,7 +93,7 @@ export default function OrdersList() {
                     centered: true,
                     width: 400,
                     okButtonProps: { danger: true },
-                    onOk: () => deleteMutation.mutateAsync(record.orderNumber!),
+                    onOk: () => { deleteMutation.mutate(record.orderNumber!); },
                   })}
                 />
               </Tooltip>

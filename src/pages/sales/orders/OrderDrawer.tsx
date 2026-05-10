@@ -234,7 +234,7 @@ export default function OrderDrawer() {
                 content: '確定要確認此單據嗎？',
                 centered: true,
                 width: 400,
-                onOk: () => confirmMutation.mutateAsync(),
+                onOk: () => { confirmMutation.mutate(); },
               })
             }}
           >
@@ -253,7 +253,7 @@ export default function OrderDrawer() {
               content: '確定要取消確認此單據嗎？',
               centered: true,
               width: 400,
-              onOk: () => cancelConfirmMutation.mutateAsync(),
+              onOk: () => { cancelConfirmMutation.mutate(); },
             })}
           >
             取消確認
@@ -271,7 +271,7 @@ export default function OrderDrawer() {
               content: '確定要將此單據結案嗎？',
               centered: true,
               width: 400,
-              onOk: () => closeMutation.mutateAsync(),
+              onOk: () => { closeMutation.mutate(); },
             })}
           >
             結案
@@ -289,7 +289,7 @@ export default function OrderDrawer() {
               content: '確定要取消結案此單據嗎？',
               centered: true,
               width: 400,
-              onOk: () => cancelCloseMutation.mutateAsync(),
+              onOk: () => { cancelCloseMutation.mutate(); },
             })}
           >
             取消結案
