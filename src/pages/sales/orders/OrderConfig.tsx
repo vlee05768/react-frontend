@@ -106,14 +106,14 @@ export const getFormConfig = (): any[] => [
     name: 'orderNumber',
     label: '訂單號碼',
     componentType: 'Input',
-    colSpan: 3,
+    colSpan: 2,
     editable: 'never',
   },
   {
     name: 'orderDate',
     label: '訂單日期',
     componentType: 'DatePicker',
-    colSpan: 3,
+    colSpan: 2,
     validation: {} as any, // FIXME
   },
   {
@@ -121,7 +121,7 @@ export const getFormConfig = (): any[] => [
     label: '客戶',
     componentType: 'AsyncSelect',
     componentProps: { configKey: 'CUSTOMER' },
-    colSpan: 3,
+    colSpan: 2,
     validation: {} as any, // FIXME
   },
   {
@@ -130,50 +130,50 @@ export const getFormConfig = (): any[] => [
     componentType: 'AsyncSelect',
     componentProps: { configKey: 'CUSTOMER_CONTACT' },
     
-    colSpan: 3,
+    colSpan: 2,
   },
   {
     name: 'customerPoNumber',
     label: '客戶採購單號',
     componentType: 'Input',
-    colSpan: 3,
+    colSpan: 2,
   },
   {
     name: 'salespersonEmployeeCode',
     label: '業務員',
     componentType: 'DictSelect',
     componentProps: { dictKey: 'EMPLOYEE' },
-    colSpan: 3,
+    colSpan: 2,
   },
   {
     name: 'paymentTerms',
     label: '付款條件',
     componentType: 'Input',
-    colSpan: 3,
+    colSpan: 2,
   },
   {
     name: 'shippingAddress',
     label: '送貨地址',
     componentType: 'Input',
-    colSpan: 3,
+    colSpan: 2,
   },
   {
     name: 'requestedDeliveryDate',
     label: '要求交期',
     componentType: 'DatePicker',
-    colSpan: 3,
+    colSpan: 2,
   },
   {
     name: 'promisedDeliveryDate',
     label: '承諾交期',
     componentType: 'DatePicker',
-    colSpan: 3,
+    colSpan: 2,
   },
   {
     name: 'tag',
     label: '標籤',
     componentType: 'Input',
-    colSpan: 3,
+    colSpan: 2,
   },
   {
     name: 'notes',
