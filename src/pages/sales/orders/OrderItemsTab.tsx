@@ -64,7 +64,7 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
       handleCancel();
     },
     onError: (error) => {
-      message.error(getApiErrorMessage(error, '新增明細失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `新增明細失敗: ${getApiErrorMessage(error)}` });
     }
   });
 
@@ -77,7 +77,7 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
       handleCancel();
     },
     onError: (error) => {
-      message.error(getApiErrorMessage(error, '更新明細失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `更新明細失敗: ${getApiErrorMessage(error)}` });
     }
   });
 
@@ -89,7 +89,7 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
       queryClient.invalidateQueries({ queryKey: ['order', orderData.orderNumber] });
     },
     onError: (error) => {
-      message.error(getApiErrorMessage(error, '刪除明細失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `刪除明細失敗: ${getApiErrorMessage(error)}` });
     }
   });
 
@@ -166,7 +166,7 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
       await queryClient.invalidateQueries({ queryKey: ['order', orderData.orderNumber] });
       await queryClient.invalidateQueries({ queryKey: ['orders'] });
     } catch (error: any) {
-      message.error(getApiErrorMessage(error, '新增明細失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `批次新增明細失敗: ${getApiErrorMessage(error)}` });
     } finally {
       setIsBatchSubmitting(false);
     }

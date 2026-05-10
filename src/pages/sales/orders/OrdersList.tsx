@@ -45,7 +45,7 @@ export default function OrdersList() {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
     onError: (error) => {
-      message.error(getApiErrorMessage(error, '刪除失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
     }
   });
 

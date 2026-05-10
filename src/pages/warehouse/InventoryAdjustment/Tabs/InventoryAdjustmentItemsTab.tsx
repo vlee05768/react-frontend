@@ -63,7 +63,7 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
       setIsCreating(false);
     },
     onError: (err: any) => {
-      messageApi.error(getApiErrorMessage(err, '新增明細失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `新增明細失敗: ${getApiErrorMessage(err)}` });
     }
   });
 
@@ -78,7 +78,7 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
       setEditingItem(null);
     },
     onError: (err: any) => {
-      messageApi.error(getApiErrorMessage(err, '更新明細失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `更新明細失敗: ${getApiErrorMessage(err)}` });
     }
   });
 
@@ -91,7 +91,7 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
       queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentItems', documentNumber] });
     },
     onError: (err: any) => {
-      messageApi.error(getApiErrorMessage(err, '刪除明細失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `刪除明細失敗: ${getApiErrorMessage(err)}` });
     }
   });
 

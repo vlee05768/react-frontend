@@ -97,7 +97,7 @@ export default function OrderDrawer() {
       }
     },
     onError: (error) => {
-      message.error(getApiErrorMessage(error, '新增失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(error)}` });
     }
   });
 
@@ -110,7 +110,7 @@ export default function OrderDrawer() {
       setIsEditing(false);
     },
     onError: (error) => {
-      message.error(getApiErrorMessage(error, '更新失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${getApiErrorMessage(error)}` });
     }
   });
   const confirmMutation = useMutation({
@@ -121,7 +121,7 @@ export default function OrderDrawer() {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
     onError: (error) => {
-      message.error(getApiErrorMessage(error, '確認失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `確認失敗: ${getApiErrorMessage(error)}` });
     }
   });
 
@@ -133,7 +133,7 @@ export default function OrderDrawer() {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
     onError: (error) => {
-      message.error(getApiErrorMessage(error, '取消確認失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `取消確認失敗: ${getApiErrorMessage(error)}` });
     }
   });
 
@@ -145,7 +145,7 @@ export default function OrderDrawer() {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
     onError: (error) => {
-      message.error(getApiErrorMessage(error, '結案失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `結案失敗: ${getApiErrorMessage(error)}` });
     }
   });
 
@@ -157,7 +157,7 @@ export default function OrderDrawer() {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
     onError: (error) => {
-      message.error(getApiErrorMessage(error, '取消結案失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `取消結案失敗: ${getApiErrorMessage(error)}` });
     }
   });
 

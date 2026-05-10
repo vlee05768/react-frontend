@@ -111,7 +111,7 @@ export default function InventoryAdjustmentList() {
       }
     },
     onError: (err: any) => {
-      messageApi.error(getApiErrorMessage(err, '新增失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(err)}` });
     }
   });
 
@@ -124,7 +124,7 @@ export default function InventoryAdjustmentList() {
       setIsDrawerEditing(false);
     },
     onError: (err: any) => {
-      messageApi.error(getApiErrorMessage(err, '更新失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${getApiErrorMessage(err)}` });
     }
   });
 
@@ -135,7 +135,7 @@ export default function InventoryAdjustmentList() {
       queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentList'] });
     },
     onError: (err: any) => {
-      messageApi.error(getApiErrorMessage(err, '刪除失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(err)}` });
     }
   });
 
@@ -147,7 +147,7 @@ export default function InventoryAdjustmentList() {
       queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentDetail', id] });
     },
     onError: (err: any) => {
-      messageApi.error(getApiErrorMessage(err, '確認失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `確認失敗: ${getApiErrorMessage(err)}` });
     }
   });
 
@@ -159,7 +159,7 @@ export default function InventoryAdjustmentList() {
       queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentDetail', id] });
     },
     onError: (err: any) => {
-      messageApi.error(getApiErrorMessage(err, '取消確認失敗'));
+      modal.error({ centered: true, title: '錯誤提示', content: `取消確認失敗: ${getApiErrorMessage(err)}` });
     }
   });
 
