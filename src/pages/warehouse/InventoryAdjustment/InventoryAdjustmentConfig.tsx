@@ -15,7 +15,7 @@ export const getStatusTag = (status: string | null | undefined) => {
     case "CONFIRMED":
       return <Tag color="success" icon={<CheckCircleOutlined />}>已確認</Tag>;
     case "CLOSED":
-      return <Tag color="default" icon={<LockOutlined />}>已結案</Tag>;
+      return <Tag color="processing" icon={<LockOutlined />}>已結案</Tag>;
     default:
       return <Tag>{status}</Tag>;
   }
