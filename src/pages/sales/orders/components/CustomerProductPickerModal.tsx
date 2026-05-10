@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Modal, Table, Input, Button, Space, InputNumber, Tag } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { getApiV1ProductCustomerByCustomerCodeSearch } from '@/api/generated/sdk.gen';
@@ -35,8 +35,18 @@ export function CustomerProductPickerModal({
   // Track selected products across pages
   const [selectedMap, setSelectedMap] = useState<Map<string, SelectedProduct>>(new Map());
 
+  // 重置狀態當 Modal 開啟時
+  useEffect(() => {
+    if (open) {
+      setSearchTerm('');
+      setPage(1);
+      setSelectedMap(new Map());
+    }
+  }, [open]);
+
   const { data, isLoading } = useQuery({
-    queryKey: ['customer-products', customerCode, searchTerm, page, pageSize],
+    // 將 excludeProductCodes 加入 queryKey，確保刪除明細後，能觸發 API 重新查詢
+    queryKey: ['customer-products', customerCode, searchTerm, page, pageSize, excludeProductCodes],
     queryFn: () => getApiV1ProductCustomerByCustomerCodeSearch({
       path: { customerCode },
       query: {
