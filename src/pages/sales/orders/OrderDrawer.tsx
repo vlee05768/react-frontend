@@ -134,7 +134,7 @@ export default function OrderDrawer() {
     <Drawer
       title={
         <DrawerTitle
-          moduleName={isCreating ? '訂單' : `訂單 (${id})`}
+          moduleName="訂單"
           isCreate={isCreating}
           isEdit={isEditing}
           record={orderData}
@@ -143,7 +143,7 @@ export default function OrderDrawer() {
       }
       open={true}
       onClose={() => navigate('/sales/orders')}
-      size={DRAWER_WIDTH_MAIN as any}
+      size={DRAWER_WIDTH_MAIN}
       extra={getExtraActions()}
       maskClosable={false}
     >
