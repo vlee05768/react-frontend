@@ -1,8 +1,9 @@
 const fs = require('fs');
-const path = './src/pages/warehouse/StorageInventory/StorageInventoryList.tsx';
+const path = '/home/hermes/git_projects/erp-frontend-react/src/pages/warehouse/InventoryAdjustment/Tabs/InventoryAdjustmentItemsTab.tsx';
 let content = fs.readFileSync(path, 'utf8');
 content = content.replace(
-  'return res.data?.data || [];',
-  'console.log("API RES:", res);\n      return Array.isArray(res.data?.data) ? res.data.data : [];'
+  /queryFn: \(\) => getApiV1InventoryAdjustmentByMovementNumberItems\(\{ path: \{ movementNumber: documentNumber \} \}\),/,
+  `queryFn: () => getApiV1InventoryAdjustmentByMovementNumberItems({ path: { movementNumber: documentNumber }, query: { pageSize: 100 } as any }),`
 );
 fs.writeFileSync(path, content);
+console.log("patched!");

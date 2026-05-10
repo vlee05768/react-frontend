@@ -38,6 +38,7 @@ const ICON_MAPPING: Record<string, React.ReactNode> = {
 const ROUTE_MAPPING: Record<string, string> = {
   'BasicData.Employees': '/employee',
   'BasicData.BusinessPartners': '/business-partners',
+  'Sales.Orders': '/sales/orders',
   'System.Users': '/system/users',
   'System.Roles': '/system/roles',
   'System.GeneralTypes': '/system/general-types',
@@ -56,6 +57,7 @@ const ROUTE_MAPPING: Record<string, string> = {
 const ROUTE_PERMISSION_MAP: Record<string, string> = {
   '/employee': 'BasicData.Employees.View',
   '/business-partners': 'BasicData.BusinessPartners.View',
+  '/sales/orders': 'Sales.Orders.View',
   '/system/users': 'System.Users.View',
   '/system/roles': 'System.Roles.View',
   '/system/general-types': 'System.GeneralTypes.View',

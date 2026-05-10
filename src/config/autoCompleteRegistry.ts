@@ -36,6 +36,23 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
   },
   
   // 原料 (Material)
+  CUSTOMER_CONTACT: {
+    queryFn: async (keyword: string, additionalParams?: any) => {
+      const bpCode = additionalParams?.businessPartnerCode;
+      if (!bpCode) return [];
+      const { getApiV1BusinessPartnersByBusinessPartnerCodeContacts } = await import('@/api/generated/sdk.gen');
+      const res = await getApiV1BusinessPartnersByBusinessPartnerCodeContacts({
+        path: { businessPartnerCode: String(bpCode) },
+        query: { page: 1, pageSize: 100, keyword: keyword || undefined } as any
+      });
+      return (res.data as any)?.data || res.data || [];
+    },
+    fetchByValue: async (_id: number) => {
+       // You'd ideally fetch a single contact here if an API exists, but for now we might just resolve empty or mock 
+       return null; 
+    },
+    fieldNames: { label: 'name', value: 'id' },
+  },
   MATERIAL: {
     queryFn: async (keyword: string) => {
       const res = await getApiV1Material({
