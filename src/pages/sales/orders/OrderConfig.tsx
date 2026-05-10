@@ -323,7 +323,6 @@ export const getItemFormConfig = (): any[] => [
   },
   { name: 'goodsName', label: '商品名稱', componentType: 'Input', colSpan: 4, editable: 'never' },
   { name: 'priority', label: '優先級', componentType: 'DictSelect', componentProps: { dictKey: 'ORDER_PRIORITY' }, colSpan: 2 },
-  { name: 'generateWorkOrder', label: '產生製令', componentType: 'Switch', colSpan: 2 },
   {
     name: 'unitPrice',
     label: '單價',
@@ -331,6 +330,12 @@ export const getItemFormConfig = (): any[] => [
     colSpan: 3,
     editable: 'editOnly',
     validation: z.number().min(0, '單價必須大於或等於0'),
+    onChange: (value: any, context: any, setValue: any) => {
+      const qty = context.values.quantity || 0;
+      const spareQty = context.values.spareQuantity || 0;
+      const amount = Math.round((value || 0) * (qty + spareQty));
+      setValue('lineAmount', amount);
+    },
     componentProps: {
       formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
       parser: (value: any) => value!.replace(/\$\s?|(,*)/g, '') as unknown as number,
@@ -344,6 +349,12 @@ export const getItemFormConfig = (): any[] => [
     colSpan: 3,
     editable: 'editOnly',
     validation: z.number().min(1, '數量必須大於或等於1'),
+    onChange: (value: any, context: any, setValue: any) => {
+      const price = context.values.unitPrice || 0;
+      const spareQty = context.values.spareQuantity || 0;
+      const amount = Math.round(price * ((value || 0) + spareQty));
+      setValue('lineAmount', amount);
+    },
     componentProps: {
       formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
       parser: (value: any) => value!.replace(/\$\s?|(,*)/g, '') as unknown as number,
@@ -369,49 +380,21 @@ export const getItemFormConfig = (): any[] => [
     colSpan: 3,
     editable: 'editOnly',
     validation: z.number().min(0, '備品數量必須大於或等於0'),
+    onChange: (value: any, context: any, setValue: any) => {
+      const price = context.values.unitPrice || 0;
+      const qty = context.values.quantity || 0;
+      const amount = Math.round(price * (qty + (value || 0)));
+      setValue('lineAmount', amount);
+    },
     componentProps: {
       formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
       parser: (value: any) => value!.replace(/\$\s?|(,*)/g, '') as unknown as number,
       style: { width: '100%' }
     }
   },
-  {
-    name: 'quantityShipped',
-    label: '已出貨',
-    componentType: 'InputNumber',
-    colSpan: 4,
-    editable: 'never',
-    componentProps: {
-      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
-      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, '') as unknown as number,
-      style: { width: '100%' }
-    }
-  },
-  {
-    name: 'quantityCancelled',
-    label: '取消數量',
-    componentType: 'InputNumber',
-    colSpan: 4,
-    editable: 'never',
-    componentProps: {
-      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
-      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, '') as unknown as number,
-      style: { width: '100%' }
-    }
-  },
-  {
-    name: 'quantityRemaining',
-    label: '剩餘數量',
-    componentType: 'InputNumber',
-    colSpan: 4,
-    editable: 'never',
-    componentProps: {
-      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
-      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, '') as unknown as number,
-      style: { width: '100%' }
-    }
-  },
+ 
   { name: 'requestedDeliveryDate', label: '要求交期', componentType: 'DatePicker', colSpan: 4, validation: z.any().optional() },
   { name: 'promisedDeliveryDate', label: '承諾交期', componentType: 'DatePicker', colSpan: 4, validation: z.any().optional() },
+  { name: 'generateWorkOrder', label: '產生製令', componentType: 'Switch', colSpan: 2 },
   { name: 'notes', label: '備註', componentType: 'TextArea', colSpan: 1 },
 ];
