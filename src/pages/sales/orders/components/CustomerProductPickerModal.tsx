@@ -101,9 +101,9 @@ export function CustomerProductPickerModal({
   };
 
   const columns = [
-    { title: '產品代碼', dataIndex: 'code', key: 'code', width: 120, align: 'left' as const },
+    { title: '產品代碼', dataIndex: 'code', key: 'code', width: 120, align: 'left' as const, ellipsis: true },
     { title: '產品名稱', dataIndex: 'name', key: 'name', width: 200, ellipsis: true, align: 'left' as const },
-    { title: '客戶產品代碼', dataIndex: 'customerProductId', key: 'customerProductId', width: 140, align: 'left' as const },
+    { title: '客戶產品代碼', dataIndex: 'customerProductId', key: 'customerProductId', width: 140, align: 'left' as const, ellipsis: true },
     {
       title: '單價',
       key: 'orderUnitPrice',

@@ -245,15 +245,15 @@ export const getItemColumns = (isViewMode: boolean, onEdit: (record: OrderItemDt
       );
     },
   },
-  { title: '項次', dataIndex: 'serialNumber', width: 60, align: 'left' },
-  { title: '類型', dataIndex: 'goodsType', width: 80, align: 'center', render: (val) => val === 'P' ? '產品' : val === 'M' ? '原物料' : '其他' },
-  { title: '編碼', dataIndex: 'goodsCode', width: 140, align: 'left' },
+  { title: '項次', dataIndex: 'serialNumber', width: 60, align: 'left', ellipsis: true },
+  { title: '類型', dataIndex: 'goodsType', width: 80, align: 'center', ellipsis: true, render: (val) => val === 'P' ? '產品' : val === 'M' ? '原物料' : '其他' },
+  { title: '編碼', dataIndex: 'goodsCode', width: 140, align: 'left', ellipsis: true },
   { title: '名稱', dataIndex: 'goodsName', width: 220, ellipsis: true },
-  { title: '客戶產品代碼', dataIndex: 'customerProductId', width: 140, align: 'left' },
-  { title: '數量', dataIndex: 'quantity', width: 100, align: 'right', render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-' },
-  { title: '單價', dataIndex: 'unitPrice', width: 100, align: 'right', render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-' },
-  { title: '小計', dataIndex: 'lineAmount', width: 100, align: 'right', render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-' },
-  { title: '要求交期', dataIndex: 'requestedDeliveryDate', width: 120, align: 'center', render: (d) => d ? dayjs(d).format('YYYY-MM-DD') : '-' },
+  { title: '客戶產品代碼', dataIndex: 'customerProductId', width: 140, align: 'left', ellipsis: true },
+  { title: '數量', dataIndex: 'quantity', width: 100, align: 'right', ellipsis: true, render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-' },
+  { title: '單價', dataIndex: 'unitPrice', width: 100, align: 'right', ellipsis: true, render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-' },
+  { title: '小計', dataIndex: 'lineAmount', width: 100, align: 'right', ellipsis: true, render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-' },
+  { title: '要求交期', dataIndex: 'requestedDeliveryDate', width: 120, align: 'center', ellipsis: true, render: (d) => d ? dayjs(d).format('YYYY-MM-DD') : '-' },
 ];
 
 export const getItemFormConfig = (): any[] => [
