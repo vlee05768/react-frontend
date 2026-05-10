@@ -162,9 +162,14 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
   return (
     <div>
       {isEditingState ? (
-        <div>
+        <div style={{
+          padding: '16px',
+          border: '1px solid var(--ant-color-border-secondary)',
+          borderRadius: '8px',
+          backgroundColor: 'var(--ant-color-bg-container)'
+        }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-            <Text strong>{isCreating ? '新增明細' : `編輯明細 (${editingItem?.lineNumber})`}</Text>
+            <Text strong style={{ fontSize: '16px' }}>{isCreating ? '新增明細' : `編輯明細 (${editingItem?.lineNumber})`}</Text>
             <Space>
               <Button onClick={handleCancel}>取消</Button>
               <Button type="primary" htmlType="submit" form="itemForm" loading={createMutation.isPending || updateMutation.isPending}>儲存</Button>

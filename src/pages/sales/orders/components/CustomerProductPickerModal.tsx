@@ -35,9 +35,12 @@ export function CustomerProductPickerModal({
   // Track selected products across pages
   const [selectedMap, setSelectedMap] = useState<Map<string, SelectedProduct>>(new Map());
 
+  const [inputValue, setInputValue] = useState('');
+
   // 重置狀態當 Modal 開啟時
   useEffect(() => {
     if (open) {
+      setInputValue('');
       setSearchTerm('');
       setPage(1);
       setSelectedMap(new Map());
@@ -190,6 +193,8 @@ export function CustomerProductPickerModal({
           <Input.Search
             placeholder="搜尋產品名稱或編號"
             allowClear
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
             onSearch={setSearchTerm}
             style={{ width: 300 }}
           />
