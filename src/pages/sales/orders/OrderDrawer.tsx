@@ -23,6 +23,8 @@ import { DRAWER_WIDTH_MAIN } from '@/constants/ui';
 import { getFormConfig } from './OrderConfig';
 import OrderItemsTab from './OrderItemsTab';
 
+import { getApiErrorMessage } from '@/utils/apiError';
+
 export default function OrderDrawer() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -94,6 +96,9 @@ export default function OrderDrawer() {
         setIsEditing(false);
       }
     },
+    onError: (error) => {
+      message.error(getApiErrorMessage(error, '新增失敗'));
+    }
   });
 
   const updateMutation = useMutation({
@@ -104,6 +109,9 @@ export default function OrderDrawer() {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       setIsEditing(false);
     },
+    onError: (error) => {
+      message.error(getApiErrorMessage(error, '更新失敗'));
+    }
   });
   const confirmMutation = useMutation({
     mutationFn: () => postApiV1OrdersByOrderNumberConfirm({ path: { orderNumber: id! } }),
@@ -112,6 +120,9 @@ export default function OrderDrawer() {
       queryClient.invalidateQueries({ queryKey: ['order', id] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
+    onError: (error) => {
+      message.error(getApiErrorMessage(error, '確認失敗'));
+    }
   });
 
   const cancelConfirmMutation = useMutation({
@@ -121,6 +132,9 @@ export default function OrderDrawer() {
       queryClient.invalidateQueries({ queryKey: ['order', id] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
+    onError: (error) => {
+      message.error(getApiErrorMessage(error, '取消確認失敗'));
+    }
   });
 
   const closeMutation = useMutation({
@@ -130,6 +144,9 @@ export default function OrderDrawer() {
       queryClient.invalidateQueries({ queryKey: ['order', id] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
+    onError: (error) => {
+      message.error(getApiErrorMessage(error, '結案失敗'));
+    }
   });
 
   const cancelCloseMutation = useMutation({
@@ -139,6 +156,9 @@ export default function OrderDrawer() {
       queryClient.invalidateQueries({ queryKey: ['order', id] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
+    onError: (error) => {
+      message.error(getApiErrorMessage(error, '取消結案失敗'));
+    }
   });
 
 
@@ -150,10 +170,14 @@ export default function OrderDrawer() {
       promisedDeliveryDate: values.promisedDeliveryDate ? dayjs(values.promisedDeliveryDate).format('YYYY-MM-DD') : undefined,
     };
 
-    if (isCreating) {
-      await createMutation.mutateAsync(formattedValues as CreateOrderDto);
-    } else {
-      await updateMutation.mutateAsync(formattedValues as UpdateOrderDto);
+    try {
+      if (isCreating) {
+        await createMutation.mutateAsync(formattedValues as CreateOrderDto);
+      } else {
+        await updateMutation.mutateAsync(formattedValues as UpdateOrderDto);
+      }
+    } catch (e) {
+      // 錯誤已在 mutation onError 中處理
     }
   };
 

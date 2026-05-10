@@ -380,7 +380,7 @@ export const getItemColumns = (
     align: "right",
     ellipsis: true,
     render: (val: number) =>
-      val != null ? <span style={{ color: 'var(--ant-color-warning)' }}>{Number(val.toFixed(2)).toLocaleString()}</span> : "-",
+      val != null ? <span style={{ color: 'var(--ant-color-primary)' }}>{Number(val.toFixed(2)).toLocaleString()}</span> : "-",
   },
   {
     title: "備品數量",
@@ -416,7 +416,7 @@ export const getItemColumns = (
     align: "right",
     ellipsis: true,
     render: (val: number) =>
-      val != null ? <span style={{ color: 'var(--ant-color-primary)' }}>{Number(val.toFixed(2)).toLocaleString()}</span> : "-",
+      val != null ? <span style={{ color: 'var(--ant-color-warning)' }}>{Number(val.toFixed(2)).toLocaleString()}</span> : "-",
   },
   {
     title: "要求交期",

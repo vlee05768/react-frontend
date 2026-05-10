@@ -22,6 +22,8 @@ interface Props {
   onEditingChange: (isEditing: boolean) => void;
 }
 
+import { getApiErrorMessage } from '@/utils/apiError';
+
 export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingChange }: Props) {
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
@@ -61,6 +63,9 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
       queryClient.invalidateQueries({ queryKey: ['order', orderData.orderNumber] });
       handleCancel();
     },
+    onError: (error) => {
+      message.error(getApiErrorMessage(error, '新增明細失敗'));
+    }
   });
 
   const updateMutation = useMutation({
@@ -71,6 +76,9 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
       queryClient.invalidateQueries({ queryKey: ['order', orderData.orderNumber] });
       handleCancel();
     },
+    onError: (error) => {
+      message.error(getApiErrorMessage(error, '更新明細失敗'));
+    }
   });
 
   const deleteMutation = useMutation({
@@ -80,6 +88,9 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
       message.success('刪除明細成功');
       queryClient.invalidateQueries({ queryKey: ['order', orderData.orderNumber] });
     },
+    onError: (error) => {
+      message.error(getApiErrorMessage(error, '刪除明細失敗'));
+    }
   });
 
   const handleDelete = (record: OrderItemDto) => {
@@ -111,10 +122,14 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
       return;
     }
 
-    if (isCreating) {
-      await createMutation.mutateAsync(formattedValues);
-    } else if (editingItem) {
-      await updateMutation.mutateAsync({ lineNumber: editingItem.lineNumber!, values: formattedValues });
+    try {
+      if (isCreating) {
+        await createMutation.mutateAsync(formattedValues);
+      } else if (editingItem) {
+        await updateMutation.mutateAsync({ lineNumber: editingItem.lineNumber!, values: formattedValues });
+      }
+    } catch (e) {
+      // 錯誤已在 mutation onError 處理
     }
   };
 
@@ -151,7 +166,7 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
       await queryClient.invalidateQueries({ queryKey: ['order', orderData.orderNumber] });
       await queryClient.invalidateQueries({ queryKey: ['orders'] });
     } catch (error: any) {
-      message.error(error?.message || '新增明細失敗');
+      message.error(getApiErrorMessage(error, '新增明細失敗'));
     } finally {
       setIsBatchSubmitting(false);
     }

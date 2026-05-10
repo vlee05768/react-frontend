@@ -16,6 +16,8 @@ import { searchConfig, getColumns } from './OrderConfig';
 
 
 
+import { getApiErrorMessage } from '@/utils/apiError';
+
 export default function OrdersList() {
   const navigate = useNavigate();
   const { id: viewId } = useParams<{ id: string }>();
@@ -42,6 +44,9 @@ export default function OrdersList() {
       message.success('刪除成功');
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
+    onError: (error) => {
+      message.error(getApiErrorMessage(error, '刪除失敗'));
+    }
   });
 
 
