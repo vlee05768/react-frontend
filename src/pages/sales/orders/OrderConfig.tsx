@@ -6,6 +6,7 @@ import type { ColumnsType } from 'antd/es/table';
 import type { OrderDto, OrderItemDto } from '@/api/generated/types.gen';
 import dayjs from 'dayjs';
 import { ContactSelectWithCreate } from './components/ContactSelectWithCreate';
+import { DictLabel } from '@/components/Form/DictLabel';
 
 export const searchConfig: SearchFieldConfig[] = [
   {
@@ -282,15 +283,22 @@ export const getItemColumns = (isViewMode: boolean, onEdit: (record: OrderItemDt
       );
     },
   },
-  { title: '項次', dataIndex: 'serialNumber', width: 60, align: 'left', ellipsis: true },
-  { title: '類型', dataIndex: 'goodsType', width: 80, align: 'center', ellipsis: true, render: (val) => val === 'P' ? '產品' : val === 'M' ? '原物料' : '其他' },
-  { title: '編碼', dataIndex: 'goodsCode', width: 140, align: 'left', ellipsis: true },
-  { title: '名稱', dataIndex: 'goodsName', width: 220, ellipsis: true },
-  { title: '客戶產品代碼', dataIndex: 'customerProductId', width: 140, align: 'left', ellipsis: true },
-  { title: '數量', dataIndex: 'quantity', width: 100, align: 'right', ellipsis: true, render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-' },
+  { title: '序號(項次)', dataIndex: 'serialNumber', width: 100, align: 'left', ellipsis: true },
+  { title: '類型', dataIndex: 'goodsType', width: 90, align: 'center', ellipsis: true, render: (val: string) => val ? <Tag color="blue"><DictLabel dictKey="PRODUCT_TYPE" value={val} /></Tag> : '-' },
+  { title: '商品編碼', dataIndex: 'goodsCode', width: 140, align: 'left', ellipsis: true },
+  { title: '商品名稱', dataIndex: 'goodsName', width: 220, ellipsis: true },
+  { title: '優先級', dataIndex: 'priority', width: 100, align: 'center', ellipsis: true, render: (val: string) => val ? <DictLabel dictKey="ORDER_PRIORITY" value={val} /> : '-' },
+  { title: '產生製令', dataIndex: 'generateWorkOrder', width: 90, align: 'center', ellipsis: true, render: (val: boolean) => val ? '是' : '否' },
   { title: '單價', dataIndex: 'unitPrice', width: 100, align: 'right', ellipsis: true, render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-' },
-  { title: '小計', dataIndex: 'lineAmount', width: 100, align: 'right', ellipsis: true, render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-' },
-  { title: '要求交期', dataIndex: 'requestedDeliveryDate', width: 120, align: 'center', ellipsis: true, render: (d) => d ? dayjs(d).format('YYYY-MM-DD') : '-' },
+  { title: '數量', dataIndex: 'quantity', width: 100, align: 'right', ellipsis: true, render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-' },
+  { title: '小計', dataIndex: 'lineAmount', width: 120, align: 'right', ellipsis: true, render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-' },
+  { title: '備品數量', dataIndex: 'spareQuantity', width: 100, align: 'right', ellipsis: true, render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-' },
+  { title: '已出貨', dataIndex: 'quantityShipped', width: 100, align: 'right', ellipsis: true, render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-' },
+  { title: '取消數量', dataIndex: 'quantityCancelled', width: 100, align: 'right', ellipsis: true, render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-' },
+  { title: '剩餘數量', dataIndex: 'quantityRemaining', width: 100, align: 'right', ellipsis: true, render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '-' },
+  { title: '要求交期', dataIndex: 'requestedDeliveryDate', width: 120, align: 'center', ellipsis: true, render: (d: string) => d ? dayjs(d).format('YYYY-MM-DD') : '-' },
+  { title: '承諾交期', dataIndex: 'promisedDeliveryDate', width: 120, align: 'center', ellipsis: true, render: (d: string) => d ? dayjs(d).format('YYYY-MM-DD') : '-' },
+  { title: '備註', dataIndex: 'notes', width: 160, ellipsis: true },
 ];
 
 export const getItemFormConfig = (): any[] => [
