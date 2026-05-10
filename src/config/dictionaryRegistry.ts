@@ -11,6 +11,16 @@ export const DICTIONARY_REGISTRY = {
     fieldNames: { label: 'text', value: 'val' }
   },
   
+
+  // 訂單狀態
+  ORDER_STATUS: {
+    queryFn: async () => [
+      { text: '新單據', val: 'Draft' },
+      { text: '已確認', val: 'Confirmed' },
+      { text: '已完成', val: 'Finished' },
+    ],
+    fieldNames: { label: 'text', value: 'val' }
+  },
   // 角色選單
   USER_ROLE: {
     queryFn: async () => {
