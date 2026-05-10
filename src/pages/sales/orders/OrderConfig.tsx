@@ -1,9 +1,11 @@
 import { z } from 'zod';
-import { Tag } from 'antd';
+import { Tag, Button, Space } from 'antd';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { SearchFieldConfig } from '@/components/Form/types';
 import type { ColumnsType } from 'antd/es/table';
 import type { OrderDto, OrderItemDto } from '@/api/generated/types.gen';
 import dayjs from 'dayjs';
+import { ContactSelectWithCreate } from './components/ContactSelectWithCreate';
 
 export const searchConfig: SearchFieldConfig[] = [
   {
@@ -36,16 +38,36 @@ export const searchConfig: SearchFieldConfig[] = [
 
 export const getColumns = (): ColumnsType<OrderDto> => [
   {
-    title: '訂單號碼',
+    title: '訂單編號',
     dataIndex: 'orderNumber',
     key: 'orderNumber',
     width: 150,
   },
   {
-    title: '狀態',
+    title: '訂單日期',
+    dataIndex: 'orderDate',
+    key: 'orderDate',
+    width: 120,
+    render: (date: string) => date ? dayjs(date).format('YYYY-MM-DD') : '-',
+  },
+  {
+    title: '客戶代碼',
+    dataIndex: 'businessPartnerCode',
+    key: 'businessPartnerCode',
+    width: 120,
+  },
+  {
+    title: '客戶名稱',
+    dataIndex: 'businessPartnerName',
+    key: 'businessPartnerName',
+    width: 180,
+    ellipsis: true,
+  },
+  {
+    title: '訂單狀態',
     dataIndex: 'status',
     key: 'status',
-    width: 120,
+    width: 100,
     render: (status: string) => {
       const colorMap: Record<string, string> = {
         Draft: 'default',
@@ -61,36 +83,20 @@ export const getColumns = (): ColumnsType<OrderDto> => [
     },
   },
   {
-    title: '客戶代碼',
-    dataIndex: 'businessPartnerCode',
-    key: 'businessPartnerCode',
+    title: '小計',
+    dataIndex: 'subTotal',
+    key: 'subTotal',
     width: 120,
+    align: 'right',
+    render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '0',
   },
   {
-    title: '客戶名稱',
-    dataIndex: 'businessPartnerName',
-    key: 'businessPartnerName',
-    width: 200,
-  },
-  {
-    title: '訂單日期',
-    dataIndex: 'orderDate',
-    key: 'orderDate',
-    width: 120,
-    render: (date: string) => (date ? dayjs(date).format('YYYY-MM-DD') : '-'),
-  },
-  {
-    title: '要求交期',
-    dataIndex: 'requestedDeliveryDate',
-    key: 'requestedDeliveryDate',
-    width: 120,
-    render: (date: string) => (date ? dayjs(date).format('YYYY-MM-DD') : '-'),
-  },
-  {
-    title: '客戶採購單號',
-    dataIndex: 'customerPoNumber',
-    key: 'customerPoNumber',
-    width: 150,
+    title: '稅額',
+    dataIndex: 'taxAmount',
+    key: 'taxAmount',
+    width: 100,
+    align: 'right',
+    render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '0',
   },
   {
     title: '總金額',
@@ -98,7 +104,27 @@ export const getColumns = (): ColumnsType<OrderDto> => [
     key: 'totalAmount',
     width: 120,
     align: 'right',
-    render: (val: number) => (val != null ? val.toLocaleString() : '-'),
+    render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : '0',
+  },
+  {
+    title: '交貨日期',
+    dataIndex: 'requestedDeliveryDate',
+    key: 'requestedDeliveryDate',
+    width: 120,
+    render: (date: string) => date ? dayjs(date).format('YYYY-MM-DD') : '-',
+  },
+  {
+    title: '承諾交貨日期',
+    dataIndex: 'promisedDeliveryDate',
+    key: 'promisedDeliveryDate',
+    width: 140,
+    render: (date: string) => date ? dayjs(date).format('YYYY-MM-DD') : '-',
+  },
+  {
+    title: '備註',
+    dataIndex: 'notes',
+    key: 'notes',
+    ellipsis: true,
   },
 ];
 
@@ -115,22 +141,40 @@ export const getFormConfig = (): any[] => [
     label: '訂單日期',
     componentType: 'DatePicker',
     colSpan: 2,
-    validation: z.string().optional(),
+    validation: z.any().optional(),
   },
   {
     name: 'businessPartnerCode',
     label: '客戶',
     componentType: 'AsyncSelect',
     componentProps: { configKey: 'CUSTOMER' },
+    editable: 'createOnly',
+    onChange: (_value: any, _context: any, setValue: any, ...args: any[]) => {
+      // 若變更了客戶，則清空聯絡人
+      setValue('partnerContactId', undefined);
+      
+      const option = args[1];
+      if (option && option.originalData) {
+        const bp = option.originalData;
+        if (bp.address) setValue('shippingAddress', bp.address);
+        if (bp.paymentTerms) setValue('paymentTerms', bp.paymentTerms);
+      }
+    },
     colSpan: 2,
-    validation: z.string().optional(),
+    validation: z.string().min(1, '客戶為必填'),
   },
   {
     name: 'partnerContactId',
     label: '聯絡人',
-    componentType: 'AsyncSelect',
-    componentProps: { configKey: 'CUSTOMER_CONTACT' },
-    
+    componentType: 'Custom',
+    customRender: (field: any, context: any, _setValue: any) => (
+      <ContactSelectWithCreate
+        value={field.value}
+        onChange={field.onChange}
+        disabled={field.disabled}
+        businessPartnerCode={context.values.businessPartnerCode}
+      />
+    ),
     colSpan: 2,
   },
   {
@@ -188,27 +232,28 @@ export const getItemColumns = (isViewMode: boolean, onEdit: (record: OrderItemDt
   {
     title: '操作',
     key: 'action',
-    width: 100,
+    width: 80,
+    align: 'center',
     fixed: 'left',
     render: (_, record) => {
       if (isViewMode) return null;
       return (
-        <div style={{ display: 'flex', gap: 8 }}>
-          <a onClick={() => onEdit(record)}>編輯</a>
-          <a style={{ color: 'red' }} onClick={() => onDelete(record)}>刪除</a>
-        </div>
+        <Space size="small">
+          <Button type="text" size="small" icon={<EditOutlined />} onClick={() => onEdit(record)} />
+          <Button type="text" danger size="small" icon={<DeleteOutlined />} onClick={() => onDelete(record)} />
+        </Space>
       );
     },
   },
-  { title: '行號', dataIndex: 'lineNumber', width: 80 },
-  { title: '類型', dataIndex: 'goodsType', width: 100, render: (val) => val === 'P' ? '產品' : val === 'M' ? '原物料' : '其他' },
-  { title: '編碼', dataIndex: 'goodsCode', width: 150 },
-  { title: '名稱', dataIndex: 'goodsName', width: 200 },
-  { title: '客戶產品代碼', dataIndex: 'customerProductId', width: 150 },
+  { title: '行號', dataIndex: 'lineNumber', width: 60, align: 'center' },
+  { title: '類型', dataIndex: 'goodsType', width: 80, align: 'center', render: (val) => val === 'P' ? '產品' : val === 'M' ? '原物料' : '其他' },
+  { title: '編碼', dataIndex: 'goodsCode', width: 140, align: 'center' },
+  { title: '名稱', dataIndex: 'goodsName', width: 220, ellipsis: true },
+  { title: '客戶產品代碼', dataIndex: 'customerProductId', width: 140, align: 'center' },
   { title: '數量', dataIndex: 'quantity', width: 100, align: 'right' },
   { title: '單價', dataIndex: 'unitPrice', width: 100, align: 'right' },
   { title: '小計', dataIndex: 'lineAmount', width: 100, align: 'right' },
-  { title: '要求交期', dataIndex: 'requestedDeliveryDate', width: 120, render: (d) => d ? dayjs(d).format('YYYY-MM-DD') : '-' },
+  { title: '要求交期', dataIndex: 'requestedDeliveryDate', width: 120, align: 'center', render: (d) => d ? dayjs(d).format('YYYY-MM-DD') : '-' },
 ];
 
 export const getItemFormConfig = (): any[] => [

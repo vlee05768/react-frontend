@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { Table, Button, Space, App, Typography } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+// import { PlusOutlined } from '@ant-design/icons';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { 
-  getApiV1OrdersByOrderNumberDetails,
   postApiV1OrdersByOrderNumberDetails,
   putApiV1OrdersByOrderNumberDetailsByLineNumber,
   deleteApiV1OrdersByOrderNumberDetailsByLineNumber
@@ -12,6 +11,8 @@ import {
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import type { OrderDto, OrderItemDto } from '@/api/generated/types.gen';
 import { getItemColumns, getItemFormConfig } from './OrderConfig';
+import { CustomerProductPickerModal } from './components/CustomerProductPickerModal';
+
 
 const { Text } = Typography;
 
@@ -25,24 +26,22 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [isBatchSubmitting, setIsBatchSubmitting] = useState(false);
   const [editingItem, setEditingItem] = useState<OrderItemDto | null>(null);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['order-details', orderData.orderNumber],
-    queryFn: () => getApiV1OrdersByOrderNumberDetails({ path: { orderNumber: orderData.orderNumber! } }),
-    enabled: !!orderData.orderNumber,
-  });
-
-  const listData: OrderItemDto[] = (data?.data as any)?.data || data?.data || [];
+  // 直接從訂單主檔獲取明細資料，不再重複呼叫 API
+  const listData: OrderItemDto[] = Array.isArray(orderData.orderItems) ? orderData.orderItems : [];
+  const isLoading = false;
 
   const notifyEdit = (editing: boolean) => {
     onEditingChange(editing);
   };
 
-  const handleCreateOpen = () => {
-    setIsCreating(true);
-    notifyEdit(true);
-  };
+  // const handleCreateOpen = () => {
+  //   setIsCreating(true);
+  //   notifyEdit(true);
+  // };
 
   const handleEditOpen = (record: OrderItemDto) => {
     setEditingItem(record);
@@ -59,7 +58,7 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
     mutationFn: (values: any) => postApiV1OrdersByOrderNumberDetails({ path: { orderNumber: orderData.orderNumber! }, body: values }),
     onSuccess: () => {
       message.success('新增明細成功');
-      queryClient.invalidateQueries({ queryKey: ['order-details', orderData.orderNumber] });
+      queryClient.invalidateQueries({ queryKey: ['order', orderData.orderNumber] });
       handleCancel();
     },
   });
@@ -69,7 +68,7 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
       putApiV1OrdersByOrderNumberDetailsByLineNumber({ path: { orderNumber: orderData.orderNumber!, lineNumber }, body: values }),
     onSuccess: () => {
       message.success('更新明細成功');
-      queryClient.invalidateQueries({ queryKey: ['order-details', orderData.orderNumber] });
+      queryClient.invalidateQueries({ queryKey: ['order', orderData.orderNumber] });
       handleCancel();
     },
   });
@@ -79,7 +78,7 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
       deleteApiV1OrdersByOrderNumberDetailsByLineNumber({ path: { orderNumber: orderData.orderNumber!, lineNumber } }),
     onSuccess: () => {
       message.success('刪除明細成功');
-      queryClient.invalidateQueries({ queryKey: ['order-details', orderData.orderNumber] });
+      queryClient.invalidateQueries({ queryKey: ['order', orderData.orderNumber] });
     },
   });
 
@@ -95,27 +94,66 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
   };
 
   const handleSubmit = async (values: any) => {
-    const isDuplicate = listData.some(
-      (item) => 
-        item.goodsCode === values.goodsCode && 
-        item.lineNumber !== editingItem?.lineNumber
-    );
-
-    if (isDuplicate) {
-      message.error(`此商品代碼 (${values.goodsCode}) 已存在於明細中，同張單據不可重複新增`);
-      return;
-    }
-
     const formattedValues = {
       ...values,
       requestedDeliveryDate: values.requestedDeliveryDate ? dayjs(values.requestedDeliveryDate).format('YYYY-MM-DD') : undefined,
       promisedDeliveryDate: values.promisedDeliveryDate ? dayjs(values.promisedDeliveryDate).format('YYYY-MM-DD') : undefined,
     };
 
+    const isDuplicate = listData.some(
+      (item) => 
+        item.goodsCode === formattedValues.goodsCode && 
+        item.lineNumber !== editingItem?.lineNumber
+    );
+
+    if (isDuplicate) {
+      message.error(`此商品代碼 (${formattedValues.goodsCode}) 已存在於明細中，同張單據不可重複新增`);
+      return;
+    }
+
     if (isCreating) {
       await createMutation.mutateAsync(formattedValues);
     } else if (editingItem) {
       await updateMutation.mutateAsync({ lineNumber: editingItem.lineNumber!, values: formattedValues });
+    }
+  };
+
+  const handlePickerConfirm = async (selectedProducts: any[]) => {
+    if (!orderData.orderNumber) return;
+    setIsBatchSubmitting(true);
+    try {
+      const itemsToCreate = selectedProducts.map(p => ({
+        goodsType: 'P',
+        goodsCode: p.code || '',
+        goodsName: p.name || '',
+        customerProductId: p.customerProductId || undefined,
+        unitPrice: p.orderUnitPrice || 0,
+        quantity: p.orderQuantity || 1,
+        spareQuantity: 0,
+        requestedDeliveryDate: orderData.requestedDeliveryDate && dayjs(orderData.requestedDeliveryDate).isValid() ? dayjs(orderData.requestedDeliveryDate).format('YYYY-MM-DD') : undefined,
+        promisedDeliveryDate: orderData.promisedDeliveryDate && dayjs(orderData.promisedDeliveryDate).isValid() ? dayjs(orderData.promisedDeliveryDate).format('YYYY-MM-DD') : undefined,
+        isOutsource: false,
+        priority: '0001',
+      }));
+
+      // In React Query, we can use Promise.all to map over mutations or just call the API directly
+      await Promise.all(
+        itemsToCreate.map(item => 
+          postApiV1OrdersByOrderNumberDetails({
+            path: { orderNumber: orderData.orderNumber! },
+            body: item
+          })
+        )
+      );
+
+      message.success(`已成功新增 ${itemsToCreate.length} 項明細`);
+      setIsPickerOpen(false);
+      await queryClient.invalidateQueries({ queryKey: ['order', orderData.orderNumber] });
+      await queryClient.invalidateQueries({ queryKey: ['orders'] });
+    } catch (error: any) {
+      message.error(error?.message || '新增明細失敗');
+    } finally {
+      setIsBatchSubmitting(false);
     }
   };
 
@@ -135,7 +173,15 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
           <DynamicForm
             formId="itemForm"
             fields={getItemFormConfig()}
-            defaultValues={isCreating ? { goodsType: 'P', quantity: 1, unitPrice: 0 } : (editingItem || undefined)}
+            defaultValues={
+              isCreating 
+                ? { goodsType: 'P', quantity: 1, unitPrice: 0 } 
+                : editingItem ? {
+                    ...editingItem,
+                    requestedDeliveryDate: editingItem.requestedDeliveryDate ? dayjs(editingItem.requestedDeliveryDate) : undefined,
+                    promisedDeliveryDate: editingItem.promisedDeliveryDate ? dayjs(editingItem.promisedDeliveryDate) : undefined,
+                  } : undefined
+            }
             isViewMode={false}
             isUpdateMode={!isCreating}
             hideDefaultFooter={true}
@@ -158,13 +204,19 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
             </div>
             <div>
               {isMasterViewMode && orderData.status === 'Draft' && (
-                <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateOpen}>
+                <Space>
+                  <Button type="primary" disabled={!orderData.businessPartnerCode} onClick={() => setIsPickerOpen(true)}>
+                    挑選客戶產品
+                  </Button>
+                {/* <Button icon={<PlusOutlined />} onClick={handleCreateOpen}>
                   新增
-                </Button>
+                </Button> */}
+                </Space>
               )}
             </div>
           </div>
           <Table
+            bordered
             columns={getItemColumns(!isMasterViewMode || orderData.status !== 'Draft', handleEditOpen, handleDelete)}
             dataSource={listData}
             rowKey="lineNumber"
@@ -174,6 +226,16 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
             size="small"
           />
         </div>
+      )}
+      {orderData.businessPartnerCode && (
+        <CustomerProductPickerModal
+          open={isPickerOpen}
+          customerCode={orderData.businessPartnerCode}
+          excludeProductCodes={listData.map(item => item.goodsCode).filter(Boolean) as string[]}
+          onCancel={() => setIsPickerOpen(false)}
+          onConfirm={handlePickerConfirm}
+          loading={isBatchSubmitting}
+        />
       )}
     </div>
   );
