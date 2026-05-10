@@ -1,3 +1,4 @@
+import { ActionButton } from "@/components/common/ActionButton";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
@@ -355,9 +356,7 @@ export default function InventoryAdjustmentList() {
             {(!isDrawerEditing && !isCreateDrawerOpen) && (
               <>
                 {viewData?.status === 'Unconfirmed' && (
-                  <Button 
-                    type="primary" 
-                    style={{ backgroundColor: '#52c41a' }} 
+                  <ActionButton intent="success" 
                     icon={<CheckCircleOutlined />} 
                     onClick={() => {
                       modal.confirm({
@@ -371,12 +370,10 @@ export default function InventoryAdjustmentList() {
                     loading={confirmMutation.isPending}
                     disabled={isHeaderEditing}
                   >
-                    確認
-                  </Button>
+                    確認</ActionButton>
                 )}
                 {viewData?.status === 'Confirmed' && (
-                  <Button 
-                    icon={<SyncOutlined />} 
+                  <ActionButton intent="warning" icon={<SyncOutlined />} 
                     loading={cancelConfirmMutation.isPending} 
                     disabled={isHeaderEditing}
                     onClick={() => {
@@ -390,8 +387,7 @@ export default function InventoryAdjustmentList() {
                       });
                     }}
                   >
-                    取消確認
-                  </Button>
+                    取消確認</ActionButton>
                 )}
                 {viewData?.status === 'Unconfirmed' && (
                   <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={openEditDrawer} disabled={isHeaderEditing}>
