@@ -27,16 +27,18 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
 
   const customStyle: React.CSSProperties = { ...style };
   
-  if (intent === 'success') {
-    customStyle.backgroundColor = variant === 'solid' ? token.colorSuccess : 'transparent';
-    customStyle.borderColor = token.colorSuccess;
-    customStyle.color = variant === 'solid' ? '#fff' : token.colorSuccess;
-  }
+  if (!rest.disabled) {
+    if (intent === 'success') {
+      customStyle.backgroundColor = variant === 'solid' ? token.colorSuccess : 'transparent';
+      customStyle.borderColor = token.colorSuccess;
+      customStyle.color = variant === 'solid' ? '#fff' : token.colorSuccess;
+    }
 
-  if (intent === 'warning') {
-    customStyle.backgroundColor = variant === 'solid' ? token.colorWarning : 'transparent';
-    customStyle.borderColor = token.colorWarning;
-    customStyle.color = variant === 'solid' ? '#fff' : token.colorWarning;
+    if (intent === 'warning') {
+      customStyle.backgroundColor = variant === 'solid' ? token.colorWarning : 'transparent';
+      customStyle.borderColor = token.colorWarning;
+      customStyle.color = variant === 'solid' ? '#fff' : token.colorWarning;
+    }
   }
 
   return <Button style={customStyle} {...rest} />;
