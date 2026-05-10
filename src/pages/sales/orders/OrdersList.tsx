@@ -29,8 +29,10 @@ export default function OrdersList() {
     queryFn: () => getApiV1Orders({ query: params as any }),
   });
 
-  const listData: OrderDto[] = (data?.data as any)?.data || data?.data || [];
-  const total = (data?.data as any)?.totalRecords || listData.length;
+  const resData = data?.data as any;
+  const listDataRaw = resData?.data?.data || resData?.data || resData;
+  const listData: OrderDto[] = Array.isArray(listDataRaw) ? listDataRaw : [];
+  const total = resData?.data?.totalRecords || resData?.totalRecords || listData.length;
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteApiV1OrdersByOrderNumber({ path: { orderNumber: id } }),
