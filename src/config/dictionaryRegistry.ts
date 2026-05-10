@@ -51,16 +51,12 @@ export const DICTIONARY_REGISTRY = {
 
   // 產品類型
   PRODUCT_TYPE: {
-    queryFn: async () => {
-      const res = await getApiV1GeneralTypesGetTypes({ query: { types: ['FPType'] } });
-      const rawData = (res.data as any)?.data?.FPType || (res.data as any)?.FPType || [];
-      return rawData.map((item: any) => ({
-        ...item,
-        _displayName: item.desc || item.code || item,
-        _value: item.code || item
-      }));
-    },
-    fieldNames: { label: '_displayName', value: '_value' }
+    queryFn: async () => [
+      { text: '產品', val: 'P' },
+      { text: '材料', val: 'M' },
+      { text: '自訂', val: 'O' },
+    ],
+    fieldNames: { label: 'text', value: 'val' }
   },
 
   // 模具類型
