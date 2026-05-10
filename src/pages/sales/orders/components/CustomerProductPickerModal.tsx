@@ -100,34 +100,14 @@ export function CustomerProductPickerModal({
   };
 
   const columns = [
-    { title: '產品代碼', dataIndex: 'code', key: 'code', width: 120 },
-    { title: '產品名稱', dataIndex: 'name', key: 'name', width: 200, ellipsis: true },
-    { title: '客戶產品代碼', dataIndex: 'customerProductId', key: 'customerProductId', width: 120 },
-    { title: '類型', dataIndex: 'type', key: 'type', width: 100 },
-    { title: '單位', dataIndex: 'unit', key: 'unit', width: 80 },
-    {
-      title: '數量',
-      key: 'orderQuantity',
-      width: 120,
-      render: (_: any, record: ProductDto) => {
-        const isSelected = selectedMap.has(record.code!);
-        const currentQty = isSelected ? selectedMap.get(record.code!)!.orderQuantity : 1;
-        return (
-          <InputNumber
-            min={1}
-            value={currentQty}
-            disabled={!isSelected}
-            onChange={(val) => handleQuantityChange(record.code!, val)}
-            size="small"
-            style={{ width: '100%' }}
-          />
-        );
-      }
-    },
+    { title: '產品代碼', dataIndex: 'code', key: 'code', width: 120, align: 'center' as const },
+    { title: '產品名稱', dataIndex: 'name', key: 'name', width: 200, ellipsis: true, align: 'center' as const },
+    { title: '客戶產品代碼', dataIndex: 'customerProductId', key: 'customerProductId', width: 140, align: 'center' as const },
     {
       title: '單價',
       key: 'orderUnitPrice',
       width: 140,
+      align: 'right' as const,
       render: (_: any, record: ProductDto) => {
         const isSelected = selectedMap.has(record.code!);
         const currentPrice = isSelected ? selectedMap.get(record.code!)!.orderUnitPrice : (record.unitPrice || 0);
@@ -143,7 +123,29 @@ export function CustomerProductPickerModal({
           />
         );
       }
-    }
+    },
+    {
+      title: '數量',
+      key: 'orderQuantity',
+      width: 120,
+      align: 'right' as const,
+      render: (_: any, record: ProductDto) => {
+        const isSelected = selectedMap.has(record.code!);
+        const currentQty = isSelected ? selectedMap.get(record.code!)!.orderQuantity : 1;
+        return (
+          <InputNumber
+            min={1}
+            value={currentQty}
+            disabled={!isSelected}
+            onChange={(val) => handleQuantityChange(record.code!, val)}
+            size="small"
+            style={{ width: '100%' }}
+          />
+        );
+      }
+    },
+    { title: '類型', dataIndex: 'type', key: 'type', width: 100, align: 'center' as const },
+    { title: '單位', dataIndex: 'unit', key: 'unit', width: 80, align: 'center' as const },
   ];
 
   const handleClearSelection = () => {
@@ -159,41 +161,39 @@ export function CustomerProductPickerModal({
       centered
       styles={{ body: { height: 'calc(80vh - 110px)', overflow: 'hidden', display: 'flex', flexDirection: 'column' } }}
       maskClosable={false}
-      footer={[
-        <div key="footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Space>
-            {selectedMap.size > 0 && (
-              <>
-                <Tag color="processing">已選擇 {selectedMap.size} 項產品</Tag>
-                <Button size="small" onClick={handleClearSelection}>清除選擇</Button>
-              </>
-            )}
-          </Space>
-          <Space>
-            <Button onClick={onCancel}>取消</Button>
-            <Button 
-              type="primary" 
-              disabled={selectedMap.size === 0} 
-              loading={isSubmitting}
-              onClick={() => onConfirm(Array.from(selectedMap.values()))}
-            >
-              確認選擇
-            </Button>
-          </Space>
-        </div>
-      ]}
+      footer={null}
     >
-      <div style={{ marginBottom: 16, flexShrink: 0 }}>
-        <Input.Search
-          placeholder="搜尋產品名稱或編號"
-          allowClear
-          onSearch={setSearchTerm}
-          style={{ width: 300 }}
-        />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexShrink: 0 }}>
+        <Space>
+          <Input.Search
+            placeholder="搜尋產品名稱或編號"
+            allowClear
+            onSearch={setSearchTerm}
+            style={{ width: 300 }}
+          />
+          {selectedMap.size > 0 && (
+            <>
+              <Tag color="processing">已選擇 {selectedMap.size} 項產品</Tag>
+              <Button size="small" onClick={handleClearSelection}>清除選擇</Button>
+            </>
+          )}
+        </Space>
+        <Space>
+          <Button onClick={onCancel}>取消</Button>
+          <Button 
+            type="primary" 
+            disabled={selectedMap.size === 0} 
+            loading={isSubmitting}
+            onClick={() => onConfirm(Array.from(selectedMap.values()))}
+          >
+            確認選擇
+          </Button>
+        </Space>
       </div>
       
       <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
         <Table
+          bordered
           rowSelection={{
             type: 'checkbox',
             selectedRowKeys: Array.from(selectedMap.keys()),
@@ -205,7 +205,7 @@ export function CustomerProductPickerModal({
           rowKey="code"
           size="small"
           loading={isLoading}
-          scroll={{ y: 'calc(80vh - 290px)' }}
+          scroll={{ x: 'max-content', y: 'calc(80vh - 220px)' }}
           pagination={{
             current: page,
             pageSize: pageSize,
