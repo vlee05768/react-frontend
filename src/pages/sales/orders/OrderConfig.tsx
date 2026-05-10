@@ -1,12 +1,26 @@
 import { z } from "zod";
 import { Tag, Button, Space } from "antd";
-import { EditOutlined, DeleteOutlined, CheckOutlined, CloseOutlined } from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined, CheckOutlined, CloseOutlined, SyncOutlined, CheckCircleOutlined, LockOutlined } from "@ant-design/icons";
 import type { SearchFieldConfig } from "@/components/Form/types";
 import type { ColumnsType } from "antd/es/table";
 import type { OrderDto, OrderItemDto } from "@/api/generated/types.gen";
 import dayjs from "dayjs";
 import { ContactSelectWithCreate } from "./components/ContactSelectWithCreate";
 import { DictLabel } from "@/components/Form/DictLabel";
+
+export const getStatusTag = (status: string | null | undefined) => {
+  if (!status) return <Tag color="default">新單據</Tag>;
+  switch (status) {
+    case "Draft":
+      return <Tag color="warning" icon={<SyncOutlined />}>新單據</Tag>;
+    case "Confirmed":
+      return <Tag color="processing" icon={<CheckCircleOutlined />}>已確認</Tag>;
+    case "Finished":
+      return <Tag color="success" icon={<LockOutlined />}>已結案</Tag>;
+    default:
+      return <Tag color="default">{status}</Tag>;
+  }
+};
 
 export const searchConfig: SearchFieldConfig[] = [
   {
@@ -52,6 +66,14 @@ export const getColumns = (): ColumnsType<OrderDto> => [
     render: (date: string) => (date ? dayjs(date).format("YYYY-MM-DD") : "-"),
   },
   {
+    title: "訂單狀態",
+    dataIndex: "status",
+    key: "status",
+    width: 100,
+    render: (status: string) => getStatusTag(status),
+  },
+
+  {
     title: "客戶代碼",
     dataIndex: "businessPartnerCode",
     key: "businessPartnerCode",
@@ -63,29 +85,6 @@ export const getColumns = (): ColumnsType<OrderDto> => [
     key: "businessPartnerName",
     width: 180,
     ellipsis: true,
-  },
-  {
-    title: "訂單狀態",
-    dataIndex: "status",
-    key: "status",
-    width: 100,
-    render: (status: string) => {
-      const colorMap: Record<string, string> = {
-        Draft: "default",
-        Confirmed: "processing",
-        Finished: "success",
-      };
-      const textMap: Record<string, string> = {
-        Draft: "草稿",
-        Confirmed: "已確認",
-        Finished: "已結案",
-      };
-      return (
-        <Tag color={colorMap[status] || "default"}>
-          {textMap[status] || status}
-        </Tag>
-      );
-    },
   },
   {
     title: "小計",
