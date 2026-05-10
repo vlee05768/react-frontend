@@ -133,14 +133,15 @@ export const getFormConfig = (): any[] => [
     name: 'orderNumber',
     label: '訂單號碼',
     componentType: 'Input',
-    colSpan: 2,
+    colSpan: 4,
     editable: 'never',
   },
   {
     name: 'orderDate',
     label: '訂單日期',
     componentType: 'DatePicker',
-    colSpan: 2,
+    editable: 'createOnly',
+    colSpan: 4,
     validation: z.any().optional(),
   },
   {
@@ -175,26 +176,26 @@ export const getFormConfig = (): any[] => [
         businessPartnerCode={context.values.businessPartnerCode}
       />
     ),
-    colSpan: 2,
+    colSpan: 4,
   },
   {
     name: 'customerPoNumber',
     label: '客戶採購單號',
     componentType: 'Input',
-    colSpan: 2,
+    colSpan: 4,
   },
   {
     name: 'salespersonEmployeeCode',
     label: '業務員',
     componentType: 'DictSelect',
     componentProps: { dictKey: 'EMPLOYEE' },
-    colSpan: 2,
+    colSpan: 4,
   },
   {
     name: 'paymentTerms',
     label: '付款條件',
     componentType: 'Input',
-    colSpan: 2,
+    colSpan: 4,
   },
   {
     name: 'shippingAddress',
@@ -206,25 +207,25 @@ export const getFormConfig = (): any[] => [
     name: 'requestedDeliveryDate',
     label: '要求交期',
     componentType: 'DatePicker',
-    colSpan: 2,
+    colSpan: 4,
   },
   {
     name: 'promisedDeliveryDate',
     label: '承諾交期',
     componentType: 'DatePicker',
-    colSpan: 2,
+    colSpan: 4,
   },
   {
     name: 'tag',
     label: '標籤',
     componentType: 'Input',
-    colSpan: 2,
+    colSpan: 4,
   },
   {
     name: 'subTotal',
     label: '小計',
     componentType: 'InputNumber',
-    colSpan: 2,
+    colSpan: 4,
     editable: 'never',
     componentProps: {
       formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
@@ -236,7 +237,7 @@ export const getFormConfig = (): any[] => [
     name: 'taxAmount',
     label: '稅額',
     componentType: 'InputNumber',
-    colSpan: 2,
+    colSpan: 4,
     editable: 'never',
     componentProps: {
       formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
@@ -248,7 +249,7 @@ export const getFormConfig = (): any[] => [
     name: 'totalAmount',
     label: '總金額',
     componentType: 'InputNumber',
-    colSpan: 2,
+    colSpan: 4,
     editable: 'never',
     componentProps: {
       formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
@@ -260,7 +261,7 @@ export const getFormConfig = (): any[] => [
     name: 'notes',
     label: '備註',
     componentType: 'TextArea',
-    colSpan: 2,
+    colSpan: 1,
   },
 ];
 

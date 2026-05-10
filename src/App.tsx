@@ -31,6 +31,9 @@ export default function App() {
             colorPrimary: '#1668dc',
             colorBgBase: mode === 'dark' ? '#141414' : '#ffffff',
             borderRadius: 6,
+            // 增強 Disable 狀態的對比度，讓表單文字更清晰，同時背景保持明顯的置灰
+            colorTextDisabled: mode === 'dark' ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.6)',
+            colorBgContainerDisabled: mode === 'dark' ? '#303030' : '#f0f0f0',
           },
           components: {
             Button: {
