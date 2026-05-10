@@ -302,6 +302,7 @@ export const getItemColumns = (isViewMode: boolean, onEdit: (record: OrderItemDt
 ];
 
 export const getItemFormConfig = (): any[] => [
+  { name: 'serialNumber', label: '序號(項次)', componentType: 'Input', colSpan: 2, editable: 'never' },
   {
     name: 'goodsType',
     label: '商品類型',
@@ -316,17 +317,101 @@ export const getItemFormConfig = (): any[] => [
     label: '商品編碼',
     editable: 'never',
     componentType: 'AsyncSelect',
-    componentProps: { configKey: 'PRODUCT' }, // Will be dynamic based on type
-    colSpan: 2,
+    componentProps: { configKey: 'PRODUCT' },
+    colSpan: 4,
     validation: z.string().optional(),
   },
-  { name: 'customerProductId', label: '客戶產品代碼', componentType: 'Input', colSpan: 2, editable: 'never' },
-  { name: 'quantity', label: '數量', componentType: 'InputNumber', colSpan: 4 , editable: 'editOnly', validation: z.number().min(1, '數量必須大於或等於1')},
-  { name: 'unitPrice', label: '單價', componentType: 'InputNumber', colSpan: 4, editable: 'editOnly' ,validation: z.number().min(0, '單價必須大於或等於0')},
-  { name: 'requestedDeliveryDate', label: '要求交期', componentType: 'DatePicker', colSpan: 4 },
-  { name: 'promisedDeliveryDate', label: '承諾交期', componentType: 'DatePicker', colSpan: 4 },
-  { name: 'spareQuantity', label: '備品數量', componentType: 'InputNumber', colSpan: 4, editable: 'editOnly' ,validation: z.number().min(0, '備品數量必須大於或等於0')},
-  { name: 'isOutsource', label: '是否委外', componentType: 'Switch', colSpan: 4 },
-  { name: 'priority', label: '優先順序', componentType: 'DictSelect', componentProps: { dictKey: 'ORDER_PRIORITY' }, colSpan: 4 },
+  { name: 'goodsName', label: '商品名稱', componentType: 'Input', colSpan: 4, editable: 'never' },
+  { name: 'priority', label: '優先級', componentType: 'DictSelect', componentProps: { dictKey: 'ORDER_PRIORITY' }, colSpan: 2 },
+  { name: 'generateWorkOrder', label: '產生製令', componentType: 'Switch', colSpan: 2 },
+  {
+    name: 'unitPrice',
+    label: '單價',
+    componentType: 'InputNumber',
+    colSpan: 3,
+    editable: 'editOnly',
+    validation: z.number().min(0, '單價必須大於或等於0'),
+    componentProps: {
+      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, '') as unknown as number,
+      style: { width: '100%' }
+    }
+  },
+  {
+    name: 'quantity',
+    label: '數量',
+    componentType: 'InputNumber',
+    colSpan: 3,
+    editable: 'editOnly',
+    validation: z.number().min(1, '數量必須大於或等於1'),
+    componentProps: {
+      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, '') as unknown as number,
+      style: { width: '100%' }
+    }
+  },
+  {
+    name: 'lineAmount',
+    label: '小計',
+    componentType: 'InputNumber',
+    colSpan: 3,
+    editable: 'never',
+    componentProps: {
+      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, '') as unknown as number,
+      style: { width: '100%' }
+    }
+  },
+  {
+    name: 'spareQuantity',
+    label: '備品數量',
+    componentType: 'InputNumber',
+    colSpan: 3,
+    editable: 'editOnly',
+    validation: z.number().min(0, '備品數量必須大於或等於0'),
+    componentProps: {
+      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, '') as unknown as number,
+      style: { width: '100%' }
+    }
+  },
+  {
+    name: 'quantityShipped',
+    label: '已出貨',
+    componentType: 'InputNumber',
+    colSpan: 4,
+    editable: 'never',
+    componentProps: {
+      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, '') as unknown as number,
+      style: { width: '100%' }
+    }
+  },
+  {
+    name: 'quantityCancelled',
+    label: '取消數量',
+    componentType: 'InputNumber',
+    colSpan: 4,
+    editable: 'never',
+    componentProps: {
+      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, '') as unknown as number,
+      style: { width: '100%' }
+    }
+  },
+  {
+    name: 'quantityRemaining',
+    label: '剩餘數量',
+    componentType: 'InputNumber',
+    colSpan: 4,
+    editable: 'never',
+    componentProps: {
+      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, '') as unknown as number,
+      style: { width: '100%' }
+    }
+  },
+  { name: 'requestedDeliveryDate', label: '要求交期', componentType: 'DatePicker', colSpan: 4, validation: z.any().optional() },
+  { name: 'promisedDeliveryDate', label: '承諾交期', componentType: 'DatePicker', colSpan: 4, validation: z.any().optional() },
   { name: 'notes', label: '備註', componentType: 'TextArea', colSpan: 1 },
 ];
