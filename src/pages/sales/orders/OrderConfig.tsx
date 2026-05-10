@@ -381,7 +381,7 @@ export const getItemColumns = (
     align: "right",
     ellipsis: true,
     render: (val: number) =>
-      val != null ? Number(val.toFixed(2)).toLocaleString() : "-",
+      val != null ? <span style={{ color: 'var(--ant-color-primary)' }}>{Number(val.toFixed(2)).toLocaleString()}</span> : "-",
   },
   {
     title: "備品數量",
@@ -399,7 +399,7 @@ export const getItemColumns = (
     align: "right",
     ellipsis: true,
     render: (val: number) =>
-      val != null ? Number(val.toFixed(2)).toLocaleString() : "-",
+      val != null ? <span style={{ color: 'var(--ant-color-success)' }}>{Number(val.toFixed(2)).toLocaleString()}</span> : "-",
   },
   {
     title: "取消數量",
@@ -408,7 +408,7 @@ export const getItemColumns = (
     align: "right",
     ellipsis: true,
     render: (val: number) =>
-      val != null ? Number(val.toFixed(2)).toLocaleString() : "-",
+      val != null ? <span style={{ color: 'var(--ant-color-error)' }}>{Number(val.toFixed(2)).toLocaleString()}</span> : "-",
   },
   {
     title: "剩餘數量",
@@ -417,7 +417,7 @@ export const getItemColumns = (
     align: "right",
     ellipsis: true,
     render: (val: number) =>
-      val != null ? Number(val.toFixed(2)).toLocaleString() : "-",
+      val != null ? <span style={{ color: 'var(--ant-color-primary)' }}>{Number(val.toFixed(2)).toLocaleString()}</span> : "-",
   },
   {
     title: "要求交期",
