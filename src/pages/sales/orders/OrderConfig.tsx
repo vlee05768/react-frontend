@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { Tag } from 'antd';
 import type { SearchFieldConfig } from '@/components/Form/types';
 import type { ColumnsType } from 'antd/es/table';
@@ -114,7 +115,7 @@ export const getFormConfig = (): any[] => [
     label: '訂單日期',
     componentType: 'DatePicker',
     colSpan: 2,
-    validation: {} as any, // FIXME
+    validation: z.string().optional(),
   },
   {
     name: 'businessPartnerCode',
@@ -122,7 +123,7 @@ export const getFormConfig = (): any[] => [
     componentType: 'AsyncSelect',
     componentProps: { configKey: 'CUSTOMER' },
     colSpan: 2,
-    validation: {} as any, // FIXME
+    validation: z.string().optional(),
   },
   {
     name: 'partnerContactId',
@@ -217,7 +218,7 @@ export const getItemFormConfig = (): any[] => [
     componentType: 'DictSelect',
     componentProps: { dictKey: 'PRODUCT_TYPE' },
     colSpan: 2,
-    validation: {} as any, // FIXME
+    validation: z.string().optional(),
   },
   {
     name: 'goodsCode',
@@ -225,7 +226,7 @@ export const getItemFormConfig = (): any[] => [
     componentType: 'AsyncSelect',
     componentProps: { configKey: 'PRODUCT' }, // Will be dynamic based on type
     colSpan: 2,
-    validation: {} as any, // FIXME
+    validation: z.string().optional(),
   },
   { name: 'customerProductId', label: '客戶產品代碼', componentType: 'Input', colSpan: 2 },
   { name: 'quantity', label: '數量', componentType: 'InputNumber', colSpan: 2 },
