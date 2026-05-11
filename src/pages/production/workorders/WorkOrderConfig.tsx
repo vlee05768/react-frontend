@@ -493,9 +493,8 @@ export const formConfig: FormFieldConfig<WorkOrderDto>[] = [
   {
     name: "moldsCode",
     label: "模具編碼",
-    componentType: "AsyncSelect",
-    componentProps: { configKey: "MOLD" },
-    colSpan: 4,
+    componentType: "TextArea",
+    colSpan: 1,
     editable: (ctx) => checkPermission(ctx, "moldsCode"),
     group: "生產資訊",
   },
