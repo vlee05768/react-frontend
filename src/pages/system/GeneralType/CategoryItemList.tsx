@@ -165,7 +165,7 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
         }
         size={DRAWER_WIDTH_DETAIL}
         open={isDrawerOpen}
-        maskClosable={false}
+        mask={{ closable: false }}
         keyboard={false}
         onClose={() => setIsDrawerOpen(false)}
         destroyOnHidden

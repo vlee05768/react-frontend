@@ -202,7 +202,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
         size={DRAWER_WIDTH_DETAIL}
         onClose={() => setIsDrawerOpen(false)}
         open={isDrawerOpen}
-        maskClosable={!!viewingData}
+        mask={{ closable: !!viewingData }}
         keyboard={!!viewingData}
         destroyOnHidden
         extra={

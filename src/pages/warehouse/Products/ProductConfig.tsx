@@ -497,7 +497,7 @@ export const bomItemTableColumns = (): TableColumnConfig[] => [
 export const bomHeaderFormConfig = (): FormFieldConfig[] => [
   {
     name: "defaultMachineType",
-    label: "預設機台",
+    label: "機台",
     componentType: "DictSelect",
     componentProps: { dictKey: "MACHINE", showSearch: true, optionFilterProp: "_displayName" },
     editable: "always",
@@ -505,14 +505,14 @@ export const bomHeaderFormConfig = (): FormFieldConfig[] => [
   },
   {
     name: "defaultToolingRangeMm",
-    label: "預設跳距(mm)",
+    label: "跳距(mm)",
     componentType: "InputNumber",
     editable: "always",
     colSpan: 4,
   },
   {
     name: "defaultPunchHolesCount",
-    label: "預設刀穴數",
+    label: "刀穴數",
     componentType: "InputNumber",
     editable: "always",
     colSpan: 4,

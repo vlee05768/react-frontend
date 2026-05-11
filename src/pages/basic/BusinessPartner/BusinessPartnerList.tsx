@@ -421,7 +421,7 @@ export default function BusinessPartnerList() {
         size={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
-        maskClosable={isViewMode}
+        mask={{ closable: isViewMode }}
         keyboard={isViewMode}
         extra={
           <Space>

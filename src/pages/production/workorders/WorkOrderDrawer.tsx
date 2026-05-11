@@ -391,7 +391,7 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
       }}
       size={DRAWER_WIDTH_MAIN as any}
       extra={getExtraActions()}
-      maskClosable={isViewMode}
+      mask={{ closable: isViewMode }}
       keyboard={isViewMode}
     >
       <Spin spinning={isLoading}>

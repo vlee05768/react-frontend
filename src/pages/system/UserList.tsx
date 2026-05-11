@@ -517,7 +517,7 @@ export default function UserList() {
           </div>
         }
         open={isSearchModalOpen}
-        maskClosable={isViewMode}
+        mask={{ closable: isViewMode }}
         keyboard={isViewMode}
         onCancel={() => setIsSearchModalOpen(false)}
         footer={
@@ -558,7 +558,7 @@ export default function UserList() {
         size={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
-        maskClosable={isViewMode}
+        mask={{ closable: isViewMode }}
         keyboard={isViewMode}
         extra={
           <Space>

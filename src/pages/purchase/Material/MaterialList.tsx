@@ -302,7 +302,7 @@ export default function MaterialList() {
       <Modal
         title={<div style={{ fontSize: '18px', fontWeight: 600, paddingBottom: '12px', borderBottom: '1px solid #f0f0f0', marginBottom: '8px' }}>查詢條件設定</div>}
         open={isSearchModalOpen}
-        maskClosable={isViewMode}
+        mask={{ closable: isViewMode }}
         keyboard={isViewMode}
         onCancel={() => setIsSearchModalOpen(false)}
         footer={
@@ -340,7 +340,7 @@ export default function MaterialList() {
         size={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
-        maskClosable={isViewMode}
+        mask={{ closable: isViewMode }}
         keyboard={isViewMode}
         extra={
           <Space>

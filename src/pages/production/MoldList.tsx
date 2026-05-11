@@ -400,7 +400,7 @@ export default function MoldList() {
           </div>
         }
         open={isSearchModalOpen}
-        maskClosable={isViewMode}
+        mask={{ closable: isViewMode }}
         keyboard={isViewMode}
         onCancel={() => setIsSearchModalOpen(false)}
         footer={
@@ -441,7 +441,7 @@ export default function MoldList() {
         size={DRAWER_WIDTH_MAIN}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
-        maskClosable={isViewMode}
+        mask={{ closable: isViewMode }}
         keyboard={isViewMode}
         extra={
           <Space>

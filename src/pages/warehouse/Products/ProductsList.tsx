@@ -352,7 +352,7 @@ export default function ProductsList() {
           </div>
         }
         open={isSearchModalOpen}
-        maskClosable={isViewMode}
+        mask={{ closable: isViewMode }}
         keyboard={isViewMode}
         onCancel={() => setIsSearchModalOpen(false)}
         footer={
@@ -399,7 +399,7 @@ export default function ProductsList() {
         size={DRAWER_WIDTH_MAIN as any}
         onClose={closeViewDrawer}
         open={!!viewId || isCreateDrawerOpen}
-        maskClosable={isViewMode}
+        mask={{ closable: isViewMode }}
         keyboard={isViewMode}
         extra={
           <Space>

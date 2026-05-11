@@ -144,8 +144,8 @@ export default function ProductBom({ productCode, isViewMode: isMasterViewMode, 
           extra={
             !isFormViewMode ? (
               <Space>
-                <Button size="small" onClick={handleCancelHeader}>取消</Button>
                 <Button type="primary" size="small" htmlType="submit" form="bomHeaderForm" icon={<SaveOutlined />}>儲存</Button>
+                <Button size="small" onClick={handleCancelHeader}>取消</Button>
               </Space>
             ) : isMasterViewMode && bomExists ? (
               <Button type="primary" size="small" icon={<EditOutlined />} onClick={() => setIsHeaderEditing(true)}>
