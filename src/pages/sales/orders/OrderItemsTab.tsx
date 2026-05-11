@@ -186,8 +186,8 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
             <Text strong style={{ fontSize: '16px' }}>{isCreating ? '新增明細' : `編輯明細 (${editingItem?.lineNumber})`}</Text>
             <Space>
-              <Button onClick={handleCancel}>取消</Button>
               <Button type="primary" htmlType="submit" form="itemForm" loading={createMutation.isPending || updateMutation.isPending}>儲存</Button>
+              <Button onClick={handleCancel}>取消</Button>
             </Space>
           </div>
           <DynamicForm
@@ -236,13 +236,14 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
             </div>
           </div>
           <Table
+            virtual
+            scroll={{ x: 1800, y: 400 }}
             bordered
             columns={getItemColumns(!isMasterViewMode || orderData.status !== 'Draft', handleEditOpen, handleDelete)}
             dataSource={listData}
             rowKey="lineNumber"
             loading={isLoading}
             pagination={false}
-            scroll={{ x: 'max-content' }}
             size="small"
           />
         </div>

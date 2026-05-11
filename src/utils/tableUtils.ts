@@ -70,7 +70,7 @@ export function buildTableColumns<TValues>(
       render = (value: any, record: TValues, index: number) => {
         // 如果原本就有提供 render，先取得它的結果，否則直接使用 value
         const content = originalRender ? originalRender(value, record, index) : value;
-        return React.createElement(EllipsisText, { text: content, maxWidth: config.width ? config.width - 32 : 300 });
+        return React.createElement(EllipsisText, { text: content, maxWidth: config.width ? (typeof config.width === 'number' ? config.width - 32 : 300) : 300 });
       };
     }
 
@@ -79,6 +79,7 @@ export function buildTableColumns<TValues>(
       dataIndex: config.name,
       key: config.name,
       width: config.width,
+      // 專案規範: 欄位名稱一律置中 (需透過 global CSS 或標籤，這裡僅設定列本身的 alignment，而 global css .ant-table-thead > tr > th 會強迫置中)
       align: config.align || 'left',
       render: render,
       sorter: config.sortable ? true : undefined,

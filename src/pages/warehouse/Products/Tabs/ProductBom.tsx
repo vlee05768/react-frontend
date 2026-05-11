@@ -187,6 +187,8 @@ export default function ProductBom({ productCode, isViewMode: isMasterViewMode, 
           }
         >
           <Table
+            virtual
+            scroll={{ x: 1500, y: 400 }}
             columns={columns}
             dataSource={bomData?.items || []}
             rowKey="code"

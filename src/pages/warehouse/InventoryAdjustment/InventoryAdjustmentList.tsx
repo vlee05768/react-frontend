@@ -349,8 +349,8 @@ export default function InventoryAdjustmentList() {
         size={DRAWER_WIDTH_MAIN as any}
         open={!!viewId || isCreateDrawerOpen}
         onClose={isCreateDrawerOpen ? closeCreateDrawer : closeViewDrawer}
-        destroyOnClose
-        maskClosable={isViewMode}
+        destroyOnHidden
+        mask={{ closable: isViewMode }}
         keyboard={isViewMode}
         extra={
           <Space>

@@ -114,9 +114,11 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
         const isRequired = typeof config.required === 'function' ? config.required(context) : config.required;
 
         const { isCode, ...safeComponentProps } = componentProps || {};
+        const fieldId = safeComponentProps?.id || config.name;
 
         const commonProps = {
           ...field,
+          id: fieldId, // 確保元件有 ID 供自動 focus
           ...safeComponentProps,
           className: safeComponentProps?.className ? `${safeComponentProps.className} w-full` : 'w-full',
           onChange: handleChange,
@@ -186,9 +188,25 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
           case 'AsyncSelect':
             ComponentNode = renderWithTooltip(<AsyncSelect {...(commonProps as any)} />);
             break;
-          case 'InputNumber':
-            ComponentNode = renderWithTooltip(<InputNumber {...commonProps} />);
+          case 'InputNumber': {
+            const inputNumberProps = { ...commonProps };
+            if (isViewMode && !inputNumberProps.formatter) {
+              inputNumberProps.formatter = (val: any) => {
+                if (val === null || val === undefined || val === '') return '';
+                const num = Number(val);
+                if (isNaN(num)) return String(val);
+                if (componentProps?.precision !== undefined) {
+                  return num.toLocaleString(undefined, { 
+                    minimumFractionDigits: componentProps.precision,
+                    maximumFractionDigits: componentProps.precision 
+                  });
+                }
+                return num.toLocaleString();
+              };
+            }
+            ComponentNode = renderWithTooltip(<InputNumber {...inputNumberProps} />);
             break;
+          }
           case 'DatePicker':
             ComponentNode = renderWithTooltip(<DatePicker {...commonProps} />);
             break;

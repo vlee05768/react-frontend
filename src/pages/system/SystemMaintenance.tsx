@@ -1,8 +1,8 @@
 import React from 'react';
 import { Card, Button, Modal, Typography, Divider, Row, Col, Descriptions } from 'antd';
-import { ExclamationCircleFilled, CalculatorOutlined } from '@ant-design/icons';
+import { ExclamationCircleFilled, CalculatorOutlined, SettingOutlined } from '@ant-design/icons';
 import { useMutation } from '@tanstack/react-query';
-import { postApiV1StorageCalculateInventory } from '@/api/generated/sdk.gen';
+import { postApiV1StorageCalculateInventory, postApiV1SystemMaintenanceSyncSequenceRules } from '@/api/generated/sdk.gen';
 import { useThemeStore } from '@/stores/useThemeStore';
 
 const { Title, Text } = Typography;
@@ -99,6 +99,53 @@ const SystemMaintenance: React.FC = () => {
     });
   };
 
+  // Mutation for syncing sequence rules
+  const { mutateAsync: syncSequenceRules, isPending: isSyncingSequences } = useMutation({
+    mutationFn: () => postApiV1SystemMaintenanceSyncSequenceRules(),
+    onSuccess: (res: any) => {
+      const apiResponse = res.data;
+      if (!apiResponse?.success) {
+        Modal.error({ 
+          centered: true, 
+          title: '校正失敗', 
+          content: apiResponse?.message || '伺服器回傳失敗狀態。' 
+        });
+        return;
+      }
+      
+      const updatedCount = apiResponse.data || 0;
+      Modal.success({
+        centered: true,
+        title: '校正完成',
+        content: `單號跳號規則已成功校正！共更新了 ${updatedCount} 筆規則。`
+      });
+    },
+    onError: (error: any) => {
+      console.error('Sync sequence rules error:', error);
+      const errorMsg = error?.response?.data?.message || '校正失敗，請稍後再試或聯繫系統管理員。';
+      Modal.error({
+        centered: true,
+        title: '單號校正發生錯誤',
+        content: errorMsg,
+      });
+    },
+  });
+
+  const handleSyncSequenceRules = () => {
+    Modal.confirm({
+      title: '確認單號校正',
+      icon: <ExclamationCircleFilled />,
+      content: '此操作將會掃描所有系統單據，重新校正自動跳號產生器的最新流水號，用於修復單號重複或 500 錯誤。您確定要繼續嗎？',
+      okText: '確認校正',
+      cancelText: '取消',
+      okType: 'danger',
+      centered: true,
+      onOk: async () => {
+        await syncSequenceRules();
+      },
+    });
+  };
+
   return (
     <div className={`p-6 ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'} min-h-[calc(100vh-64px)]`}>
       <div className="mb-6">
@@ -138,6 +185,38 @@ const SystemMaintenance: React.FC = () => {
                 className="w-full"
               >
                 執行重算
+              </Button>
+            </div>
+          </Card>
+        </Col>
+
+        {/* 單號跳號校正功能卡片 */}
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Card 
+            hoverable 
+            className={isDarkMode ? 'bg-gray-800 border-gray-700' : ''}
+            bodyStyle={{ padding: '24px' }}
+          >
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className={`p-4 rounded-full ${isDarkMode ? 'bg-amber-900 text-amber-300' : 'bg-amber-50 text-amber-600'}`}>
+                <SettingOutlined className="text-3xl" />
+              </div>
+              <div>
+                <Title level={5} className={isDarkMode ? '!text-gray-200' : ''}>單號跳號校正</Title>
+                <Text type="secondary" className={`text-sm ${isDarkMode ? '!text-gray-400' : ''}`}>
+                  掃描系統所有單據，校正跳號產生器 (SequenceRule) 至實際最大流水號，修復單號衝突。
+                </Text>
+              </div>
+              <Divider className="my-2" />
+              <Button 
+                type="primary" 
+                danger
+                icon={<SettingOutlined />} 
+                onClick={handleSyncSequenceRules}
+                loading={isSyncingSequences}
+                className="w-full"
+              >
+                執行校正
               </Button>
             </div>
           </Card>

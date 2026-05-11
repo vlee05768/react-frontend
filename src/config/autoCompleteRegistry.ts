@@ -123,7 +123,87 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
     },
     triggerLength: 1
   },
+
+  // 模具 (Mold)
+  MOLD: {
+    queryFn: async (keyword: string) => {
+      const { getApiV1Mold } = await import('@/api/generated/sdk.gen');
+      const res = await getApiV1Mold({
+        query: {
+          CodeOrName: keyword || undefined,
+          pageSize: 100
+        } as any
+      });
+      return (res.data as any)?.data?.data || (res.data as any)?.data || [];
+    },
+    fetchByValue: async (code: string) => {
+      const { getApiV1MoldByCode } = await import('@/api/generated/sdk.gen');
+      const res = await getApiV1MoldByCode({ path: { code } });
+      return (res.data as any)?.data;
+    },
+    fieldNames: {
+      label: (item: any) => `${item.name} (${item.code})`,
+      value: 'code'
+    },
+    triggerLength: 1
+  },
+
+  // 儲位 (Storage)
+  STORAGE: {
+    queryFn: async (keyword: string) => {
+      const { getApiV1Storage } = await import('@/api/generated/sdk.gen');
+      const res = await getApiV1Storage({
+        query: {
+          CodeOrName: keyword || undefined,
+          pageSize: 100
+        } as any
+      });
+      return (res.data as any)?.data?.data || (res.data as any)?.data || [];
+    },
+    fetchByValue: async (code: string) => {
+      const { getApiV1StorageByCode } = await import('@/api/generated/sdk.gen');
+      const res = await getApiV1StorageByCode({ path: { code } });
+      return (res.data as any)?.data;
+    },
+    fieldNames: {
+      label: (item: any) => `${item.name} (${item.code})`,
+      value: 'code'
+    },
+    triggerLength: 0
+  },
   
+
+  // 員工 (Employee)
+  EMPLOYEE: {
+    queryFn: async (keyword: string) => {
+      const { getApiV1Employee } = await import('@/api/generated/sdk.gen');
+      const res = await getApiV1Employee({
+        query: {
+          EmployeeNo: keyword || undefined,
+          pageSize: 100
+        } as any
+      });
+      return (res.data as any)?.data?.data || (res.data as any)?.data || [];
+    },
+    fetchByValue: async (idOrCode: any) => {
+      // Because employee uses ID for fetch but we need employeeNo for value
+      // Just fallback to listing if fetchByValue by employeeNo is needed
+      const { getApiV1Employee } = await import('@/api/generated/sdk.gen');
+      const res = await getApiV1Employee({
+        query: {
+          EmployeeNo: String(idOrCode),
+          pageSize: 10
+        } as any
+      });
+      const list = (res.data as any)?.data?.data || (res.data as any)?.data || [];
+      return list.find((e: any) => e.employeeNo === idOrCode || e.employeeCode === idOrCode);
+    },
+    fieldNames: {
+      label: (item: any) => `${item.name || ''} (${item.employeeNo || item.employeeCode || ''})`,
+      value: 'employeeNo'
+    },
+    triggerLength: 0
+  },
   // (未來可擴充其他如: VENDOR, MATERIAL, PRODUCT 等)
 };
 

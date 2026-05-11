@@ -178,13 +178,14 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
       {/* 資料表格區 */}
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <Table
+          virtual
+          scroll={{ x: 1200, y: 400 }}
           dataSource={listData}
           columns={columns}
           rowKey="id"
           loading={isFetching}
           pagination={false}
           size="small"
-          scroll={{ x: 'max-content' }}
         />
       </div>
 

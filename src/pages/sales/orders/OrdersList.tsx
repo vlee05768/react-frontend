@@ -18,6 +18,8 @@ import { searchConfig, getColumns } from './OrderConfig';
 
 import { getApiErrorMessage } from '@/utils/apiError';
 
+import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
+
 export default function OrdersList() {
   const navigate = useNavigate();
   const { id: viewId } = useParams<{ id: string }>();
@@ -25,6 +27,16 @@ export default function OrdersList() {
   const { modal, message } = App.useApp();
   const { hasPermission } = useAuthStore();
   const { params, setParams } = useOrderQueryStore();
+
+  const { page, pageSize, ...queryFields } = params;
+  useUrlQuerySync({
+    query: queryFields,
+    page: page || 1,
+    pageSize: pageSize || DEFAULT_PAGE_SIZE,
+    setPagination: (p, s) => setParams({ page: p, pageSize: s }),
+    setQuery: (q) => setParams({ ...q, page: 1 })
+  });
+
   const [searchForm] = Form.useForm();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 

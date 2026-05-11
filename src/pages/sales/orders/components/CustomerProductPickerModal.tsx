@@ -185,7 +185,7 @@ export function CustomerProductPickerModal({
       width="80vw"
       centered
       styles={{ body: { height: 'calc(80vh - 110px)', overflow: 'hidden', display: 'flex', flexDirection: 'column' } }}
-      maskClosable={false}
+      mask={{ closable: false }}
       footer={null}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexShrink: 0 }}>

@@ -51,6 +51,7 @@ const ROUTE_MAPPING: Record<string, string> = {
   'Warehouse.InventoryAdjustments': '/warehouse/inventory-adjustments',
   'ProductionQuality.Molds': '/production-quality/molds',
   'ProductionQuality.Machines': '/production-quality/machines',
+  'ProductionQuality.WorkOrders': '/production/workorders',
 };
 
 // 路由權限對照表 (Path -> Required Permission Key)
@@ -70,6 +71,7 @@ const ROUTE_PERMISSION_MAP: Record<string, string> = {
   '/warehouse/inventory-adjustments': 'Warehouse.InventoryAdjustments.View',
   '/production-quality/molds': 'ProductionQuality.Molds.View',
   '/production-quality/machines': 'ProductionQuality.Machines.View',
+  '/production/workorders': 'ProductionQuality.WorkOrders.View',
 };
 
 export default function MainLayout() {

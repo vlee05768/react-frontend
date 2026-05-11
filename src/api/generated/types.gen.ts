@@ -15664,6 +15664,37 @@ export type GetApiV1StorageInventoryResponses = {
 
 export type GetApiV1StorageInventoryResponse = GetApiV1StorageInventoryResponses[keyof GetApiV1StorageInventoryResponses];
 
+export type PostApiV1SystemMaintenanceSyncSequenceRulesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/SystemMaintenance/sync-sequence-rules';
+};
+
+export type PostApiV1SystemMaintenanceSyncSequenceRulesErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ProblemDetails;
+    /**
+     * Forbidden
+     */
+    403: ProblemDetails;
+    /**
+     * Internal Server Error
+     */
+    500: unknown;
+};
+
+export type PostApiV1SystemMaintenanceSyncSequenceRulesError = PostApiV1SystemMaintenanceSyncSequenceRulesErrors[keyof PostApiV1SystemMaintenanceSyncSequenceRulesErrors];
+
+export type PostApiV1SystemMaintenanceSyncSequenceRulesResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
 export type GetApiV1UserData = {
     body?: never;
     path?: never;

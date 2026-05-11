@@ -49,7 +49,11 @@ export const MasterDetailTabs: React.FC<MasterDetailTabsProps> = ({
       label: '主要資訊',
       forceRender: true,
       disabled: disableTabSwitching,
-      children: masterContent,
+      children: (
+        <div style={{ height: "calc(100vh - 180px)", overflowY: "auto", overflowX: "hidden", paddingRight: "8px", margin: "0 -8px 0 0" }}>
+          {masterContent}
+        </div>
+      ),
     },
   ];
 

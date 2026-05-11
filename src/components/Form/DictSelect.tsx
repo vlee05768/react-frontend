@@ -17,6 +17,11 @@ export const DictSelect: React.FC<DictSelectProps> = ({
   showRefresh = true, 
   ...props 
 }) => {
+  if (!dictKey) {
+    console.error(`[DictSelect] 嚴重錯誤: 缺少 dictKey！請檢查組態檔中 componentProps 內是否誤寫為 configKey？`);
+    return <Select {...props} disabled placeholder="設定錯誤(缺少dictKey)" />;
+  }
+
   const { data: rawOptions, isLoading, isFetching, refetch } = useDictionary(dictKey);
   
   const registryConfig = DICTIONARY_REGISTRY[dictKey];

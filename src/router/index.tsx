@@ -25,6 +25,7 @@ import OrderDrawer from '@/pages/sales/orders/OrderDrawer';
 import MaterialList from '@/pages/purchase/Material/MaterialList';
 import MoldList from '@/pages/production/MoldList';
 import MachineList from '@/pages/production/MachineList';
+import { WorkOrdersList } from '@/pages/production/workorders/WorkOrdersList';
 import BusinessPartnerList from '@/pages/basic/BusinessPartner/BusinessPartnerList';
 import FormDemo from '@/pages/demo/FormDemo';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -70,6 +71,7 @@ export const router = createBrowserRouter([
       { path: 'purchase/materials/:viewId?', element: <MaterialList /> },
       { path: 'production-quality/molds/:viewId?', element: <MoldList /> },
       { path: 'production-quality/machines/:viewId?', element: <MachineList /> },
+      { path: 'production/workorders/:viewId?', element: <WorkOrdersList /> },
       { path: 'sales/orders', element: <OrdersList /> },
       { path: 'sales/orders/:id', element: <><OrdersList /><OrderDrawer /></> },
       { path: 'business-partners/:viewId?', element: <BusinessPartnerList /> },

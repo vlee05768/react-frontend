@@ -183,9 +183,61 @@ export function DynamicForm<TValues extends Record<string, any>>({
   // 條件：只要有開發者手動設定了任何 group 屬性 (不管是不是基本資訊)，或者產生的 groups 數量大於 1
   const hasGroups = fields.some(f => f.group !== undefined && f.group !== '') || Object.keys(groupedFields).length > 1;
 
+  // Global Interceptor for DatePicker fields to format dayjs -> YYYY-MM-DD
+  const handleInternalSubmit = (values: TValues) => {
+    const payload = { ...values };
+    fields.forEach(field => {
+      // 處理 Form 動態隱藏邏輯，若 showInForm 顯式設定為 false，不渲染該欄位
+      if (field.showInForm === false) return;
+      
+      const componentType = typeof field.componentType === 'function' 
+        ? field.componentType(context) 
+        : field.componentType;
+        
+      if (componentType === 'DatePicker') {
+        const val = payload[field.name as keyof TValues];
+        if (val && typeof val.format === 'function') {
+           payload[field.name as keyof TValues] = val.format('YYYY-MM-DD') as any;
+        }
+      } else if ((componentType as any) === 'DateRangePicker') {
+        const val = payload[field.name as keyof TValues];
+        if (Array.isArray(val) && val.length === 2) {
+          payload[field.name as keyof TValues] = val.map((d: any) => d && typeof d.format === 'function' ? d.format('YYYY-MM-DD') : d) as any;
+        }
+      }
+    });
+    onSubmit(payload);
+  };
+
+
+  // 表單驗證失敗時，自動 focus 第一個錯誤欄位
+  const handleInternalError = (errors: any) => {
+    const firstErrorKey = Object.keys(errors)[0];
+    if (firstErrorKey && formWrapperRef.current) {
+      // 嘗試尋找元件：1. 透過 id, 2. 透過 name
+      const element = formWrapperRef.current.querySelector(
+        `#${firstErrorKey}, [name="${firstErrorKey}"]`
+      ) as HTMLElement;
+      
+      if (element) {
+        // Antd Select/DatePicker 等元件的 focus 目標可能在內部 input
+        const focusTarget = element.tagName === 'INPUT' || element.tagName === 'TEXTAREA' || element.tagName === 'BUTTON' 
+          ? element 
+          : (element.querySelector('input') || element);
+          
+        if (typeof focusTarget.focus === 'function') {
+          // 平滑捲動至該元素
+          focusTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // 延遲一點時間讓它確保拿到焦點
+          setTimeout(() => focusTarget.focus(), 100);
+        }
+      }
+    }
+  };
+
   return (
     <div ref={formWrapperRef} className="dynamic-form-wrapper">
-      <Form layout="vertical" onFinish={handleSubmit(onSubmit)} id={formId} disabled={isViewMode} className={isViewMode ? 'view-mode-form' : ''}>
+      <Form layout="vertical" onFinish={handleSubmit(handleInternalSubmit, handleInternalError)} id={formId} disabled={isViewMode} className={isViewMode ? 'view-mode-form' : ''}>
       {/* 支援 grid 與群組排版 */}
       {hasGroups ? (
         <div className="dynamic-form-groups">

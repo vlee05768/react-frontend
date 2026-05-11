@@ -43,6 +43,7 @@ export default function OrderDrawer() {
     queryFn: () => getApiV1OrdersByOrderNumber({ path: { orderNumber: id! } }),
     enabled: !isCreating && !!id,
     retry: false,
+    refetchInterval: 30000,
   });
 
   const orderData: OrderDto | undefined = (data?.data?.data as any) || undefined;
@@ -201,8 +202,8 @@ export default function OrderDrawer() {
     if (isCreating) {
       return (
         <Space>
-          <Button onClick={handleClose}>取消</Button>
           <Button type="primary" htmlType="submit" form="orderForm" loading={createMutation.isPending}>儲存</Button>
+          <Button onClick={handleClose}>取消</Button>
         </Space>
       );
     }
@@ -210,8 +211,8 @@ export default function OrderDrawer() {
     if (isEditing) {
       return (
         <Space>
-          <Button onClick={handleClose}>取消</Button>
           <Button type="primary" htmlType="submit" form="orderForm" loading={updateMutation.isPending}>儲存</Button>
+          <Button onClick={handleClose}>取消</Button>
         </Space>
       );
     }
@@ -320,7 +321,7 @@ export default function OrderDrawer() {
       onClose={() => navigate('/sales/orders')}
       size={DRAWER_WIDTH_MAIN}
       extra={getExtraActions()}
-      maskClosable={isViewMode}
+      mask={{ closable: isViewMode }}
       keyboard={isViewMode}
     >
       <Spin spinning={isLoading}>

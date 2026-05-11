@@ -287,7 +287,7 @@ export default function BusinessPartnerList() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
             <div style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>
-              商業夥伴管理
+              廠商客戶管理
             </div>
           </div>
         }
@@ -407,7 +407,7 @@ export default function BusinessPartnerList() {
       <Drawer
         title={
           <DrawerTitle
-            moduleName="商業夥伴"
+            moduleName="廠商客戶"
             isCreate={isCreateDrawerOpen}
             isEdit={isDrawerEditing}
             record={viewData}

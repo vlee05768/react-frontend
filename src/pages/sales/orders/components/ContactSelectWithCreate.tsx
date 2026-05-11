@@ -120,10 +120,10 @@ export const ContactSelectWithCreate: React.FC<ContactSelectWithCreateProps> = (
         title={`新增客戶聯絡人 (${businessPartnerCode})`}
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
-        destroyOnClose
+        destroyOnHidden
         centered
         width={800}
-        maskClosable={false}
+        mask={{ closable: false }}
         keyboard={false}
         footer={[
           <Button key="cancel" onClick={() => setIsModalOpen(false)}>

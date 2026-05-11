@@ -29,6 +29,11 @@ body {
   background-color: var(--ant-color-primary-bg) !important;
 }
 
+/* 全域規範：Table 欄位名稱 (Header) 一律置中 */
+.ant-table-thead > tr > th {
+  text-align: center !important;
+}
+
 /* === Tab 標籤頁辨識度優化 (支援亮/暗模式) === */
 .ant-tabs-nav .ant-tabs-tab {
   padding: 10px 24px !important;

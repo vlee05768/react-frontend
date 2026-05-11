@@ -23,6 +23,11 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
   optionRender,
   ...props 
 }) => {
+  if (!configKey) {
+    console.error(`[AsyncSelect] 嚴重錯誤: 缺少 configKey！請檢查組態檔中 componentProps 內是否誤寫為 dictKey？`);
+    return <Select {...(props as any)} disabled placeholder="設定錯誤(缺少configKey)" />;
+  }
+
   const config = AUTO_COMPLETE_REGISTRY[configKey];
   if (!config) {
     console.warn(`[AsyncSelect] 找不到對應的 configKey: ${configKey}`);
