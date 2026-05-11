@@ -168,5 +168,10 @@ export const employeeSearchConfig: SearchFieldConfig<any>[] = [
       showSearch: true,
       optionFilterProp: '_displayName',
     }
+  },
+  {
+    ...employeeDictionary.phone,
+    componentType: 'Input',
+    colSpan: 2,
   }
 ];

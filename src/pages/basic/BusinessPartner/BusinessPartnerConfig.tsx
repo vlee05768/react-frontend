@@ -185,13 +185,14 @@ export const bpSearchFormConfig = (): SearchFieldConfig[] => [
       options: [
         { label: "是", value: true },
         { label: "否", value: false },
-      ]
+      ],
+      allowClear: true,
     },
     colSpan: 2,
   },
   {
     name: "Others",
-    label: "其他雜項",
+    label: "其他條件",
     componentType: "Input",
     colSpan: 2,
   },

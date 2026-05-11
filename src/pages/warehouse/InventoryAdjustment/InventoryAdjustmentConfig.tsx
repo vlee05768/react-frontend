@@ -26,19 +26,19 @@ export const mainSearchFormConfig = (): SearchFieldConfig[] => [
     name: "DocumentNumber",
     label: "單據號碼",
     componentType: "Input",
-    colSpan: 1 ,
+    colSpan: 2,
   },
   {
     name: "DateRange",
     label: "調整日期區間",
     componentType: "DateRangePicker",
-    colSpan: 1,
+    colSpan: 2,
   },
   {
     name: "Others",
     label: "其他條件",
     componentType: "Input",
-    colSpan: 1,
+    colSpan: 2,
   },
 ];
 

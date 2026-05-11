@@ -68,5 +68,4 @@ export const detailTableColumns = {};
 
 export const userSearchFormConfig = (): SearchFieldConfig[] => [
   { name: 'name', label: '姓名/帳號/代碼 (模糊搜尋)', componentType: 'Input', colSpan: 2 },
-  { name: 'department', label: '部門', componentType: 'DictSelect', colSpan: 2, componentProps: { dictKey: 'DEPARTMENT', showSearch: true, optionFilterProp: '_displayName' } },
 ];

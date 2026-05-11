@@ -30,7 +30,7 @@ export const searchConfig: SearchFieldConfig[] = [
     colSpan: 2,
   },
   {
-    name: "businessPartnerCode",
+    name: "customerCodeOrName",
     label: "客戶",
     componentType: "AsyncSelect",
     componentProps: { configKey: "CUSTOMER" },
@@ -47,6 +47,37 @@ export const searchConfig: SearchFieldConfig[] = [
     name: "orderDate",
     label: "訂單日期",
     componentType: "DateRangePicker",
+    colSpan: 2,
+  },
+  {
+    name: "requestedDeliveryDate",
+    label: "要求交期",
+    componentType: "DateRangePicker",
+    colSpan: 2,
+  },
+  {
+    name: "promisedDeliveryDate",
+    label: "承諾交期",
+    componentType: "DateRangePicker",
+    colSpan: 2,
+  },
+  {
+    name: "unprocessedOrders",
+    label: "未處理完單據",
+    componentType: "Select",
+    componentProps: {
+      options: [
+        { label: "是", value: true },
+        { label: "否", value: false },
+      ],
+      allowClear: true,
+    },
+    colSpan: 2,
+  },
+  {
+    name: "others",
+    label: "其他條件",
+    componentType: "Input",
     colSpan: 2,
   },
 ];

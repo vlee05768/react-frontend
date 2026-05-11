@@ -81,15 +81,16 @@ export const materialSearchFormConfig = (): SearchFieldConfig[] => [
     label: "編號或名稱",
     componentType: "Input",
     componentProps: { placeholder: "請輸入原料編號或名稱" },
-    colSpan: 1,
+    colSpan: 2,
   },
   {
-    name: "MaterialForm",
-    label: "型態",
+    name: "Types",
+    label: "原料型態",
     componentType: "Select",
     componentProps: {
       placeholder: "請選擇型態",
       options: materialFormOptions,
+      mode: "multiple",
       allowClear: true,
     },
     colSpan: 2,
@@ -106,6 +107,12 @@ export const materialSearchFormConfig = (): SearchFieldConfig[] => [
       ],
       allowClear: true,
     },
+    colSpan: 2,
+  },
+  {
+    name: "Others",
+    label: "其他雜項",
+    componentType: "Input",
     colSpan: 2,
   },
 ];

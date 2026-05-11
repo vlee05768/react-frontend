@@ -395,7 +395,7 @@ export const productSearchFormConfig = (): SearchFieldConfig[] => [
     name: "CodeOrName",
     label: "代碼/名稱",
     componentType: "Input",
-    colSpan: 1,
+    colSpan: 2,
   },
   {
     name: "Customer",
@@ -418,13 +418,13 @@ export const productSearchFormConfig = (): SearchFieldConfig[] => [
       dictKey: "PRODUCT_TYPE",
       mode: "multiple",
     },
-    colSpan: 4,
+    colSpan: 2,
   },
   {
     name: "Others",
     label: "其他雜項",
     componentType: "Input",
-    colSpan: 1,
+    colSpan: 2,
   },
 ];
 

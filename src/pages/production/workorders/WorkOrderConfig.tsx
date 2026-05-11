@@ -121,6 +121,12 @@ export const searchConfig: SearchFieldConfig[] = [
     componentType: "DateRangePicker",
     colSpan: 2,
   },
+  {
+    name: "others",
+    label: "其他條件",
+    componentType: "Input",
+    colSpan: 2,
+  },
 ];
 
 export const tableColumns: TableColumnConfig[] = [
@@ -493,8 +499,8 @@ export const formConfig: FormFieldConfig<WorkOrderDto>[] = [
   {
     name: "moldsCode",
     label: "模具編碼",
-    componentType: "TextArea",
-    colSpan: 1,
+    componentType: "Input",
+    colSpan: 2,
     editable: (ctx) => checkPermission(ctx, "moldsCode"),
     group: "生產資訊",
   },
