@@ -54,6 +54,8 @@ import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, DRAWER_WIDTH_
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 
 
+import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
+
 // Local store for query params
 export const useBPQueryStore = create((set) => ({
   params: {
@@ -73,6 +75,15 @@ export default function BusinessPartnerList() {
   const params = useBPQueryStore((state: any) => state.params);
   const setParams = useBPQueryStore((state: any) => state.setParams);
   
+  const { pageNumber, pageSize, ...queryFields } = params;
+  useUrlQuerySync({
+    query: queryFields,
+    page: pageNumber || 1,
+    pageSize: pageSize || DEFAULT_PAGE_SIZE,
+    setPagination: (p, s) => setParams({ pageNumber: p, pageSize: s }),
+    setQuery: (q) => setParams({ ...q, pageNumber: 1 })
+  });
+
   const { hasPermission } = useAuthStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
@@ -102,6 +113,7 @@ export default function BusinessPartnerList() {
     queryKey: ['bpDetail', viewId],
     queryFn: () => getApiV1BusinessPartnersByCode({ path: { code: viewId as string } }),
     enabled: !!viewId,
+    refetchInterval: 30000, // Background polling
   });
   const viewData = viewRes?.data?.data || viewRes?.data;
 

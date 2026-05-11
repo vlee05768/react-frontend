@@ -35,6 +35,8 @@ import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 
 
 // Local store for query params
+import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
+
 export const useProductQueryStore = create((set) => ({
   params: {
     pageNumber: 1,
@@ -53,6 +55,17 @@ export default function ProductsList() {
   const { message: messageApi, modal: modalApi } = App.useApp();
   const params = useProductQueryStore((state: any) => state.params);
   const setParams = useProductQueryStore((state: any) => state.setParams);
+  const navigate = useNavigate();
+  const { viewId } = useParams<{ viewId: string }>(); // viewId represents "code" here
+
+  const { pageNumber, pageSize, ...queryFields } = params;
+  useUrlQuerySync({
+    query: queryFields,
+    page: pageNumber || 1,
+    pageSize: pageSize || DEFAULT_PAGE_SIZE,
+    setPagination: (p, s) => setParams({ pageNumber: p, pageSize: s }),
+    setQuery: (q) => setParams({ ...q, pageNumber: 1 })
+  });
   
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
@@ -75,14 +88,13 @@ export default function ProductsList() {
   }, [isCreateDrawerOpen, isDrawerEditing]);
   
   const queryClient = useQueryClient();
-  const { viewId } = useParams<{ viewId: string }>(); // viewId represents "code" here
-  const navigate = useNavigate();
 
   // Detail query
   const { data: viewRes, isFetching: isFetchingView } = useQuery({
     queryKey: ['productDetail', viewId],
     queryFn: () => getApiV1ProductByCode({ path: { code: viewId as string } }),
     enabled: !!viewId,
+    refetchInterval: 30000, // Background polling
   });
   const viewData = viewRes?.data?.data || viewRes?.data;
 
