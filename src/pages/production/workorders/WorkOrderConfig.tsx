@@ -16,52 +16,53 @@ import type {
 import dayjs from "dayjs";
 
 export const getStatusTag = (status: string | null | undefined) => {
-  if (!status) return <Tag color="default">新單據</Tag>;
+  const hollowStyle = { background: "transparent", borderColor: "currentColor" };
+  if (!status) return <Tag color="default" style={hollowStyle}>新單據</Tag>;
   switch (status) {
     case "Draft":
       return (
-        <Tag color="warning" icon={<SyncOutlined />}>
+        <Tag color="default" icon={<SyncOutlined />} style={hollowStyle}>
           新單據
         </Tag>
       );
     case "InPreparation":
       return (
-        <Tag color="processing" icon={<SyncOutlined spin />}>
+        <Tag color="processing" icon={<SyncOutlined spin />} style={hollowStyle}>
           備料中
         </Tag>
       );
     case "PreparationCompleted":
       return (
-        <Tag color="success" icon={<CheckCircleOutlined />}>
+        <Tag color="cyan" icon={<CheckCircleOutlined />} style={hollowStyle}>
           備料確認
         </Tag>
       );
     case "InProduction":
       return (
-        <Tag color="processing" icon={<PlayCircleOutlined />}>
+        <Tag color="purple" icon={<PlayCircleOutlined />} style={hollowStyle}>
           生產中
         </Tag>
       );
     case "ProductionCompleted":
       return (
-        <Tag color="info" icon={<CheckCircleOutlined />}>
+        <Tag color="magenta" icon={<CheckCircleOutlined />} style={hollowStyle}>
           生產完成
         </Tag>
       );
     case "WarehousingCompleted":
       return (
-        <Tag color="success" icon={<LockOutlined />}>
+        <Tag color="success" icon={<LockOutlined />} style={hollowStyle}>
           入庫完成
         </Tag>
       );
     case "Cancelled":
       return (
-        <Tag color="error" icon={<CloseCircleOutlined />}>
+        <Tag color="error" icon={<CloseCircleOutlined />} style={hollowStyle}>
           已取消
         </Tag>
       );
     default:
-      return <Tag color="default">{status}</Tag>;
+      return <Tag color="default" style={hollowStyle}>{status}</Tag>;
   }
 };
 
