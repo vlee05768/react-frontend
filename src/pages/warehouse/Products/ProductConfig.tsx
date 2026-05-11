@@ -461,9 +461,7 @@ export const productMoldTableColumns = (): TableColumnConfig[] => [
     width: 80,
     align: 'center',
     render: (isActive: boolean) => (
-      <Tag color={isActive ? 'success' : 'error'} className="m-0">
-        {isActive ? '啟用' : '停用'}
-      </Tag>
+      isActive ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />
     )
   }
 ];
