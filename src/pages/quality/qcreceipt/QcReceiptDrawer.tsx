@@ -170,10 +170,10 @@ export default function QcReceiptDrawer() {
           viewId={id}
           masterContent={
             <DynamicForm
-              id="qc-receipt-form"
-              config={config}
+              formId="qc-receipt-form"
+              fields={config}
               defaultValues={defaultValues}
-              onFinish={handleFinish}
+              onSubmit={handleFinish}
               isViewMode={isFormLocked}
               isUpdateMode={isUpdateMode}
             />
@@ -182,7 +182,7 @@ export default function QcReceiptDrawer() {
             {
               key: 'items',
               label: '檢驗明細',
-              content: <QcReceiptItemsTab 
+              children: <QcReceiptItemsTab 
                 documentNumber={id!} 
                 isLocked={isFormLocked || isCreating} 
                 receiptData={receiptData}

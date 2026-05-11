@@ -135,10 +135,10 @@ export default function ProductionReceiptDrawer() {
           viewId={id}
           masterContent={
             <DynamicForm
-              id="production-receipt-form"
-              config={config}
+              formId="production-receipt-form"
+              fields={config}
               defaultValues={defaultValues}
-              onFinish={() => {}}
+              onSubmit={() => {}}
               isViewMode={true}
               isUpdateMode={false}
             />
@@ -147,7 +147,7 @@ export default function ProductionReceiptDrawer() {
             {
               key: 'items',
               label: '入庫明細',
-              content: <ProductionReceiptItemsTab items={formData?.items || []} />
+              children: <ProductionReceiptItemsTab items={formData?.items || []} />
             }
           ]}
         />
