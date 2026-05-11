@@ -26,6 +26,7 @@ export default function App() {
       <ConfigProvider
         locale={zhTW}
         theme={{
+          cssVar: true as any,
           algorithm: mode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
           token: {
             colorPrimary: '#1668dc',
@@ -54,7 +55,7 @@ export default function App() {
           }
         }}
       >
-        <AntdApp>
+        <AntdApp message={{ top: 80 }}>
           <RouterProvider router={router} />
           {requestCount > 0 && <Spin fullscreen size="large" description={loadingMessage} />}
         </AntdApp>
