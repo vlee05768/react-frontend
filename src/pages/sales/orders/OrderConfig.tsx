@@ -27,27 +27,27 @@ export const searchConfig: SearchFieldConfig[] = [
     name: "orderNumber",
     label: "訂單號碼",
     componentType: "Input",
-    colSpan: 3,
+    colSpan: 2,
   },
   {
     name: "businessPartnerCode",
     label: "客戶",
     componentType: "AsyncSelect",
     componentProps: { configKey: "CUSTOMER" },
-    colSpan: 3,
+    colSpan: 2,
   },
   {
     name: "status",
     label: "狀態",
     componentType: "DictSelect",
     componentProps: { dictKey: "ORDER_STATUS" },
-    colSpan: 3,
+    colSpan: 2,
   },
   {
     name: "orderDate",
     label: "訂單日期",
     componentType: "DateRangePicker",
-    colSpan: 3,
+    colSpan: 2,
   },
 ];
 

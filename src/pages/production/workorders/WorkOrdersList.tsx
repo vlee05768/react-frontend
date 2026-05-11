@@ -138,13 +138,14 @@ export const WorkOrdersList: React.FC = () => {
   const columns = useMemo(() => buildTableColumns(tableColumns, actionColumn), []);
 
   return (
-    <>
+    <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
       <Card
         variant="borderless"
         styles={{ 
-          body: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '16px' }
+          header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
+          body: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '16px 16px 4px 16px' }
         }}
-        style={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 0 }}
+        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', borderRadius: 0 }}
         title={
           <Space>
             <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
@@ -160,32 +161,48 @@ export const WorkOrdersList: React.FC = () => {
           </Space>
         }
       >
-        <DynamicSearchTags
-          config={searchConfig}
-          params={searchParams}
-          onClose={(key) => setSearchParams({ ...searchParams, [key]: undefined })}
-        />
+        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
+          <span style={{ fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
+          <DynamicSearchTags
+            config={searchConfig}
+            params={searchParams}
+            onClose={(key) => setSearchParams({ ...searchParams, [key]: undefined })}
+          />
+        </div>
 
-        <Table
-          bordered
-          size="small"
-          rowKey="workOrderNumber"
-          dataSource={listData}
-          columns={columns}
-          loading={isLoading || isFetching}
-          rowClassName={(record) => record.workOrderNumber === viewId ? "selected-table-row" : ""}
-          scroll={{ x: 'max-content', y: 'calc(100vh - 350px)' }}
-          style={{ flex: 1 }}
-          pagination={{
-            current: pagination.page,
-            pageSize: pagination.pageSize,
-            total: total,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total) => `共 ${total} 筆資料`,
-            onChange: (page, pageSize) => setPagination(page, pageSize),
-          }}
-        />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <style>{`
+            .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
+            .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-spin-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
+            .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
+            .ant-table-thead > tr > th { text-align: center !important; }
+          `}</style>
+          <Table
+            bordered
+            size="small"
+            rowKey="workOrderNumber"
+            dataSource={listData}
+            columns={columns}
+            loading={isLoading || isFetching}
+            rowClassName={(record) => record.workOrderNumber === viewId ? "selected-table-row" : ""}
+            scroll={{ x: 'max-content', y: 300 }}
+            style={{ flex: 1 }}
+            pagination={{
+              current: pagination.page,
+              pageSize: pagination.pageSize,
+              total: total,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total) => `共 ${total} 筆資料`,
+              onChange: (page, pageSize) => setPagination(page, pageSize),
+            }}
+          />
+        </div>
       </Card>
 
       <Modal
@@ -236,6 +253,6 @@ export const WorkOrdersList: React.FC = () => {
           onClose={closeDrawer}
         />
       )}
-    </>
+    </div>
   );
 };

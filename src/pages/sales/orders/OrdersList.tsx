@@ -8,7 +8,7 @@ import { getApiV1Orders, deleteApiV1OrdersByOrderNumber } from '@/api/generated/
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 ;
-import { TABLE_ACTION_ICON_SIZE, DEFAULT_PAGE_SIZE } from '@/constants/ui';
+import { TABLE_ACTION_ICON_SIZE, DEFAULT_PAGE_SIZE, MODAL_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT } from '@/constants/ui';
 import { useAuthStore } from '@/stores/useAuthStore';
 import type { OrderDto } from '@/api/generated/types.gen';
 import useOrderQueryStore from './useOrderQueryStore';
@@ -132,8 +132,8 @@ export default function OrdersList() {
             </div>
           </div>
         }
-      variant="borderless"
-      extra={
+        variant="borderless"
+        extra={
           <Space separator={<Divider orientation="vertical" />}>
             <Button
               type="default"
@@ -153,8 +153,8 @@ export default function OrdersList() {
             )}
           </Space>
         }
-    >
-      <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
+      >
+        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
           <span style={{ fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
           <DynamicSearchTags
             config={searchConfig}
@@ -215,11 +215,11 @@ export default function OrdersList() {
             </Button>
           </div>
         }
-        width={800}
+        width={MODAL_WIDTH_SEARCH}
         style={{ top: '10vh' }}
         styles={{
           body: {
-            maxHeight: '60vh',
+            maxHeight: MODAL_BODY_MAX_HEIGHT,
             overflowY: 'auto',
             padding: '24px 24px 0 24px'
           }
