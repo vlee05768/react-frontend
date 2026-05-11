@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { App, Card, Space, Button, Table, Modal, Form } from "antd";
-import { PlusOutlined, DeleteOutlined, EyeOutlined, PrinterOutlined } from "@ant-design/icons";
+import { PlusOutlined, DeleteOutlined, EyeOutlined, PrinterOutlined, ClearOutlined, SearchOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { 
@@ -189,12 +189,35 @@ export const WorkOrdersList: React.FC = () => {
       </Card>
 
       <Modal
-        title="進階查詢"
+        title={
+          <div style={{ fontSize: '18px', fontWeight: 600, paddingBottom: '12px', borderBottom: '1px solid #f0f0f0', marginBottom: '8px' }}>
+            查詢條件設定
+          </div>
+        }
         open={isSearchOpen}
+        mask={{ closable: true }}
+        keyboard={true}
         onCancel={() => setIsSearchOpen(false)}
-        onOk={() => searchForm.submit()}
+        footer={
+          <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+            <Button icon={<ClearOutlined />} onClick={() => searchForm.resetFields()}>
+              清空重置
+            </Button>
+            <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
+              執行查詢
+            </Button>
+          </div>
+        }
         width={MODAL_WIDTH_SEARCH}
-        styles={{ body: { maxHeight: MODAL_BODY_MAX_HEIGHT, overflowY: 'auto' } }}
+        style={{ top: '10vh' }}
+        styles={{
+          body: {
+            maxHeight: MODAL_BODY_MAX_HEIGHT,
+            overflowY: 'auto',
+            padding: '24px 24px 0 24px'
+          }
+        }}
+        closeIcon={true}
       >
         <DynamicSearchForm
           config={searchConfig}

@@ -71,32 +71,32 @@ export const searchConfig: SearchFieldConfig[] = [
     name: "workOrderNumber",
     label: "製令單號",
     componentType: "Input",
-    colSpan: 4,
+    colSpan: 2,
   },
   {
     name: "orderNumber",
     label: "訂單編號",
     componentType: "Input",
-    colSpan: 4,
+    colSpan: 2,
   },
   {
     name: "productCodeOrName",
     label: "產品編碼/名稱",
     componentType: "Input",
-    colSpan: 4,
+    colSpan: 2,
   },
   {
     name: "machineCode",
     label: "機台",
     componentType: "DictSelect",
     componentProps: { dictKey: "MACHINE" },
-    colSpan: 4,
+    colSpan: 2,
   },
   {
     name: "status",
     label: "狀態",
     componentType: "Select",
-    colSpan: 4,
+    colSpan: 2,
     componentProps: {
       options: [
         { label: "新單據", value: "Draft" },
@@ -113,13 +113,13 @@ export const searchConfig: SearchFieldConfig[] = [
     name: "workOrderDate",
     label: "製令日期",
     componentType: "DateRangePicker",
-    colSpan: 4,
+    colSpan: 2,
   },
   {
     name: "productionDate",
     label: "生產日期",
     componentType: "DateRangePicker",
-    colSpan: 4,
+    colSpan: 2,
   },
 ];
 
