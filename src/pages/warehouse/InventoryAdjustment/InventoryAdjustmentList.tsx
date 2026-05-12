@@ -492,15 +492,13 @@ export default function InventoryAdjustmentList() {
         extra={getHeaderActions()}
       >
         <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
-          {(!isCreateDrawerOpen && viewData) && (
-            <ActionBar 
-              createdBy={viewData.createdBy || undefined}
-              createdAt={viewData.createdAt || undefined}
-              updatedBy={viewData.updatedBy || undefined}
-              updatedAt={viewData.updatedAt || undefined}
+          <ActionBar 
+              createdBy={viewData?.createdBy || undefined}
+              createdAt={viewData?.createdAt || undefined}
+              updatedBy={viewData?.updatedBy || undefined}
+              updatedAt={viewData?.updatedAt || undefined}
               actions={getActionBarActions()}
             />
-          )}
           <div style={{ padding: "8px 24px" }}>
             {(!isCreateDrawerOpen && viewData) && <DocumentLifecycleBanner steps={steps} />}
             <MasterDetailTabs

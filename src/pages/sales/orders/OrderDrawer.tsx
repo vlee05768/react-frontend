@@ -381,15 +381,13 @@ export default function OrderDrawer() {
       keyboard={isViewMode}
     >
       <Spin spinning={isLoading}>
-        {!isCreating && orderData && (
-          <ActionBar 
-            createdBy={orderData.createdBy || undefined}
-            createdAt={orderData.createdAt || undefined}
-            updatedBy={orderData.updatedBy || undefined}
-            updatedAt={orderData.updatedAt || undefined}
+        <ActionBar 
+            createdBy={orderData?.createdBy || undefined}
+            createdAt={orderData?.createdAt || undefined}
+            updatedBy={orderData?.updatedBy || undefined}
+            updatedAt={orderData?.updatedAt || undefined}
             actions={getActionBarActions()}
           />
-        )}
         <div style={{ padding: "8px 24px" }}>
           {!isCreating && orderData && <DocumentLifecycleBanner steps={steps} />}
           <MasterDetailTabs

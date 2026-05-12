@@ -258,15 +258,13 @@ export default function QcReceiptDrawer() {
       extra={getHeaderActions()}
     >
       <Spin spinning={isLoading}>
-        {!isCreating && receiptData && (
-          <ActionBar 
-            createdBy={receiptData.createdBy || undefined}
-            createdAt={receiptData.createdAt || undefined}
-            updatedBy={receiptData.updatedBy || undefined}
-            updatedAt={receiptData.updatedAt || undefined}
+        <ActionBar 
+            createdBy={receiptData?.createdBy || undefined}
+            createdAt={receiptData?.createdAt || undefined}
+            updatedBy={receiptData?.updatedBy || undefined}
+            updatedAt={receiptData?.updatedAt || undefined}
             actions={getActionBarActions()}
           />
-        )}
         <div style={{ padding: "8px 24px" }}>
           {!isCreating && receiptData && <DocumentLifecycleBanner steps={steps} />}
           <MasterDetailTabs

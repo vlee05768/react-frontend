@@ -481,15 +481,13 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
     >
 
       <Spin spinning={isLoading}>
-        {!isCreateMode && record && (
-          <ActionBar 
-            createdBy={record.createdBy}
-            createdAt={record.createdAt}
-            updatedBy={record.updatedBy}
-            updatedAt={record.updatedAt}
+        <ActionBar 
+            createdBy={record?.createdBy}
+            createdAt={record?.createdAt}
+            updatedBy={record?.updatedBy}
+            updatedAt={record?.updatedAt}
             actions={getActionBarActions()}
           />
-        )}
         <div style={{ padding: "8px 24px" }}>
           {!isCreateMode && record && <DocumentLifecycleBanner steps={steps} />}
           <MasterDetailTabs
