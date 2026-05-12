@@ -318,7 +318,7 @@ export default function QcReceiptDrawer() {
               label: '檢驗明細',
               children: <QcReceiptItemsTab 
                 documentNumber={id!} 
-                isLocked={isFormLocked || isCreating} 
+                isLocked={isConfirmed || isCreating} 
                 receiptData={receiptData}
               />
             }
