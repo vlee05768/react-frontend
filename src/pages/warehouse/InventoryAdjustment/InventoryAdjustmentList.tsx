@@ -234,7 +234,7 @@ export default function InventoryAdjustmentList() {
   const handleCreateSubmit = (values: any) => {
     const payload = {
       ...values,
-      documentDate: values.documentDate ? values.documentDate.format('YYYY-MM-DD') : undefined
+      documentDate: values.documentDate ? dayjs(values.documentDate).format('YYYY-MM-DD') : undefined
     };
     createMutation.mutate(payload);
   };
@@ -242,7 +242,7 @@ export default function InventoryAdjustmentList() {
   const handleEditSubmit = (values: any) => {
     const payload = {
       ...values,
-      documentDate: values.documentDate ? values.documentDate.format('YYYY-MM-DD') : undefined
+      documentDate: values.documentDate ? dayjs(values.documentDate).format('YYYY-MM-DD') : undefined
     };
     updateMutation.mutate(payload);
   };

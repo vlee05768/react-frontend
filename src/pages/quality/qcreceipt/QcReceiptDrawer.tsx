@@ -116,7 +116,7 @@ export default function QcReceiptDrawer() {
 
   const handleFinish = (values: any) => {
     const payload = {
-      documentDate: values.documentDate ? values.documentDate.format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
+      documentDate: values.documentDate ? dayjs(values.documentDate).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
       notes: values.notes || null,
       responsibleEmployeeCode: values.responsibleEmployeeCode || null,
     };
@@ -248,7 +248,7 @@ export default function QcReceiptDrawer() {
         />
       }
       placement="right"
-      width={DRAWER_WIDTH_MAIN}
+      size={DRAWER_WIDTH_MAIN as any}
       onClose={handleClose}
       open={true}
       mask={{ closable: isViewMode }}

@@ -69,7 +69,7 @@ export default function ProductionReceiptDrawer() {
 
   const handleFinish = (values: any) => {
     const payload = {
-      documentDate: values.documentDate ? values.documentDate.format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
+      documentDate: values.documentDate ? dayjs(values.documentDate).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
       workOrderNumber: values.workOrderNumber,
       notes: values.notes || null,
       responsibleEmployeeCode: values.responsibleEmployeeCode || null,
@@ -250,7 +250,7 @@ export default function ProductionReceiptDrawer() {
         />
       }
       placement="right"
-      width={DRAWER_WIDTH_MAIN}
+      size={DRAWER_WIDTH_MAIN as any}
       open={isVisible}
       onClose={handleClose}
       mask={{ closable: true }}
