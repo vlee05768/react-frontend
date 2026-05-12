@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Modal, Table, Button, Form, Input, InputNumber, Tag } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { getApiV1QcReceiptUnprocessedProductionReceipts } from '@/api/generated';
@@ -15,6 +15,8 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [editableData, setEditableData] = useState<Record<string, any>>({});
   
+  const goodInputRefs = useRef<Map<string, any>>(new Map());
+
   const [form] = Form.useForm();
   const keyword = Form.useWatch('keyword', form);
 
@@ -144,6 +146,10 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
         const isSelected = selectedRowKeys.includes(record.lineNumber);
         return (
           <InputNumber 
+            ref={(el) => {
+              if (el) goodInputRefs.current.set(record.lineNumber, el);
+              else goodInputRefs.current.delete(record.lineNumber);
+            }}
             min={0} 
             max={batch}
             value={val} 
@@ -194,13 +200,30 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
         rowSelection={{
           selectedRowKeys,
           onChange: (keys) => setSelectedRowKeys(keys as string[]),
+          onSelect: (record, selected) => {
+            if (selected) {
+              setTimeout(() => {
+                const input = goodInputRefs.current.get(record.lineNumber);
+                if (input) {
+                  // Focus 並選取全部文字
+                  input.focus({ cursor: 'all' });
+                  // Fallback for full selection in case older AntD versions
+                  if (typeof input.select === 'function') {
+                    input.select();
+                  } else if (input.nativeElement && typeof input.nativeElement.select === 'function') {
+                    input.nativeElement.select();
+                  }
+                }
+              }, 50); // Delay ensures the input renders as enabled before focusing
+            }
+          }
         }}
         columns={columns}
         dataSource={list}
         rowKey="lineNumber"
         loading={isLoading}
         pagination={false}
-        scroll={{ x: 1300, y: `calc(${MODAL_PICK_BODY_MAX_HEIGHT} - 150px)` }} // 3. 欄位總和太長要有水平捲軸 (設定 x 寬度)
+        scroll={{ x: 'max-content', y: `calc(${MODAL_PICK_BODY_MAX_HEIGHT} - 150px)` }} // 1. 欄位總長太長要有水平捲軸
         size="small"
       />
     </Modal>
