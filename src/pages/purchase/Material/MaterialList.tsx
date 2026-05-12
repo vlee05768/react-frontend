@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import {
   Spin, Table, Button, Modal, Form, Space, Card, Tag, Tooltip, Divider, message, Popconfirm, Drawer, Tabs
-} from 'antd';
+, App } from 'antd';
 import {
   SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ClearOutlined, SaveOutlined, EyeOutlined
 } from '@ant-design/icons';
@@ -31,6 +31,7 @@ import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 
 
 export default function MaterialList() {
+  const { modal } = App.useApp();
   const { params, setParams, resetParams } = useMaterialQueryStore();
   const { hasPermission } = useAuthStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -179,14 +180,7 @@ export default function MaterialList() {
         )}
         {hasPermission('Warehouse.Materials.Delete') && (
           <Tooltip title="刪除">
-            <Popconfirm
-              title="確定要刪除此筆資料嗎？"
-              onConfirm={() => deleteMutation.mutate(record.code)}
-              okText="確定"
-              cancelText="取消"
-            >
-              <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-            </Popconfirm>
+            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => modal.confirm({ title: '刪除確認', content: '確定要刪除此筆資料嗎？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => deleteMutation.mutate(record.code) })} />
           </Tooltip>
         )}
       </Space>

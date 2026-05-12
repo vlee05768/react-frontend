@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, message, Empty, Spin, Table, Popconfirm, Space, theme } from 'antd';
+import { Card, Button, message, Empty, Spin, Table, Space, theme , App } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { getApiV1BomByProductCode, postApiV1Bom, putApiV1BomByProductCode, deleteApiV1BomByProductCodeItemsByCode } from '@/api/generated/sdk.gen';
 import { PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
@@ -15,6 +15,7 @@ interface Props {
 }
 
 export default function ProductBom({ productCode, isViewMode: isMasterViewMode, onEditingChange }: Props) {
+  const { modal } = App.useApp();
   const { token } = theme.useToken();
   
   const [itemModalOpen, setItemModalOpen] = useState(false);
@@ -112,9 +113,7 @@ export default function ProductBom({ productCode, isViewMode: isMasterViewMode, 
           onClick={() => openEditItem(record)} 
           disabled={!isFormViewMode}
         />
-        <Popconfirm title="確定移除？" onConfirm={() => handleDeleteItem(record.code)} disabled={!isFormViewMode}>
-          <Button type="text" danger icon={<DeleteOutlined />} disabled={!isFormViewMode} />
-        </Popconfirm>
+        <Button type="text" danger icon={<DeleteOutlined />} disabled={!isFormViewMode} onClick={() => modal.confirm({ title: '刪除確認', content: '確定移除？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => handleDeleteItem(record.code) })} />
       </Space>
     )
   };

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Modal, Table, message, Card } from 'antd';
+import { Button, Modal, Table, message, Card , App } from 'antd';
 import { SearchOutlined, PlusOutlined, EyeOutlined, DeleteOutlined , ClearOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -13,13 +13,14 @@ import { useQcReceiptQueryStore } from './useQcReceiptQueryStore';
 import { qcReceiptSearchConfig, mainTableColumns } from './QcReceiptConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
-import { Tooltip, Popconfirm, Space, Divider } from 'antd';
+import { Tooltip,  Space, Divider } from 'antd';
 import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
 import { Form } from 'antd';
 
 import { useParams } from 'react-router-dom';
 
 export default function QcReceiptsList() {
+  const { modal } = App.useApp();
   const { id: viewId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -108,14 +109,7 @@ export default function QcReceiptsList() {
           </Tooltip>
           {isUnconfirmed && (
             <Tooltip title="刪除">
-              <Popconfirm
-                title="確定要刪除此單據嗎？"
-                onConfirm={() => deleteMutation.mutate(record.documentNumber)}
-                okText="確定"
-                cancelText="取消"
-              >
-                <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-              </Popconfirm>
+              <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => modal.confirm({ title: '刪除確認', content: '確定要刪除此單據嗎？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => deleteMutation.mutate(record.documentNumber) })} />
             </Tooltip>
           )}
         </Space>

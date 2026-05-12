@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Table, Button, Space, Popconfirm, message, Typography, Drawer, Empty, Tooltip } from 'antd';
+import { Table, Button, Space, message, Typography, Drawer, Empty, Tooltip , App } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -21,6 +21,7 @@ interface CategoryItemListProps {
 }
 
 export default function CategoryItemList({ selectedCode }: CategoryItemListProps) {
+  const { modal } = App.useApp();
   const queryClient = useQueryClient();
   
   // Drawer states
@@ -109,12 +110,7 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
               <Button type="text" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => handleEdit(record)} />
             </Tooltip>
             <Tooltip title="刪除">
-              <Popconfirm
-                title="確定要刪除？"
-                onConfirm={() => handleDelete(record)}
-              >
-                <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-              </Popconfirm>
+              <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => modal.confirm({ title: '刪除確認', content: '確定要刪除？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => handleDelete(record) })} />
             </Tooltip>
           </Space>
         ),

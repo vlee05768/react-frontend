@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Table, message, Popconfirm, Tooltip } from 'antd';
+import { Button, Table, message, Tooltip , App } from 'antd';
 import { PlusOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getApiV1QcReceiptByMovementNumberItems, deleteApiV1QcReceiptByMovementNumberItemsByReferenceNumber, postApiV1QcReceiptByMovementNumberItems } from '@/api/generated';
@@ -17,6 +17,7 @@ interface QcReceiptItemsTabProps {
 }
 
 export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceiptItemsTabProps) {
+  const { modal } = App.useApp();
   const queryClient = useQueryClient();
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -92,9 +93,7 @@ export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceip
             />
           </Tooltip>
           {!isLocked && (
-            <Popconfirm title="確定要刪除嗎？" onConfirm={() => deleteMutation.mutate(record.referenceNumber)}>
-              <Button size="small" type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-            </Popconfirm>
+            <Button size="small" type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => modal.confirm({ title: '刪除確認', content: '確定要刪除嗎？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => deleteMutation.mutate(record.referenceNumber) })} />
           )}
         </div>
       )

@@ -5,7 +5,7 @@ import { ActionBar } from '@/components/common/ActionBar';
 import { DocumentLifecycleBanner } from '@/components/common/DocumentLifecycleBanner';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import {
-  Spin, Table, Button, Form, Space, Card, Tooltip, Drawer, App, Divider, Modal, Popconfirm
+  Spin, Table, Button, Form, Space, Card, Tooltip, Drawer, App, Divider, Modal
 } from 'antd';
 import {
   SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, EyeOutlined, CheckCircleOutlined, SyncOutlined
@@ -224,14 +224,7 @@ export default function InventoryAdjustmentList() {
         </Tooltip>
         {record.status === 'Unconfirmed' && (
           <Tooltip title="刪除">
-            <Popconfirm
-              title="確定要刪除此筆資料嗎？"
-              onConfirm={() => deleteMutation.mutateAsync(record.documentNumber)}
-              okText="確定"
-              cancelText="取消"
-            >
-              <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-            </Popconfirm>
+            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => modal.confirm({ title: '刪除確認', content: '確定要刪除此筆資料嗎？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => deleteMutation.mutateAsync(record.documentNumber) })} />
           </Tooltip>
         )}
       </Space>

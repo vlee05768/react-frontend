@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Table, Button, message, Select, Popconfirm, Tag, theme } from 'antd';
+import { Table, Button, message, Select, Tag, theme , App } from 'antd';
 import { useQuery, useQueries, useQueryClient } from '@tanstack/react-query';
 import { 
   getApiV1ProductByProductCodeMolds, 
@@ -21,6 +21,7 @@ interface Props {
 }
 
 export default function ProductMolds({ productCode, isViewMode: isMasterViewMode }: Props) {
+  const { modal } = App.useApp();
   const { token } = theme.useToken();
   const queryClient = useQueryClient();
   const [selectedMold, setSelectedMold] = useState<string | null>(null);
@@ -114,12 +115,7 @@ export default function ProductMolds({ productCode, isViewMode: isMasterViewMode
     width: 70,
     align: 'center' as const,
     render: (_: any, record: any) => isMasterViewMode ? (
-      <Popconfirm 
-        title="確定要移除此關聯？" 
-        onConfirm={() => handleDelete(record.moldCode)}
-      >
-        <Button type="text" danger icon={<DeleteOutlined />} size="small" />
-      </Popconfirm>
+      <Button type="text" danger icon={<DeleteOutlined />} size="small" onClick={() => modal.confirm({ title: '刪除確認', content: '確定要移除此關聯？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => handleDelete(record.moldCode) })} />
     ) : null
   };
 

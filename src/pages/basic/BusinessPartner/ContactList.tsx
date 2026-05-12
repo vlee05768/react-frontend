@@ -1,6 +1,6 @@
 import { getApiErrorMessage } from "@/utils/apiError";
 import { useState, useMemo } from 'react';
-import { Table, Button, Space, Popconfirm, Drawer } from 'antd';
+import { Table, Button, Space,  Drawer } from 'antd';
 import { PlusOutlined, DeleteOutlined, EyeOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -133,14 +133,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
           onClick={() => openViewDrawer(record)}
         />
         {isMasterViewMode && (
-          <Popconfirm
-            title="確定要刪除此筆聯絡人嗎？"
-            onConfirm={() => deleteMutation.mutate(record.id)}
-            okText="確定"
-            cancelText="取消"
-          >
-            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-          </Popconfirm>
+          <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => modalApi.confirm({ title: '刪除確認', content: '確定要刪除此筆聯絡人嗎？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => deleteMutation.mutate(record.id) })} />
         )}
       </Space>
     ),

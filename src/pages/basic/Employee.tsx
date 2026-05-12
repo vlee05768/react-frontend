@@ -10,6 +10,7 @@ import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 
 import { useState, useRef, useEffect } from 'react';
 import type { InputRef } from 'antd';
+import { App } from 'antd';
 import {
   Spin,
   Table,
@@ -25,7 +26,7 @@ import {
   Row,
   Col,
   message,
-  Popconfirm,
+  
   Drawer,
   Descriptions,
   Switch,
@@ -58,6 +59,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';;
 
 export default function EmployeeList() {
+  const { modal } = App.useApp();
   const { params, setParams, resetParams } = useEmployeeQueryStore();
   const { hasPermission } = useAuthStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -226,14 +228,7 @@ export default function EmployeeList() {
           )}
           {hasPermission('BasicData.Employees.Delete') && (
             <Tooltip title="刪除">
-              <Popconfirm
-                title="確定要刪除此筆資料嗎？"
-                onConfirm={() => deleteMutation.mutate(record.id)}
-                okText="確定"
-                cancelText="取消"
-              >
-                <Button type="text" danger icon={<DeleteOutlined />} />
-              </Popconfirm>
+              <Button type="text" danger icon={<DeleteOutlined />} onClick={() => modal.confirm({ title: '刪除確認', content: '確定要刪除此筆資料嗎？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => deleteMutation.mutate(record.id) })} />
             </Tooltip>
           )}
         </Space>

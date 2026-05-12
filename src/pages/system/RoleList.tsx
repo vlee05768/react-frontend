@@ -3,6 +3,7 @@ import { getApiErrorMessage } from "@/utils/apiError";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import type { InputRef } from 'antd';
+import { App } from 'antd';
 import {
   Spin,
   Table,
@@ -18,7 +19,7 @@ import {
   Row,
   Col,
   message,
-  Popconfirm,
+  
   Drawer,
   Descriptions,
   Switch,
@@ -58,6 +59,7 @@ import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 
 
 export default function RoleList() {
+  const { modal } = App.useApp();
   const { params, setParams, resetParams } = useRoleQueryStore();
   const { hasPermission } = useAuthStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -225,14 +227,7 @@ export default function RoleList() {
         )}
         {hasPermission('System.Roles.Delete') && (
           <Tooltip title="刪除">
-            <Popconfirm
-              title="確定要刪除此筆資料嗎？"
-              onConfirm={() => deleteMutation.mutate(record.id)}
-              okText="確定"
-              cancelText="取消"
-            >
-              <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-            </Popconfirm>
+            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => modal.confirm({ title: '刪除確認', content: '確定要刪除此筆資料嗎？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => deleteMutation.mutate(record.id) })} />
           </Tooltip>
         )}
       </Space>
