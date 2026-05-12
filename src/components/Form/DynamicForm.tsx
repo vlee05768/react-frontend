@@ -247,8 +247,8 @@ export function DynamicForm<TValues extends Record<string, any>>({
               <div 
                 key={groupName} 
                 style={{ 
-                  marginBottom: '24px',
-                  padding: '4px 24px 0 24px',
+                  marginBottom: '16px',
+                  padding: '8px 24px 0 24px',
                   border: '1px solid var(--ant-color-border)',
                   borderRadius: '8px',
                   backgroundColor: 'var(--ant-color-bg-container)'
@@ -259,7 +259,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
                   plain 
                   style={{ 
                     marginTop: 0, 
-                    marginBottom: '20px', 
+                    marginBottom: '12px', 
                     color: 'var(--ant-color-primary)', 
                     borderColor: 'var(--ant-color-border-secondary)',
                     fontWeight: 600,

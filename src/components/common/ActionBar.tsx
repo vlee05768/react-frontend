@@ -23,7 +23,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
   };
 
   return (
-    <div className="px-6 py-3 border-b border-gray-200 dark:border-gray-800 bg-transparent flex justify-between items-center transition-colors">
+    <div className="px-6 py-2 border-b border-gray-200 dark:border-gray-800 bg-transparent flex justify-between items-center transition-colors">
       <div className="flex items-center gap-4 text-[13px] text-gray-600 dark:text-gray-400">
         {(createdBy || createdAt) && (
           <div className="flex items-center gap-1.5">

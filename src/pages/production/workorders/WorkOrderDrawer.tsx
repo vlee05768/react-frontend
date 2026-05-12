@@ -490,10 +490,10 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
             actions={getActionBarActions()}
           />
         )}
-        <div style={{ padding: "16px 24px" }}>
+        <div style={{ padding: "8px 24px" }}>
           {!isCreateMode && record && <DocumentLifecycleBanner steps={steps} />}
           <MasterDetailTabs
-          heightOffset={!isCreateMode && record ? 310 : 160}
+          heightOffset={!isCreateMode && record ? 260 : 130}
           viewId={id}
           entityType="WorkOrder"
           isCreateMode={isCreateMode}
