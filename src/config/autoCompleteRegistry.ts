@@ -7,7 +7,7 @@ export interface AutoCompleteConfig {
   fetchByValue?: (value: any, additionalParams?: any) => Promise<any>;
   /** 選項的鍵值對映 (支援函數組合) */
   fieldNames: { label: string | ((item: any) => string); value: string };
-  /** 至少輸入幾個字才觸發 API 呼叫 (預設 1) */
+  /** 至少輸入幾個字才觸發 API 呼叫 (預設 2) */
   triggerLength?: number; 
 }
 
@@ -32,7 +32,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       label: 'name',
       value: 'code'
     },
-    triggerLength: 1
+    triggerLength: 2
   },
   
   // 原料 (Material)
@@ -76,7 +76,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       label: 'name',
       value: 'code'
     },
-    triggerLength: 1
+    triggerLength: 2
   },
 
   // 產品 (Product)
@@ -98,7 +98,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       label: 'name',
       value: 'code'
     },
-    triggerLength: 1
+    triggerLength: 2
   },
 
   // 半成品 (Semi-finished)
@@ -121,7 +121,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       label: 'name',
       value: 'code'
     },
-    triggerLength: 1
+    triggerLength: 2
   },
 
   // 模具 (Mold)
@@ -145,7 +145,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       label: (item: any) => `${item.name} (${item.code})`,
       value: 'code'
     },
-    triggerLength: 1
+    triggerLength: 2
   },
 
   // 儲位 (Storage)
@@ -169,7 +169,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       label: (item: any) => `${item.name} (${item.code})`,
       value: 'code'
     },
-    triggerLength: 0
+    triggerLength: 2
   },
   
 
@@ -202,7 +202,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       label: (item: any) => `${item.name || ''} (${item.employeeNo || item.employeeCode || ''})`,
       value: 'employeeNo'
     },
-    triggerLength: 0
+    triggerLength: 2
   },
   // (未來可擴充其他如: VENDOR, MATERIAL, PRODUCT 等)
 };

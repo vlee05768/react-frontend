@@ -37,7 +37,7 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
   const [keyword, setKeyword] = useState('');
   const [initialOption, setInitialOption] = useState<any>(null);
 
-  const triggerLength = config.triggerLength ?? 1;
+  const triggerLength = config.triggerLength ?? 2;
   const shouldFetch = keyword.length >= triggerLength;
 
   // 使用防抖處理輸入，降低 API 請求頻率
@@ -115,7 +115,7 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
       onSearch={debounceFetcher}
       notFoundContent={
         isFetching || isFetchingValue ? <Spin size="small" /> : 
-        (keyword && keyword.length < triggerLength ? `請至少輸入 ${triggerLength} 個字元` : null)
+        (keyword.length < triggerLength ? `請至少輸入 ${triggerLength} 個字元，以啟動搜尋` : null)
       }
       options={options}
       value={value}
