@@ -142,8 +142,6 @@ export default function ProductionReceiptDrawer() {
     navigate('/production-quality/production-receipts');
   };
 
-  const status = (formData as any)?.status || 'Unconfirmed';
-
   const defaultValues = formData ? {
     ...formData,
       documentDate: (formData as any)?.documentDate ? dayjs((formData as any).documentDate) : null,
@@ -152,11 +150,19 @@ export default function ProductionReceiptDrawer() {
 
 
 
+  const getDocumentStatus = (data: any) => {
+    if (!data) return 'UNCONFIRMED';
+    if (data.closeDate) return 'CLOSED';
+    if (data.confirmDate) return 'CONFIRMED';
+    if (data.status) return String(data.status).toUpperCase();
+    return 'UNCONFIRMED';
+  };
+
   const getHeaderActions = () => {
     if (isEditing || isCreating) return null;
     if (!formData) return null;
 
-    const currentStatus = status.toUpperCase();
+    const currentStatus = getDocumentStatus(formData);
 
     return (
       <Space>
@@ -223,7 +229,7 @@ export default function ProductionReceiptDrawer() {
     
     if (!formData) return null;
     const isViewMode = !isEditing;
-    const currentStatus = (formData.status || '').toUpperCase();
+    const currentStatus = getDocumentStatus(formData);
     const isConfirmed = currentStatus === 'CONFIRMED' || currentStatus === 'CLOSED';
     
     return (
@@ -240,7 +246,7 @@ export default function ProductionReceiptDrawer() {
 
   let steps: any[] = [];
   if (formData) {
-    const currentStatus = (formData.status || '').toUpperCase();
+    const currentStatus = getDocumentStatus(formData);
     steps = [
       {
         title: '準備中',

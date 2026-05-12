@@ -66,8 +66,16 @@ export default function QcReceiptDrawer() {
       }
     }
   }, [isViewMode, receiptData, isLoading]);
+  const getDocumentStatus = (data: any) => {
+    if (!data) return 'UNCONFIRMED';
+    if (data.closeDate) return 'CLOSED';
+    if (data.confirmDate) return 'CONFIRMED';
+    if (data.status) return String(data.status).toUpperCase();
+    return 'UNCONFIRMED';
+  };
+
   const isUpdateMode = isEditing && !isCreating;
-  const currentStatus = (receiptData?.status || "").toUpperCase();
+  const currentStatus = getDocumentStatus(receiptData);
   const isConfirmed = currentStatus === 'CONFIRMED' || currentStatus === 'CLOSED';
   const isFormLocked = isViewMode || isConfirmed;
 
@@ -234,7 +242,7 @@ export default function QcReceiptDrawer() {
 
   let steps: any[] = [];
   if (receiptData) {
-    const _status = (receiptData.status || "").toUpperCase();
+    const _status = getDocumentStatus(receiptData);
     steps = [
       {
         title: '準備中',

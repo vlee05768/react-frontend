@@ -25,7 +25,14 @@ import { Tag } from 'antd';
 import dayjs from 'dayjs';
 
 
-export const getStatusTagProps = (status: string) => {
+export const getStatusTagProps = (
+  status?: string | null,
+  confirmDate?: string | null,
+  closeDate?: string | null
+) => {
+  if (closeDate) return { color: "default", text: "已結案" };
+  if (confirmDate) return { color: "success", text: "已確認" };
+
   if (!status) return { color: "warning", text: "待確認" };
   switch (status.toUpperCase()) {
     case "CONFIRMED":
@@ -38,8 +45,12 @@ export const getStatusTagProps = (status: string) => {
   }
 };
 
-export const getStatusTag = (status: string | null | undefined) => {
-  const props = getStatusTagProps(status || "");
+export const getStatusTag = (
+  status?: string | null,
+  confirmDate?: string | null,
+  closeDate?: string | null
+) => {
+  const props = getStatusTagProps(status, confirmDate, closeDate);
   return <Tag color={props.color}>{props.text}</Tag>;
 };
 
@@ -56,7 +67,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     name: 'status', 
     width: 100,
     align: 'center',
-    render: (status: string) => getStatusTag(status)
+    render: (status: string, record: any) => getStatusTag(status, record?.confirmDate, record?.closeDate)
   },
   { label: '檢驗人員', name: 'responsibleUserName', width: 100, render: (v: string) => v || '-' },
   { label: '備註', name: 'notes', width: 200, ellipsis: true },
@@ -70,7 +81,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: '狀態', 
     componentType: 'Input', 
     editable: 'never',
-    customRender: (_field, context) => getStatusTag(context.values.status),
+    customRender: (_field, context) => getStatusTag(context.values.status, context.values.confirmDate, context.values.closeDate),
     colSpan: 2 
   },
   { 
