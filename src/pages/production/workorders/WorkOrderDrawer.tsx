@@ -239,10 +239,11 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
       <Space>
         {isDraft && (
           <ActionButton 
+            key="prepare"
             intent="primary" 
             icon={<CheckCircleOutlined />} 
             disabled={isDetailEditing}
-            onClick={() => setEditMode('prepare')}
+            onClick={(e) => { e.preventDefault(); setEditMode('prepare'); }}
           >
             備料作業
           </ActionButton>
@@ -251,28 +252,30 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
         {isPrepCompleted && (
           <>
             <ActionButton 
+              key="cancel-prepare"
               intent="warning" 
               icon={<SyncOutlined />} 
               disabled={isDetailEditing}
-              onClick={() => modal.confirm({
+              onClick={(e) => { e.preventDefault(); modal.confirm({
                 title: '取消備料確認',
                 content: '確定要取消備料確認嗎？取消後將回到新單據狀態。',
                 centered: true, width: 400,
                 onOk: () => preparationCancelMut.mutateAsync({}),
-              })}
+              })}}
             >
               取消備料確認
             </ActionButton>
             <ActionButton 
+              key="lamination"
               intent="success" 
               icon={<CheckCircleOutlined />} 
               disabled={isDetailEditing}
-              onClick={() => modal.confirm({
+              onClick={(e) => { e.preventDefault(); modal.confirm({
                 title: '貼合確認',
                 content: '確定要確認貼合程序嗎？確認後可以開始生產。',
                 centered: true, width: 400,
                 onOk: () => laminationConfirmMut.mutateAsync({}),
-              })}
+              })}}
             >
               貼合確認
             </ActionButton>
@@ -282,23 +285,25 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
         {isInProduction && (
           <>
             <ActionButton 
+              key="cancel-lamination"
               intent="warning" 
               icon={<SyncOutlined />} 
               disabled={isDetailEditing}
-              onClick={() => modal.confirm({
+              onClick={(e) => { e.preventDefault(); modal.confirm({
                 title: '取消貼合確認',
                 content: '確定要取消貼合程序確認嗎？取消後將回到備料確認狀態。',
                 centered: true, width: 400,
                 onOk: () => laminationCancelMut.mutateAsync({}),
-              })}
+              })}}
             >
               取消貼合確認
             </ActionButton>
             <ActionButton 
+              key="work"
               intent="primary" 
               icon={<CheckCircleOutlined />} 
               disabled={isDetailEditing}
-              onClick={() => setEditMode('work')}
+              onClick={(e) => { e.preventDefault(); setEditMode('work'); }}
             >
               生產作業
             </ActionButton>
@@ -308,28 +313,30 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
         {isProdCompleted && (
           <>
             <ActionButton 
+              key="cancel-production"
               intent="warning" 
               icon={<SyncOutlined />} 
               disabled={isDetailEditing}
-              onClick={() => modal.confirm({
+              onClick={(e) => { e.preventDefault(); modal.confirm({
                 title: '取消生產完成',
                 content: '確定要取消生產完成確認嗎？取消後將回到貼合確認狀態。',
                 centered: true, width: 400,
                 onOk: () => productionCancelMut.mutateAsync({}),
-              })}
+              })}}
             >
               取消生產完成
             </ActionButton>
             <ActionButton 
+              key="warehousing"
               intent="success" 
               icon={<LockOutlined />} 
               disabled={isDetailEditing}
-              onClick={() => modal.confirm({
+              onClick={(e) => { e.preventDefault(); modal.confirm({
                 title: '入庫完成',
                 content: '確定要確認入庫完成嗎？確認後製令將完成所有流程。',
                 centered: true, width: 400,
                 onOk: () => warehousingCompleteMut.mutateAsync({}),
-              })}
+              })}}
             >
               入庫完成
             </ActionButton>
@@ -339,15 +346,16 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
         {isWarehousingCompleted && (
           <>
             <ActionButton 
+              key="cancel-warehousing"
               intent="warning" 
               icon={<SyncOutlined />} 
               disabled={isDetailEditing}
-              onClick={() => modal.confirm({
+              onClick={(e) => { e.preventDefault(); modal.confirm({
                 title: '取消入庫完成',
                 content: '確定要取消入庫完成確認嗎？取消後將回到生產完成狀態。',
                 centered: true, width: 400,
                 onOk: () => warehousingCancelMut.mutateAsync({}),
-              })}
+              })}}
             >
               取消入庫完成
             </ActionButton>
@@ -362,10 +370,10 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
       const submitText = editMode === 'prepare' ? '備料完成確認' : editMode === 'work' ? '生產完成確認' : '儲存';
       return (
         <Space>
-          <Button type="primary" htmlType="submit" form="workOrderForm" loading={createMutation.isPending || updateMutation.isPending || preparationConfirmMut.isPending || productionCompleteMut.isPending}>
+          <Button key="save" type="primary" htmlType="submit" form="workOrderForm" loading={createMutation.isPending || updateMutation.isPending || preparationConfirmMut.isPending || productionCompleteMut.isPending}>
             {submitText}
           </Button>
-          <Button onClick={handleCancel}>取消</Button>
+          <Button key="cancel" onClick={handleCancel}>取消</Button>
         </Space>
       );
     }
@@ -375,7 +383,7 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
     return (
       <Space>
         {isDraft && (
-          <Button type="primary" onClick={() => setEditMode('update')} disabled={isDetailEditing}>
+          <Button key="edit" type="primary" onClick={(e) => { e.preventDefault(); setEditMode('update'); }} disabled={isDetailEditing}>
             編輯
           </Button>
         )}
