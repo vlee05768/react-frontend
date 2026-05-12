@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import {
-  Spin, Table, Button, Form, Space, Card, Tooltip, Drawer, App, Divider, Modal
+  Spin, Table, Button, Form, Space, Card, Tooltip, Drawer, App, Divider, Modal, Popconfirm
 } from 'antd';
 import {
   SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, EyeOutlined, CheckCircleOutlined, SyncOutlined
@@ -187,40 +187,38 @@ export default function InventoryAdjustmentList() {
     setIsDrawerEditing(true);
   };
 
-  const columns = [
-    {
-      title: '操作',
-      key: 'actions',
-      width: 100,
-      fixed: 'left' as const,
-      render: (_: any, record: any) => (
-        <Space>
-          <Tooltip title="檢視">
-            <Button size="small" type="text" icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => openViewDrawer(record)} />
+  const actionColumn = {
+    title: '操作',
+    key: 'actions',
+    fixed: 'left' as const,
+    width: 120,
+    render: (_: any, record: any) => (
+      <Space>
+        <Tooltip title="檢視">
+          <Button 
+            type="text" 
+            icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
+            style={{ color: '#1890ff' }} 
+            onClick={() => openViewDrawer(record)}
+          />
+        </Tooltip>
+        {record.status === 'Unconfirmed' && (
+          <Tooltip title="刪除">
+            <Popconfirm
+              title="確定要刪除此筆資料嗎？"
+              onConfirm={() => deleteMutation.mutateAsync(record.documentNumber)}
+              okText="確定"
+              cancelText="取消"
+            >
+              <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
+            </Popconfirm>
           </Tooltip>
-          {record.status === 'Unconfirmed' && (
-            <Button 
-              size="small" 
-              type="text" 
-              danger 
-              icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-              onClick={() => {
-                modal.confirm({
-                  title: '確定要刪除？',
-                  content: '刪除後將無法還原此單據。',
-                  centered: true,
-                  width: 400,
-                  okButtonProps: { danger: true },
-                  onOk: () => deleteMutation.mutateAsync(record.documentNumber)
-                });
-              }}
-            />
-          )}
-        </Space>
-      ),
-    },
-    ...buildTableColumns(mainTableColumns()),
-  ];
+        )}
+      </Space>
+    ),
+  };
+
+  const columns = buildTableColumns(mainTableColumns(), actionColumn);
 
   const handleSearch = (values: any) => {
     setParams({ ...values, pageNumber: 1 });
@@ -291,20 +289,28 @@ export default function InventoryAdjustmentList() {
             .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
             .ant-table-thead > tr > th { text-align: center !important; }
           `}</style>
+          <style>{`
+            .selected-table-row > td {
+              background-color: #e6f4ff !important;
+            }
+          `}</style>
           <Table
+            bordered
+            rowClassName={(record: any) => record.documentNumber === viewId ? 'selected-table-row' : ''}
+            style={{ flex: 1 }}
             rowKey={(r: any) => r.documentNumber || r.id}
             columns={columns}
             dataSource={listData}
             loading={isFetching}
-            scroll={{ x: 'max-content' }}
+            scroll={{ x: 'max-content', y: 300 }}
             pagination={{
               current: currentPage,
               pageSize: currentPageSize,
               total: totalRecords,
               showSizeChanger: true,
+              showTotal: (total) => `共 ${total} 筆資料`,
               onChange: (page, pageSize) => setParams({ pageNumber: page, pageSize }),
             }}
-            size="small"
           />
         </div>
       </Card>

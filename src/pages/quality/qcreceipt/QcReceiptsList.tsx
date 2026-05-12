@@ -1,24 +1,29 @@
-import React, { useState } from 'react';
-import { Button, Modal, Table, Tag, message } from 'antd';
-import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { useState } from 'react';
+import { Button, Modal, Table, message, Card } from 'antd';
+import { SearchOutlined, PlusOutlined, EyeOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 
-import PageContainer from '@/components/PageContainer';
-import { DynamicSearchForm, DynamicSearchTags } from '@/components/Form';
-import { TableActions } from '@/constants/actionStyles';
+import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
+import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants/ui';
 import { getApiV1QcReceipt, postApiV1QcReceiptByMovementNumberConfirm, postApiV1QcReceiptByMovementNumberCancelConfirm, deleteApiV1QcReceiptByMovementNumber } from '@/api/generated';
 import { useQcReceiptQueryStore } from './useQcReceiptQueryStore';
-import { qcReceiptSearchConfig, getStatusTagProps } from './QcReceiptConfig';
+import { qcReceiptSearchConfig, mainTableColumns } from './QcReceiptConfig';
+import { buildTableColumns } from '@/utils/tableUtils';
+import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
+import { Tooltip, Popconfirm, Space, Divider } from 'antd';
 import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
 import { Form } from 'antd';
 
+import { useParams } from 'react-router-dom';
+
 export default function QcReceiptsList() {
+  const { id: viewId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { params, setParams, resetParams } = useQcReceiptQueryStore();
+  const { params, setParams } = useQcReceiptQueryStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [searchForm] = Form.useForm();
 
@@ -47,13 +52,13 @@ export default function QcReceiptsList() {
     }),
   });
 
-  const list = response?.data?.data?.data || response?.data?.data || [];
+  const list = (response?.data?.data as any)?.data || (response?.data?.data as any) || [];
   let displayList = list;
   if (params.status) {
     displayList = list.filter((item: any) => item.status === params.status);
   }
 
-  const total = response?.data?.data?.totalRecords || response?.data?.totalRecords || 0;
+  const total = (response?.data?.data as any)?.totalRecords || (response?.data as any)?.totalRecords || 0;
 
   // Mutations
   const deleteMutation = useMutation({
@@ -95,97 +100,145 @@ export default function QcReceiptsList() {
     setParams({ [key]: undefined, pageNumber: 1 });
   };
 
-  const columns = [
-    {
-      title: '操作',
-      key: 'actions',
-      width: 120,
-      fixed: 'left' as const,
-      align: 'center' as const,
-      render: (_: any, record: any) => {
-        const isConfirmed = record.status === 'Confirmed' || record.status === 'Closed';
-        return (
-          <div className="flex gap-2 justify-center">
-            <TableActions.View onClick={() => navigate(`/production-quality/qc-receipts/${record.documentNumber}`)} />
-            {!isConfirmed && (
-              <>
-                <TableActions.Edit onClick={() => navigate(`/production-quality/qc-receipts/${record.documentNumber}`)} />
-                <TableActions.Delete onConfirm={() => deleteMutation.mutate(record.documentNumber)} />
-                <Button size="small" type="primary" className="text-[12px] h-6" onClick={() => confirmMutation.mutate(record.documentNumber)}>確認</Button>
-              </>
-            )}
-            {record.status === 'Confirmed' && (
-              <Button size="small" danger className="text-[12px] h-6" onClick={() => cancelConfirmMutation.mutate(record.documentNumber)}>取消</Button>
-            )}
-          </div>
-        );
-      },
+  const actionColumn = {
+    title: '操作',
+    key: 'actions',
+    fixed: 'left' as const,
+    width: 220,
+    render: (_: any, record: any) => {
+      const isConfirmed = record.status === 'Confirmed' || record.status === 'Closed';
+      
+      
+      return (
+        <Space>
+          <Tooltip title="檢視">
+            <Button 
+              type="text" 
+              icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
+              style={{ color: '#1890ff' }} 
+              onClick={() => navigate(`/production-quality/qc-receipts/${record.documentNumber}`)} 
+            />
+          </Tooltip>
+          {!isConfirmed && (
+            <>
+              <Tooltip title="編輯">
+                <Button 
+                  type="text" 
+                  icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
+                  onClick={() => navigate(`/production-quality/qc-receipts/${record.documentNumber}`)} 
+                />
+              </Tooltip>
+              <Tooltip title="刪除">
+                <Popconfirm
+                  title="確定要刪除此單據嗎？"
+                  onConfirm={() => deleteMutation.mutate(record.documentNumber)}
+                  okText="確定"
+                  cancelText="取消"
+                >
+                  <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
+                </Popconfirm>
+              </Tooltip>
+              <Tooltip title="確認">
+                <Popconfirm
+                  title="確定要確認此單據嗎？"
+                  onConfirm={() => confirmMutation.mutate(record.documentNumber)}
+                  okText="確定"
+                  cancelText="取消"
+                >
+                  <Button size="small" type="primary" className="text-[12px] h-6">確認</Button>
+                </Popconfirm>
+              </Tooltip>
+            </>
+          )}
+          {record.status === 'Confirmed' && (
+            <Tooltip title="取消確認">
+              <Popconfirm
+                title="確定要取消確認嗎？"
+                onConfirm={() => cancelConfirmMutation.mutate(record.documentNumber)}
+                okText="確定"
+                cancelText="取消"
+              >
+                <Button size="small" danger className="text-[12px] h-6">取消</Button>
+              </Popconfirm>
+            </Tooltip>
+          )}
+        </Space>
+      );
     },
-    { title: '單據號碼', dataIndex: 'documentNumber', width: 140 },
-    { 
-      title: '檢驗日期', 
-      dataIndex: 'documentDate', 
-      width: 120,
-      render: (val: string) => val ? dayjs(val).format('YYYY-MM-DD') : '-' 
-    },
-    { 
-      title: '檢驗狀態', 
-      dataIndex: 'status', 
-      width: 100,
-      align: 'center' as const,
-      render: (status: string) => {
-        const { color, text } = getStatusTagProps(status);
-        return <Tag color={color} className="m-0 bg-transparent">{text}</Tag>;
-      }
-    },
-    { title: '負責人', dataIndex: 'responsibleUserName', width: 100, render: (v: string) => v || '-' },
-    { 
-      title: '確認日期', 
-      dataIndex: 'confirmDate', 
-      width: 120,
-      render: (val: string) => val ? dayjs(val).format('YYYY-MM-DD') : '-' 
-    },
-    { title: '確認人', dataIndex: 'confirmUserName', width: 100, render: (v: string) => v || '-' },
-    { title: '備註', dataIndex: 'notes', ellipsis: true },
-  ];
+  };
+
+  const columns = buildTableColumns(mainTableColumns(), actionColumn);
 
   return (
-    <PageContainer
-      title="QC 檢驗管理"
-      actions={
-        <div className="flex gap-2">
-          <Button icon={<SearchOutlined />} onClick={() => setIsSearchModalOpen(true)}>
-            查詢
-          </Button>
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/production-quality/qc-receipts/create')}>
-            新增檢驗單
-          </Button>
+    <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
+      <Card
+        variant="borderless"
+        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        styles={{ 
+          header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
+          body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
+        }}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
+            <div style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>
+              QC 檢驗單管理
+            </div>
+          </div>
+        }
+        extra={
+          <Space separator={<Divider orientation="vertical" />}>
+            <Button type="default" icon={<SearchOutlined />} onClick={() => setIsSearchModalOpen(true)}>
+              進階查詢
+            </Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/production-quality/qc-receipts/create')}>
+              新增檢驗單
+            </Button>
+          </Space>
+        }
+      >
+        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
+          <span style={{ fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
+          <DynamicSearchTags
+            config={qcReceiptSearchConfig()}
+            params={params}
+            onClose={handleClearTag}
+          />
         </div>
-      }
-    >
-      <div className="flex flex-col gap-4 h-full">
-        <DynamicSearchTags
-          config={qcReceiptSearchConfig()}
-          params={params}
-          onClose={handleClearTag}
-        />
 
-        <Table
-          columns={columns}
-          dataSource={displayList}
-          rowKey="documentNumber"
-          loading={isLoading}
-          scroll={{ x: 1000, y: 'calc(100vh - 300px)' }}
-          pagination={{
-            current: params.pageNumber,
-            pageSize: params.pageSize,
-            total: total,
-            showSizeChanger: true,
-            showTotal: (t) => `共 ${t} 筆`,
-            onChange: (page, pageSize) => setParams({ pageNumber: page, pageSize }),
-          }}
-        />
-      </div>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <style>{`
+            .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
+            .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-spin-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
+            .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
+            .ant-table-thead > tr > th { text-align: center !important; }
+            .selected-table-row > td { background-color: #e6f4ff !important; }
+          `}</style>
+          <Table
+            bordered
+            rowClassName={(record: any) => record.documentNumber === viewId ? 'selected-table-row' : ''}
+            style={{ flex: 1 }}
+            columns={columns}
+            dataSource={displayList}
+            rowKey="documentNumber"
+            loading={isLoading}
+            scroll={{ x: 'max-content', y: 300 }}
+            pagination={{
+              current: params.pageNumber,
+              pageSize: params.pageSize,
+              total: total,
+              showSizeChanger: true,
+              showTotal: (t) => `共 ${t} 筆資料`,
+              onChange: (page, pageSize) => setParams({ pageNumber: page, pageSize }),
+            }}
+          />
+        </div>
+      </Card>
 
       <Modal
         title="查詢條件"
@@ -206,6 +259,6 @@ export default function QcReceiptsList() {
           onSearch={handleSearch}
         />
       </Modal>
-    </PageContainer>
+    </div>
   );
 }

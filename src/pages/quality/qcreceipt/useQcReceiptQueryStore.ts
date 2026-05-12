@@ -1,4 +1,5 @@
-import { createListQueryStore, BaseQueryParams } from '@/stores/useListQueryStore';
+import { createListQueryStore } from '@/stores/useListQueryStore';
+import { type BaseQueryParams } from '@/stores/useListQueryStore';
 
 export interface QcReceiptQueryParams extends BaseQueryParams {
   documentNumber?: string;

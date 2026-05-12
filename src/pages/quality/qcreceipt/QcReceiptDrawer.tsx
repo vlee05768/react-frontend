@@ -1,13 +1,15 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Drawer, Space, Button, App, Spin } from 'antd';
+import { EditOutlined, CloseOutlined, SaveOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 
 import { ActionButton } from '@/components/common/ActionButton';
-import { DrawerTitle } from '@/components/Form/DrawerTitle';
+
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
+import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { DRAWER_WIDTH_MAIN } from '@/constants/ui';
 import { getApiErrorMessage } from '@/utils/apiError';
@@ -19,15 +21,15 @@ import {
   postApiV1QcReceiptByMovementNumberConfirm,
 } from '@/api/generated';
 
-import { getStatusTagProps } from './QcReceiptConfig';
+import { mainFormConfig } from './QcReceiptConfig';
 import QcReceiptItemsTab from './QcReceiptItemsTab';
 
 export default function QcReceiptDrawer() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
   const queryClient = useQueryClient();
-  const { user, hasPermission } = useAuthStore();
+  const { user } = useAuthStore();
 
   const isCreating = id === 'create';
   const [isEditing, setIsEditing] = useState(isCreating);
@@ -71,7 +73,7 @@ export default function QcReceiptDrawer() {
     onSuccess: (res) => {
       message.success('新增成功');
       queryClient.invalidateQueries({ queryKey: ['qcReceipts'] });
-      const newId = (res.data?.data as any)?.documentNumber || res.data?.documentNumber;
+      const newId = (res.data?.data as any)?.documentNumber || (res.data as any)?.documentNumber;
       navigate(`/production-quality/qc-receipts/${newId}`, { replace: true });
     },
     onError: (err) => message.error(getApiErrorMessage(err, '新增失敗')),
@@ -117,24 +119,19 @@ export default function QcReceiptDrawer() {
     navigate('/production-quality/qc-receipts');
   };
 
-  const config = [
-    { name: 'documentNumber', label: '單據號碼', componentType: 'Input' as const, colSpan: 12, componentProps: { disabled: true, placeholder: '系統自動產生' } },
-    { name: 'documentDate', label: '單據日期', componentType: 'DatePicker' as const, colSpan: 12, rules: [{ required: true, message: '必填' }] },
-    { name: 'status', label: '單據狀態', componentType: 'Input' as const, colSpan: 12, componentProps: { disabled: true, value: getStatusTagProps(defaultValues.status || 'Unconfirmed').text } },
-    { name: 'responsibleUserName', label: '負責人員', componentType: 'Input' as const, colSpan: 12, componentProps: { disabled: true } },
-    { name: 'notes', label: '備註', componentType: 'TextArea' as const, colSpan: 24, componentProps: { rows: 2 } },
-    // Hidden field to keep responsibleEmployeeCode
-    { name: 'responsibleEmployeeCode', label: '', componentType: 'Input' as const, colSpan: 0, componentProps: { style: { display: 'none' } } },
-  ];
+
 
   return (
     <Drawer
-      title={<DrawerTitle 
-        title="QC 檢驗單" 
-        documentNumber={isCreating ? '新增' : id} 
-        isCreating={isCreating} 
-        isEditing={isEditing} 
-      />}
+      title={
+        <DrawerTitle
+          moduleName="QC檢驗單"
+          isCreate={isCreating}
+          isEdit={isEditing}
+          record={{ documentNumber: id }}
+          displayField="documentNumber"
+        />
+      }
       placement="right"
       width={DRAWER_WIDTH_MAIN}
       onClose={handleClose}
@@ -144,16 +141,21 @@ export default function QcReceiptDrawer() {
       extra={
         <Space>
           {isViewMode && !isConfirmed && (
-            <ActionButton.Edit onClick={() => setIsEditing(true)} permission="ProductionQuality.QcReceipts.Update" />
+            <ActionButton icon={<EditOutlined />} onClick={() => setIsEditing(true)} />
           )}
           {isViewMode && !isConfirmed && (
-            <Button type="primary" onClick={() => confirmMutation.mutate()} loading={confirmMutation.isPending}>確認單據</Button>
+            <Button type="primary" icon={<CheckCircleOutlined />} onClick={() => confirmMutation.mutate()} loading={confirmMutation.isPending}>確認單據</Button>
           )}
           {isEditing && (
             <>
-              <ActionButton.Cancel onClick={() => isCreating ? handleClose() : setIsEditing(false)} />
-              <ActionButton.Save 
-                form="qc-receipt-form" 
+              <ActionButton icon={<CloseOutlined />} onClick={() => isCreating ? handleClose() : setIsEditing(false)} />
+              <ActionButton intent="primary" icon={<SaveOutlined />} 
+                onClick={() => {
+                  const formElement = document.getElementById('qc-receipt-form') as HTMLFormElement;
+                  if (formElement) {
+                    formElement.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                  }
+                }}
                 loading={createMutation.isPending || updateMutation.isPending} 
               />
             </>
@@ -171,7 +173,7 @@ export default function QcReceiptDrawer() {
           masterContent={
             <DynamicForm
               formId="qc-receipt-form"
-              fields={config}
+              fields={mainFormConfig() as any}
               defaultValues={defaultValues}
               onSubmit={handleFinish}
               isViewMode={isFormLocked}

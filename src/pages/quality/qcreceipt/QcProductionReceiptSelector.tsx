@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
-import { Modal, Table, Button, Form, Input, Select, InputNumber } from 'antd';
+import { Modal, Table, Button, Form, Input, InputNumber } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { getApiV1QcReceiptUnprocessedProductionReceipts } from '@/api/generated';
-import { MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_MAIN } from '@/constants/ui';
+import { MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_LARGE } from '@/constants/ui';
 
 interface QcProductionReceiptSelectorProps {
   open: boolean;
@@ -130,7 +130,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
       title="挑選待QC產品"
       open={open}
       onCancel={onClose}
-      width={MODAL_WIDTH_MAIN}
+      width={MODAL_WIDTH_LARGE}
       styles={{ body: { maxHeight: MODAL_BODY_MAX_HEIGHT, overflowY: 'auto' } }}
       footer={
         <div className="flex justify-end gap-2">

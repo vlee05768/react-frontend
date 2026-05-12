@@ -1,4 +1,4 @@
-import { SearchFieldConfig } from '@/types';
+
 
 export const statusOptions = [
   { label: '待確認', value: 'Unconfirmed' },
@@ -18,7 +18,7 @@ export const getStatusTagProps = (status: string) => {
   }
 };
 
-export const qcReceiptSearchConfig = (): SearchFieldConfig[] => [
+export const qcReceiptSearchConfig = (): any[] => [
   {
     name: 'documentNumber',
     label: '單據號碼',
@@ -38,4 +38,48 @@ export const qcReceiptSearchConfig = (): SearchFieldConfig[] => [
     componentType: 'DateRangePicker',
     colSpan: 24,
   },
+];
+
+import type { TableColumnConfig, FormFieldConfig } from '@/components/Form/types';
+import { Tag } from 'antd';
+import dayjs from 'dayjs';
+
+
+export const getStatusTag = (status: string) => {
+  const props = getStatusTagProps(status);
+  return <Tag color={props.color}>{props.text}</Tag>;
+};
+
+export const mainTableColumns = (): TableColumnConfig[] => [
+  { label: '單據號碼', name: 'documentNumber', width: 140 },
+  { 
+    label: '檢驗日期', 
+    name: 'documentDate', 
+    width: 120,
+    render: (val: string) => val ? dayjs(val).format('YYYY-MM-DD') : '-' 
+  },
+  { 
+    label: '檢驗狀態', 
+    name: 'status', 
+    width: 100,
+    align: 'center',
+    render: (status: string) => getStatusTag(status)
+  },
+  { label: '檢驗人員', name: 'responsibleUserName', width: 100, render: (v: string) => v || '-' },
+  { label: '備註', name: 'notes', width: 200, ellipsis: true },
+];
+
+export const mainFormConfig = (): FormFieldConfig[] => [
+  { name: 'documentNumber', label: '單據號碼', componentType: 'Input', editable: 'never', colSpan: 2 },
+  { name: 'documentDate', label: '檢驗日期', componentType: 'DatePicker', editable: 'always', colSpan: 2 },
+  { 
+    name: 'status', 
+    label: '狀態', 
+    componentType: 'Input', 
+    editable: 'never',
+    customRender: (_field, context) => getStatusTag(context.values.status),
+    colSpan: 2 
+  },
+  { name: 'responsibleUserName', label: '檢驗人員', componentType: 'Input', editable: 'never', colSpan: 2 },
+  { name: 'notes', label: '備註', componentType: 'TextArea', editable: 'always', componentProps: { rows: 3 }, colSpan: 1 },
 ];

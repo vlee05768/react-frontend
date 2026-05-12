@@ -11,6 +11,7 @@ export const MODAL_BODY_MAX_HEIGHT = '70vh';   // Modal 內容區最大高度，
 export const DRAWER_WIDTH_MAIN = '60vw';   // 主表單 (例如：新增/編輯使用者、角色、廠商)
 export const DRAWER_WIDTH_DETAIL = '55vw'; // 明細表單 (例如：聯絡人、分類項目)
 export const DRAWER_WIDTH_SEARCH = '40vw'; // 查詢側邊欄 (例如：進階搜尋 Drawer)
+export const MODAL_WIDTH_LARGE = 1000;
 
 // --- Pagination 分頁設定 ---
 export const DEFAULT_PAGE_SIZE = 20;       // 預設每頁筆數

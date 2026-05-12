@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { Form, Spin, Drawer, Button, message, Space } from 'antd';
+import { useState } from 'react';
+import { Spin, Drawer, Button, message, Space } from 'antd';
+import { CheckCircleOutlined, CloseOutlined, SyncOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
+
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DRAWER_WIDTH_MAIN } from '@/constants/ui';
 
@@ -18,7 +20,7 @@ import {
 } from '@/api/generated';
 
 import ProductionReceiptItemsTab from './ProductionReceiptItemsTab';
-import { getStatusTagProps } from './ProductionReceiptConfig';
+import { mainFormConfig } from './ProductionReceiptConfig';
 
 export default function ProductionReceiptDrawer() {
   const navigate = useNavigate();
@@ -80,29 +82,26 @@ export default function ProductionReceiptDrawer() {
     navigate('/production-quality/production-receipts');
   };
 
-  const status = formData?.status || 'Unconfirmed';
+  const status = (formData as any)?.status || 'Unconfirmed';
 
   const defaultValues = formData ? {
     ...formData,
-    documentDate: formData.documentDate ? dayjs(formData.documentDate) : null,
+      documentDate: (formData as any)?.documentDate ? dayjs((formData as any).documentDate) : null,
   } : {};
 
-  const config = [
-    { name: 'documentNumber', label: '單據號碼', componentType: 'Input' as const, colSpan: 12, componentProps: { disabled: true } },
-    { name: 'documentDate', label: '單據日期', componentType: 'DatePicker' as const, colSpan: 12, componentProps: { disabled: true } },
-    { name: 'status', label: '單據狀態', componentType: 'Input' as const, colSpan: 12, componentProps: { disabled: true, value: getStatusTagProps(status).text } },
-    { name: 'responsibleUserName', label: '負責人員', componentType: 'Input' as const, colSpan: 12, componentProps: { disabled: true } },
-    { name: 'notes', label: '備註', componentType: 'TextArea' as const, colSpan: 24, componentProps: { rows: 2, disabled: true } },
-  ];
+
 
   return (
     <Drawer
-      title={<DrawerTitle 
-        title="製令入庫單" 
-        documentNumber={id} 
-        isCreating={false} 
-        isEditing={false} 
-      />}
+      title={
+        <DrawerTitle
+          moduleName="製令入庫單"
+          isCreate={false}
+          isEdit={false}
+          record={{ documentNumber: id }}
+          displayField="documentNumber"
+        />
+      }
       placement="right"
       width={DRAWER_WIDTH_MAIN}
       open={isVisible}
@@ -112,16 +111,16 @@ export default function ProductionReceiptDrawer() {
       extra={
         <Space>
           {status === 'Unconfirmed' && (
-            <Button type="primary" onClick={() => confirmMutation.mutate(id!)} loading={confirmMutation.isPending}>確認單據</Button>
+            <Button type="primary" icon={<CheckCircleOutlined />} onClick={() => confirmMutation.mutate(id!)} loading={confirmMutation.isPending}>確認單據</Button>
           )}
           {status === 'Confirmed' && (
-            <Button onClick={() => cancelConfirmMutation.mutate(id!)} loading={cancelConfirmMutation.isPending} danger>取消確認</Button>
+            <Button danger icon={<CloseOutlined />} onClick={() => cancelConfirmMutation.mutate(id!)} loading={cancelConfirmMutation.isPending}>取消確認</Button>
           )}
           {status === 'Confirmed' && (
-            <Button style={{ backgroundColor: '#2080f0', color: 'white' }} onClick={() => closeMutation.mutate(id!)} loading={closeMutation.isPending}>結案單據</Button>
+            <Button style={{ backgroundColor: '#2080f0', color: 'white' }} icon={<CheckCircleOutlined />} onClick={() => closeMutation.mutate(id!)} loading={closeMutation.isPending}>結案單據</Button>
           )}
           {status === 'Closed' && (
-            <Button onClick={() => cancelCloseMutation.mutate(id!)} loading={cancelCloseMutation.isPending}>取消結案</Button>
+            <Button icon={<SyncOutlined />} onClick={() => cancelCloseMutation.mutate(id!)} loading={cancelCloseMutation.isPending}>取消結案</Button>
           )}
         </Space>
       }
@@ -136,7 +135,7 @@ export default function ProductionReceiptDrawer() {
           masterContent={
             <DynamicForm
               formId="production-receipt-form"
-              fields={config}
+              fields={mainFormConfig() as any}
               defaultValues={defaultValues}
               onSubmit={() => {}}
               isViewMode={true}
@@ -147,7 +146,7 @@ export default function ProductionReceiptDrawer() {
             {
               key: 'items',
               label: '入庫明細',
-              children: <ProductionReceiptItemsTab items={formData?.items || []} />
+              children: <ProductionReceiptItemsTab items={(formData as any)?.items || []} />
             }
           ]}
         />

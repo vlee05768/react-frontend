@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Button, Modal, Table, message, Popconfirm } from 'antd';
+import { useState } from 'react';
+import { Button, Table, message, Popconfirm } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getApiV1QcReceiptByMovementNumberItems, deleteApiV1QcReceiptByMovementNumberItemsByReferenceNumber, postApiV1QcReceiptByMovementNumberItems } from '@/api/generated';
@@ -12,7 +12,7 @@ interface QcReceiptItemsTabProps {
   receiptData?: any;
 }
 
-export default function QcReceiptItemsTab({ documentNumber, isLocked, receiptData }: QcReceiptItemsTabProps) {
+export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceiptItemsTabProps) {
   const queryClient = useQueryClient();
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
 
@@ -22,7 +22,7 @@ export default function QcReceiptItemsTab({ documentNumber, isLocked, receiptDat
     enabled: !!documentNumber && documentNumber !== 'create',
   });
 
-  const list = data?.data?.data?.data || data?.data?.data || [];
+  const list = (data?.data?.data as any)?.data || (data?.data?.data as any) || [];
 
   const deleteMutation = useMutation({
     mutationFn: (referenceNumber: string) => 
@@ -118,7 +118,9 @@ export default function QcReceiptItemsTab({ documentNumber, isLocked, receiptDat
         rowKey="referenceNumber"
         loading={isLoading}
         pagination={false}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 'max-content' }}
+        bordered
+        size="small"
       />
 
       <QcProductionReceiptSelector

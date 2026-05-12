@@ -1,4 +1,3 @@
-import React from 'react';
 import { Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 
