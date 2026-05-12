@@ -6,6 +6,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 
 import { ActionButton } from '@/components/common/ActionButton';
+import { ActionBar } from '@/components/common/ActionBar';
+import { DocumentLifecycleBanner } from '@/components/common/DocumentLifecycleBanner';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 
@@ -16,8 +18,6 @@ import {
   getApiV1ProductionReceiptByMovementNumber, 
   postApiV1ProductionReceiptByMovementNumberConfirm, 
   postApiV1ProductionReceiptByMovementNumberCancelConfirm,
-  postApiV1ProductionReceiptByMovementNumberClose,
-  postApiV1ProductionReceiptByMovementNumberCancelClose
 } from '@/api/generated';
 
 import ProductionReceiptItemsTab from './ProductionReceiptItemsTab';
@@ -38,7 +38,7 @@ export default function ProductionReceiptDrawer() {
     enabled: isVisible,
   });
 
-  const formData = response?.data?.data || response?.data;
+  const formData: any = response?.data?.data || response?.data;
 
   const confirmMutation = useMutation({
     mutationFn: (movementNumber: string) => postApiV1ProductionReceiptByMovementNumberConfirm({ path: { movementNumber } }),
@@ -60,25 +60,23 @@ export default function ProductionReceiptDrawer() {
     onError: (err: any) => message.error(err.response?.data?.message || '取消確認失敗'),
   });
 
-  const closeMutation = useMutation({
-    mutationFn: (movementNumber: string) => postApiV1ProductionReceiptByMovementNumberClose({ path: { movementNumber } }),
+  /* const closeMutation = useMutation({
     onSuccess: () => {
       message.success('結案成功');
       queryClient.invalidateQueries({ queryKey: ['productionReceipts'] });
       queryClient.invalidateQueries({ queryKey: ['productionReceipt', id] });
     },
     onError: (err: any) => message.error(err.response?.data?.message || '結案失敗'),
-  });
+  }); */
 
-  const cancelCloseMutation = useMutation({
-    mutationFn: (movementNumber: string) => postApiV1ProductionReceiptByMovementNumberCancelClose({ path: { movementNumber } }),
+  /* const cancelCloseMutation = useMutation({
     onSuccess: () => {
       message.success('取消結案成功');
       queryClient.invalidateQueries({ queryKey: ['productionReceipts'] });
       queryClient.invalidateQueries({ queryKey: ['productionReceipt', id] });
     },
     onError: (err: any) => message.error(err.response?.data?.message || '取消結案失敗'),
-  });
+  }); */
 
   const handleClose = () => {
     navigate('/production-quality/production-receipts');
@@ -92,6 +90,81 @@ export default function ProductionReceiptDrawer() {
   } : {};
 
 
+
+
+  const getHeaderActions = () => {
+    if (!formData) return null;
+
+    return (
+      <Space>
+        {status === 'Unconfirmed' && (
+          <ActionButton 
+            key="confirm"
+            intent="success" icon={<CheckCircleOutlined />} 
+            loading={confirmMutation.isPending}
+            onClick={(e) => {
+              e.preventDefault();
+              modal.confirm({
+                title: '確認單據',
+                content: '確定要確認此單據？',
+                centered: true,
+                width: 400,
+                onOk: () => confirmMutation.mutateAsync(id!)
+              });
+            }}
+          >
+            確認單據
+          </ActionButton>
+        )}
+        {status === 'Confirmed' && (
+          <ActionButton 
+            key="cancel-confirm"
+            intent="warning" icon={<SyncOutlined />} 
+            loading={cancelConfirmMutation.isPending}
+            onClick={(e) => {
+              e.preventDefault();
+              modal.confirm({
+                title: '取消確認',
+                content: '確定要取消確認此單據？',
+                centered: true,
+                width: 400,
+                okButtonProps: { danger: true },
+                onOk: () => cancelConfirmMutation.mutateAsync(id!)
+              });
+            }}
+          >
+            取消確認
+          </ActionButton>
+        )}
+      </Space>
+    );
+  };
+
+  const getActionBarActions = () => {
+    return null;
+  };
+
+  let steps: any[] = [];
+  if (formData) {
+    steps = [
+      {
+        title: '準備中',
+        status: formData.status !== 'Unconfirmed' ? 'finish' : 'process',
+        date: formData.createdAt,
+        user: formData.createdBy,
+      },
+      {
+        title: '入庫確認',
+        status: formData.status === 'Unconfirmed' ? 'wait' : 'finish',
+        date: formData.confirmDate,
+        user: formData.confirmUserName,
+      }
+    ];
+  }
+
+  const drawerStyles = {
+    body: { padding: 0, overflow: 'hidden' as const }
+  };
 
   return (
     <Drawer
@@ -111,78 +184,23 @@ export default function ProductionReceiptDrawer() {
       mask={{ closable: true }}
       keyboard={true}
       destroyOnClose
-      extra={
-        <Space>
-          {status === 'Unconfirmed' && (
-            <ActionButton intent="success" icon={<CheckCircleOutlined />} 
-              loading={confirmMutation.isPending}
-              onClick={() => {
-                modal.confirm({
-                  title: '確認單據',
-                  content: '確定要確認此單據？',
-                  centered: true,
-                  width: 400,
-                  onOk: () => confirmMutation.mutateAsync(id!)
-                });
-              }}
-            >
-              確認單據
-            </ActionButton>
-          )}
-          {status === 'Confirmed' && (
-            <ActionButton intent="warning" icon={<SyncOutlined />} 
-              loading={cancelConfirmMutation.isPending}
-              onClick={() => {
-                modal.confirm({
-                  title: '取消確認',
-                  content: '確定要取消確認此單據？',
-                  centered: true,
-                  width: 400,
-                  okButtonProps: { danger: true },
-                  onOk: () => cancelConfirmMutation.mutateAsync(id!)
-                });
-              }}
-            >
-              取消確認
-            </ActionButton>
-          )}
-          {status === 'Confirmed' && (
-            <ActionButton intent="primary" icon={<CheckCircleOutlined />} 
-              loading={closeMutation.isPending}
-              onClick={() => {
-                modal.confirm({
-                  title: '結案單據',
-                  content: '確定要結案此單據？',
-                  centered: true,
-                  width: 400,
-                  onOk: () => closeMutation.mutateAsync(id!)
-                });
-              }}
-            >
-              結案單據
-            </ActionButton>
-          )}
-          {status === 'Closed' && (
-            <ActionButton intent="default" icon={<SyncOutlined />} 
-              loading={cancelCloseMutation.isPending}
-              onClick={() => {
-                modal.confirm({
-                  title: '取消結案',
-                  content: '確定要取消結案此單據？',
-                  centered: true,
-                  width: 400,
-                  onOk: () => cancelCloseMutation.mutateAsync(id!)
-                });
-              }}
-            >
-              取消結案
-            </ActionButton>
-          )}
-        </Space>
-      }
+      styles={drawerStyles}
+      extra={getHeaderActions()}
     >
       <Spin spinning={isLoading}>
-        <MasterDetailTabs
+        {formData && (
+          <ActionBar 
+            createdBy={formData.createdBy || undefined}
+            createdAt={formData.createdAt || undefined}
+            updatedBy={formData.updatedBy || undefined}
+            updatedAt={formData.updatedAt || undefined}
+            actions={getActionBarActions()}
+          />
+        )}
+        <div style={{ padding: "8px 24px" }}>
+          {formData && <DocumentLifecycleBanner steps={steps} />}
+          <MasterDetailTabs
+            heightOffset={formData ? 320 : 160}
           activeTab={activeTab}
           onTabChange={setActiveTab}
           isCreateMode={false}
@@ -207,6 +225,7 @@ export default function ProductionReceiptDrawer() {
             }
           ]}
         />
+        </div>
       </Spin>
     </Drawer>
   );

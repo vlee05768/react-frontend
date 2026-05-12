@@ -16,6 +16,8 @@ import {
 } from '@/api/generated/sdk.gen';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
+import { ActionBar } from '@/components/common/ActionBar';
+import { DocumentLifecycleBanner } from '@/components/common/DocumentLifecycleBanner';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import { useAuthStore } from '@/stores/useAuthStore';
 import type { OrderDto, CreateOrderDto, UpdateOrderDto } from '@/api/generated/types.gen';
@@ -191,41 +193,28 @@ export default function OrderDrawer() {
   };
 
 
-  const getExtraActions = () => {
+  
+  const getHeaderActions = () => {
     const isDraft = orderData?.status === 'Draft';
     const isConfirmed = orderData?.status === 'Confirmed';
     const isFinished = orderData?.status === 'Finished';
     const canUpdate = hasPermission('Sales.Orders.Update');
     const hasItems = orderData?.orderItems && orderData.orderItems.length > 0;
 
-    
-    if (isCreating) {
-      return (
-        <Space>
-          <Button type="primary" htmlType="submit" form="orderForm" loading={createMutation.isPending}>儲存</Button>
-          <Button onClick={handleClose}>取消</Button>
-        </Space>
-      );
-    }
-
-    if (isEditing) {
-      return (
-        <Space>
-          <Button type="primary" htmlType="submit" form="orderForm" loading={updateMutation.isPending}>儲存</Button>
-          <Button onClick={handleClose}>取消</Button>
-        </Space>
-      );
-    }
+    if (isCreating || isEditing) return null;
+    if (!orderData) return null;
 
     return (
       <Space>
         {canUpdate && isDraft && (
           <ActionButton 
+            key="confirm"
             intent="success" 
             icon={<CheckCircleOutlined />} 
             disabled={isDetailEditing || !hasItems}
             loading={confirmMutation.isPending}
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
               if (!hasItems) {
                 message.error('沒有任何訂單明細，無法確認單據');
                 return;
@@ -239,75 +228,142 @@ export default function OrderDrawer() {
               })
             }}
           >
-            確認
+            確認單據
           </ActionButton>
         )}
         
         {canUpdate && isConfirmed && (
           <ActionButton 
-            intent="warning" 
-            icon={<SyncOutlined />} 
-            disabled={isDetailEditing}
-            loading={cancelConfirmMutation.isPending}
-            onClick={() => modal.confirm({
-              title: '取消確認',
-              content: '確定要取消確認此單據嗎？',
-              centered: true,
-              width: 400,
-              onOk: () => { cancelConfirmMutation.mutate(); },
-            })}
-          >
-            取消確認
-          </ActionButton>
-        )}
-
-        {canUpdate && isConfirmed && (
-          <ActionButton 
+            key="close"
             intent="success" 
             icon={<LockOutlined />} 
             disabled={isDetailEditing}
             loading={closeMutation.isPending}
-            onClick={() => modal.confirm({
-              title: '單據結案',
-              content: '確定要將此單據結案嗎？',
-              centered: true,
-              width: 400,
-              onOk: () => { closeMutation.mutate(); },
-            })}
+            onClick={(e) => {
+              e.preventDefault();
+              modal.confirm({
+                title: '單據結案',
+                content: '確定要將此單據結案嗎？',
+                centered: true,
+                width: 400,
+                onOk: () => { closeMutation.mutate(); },
+              })
+            }}
           >
             結案
           </ActionButton>
         )}
 
+        {canUpdate && isConfirmed && (
+          <ActionButton 
+            key="cancel-confirm"
+            intent="warning" 
+            icon={<SyncOutlined />} 
+            disabled={isDetailEditing}
+            loading={cancelConfirmMutation.isPending}
+            onClick={(e) => {
+              e.preventDefault();
+              modal.confirm({
+                title: '取消確認',
+                content: '確定要取消確認此單據嗎？',
+                centered: true,
+                width: 400,
+                onOk: () => { cancelConfirmMutation.mutate(); },
+              })
+            }}
+          >
+            取消確認
+          </ActionButton>
+        )}
+
         {canUpdate && isFinished && (
           <ActionButton 
+            key="cancel-close"
             intent="warning" 
             icon={<UnlockOutlined />} 
             disabled={isDetailEditing}
             loading={cancelCloseMutation.isPending}
-            onClick={() => modal.confirm({
-              title: '取消結案',
-              content: '確定要取消結案此單據嗎？',
-              centered: true,
-              width: 400,
-              onOk: () => { cancelCloseMutation.mutate(); },
-            })}
+            onClick={(e) => {
+              e.preventDefault();
+              modal.confirm({
+                title: '取消結案',
+                content: '確定要取消結案此單據嗎？',
+                centered: true,
+                width: 400,
+                onOk: () => { cancelCloseMutation.mutate(); },
+              })
+            }}
           >
             取消結案
           </ActionButton>
         )}
+      </Space>
+    );
+  };
 
+  const getActionBarActions = () => {
+    if (isCreating || isEditing) {
+      return (
+        <Space>
+          <Button key="save" type="primary" htmlType="submit" form="orderForm" loading={createMutation.isPending || updateMutation.isPending}>儲存</Button>
+          <Button key="cancel" onClick={handleClose}>取消</Button>
+        </Space>
+      );
+    }
+
+    if (!orderData) return null;
+
+    const isDraft = orderData?.status === 'Draft';
+    const canUpdate = hasPermission('Sales.Orders.Update');
+
+    return (
+      <Space>
         {canUpdate && isDraft && (
-          <Button type="primary" onClick={() => setIsEditing(true)} disabled={isDetailEditing}>
-            編輯主檔
+          <Button 
+            key="edit" 
+            type="primary" 
+            onClick={(e) => { e.preventDefault(); setIsEditing(true); }} 
+            disabled={isDetailEditing}
+          >
+            編輯
           </Button>
         )}
       </Space>
     );
   };
 
+  let steps: any[] = [];
+  if (orderData) {
+    steps = [
+      {
+        title: '準備中',
+        status: orderData.status !== 'Draft' ? 'finish' : 'process',
+        date: orderData.createdAt,
+        user: orderData.createdBy,
+      },
+      {
+        title: '單據確認',
+        status: orderData.status === 'Draft' ? 'wait' : (orderData.status === 'Confirmed' ? 'process' : 'finish'),
+        date: orderData.confirmDate,
+        user: orderData.confirmUserName,
+      },
+      {
+        title: '單據結案',
+        status: orderData.status !== 'Finished' ? 'wait' : 'finish',
+        date: orderData.closeDate,
+        user: orderData.closeUserName,
+      }
+    ];
+  }
+
+  const drawerStyles = {
+    body: { padding: 0, overflow: 'hidden' as const }
+  };
+
+
   return (
     <Drawer
+      styles={drawerStyles}
       title={
         <DrawerTitle
           moduleName="訂單"
@@ -319,48 +375,61 @@ export default function OrderDrawer() {
       }
       open={true}
       onClose={() => navigate('/sales/orders')}
-      size={DRAWER_WIDTH_MAIN}
-      extra={getExtraActions()}
+      size={DRAWER_WIDTH_MAIN as any}
+      extra={getHeaderActions()}
       mask={{ closable: isViewMode }}
       keyboard={isViewMode}
     >
       <Spin spinning={isLoading}>
-        <MasterDetailTabs
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          isCreateMode={isCreating}
-          isEditMode={isEditing}
-          viewId={id}
-          disableTabSwitching={isDetailEditing}
-          masterContent={
-            <div style={{ display: activeTab === 'master_info' ? 'block' : 'none' }}>
-              <DynamicForm
-                formId="orderForm"
-                fields={getFormConfig()}
-                defaultValues={defaultValues}
-                isViewMode={!isEditing && !isCreating}
-                isUpdateMode={!isCreating}
-                hideDefaultFooter={true}
-                onSubmit={handleSubmit}
-              />
-            </div>
-          }
-          detailTabs={[
-            {
-              key: 'items',
-              label: '訂單明細',
-              children: !isCreating && orderData ? (
-                <OrderItemsTab 
-                  orderData={orderData} 
-                  isMasterViewMode={isViewMode} 
-                  onEditingChange={setIsDetailEditing}
+        {!isCreating && orderData && (
+          <ActionBar 
+            createdBy={orderData.createdBy || undefined}
+            createdAt={orderData.createdAt || undefined}
+            updatedBy={orderData.updatedBy || undefined}
+            updatedAt={orderData.updatedAt || undefined}
+            actions={getActionBarActions()}
+          />
+        )}
+        <div style={{ padding: "8px 24px" }}>
+          {!isCreating && orderData && <DocumentLifecycleBanner steps={steps} />}
+          <MasterDetailTabs
+            heightOffset={!isCreating && orderData ? 320 : 160}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            isCreateMode={isCreating}
+            isEditMode={isEditing}
+            viewId={id}
+            disableTabSwitching={isDetailEditing}
+            masterContent={
+              <div style={{ display: activeTab === 'master_info' ? 'block' : 'none' }}>
+                <DynamicForm
+                  formId="orderForm"
+                  fields={getFormConfig()}
+                  defaultValues={defaultValues}
+                  isViewMode={!isEditing && !isCreating}
+                  isUpdateMode={!isCreating}
+                  hideDefaultFooter={true}
+                  onSubmit={handleSubmit}
                 />
-              ) : (
-                <Empty description="請先儲存訂單主檔" />
-              )
+              </div>
             }
-          ]}
-        />
+            detailTabs={[
+              {
+                key: 'items',
+                label: '訂單明細',
+                children: !isCreating && orderData ? (
+                  <OrderItemsTab 
+                    orderData={orderData} 
+                    isMasterViewMode={isViewMode} 
+                    onEditingChange={setIsDetailEditing}
+                  />
+                ) : (
+                  <Empty description="請先儲存訂單主檔" />
+                )
+              }
+            ]}
+          />
+        </div>
       </Spin>
     </Drawer>
   );

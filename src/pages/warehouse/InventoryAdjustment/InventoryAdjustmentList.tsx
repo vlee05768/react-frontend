@@ -1,6 +1,8 @@
 import { ActionButton } from "@/components/common/ActionButton";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { ActionBar } from '@/components/common/ActionBar';
+import { DocumentLifecycleBanner } from '@/components/common/DocumentLifecycleBanner';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import {
   Spin, Table, Button, Form, Space, Card, Tooltip, Drawer, App, Divider, Modal, Popconfirm
@@ -245,6 +247,126 @@ export default function InventoryAdjustmentList() {
     updateMutation.mutate(payload);
   };
 
+
+  const getHeaderActions = () => {
+    if (isDrawerEditing || isCreateDrawerOpen) return null;
+    if (!viewData) return null;
+
+    return (
+      <Space>
+        {viewData?.status === 'Unconfirmed' && (
+          <ActionButton 
+            key="confirm"
+            intent="success" 
+            icon={<CheckCircleOutlined />} 
+            onClick={(e) => {
+              e.preventDefault();
+              modal.confirm({
+                title: '確認單據',
+                content: '確定要確認此單據？',
+                centered: true,
+                width: 400,
+                onOk: () => confirmMutation.mutateAsync(viewData?.documentNumber)
+              });
+            }}
+            loading={confirmMutation.isPending}
+            disabled={isHeaderEditing}
+          >
+            確認
+          </ActionButton>
+        )}
+        {viewData?.status === 'Confirmed' && (
+          <ActionButton 
+            key="cancel-confirm"
+            intent="warning" icon={<SyncOutlined />} 
+            loading={cancelConfirmMutation.isPending} 
+            disabled={isHeaderEditing}
+            onClick={(e) => {
+              e.preventDefault();
+              modal.confirm({
+                title: '取消確認',
+                content: '確定要取消確認此單據？',
+                centered: true,
+                width: 400,
+                okButtonProps: { danger: true },
+                onOk: () => cancelConfirmMutation.mutateAsync(viewData?.documentNumber)
+              });
+            }}
+          >
+            取消確認
+          </ActionButton>
+        )}
+      </Space>
+    );
+  };
+
+  const getActionBarActions = () => {
+    if (isDrawerEditing || isCreateDrawerOpen) {
+      return (
+        <Space>
+          <Button 
+            key="save"
+            type="primary" 
+            htmlType="submit"
+            form={isCreateDrawerOpen ? "inventoryAdjustmentCreateForm" : "inventoryAdjustmentEditForm"}
+            icon={<SaveOutlined />} 
+            loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
+          >
+            儲存主檔
+          </Button>
+          <Button key="cancel" onClick={(e) => {
+            e.preventDefault();
+            if (isDrawerEditing) {
+              setIsDrawerEditing(false);
+            } else {
+              closeCreateDrawer();
+            }
+          }}>取消</Button>
+        </Space>
+      );
+    }
+
+    if (!viewData) return null;
+
+    return (
+      <Space>
+        {viewData?.status === 'Unconfirmed' && (
+          <Button 
+            key="edit"
+            type="primary" 
+            icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
+            onClick={(e) => { e.preventDefault(); openEditDrawer(); }} 
+            disabled={isHeaderEditing}
+          >
+            編輯主檔
+          </Button>
+        )}
+      </Space>
+    );
+  };
+
+  let steps: any[] = [];
+  if (viewData) {
+    steps = [
+      {
+        title: '準備中',
+        status: viewData.status !== 'Unconfirmed' ? 'finish' : 'process',
+        date: viewData.createdAt,
+        user: viewData.createdBy,
+      },
+      {
+        title: '單據確認',
+        status: viewData.status === 'Unconfirmed' ? 'wait' : 'finish',
+        date: viewData.confirmDate,
+        user: viewData.confirmUserName,
+      }
+    ];
+  }
+
+  const drawerStyles = {
+    body: { padding: 0, overflow: 'hidden' as const }
+  };
+
   return (
     <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
       <Card
@@ -363,79 +485,26 @@ export default function InventoryAdjustmentList() {
         size={DRAWER_WIDTH_MAIN as any}
         open={!!viewId || isCreateDrawerOpen}
         onClose={isCreateDrawerOpen ? closeCreateDrawer : closeViewDrawer}
+        styles={drawerStyles}
         destroyOnHidden
         mask={{ closable: isViewMode }}
         keyboard={isViewMode}
-        extra={
-          <Space>
-            {(!isDrawerEditing && !isCreateDrawerOpen) && (
-              <>
-                {viewData?.status === 'Unconfirmed' && (
-                  <ActionButton intent="success" 
-                    icon={<CheckCircleOutlined />} 
-                    onClick={() => {
-                      modal.confirm({
-                        title: '確認單據',
-                        content: '確定要確認此單據？',
-                        centered: true,
-                        width: 400,
-                        onOk: () => confirmMutation.mutateAsync(viewData?.documentNumber)
-                      });
-                    }}
-                    loading={confirmMutation.isPending}
-                    disabled={isHeaderEditing}
-                  >
-                    確認</ActionButton>
-                )}
-                {viewData?.status === 'Confirmed' && (
-                  <ActionButton intent="warning" icon={<SyncOutlined />} 
-                    loading={cancelConfirmMutation.isPending} 
-                    disabled={isHeaderEditing}
-                    onClick={() => {
-                      modal.confirm({
-                        title: '取消確認',
-                        content: '確定要取消確認此單據？',
-                        centered: true,
-                        width: 400,
-                        okButtonProps: { danger: true },
-                        onOk: () => cancelConfirmMutation.mutateAsync(viewData?.documentNumber)
-                      });
-                    }}
-                  >
-                    取消確認</ActionButton>
-                )}
-                {viewData?.status === 'Unconfirmed' && (
-                  <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={openEditDrawer} disabled={isHeaderEditing}>
-                    編輯主檔
-                  </Button>
-                )}
-              </>
-            )}
-            {(isDrawerEditing || isCreateDrawerOpen) && activeTab === 'master_info' && (
-              <>
-                <Button 
-                  type="primary" 
-                  htmlType="submit"
-                  form={isCreateDrawerOpen ? "inventoryAdjustmentCreateForm" : "inventoryAdjustmentEditForm"}
-                  icon={<SaveOutlined />} 
-                  loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
-                >
-                  儲存主檔
-                </Button>
-                <Button onClick={() => {
-                  if (isDrawerEditing) {
-                    setIsDrawerEditing(false);
-                  } else {
-                    closeCreateDrawer();
-                  }
-                }}>取消</Button>
-              </>
-            )}
-          </Space>
-        }
+        extra={getHeaderActions()}
       >
         <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
-          <MasterDetailTabs
+          {(!isCreateDrawerOpen && viewData) && (
+            <ActionBar 
+              createdBy={viewData.createdBy || undefined}
+              createdAt={viewData.createdAt || undefined}
+              updatedBy={viewData.updatedBy || undefined}
+              updatedAt={viewData.updatedAt || undefined}
+              actions={getActionBarActions()}
+            />
+          )}
+          <div style={{ padding: "8px 24px" }}>
+            {(!isCreateDrawerOpen && viewData) && <DocumentLifecycleBanner steps={steps} />}
+            <MasterDetailTabs
+              heightOffset={(!isCreateDrawerOpen && viewData) ? 320 : 160}
             activeTab={activeTab}
             onTabChange={setActiveTab}
             isCreateMode={isCreateDrawerOpen}
@@ -477,6 +546,7 @@ export default function InventoryAdjustmentList() {
               }
             ]}
           />
+          </div>
         </Spin>
       </Drawer>
     </div>
