@@ -253,8 +253,8 @@ export default function StorageTransactionsList() {
   ];
 
   return (
-    <div className="flex flex-col gap-4">
-      <Card variant="borderless" className="shadow-sm">
+    <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <Card variant="borderless" className="shadow-sm" style={{ flexShrink: 0 }}>
         <Form 
           form={form} 
           layout="vertical"
@@ -318,13 +318,30 @@ export default function StorageTransactionsList() {
         </Form>
       </Card>
 
-      <Card variant="borderless" className="shadow-sm" bodyStyle={{ padding: 0 }}>
+      <Card 
+        variant="borderless" 
+        className="shadow-sm" 
+        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        styles={{ 
+          body: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 0 } 
+        }}
+      >
+        <style>{`
+          .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
+          .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+          .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+          .ant-spin-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+          .ant-table { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+          .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+          .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
+          .ant-table-pagination { margin-top: auto !important; margin-bottom: 16px !important; padding-right: 16px !important; padding-left: 16px !important; }
+        `}</style>
         <Table
           rowKey={(record: InventoryTransactionDto) => `${record.transactionId}_${record.createdAt}`}
           dataSource={listData}
           columns={columns}
           loading={isFetching}
-          scroll={{ x: 'max-content', y: 'calc(100vh - 360px)' }}
+          scroll={{ x: 'max-content', y: 300 }}
           size="middle"
           pagination={{
             current: pagination.current,

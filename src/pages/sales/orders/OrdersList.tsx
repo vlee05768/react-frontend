@@ -184,7 +184,7 @@ export default function OrdersList() {
         rowKey="orderNumber"
         loading={isLoading}
         onChange={handleTableChange}
-        scroll={{ x: 'max-content' }}
+        scroll={{ x: 'max-content', y: 300 }}
         size="middle"
         pagination={{
           current: params.page || 1,
