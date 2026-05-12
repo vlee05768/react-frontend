@@ -1,11 +1,7 @@
 import { DictSelect } from '@/components/Form/DictSelect';
 
 
-export const statusOptions = [
-  { label: '待確認', value: 'Unconfirmed' },
-  { label: '已確認', value: 'Confirmed' },
-  { label: '已結案', value: 'Closed' },
-];
+
 
 export const getStatusTagProps = (status: string) => {
   switch (status) {
@@ -24,13 +20,6 @@ export const qcReceiptSearchConfig = (): any[] => [
     name: 'documentNumber',
     label: '單據號碼',
     componentType: 'Input',
-    colSpan: 2,
-  },
-  {
-    name: 'status',
-    label: '檢驗狀態',
-    componentType: 'Select',
-    componentProps: { options: statusOptions },
     colSpan: 2,
   },
   {

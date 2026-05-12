@@ -65,7 +65,7 @@ export const MasterDetailTabs: React.FC<MasterDetailTabsProps> = ({
       label: '附件管理',
       disabled: disableTabSwitching || !isViewMode || !viewId,
       children: (
-        <div style={{ padding: '16px 0' }}>
+        <div style={{ height: `calc(100vh - ${heightOffset}px)`, overflowY: "auto", overflowX: "hidden", padding: '16px 8px 16px 0', margin: "0 -8px 0 0" }}>
           {viewId && (
             <FileAttachmentZone 
               referenceType={entityType} 
@@ -84,7 +84,11 @@ export const MasterDetailTabs: React.FC<MasterDetailTabsProps> = ({
         key: tab.key,
         label: tab.label,
         disabled: disableTabSwitching || tab.disabled || !isViewMode || !viewId,
-        children: tab.children,
+        children: (
+          <div style={{ height: `calc(100vh - ${heightOffset}px)`, overflowY: "auto", overflowX: "hidden", paddingRight: "8px", margin: "0 -8px 0 0" }}>
+            {tab.children}
+          </div>
+        ),
       });
     });
   }

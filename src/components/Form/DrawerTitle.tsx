@@ -5,6 +5,7 @@ interface DrawerTitleProps<T = any> {
   record?: T | null;        // 當前載入的明細資料
   // 顯示的識別值：可以是欄位名稱字串 (如 'name')，也可以是自訂函式組合字串
   displayField?: keyof T | ((record: T) => string); 
+  statusTag?: React.ReactNode; // 狀態標籤
 }
 
 export function DrawerTitle<T = Record<string, any>>({
@@ -12,7 +13,8 @@ export function DrawerTitle<T = Record<string, any>>({
   isCreate,
   isEdit,
   record,
-  displayField = 'name' as keyof T // 預設抓取 name 欄位
+  displayField = 'name' as keyof T, // 預設抓取 name 欄位
+  statusTag
 }: DrawerTitleProps<T>) {
   
   let displayName = '';
@@ -44,6 +46,7 @@ export function DrawerTitle<T = Record<string, any>>({
           </>
         )}
       </div>
+      {statusTag && <div className="ml-2">{statusTag}</div>}
     </div>
   );
 }

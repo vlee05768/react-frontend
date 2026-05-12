@@ -461,7 +461,7 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
   }
 
   const drawerStyles = {
-    body: { padding: 0 } // Remove body padding to make action bar edge-to-edge
+    body: { padding: 0, overflow: 'hidden' as const } // Remove body padding and hide outer scrollbar
   };
 
   return (
@@ -493,7 +493,7 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
         <div style={{ padding: "8px 24px" }}>
           {!isCreateMode && record && <DocumentLifecycleBanner steps={steps} />}
           <MasterDetailTabs
-          heightOffset={!isCreateMode && record ? 260 : 130}
+          heightOffset={!isCreateMode && record ? 320 : 160}
           viewId={id}
           entityType="WorkOrder"
           isCreateMode={isCreateMode}

@@ -17,7 +17,7 @@ interface DocumentLifecycleBannerProps {
 
 export const DocumentLifecycleBanner: React.FC<DocumentLifecycleBannerProps> = ({ steps }) => {
   return (
-    <div className="mb-4 px-6 py-3 bg-transparent rounded-lg border border-gray-200 dark:border-gray-800 transition-colors">
+    <div className="mb-2 px-2 py-2 bg-transparent rounded-lg border border-gray-200 dark:border-gray-800 transition-colors">
       <Steps
         labelPlacement="vertical"
         current={steps.findIndex(s => s.status === 'process')}
