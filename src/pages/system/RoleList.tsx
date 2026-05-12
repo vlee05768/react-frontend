@@ -101,7 +101,7 @@ export default function RoleList() {
   });
 
   const treeData = useMemo(() => {
-    const rawData = treeRes?.data || [];
+    const rawData = treeRes?.data?.data || [];
     const keys: React.Key[] = [];
     
     const transformToAntdTree = (nodes: any[]): TreeDataNode[] => {
