@@ -96,7 +96,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
   };
 
   const columns = [
-    { title: '對應單據項次', dataIndex: 'lineNumber', width: 150 },
+    { title: '對應單據項次', dataIndex: 'lineNumber', width: 180 },
     { title: '料號', dataIndex: 'inventoryCode', width: 130 },
     { title: '品名', dataIndex: 'inventoryName', width: 150, ellipsis: true },
     { title: '所在儲位', dataIndex: 'targetStorageCode', width: 100, align: 'center' as const, render: (v: string) => v ? <Tag color="blue" className="m-0">{v}</Tag> : '-' },
@@ -117,7 +117,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
     { 
       title: '本次QC量', 
       dataIndex: 'batchQuantity', 
-      width: 120,
+      width: 100,
       align: 'center' as const,
       render: (_: any, record: any) => {
         const val = editableData[record.lineNumber]?.batchQuantity ?? record.batchQuantity;
@@ -129,6 +129,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
             max={unQc} // 最大等於未QC量
             value={val} 
             onChange={(v) => handleRowChange(record.lineNumber, 'batchQuantity', v)}
+            onFocus={(e) => e.target.select()}
             style={{ width: '100%' }}
             disabled={!isSelected} // 有勾選的才能輸入
           />
@@ -138,7 +139,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
     { 
       title: '良品量', 
       dataIndex: 'goodQuantity', 
-      width: 120,
+      width: 100,
       align: 'center' as const,
       render: (_: any, record: any) => {
         const val = editableData[record.lineNumber]?.goodQuantity ?? record.goodQuantity;
@@ -154,13 +155,14 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
             max={batch}
             value={val} 
             onChange={(v) => handleRowChange(record.lineNumber, 'goodQuantity', v)}
+            onFocus={(e) => e.target.select()}
             style={{ width: '100%' }}
             disabled={!isSelected} // 有勾選的才能輸入
           />
         );
       }
     },
-    { title: '良品倉', dataIndex: 'goodTargetStorageCode', width: 100, align: 'center' as const, render: () => 'TW-GEN-INV' },
+    { title: '良品倉', dataIndex: 'goodTargetStorageCode', width: 120, align: 'center' as const, render: () => 'TW-GEN-INV' },
     { 
       title: '報廢量', 
       dataIndex: 'scrapQuantity', 
@@ -171,7 +173,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
         return <span style={{ color: val > 0 ? 'var(--ant-color-error)' : 'inherit' }}>{Number(val).toLocaleString('zh-TW')}</span>;
       }
     },
-    { title: '報廢倉', dataIndex: 'scrapTargetStorageCode', width: 100, align: 'center' as const, render: () => 'TW-GEN-SCRAP' },
+    { title: '報廢倉', dataIndex: 'scrapTargetStorageCode', width: 130, align: 'center' as const, render: () => 'TW-GEN-SCRAP' },
   ];
 
   return (
@@ -192,7 +194,12 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
     >
       <Form form={form} layout="inline" className="mb-4">
         <Form.Item name="keyword" label="關鍵字搜尋">
-          <Input placeholder="料號/品名/單號" allowClear className="w-64" />
+          <Input 
+            placeholder="料號/品名/單號" 
+            allowClear 
+            className="w-64" 
+            onFocus={(e) => e.target.select()}
+          />
         </Form.Item>
       </Form>
 
