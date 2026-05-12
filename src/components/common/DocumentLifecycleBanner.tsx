@@ -19,7 +19,7 @@ export const DocumentLifecycleBanner: React.FC<DocumentLifecycleBannerProps> = (
   return (
     <div className="mb-2 px-2 py-2 bg-transparent rounded-lg border border-gray-200 dark:border-gray-800 transition-colors">
       <Steps
-        labelPlacement="vertical"
+        titlePlacement="vertical"
         current={steps.findIndex(s => s.status === 'process')}
         items={steps.map((step) => {
           let icon = undefined;
@@ -36,7 +36,7 @@ export const DocumentLifecycleBanner: React.FC<DocumentLifecycleBannerProps> = (
             title: step.isManualClose ? <span className="text-gray-600 dark:text-gray-400">{step.title}</span> : step.title,
             status: step.status,
             icon,
-            description: (step.date || step.user) ? (
+            content: (step.date || step.user) ? (
               <div className="text-center text-xs mt-1 text-gray-500 dark:text-gray-400">
                 {step.date && <div className="whitespace-nowrap">{dayjs(step.date).format('YYYY-MM-DD HH:mm')}</div>}
                 {step.user && <div className="whitespace-nowrap">{step.user}</div>}
