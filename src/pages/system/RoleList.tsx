@@ -32,6 +32,8 @@ import {
   DeleteOutlined,
   ArrowsAltOutlined,
   ShrinkOutlined,
+  PlusSquareOutlined,
+  MinusSquareOutlined,
   ClearOutlined,
   SaveOutlined,
   EyeOutlined,
@@ -475,11 +477,11 @@ export default function RoleList() {
                 extra={
                   <Space size="small">
                     <Tooltip title="全部展開">
-                      <Button type="text" size="small" icon={<ArrowsAltOutlined />} onClick={() => setExpandedKeys(allTreeKeys)} />
+                      <Button type="text" size="small" icon={<PlusSquareOutlined />} onClick={() => setExpandedKeys(allTreeKeys)} />
                     </Tooltip>
                     <Divider type="vertical" />
                     <Tooltip title="全部收合">
-                      <Button type="text" size="small" icon={<ShrinkOutlined />} onClick={() => setExpandedKeys([])} />
+                      <Button type="text" size="small" icon={<MinusSquareOutlined />} onClick={() => setExpandedKeys([])} />
                     </Tooltip>
                   </Space>
                 }
