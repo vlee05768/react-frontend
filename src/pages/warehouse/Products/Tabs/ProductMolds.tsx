@@ -22,6 +22,7 @@ interface Props {
 
 export default function ProductMolds({ productCode, isViewMode: isMasterViewMode }: Props) {
   const { modal } = App.useApp();
+  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const { token } = theme.useToken();
   const queryClient = useQueryClient();
   const [selectedMold, setSelectedMold] = useState<string | null>(null);
@@ -115,7 +116,23 @@ export default function ProductMolds({ productCode, isViewMode: isMasterViewMode
     width: 70,
     align: 'center' as const,
     render: (_: any, record: any) => isMasterViewMode ? (
-      <Button type="text" danger icon={<DeleteOutlined />} size="small" onClick={() => modal.confirm({ title: '刪除確認', content: '確定要移除此關聯？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => handleDelete(record.moldCode) })} />
+      <Button type="text" danger icon={<DeleteOutlined />} size="small" onClick={() => {
+              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              const rt = record as any; const recordTitle = rt.name || rt.code || rt.employeeNo || rt.userName || rt.roleName || rt.documentNumber || rt.referenceNumber || recordId || '此資料';
+              setDeletingRecordId(String(recordId));
+              modal.confirm({
+                title: `刪除確認 - ${recordTitle}`,
+                content: '確定要移除此關聯？此操作無法還原。',
+                centered: true,
+                width: 400,
+                okButtonProps: { danger: true },
+                onOk: () => {
+                  setDeletingRecordId(null);
+                  handleDelete(record.moldCode)
+                },
+                onCancel: () => setDeletingRecordId(null)
+              });
+            }} />
     ) : null
   };
 
@@ -187,6 +204,10 @@ export default function ProductMolds({ productCode, isViewMode: isMasterViewMode
       )}
 
       <Table
+            rowClassName={(record) => {
+              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              return recordId && String(recordId) === String(deletingRecordId) ? 'deleting-row-highlight' : '';
+            }}
         columns={columns}
         dataSource={enrichedLinkedMolds}
         rowKey="moldCode"

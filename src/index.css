@@ -105,3 +105,21 @@ body {
   background-color: var(--ant-color-info-bg, #e6f4ff) !important;
   border: 1px solid var(--ant-color-info-border, #91caff) !important;
 }
+
+/* === 刪除操作高亮樣式 (支援亮/暗模式) === */
+.ant-table-wrapper .ant-table-tbody > tr.deleting-row-highlight > td {
+  background-color: var(--ant-color-error-bg-hover, #ffccc7) !important;
+  transition: background-color 0.3s;
+}
+
+:where(.dark, .dark *) .ant-table-wrapper .ant-table-tbody > tr.deleting-row-highlight > td {
+  background-color: #5c1b22 !important;
+}
+
+.ant-table-wrapper .ant-table-tbody > tr.deleting-row-highlight:hover > td {
+  background-color: var(--ant-color-error-bg-active, #ffa39e) !important;
+}
+
+:where(.dark, .dark *) .ant-table-wrapper .ant-table-tbody > tr.deleting-row-highlight:hover > td {
+  background-color: #7a222c !important;
+}

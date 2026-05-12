@@ -60,6 +60,7 @@ import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WID
 
 export default function EmployeeList() {
   const { modal } = App.useApp();
+  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const { params, setParams, resetParams } = useEmployeeQueryStore();
   const { hasPermission } = useAuthStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -228,7 +229,23 @@ export default function EmployeeList() {
           )}
           {hasPermission('BasicData.Employees.Delete') && (
             <Tooltip title="刪除">
-              <Button type="text" danger icon={<DeleteOutlined />} onClick={() => modal.confirm({ title: '刪除確認', content: '確定要刪除此筆資料嗎？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => deleteMutation.mutate(record.id) })} />
+              <Button type="text" danger icon={<DeleteOutlined />} onClick={() => {
+              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              const rt = record as any; const recordTitle = rt.name || rt.code || rt.employeeNo || rt.userName || rt.roleName || rt.documentNumber || rt.referenceNumber || recordId || '此資料';
+              setDeletingRecordId(String(recordId));
+              modal.confirm({
+                title: `刪除確認 - ${recordTitle}`,
+                content: '確定要刪除此筆資料嗎？此操作無法還原。',
+                centered: true,
+                width: 400,
+                okButtonProps: { danger: true },
+                onOk: () => {
+                  setDeletingRecordId(null);
+                  deleteMutation.mutate(record.id)
+                },
+                onCancel: () => setDeletingRecordId(null)
+              });
+            }} />
             </Tooltip>
           )}
         </Space>
@@ -377,7 +394,13 @@ export default function EmployeeList() {
           `}</style>
           <Table
             bordered
-            rowClassName={(record) => String(record.id) === String(viewId) ? 'selected-table-row' : ''}
+            rowClassName={(record) => {
+            const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+            let cls = '';
+            if (String(record.id) === String(viewId)) cls += 'selected-table-row ';
+            if (recordId && String(recordId) === String(deletingRecordId)) cls += 'deleting-row-highlight';
+            return cls.trim();
+          }}
             style={{ flex: 1 }}
             columns={columns}
             dataSource={listData}

@@ -18,6 +18,7 @@ interface QcReceiptItemsTabProps {
 
 export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceiptItemsTabProps) {
   const { modal } = App.useApp();
+  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -93,7 +94,23 @@ export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceip
             />
           </Tooltip>
           {!isLocked && (
-            <Button size="small" type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => modal.confirm({ title: '刪除確認', content: '確定要刪除嗎？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => deleteMutation.mutate(record.referenceNumber) })} />
+            <Button size="small" type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => {
+              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              const rt = record as any; const recordTitle = rt.name || rt.code || rt.employeeNo || rt.userName || rt.roleName || rt.documentNumber || rt.referenceNumber || recordId || '此資料';
+              setDeletingRecordId(String(recordId));
+              modal.confirm({
+                title: `刪除確認 - ${recordTitle}`,
+                content: '確定要刪除嗎？此操作無法還原。',
+                centered: true,
+                width: 400,
+                okButtonProps: { danger: true },
+                onOk: () => {
+                  setDeletingRecordId(null);
+                  deleteMutation.mutate(record.referenceNumber)
+                },
+                onCancel: () => setDeletingRecordId(null)
+              });
+            }} />
           )}
         </div>
       )
@@ -147,6 +164,10 @@ export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceip
       </div>
 
       <Table
+            rowClassName={(record) => {
+              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              return recordId && String(recordId) === String(deletingRecordId) ? 'deleting-row-highlight' : '';
+            }}
         columns={columns as any}
         dataSource={list}
         rowKey="referenceNumber"

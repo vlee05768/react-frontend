@@ -72,6 +72,7 @@ export const useBPQueryStore = create((set) => ({
 
 export default function BusinessPartnerList() {
   const { message: messageApi, modal: modalApi } = App.useApp();
+  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const params = useBPQueryStore((state: any) => state.params);
   const setParams = useBPQueryStore((state: any) => state.setParams);
   
@@ -222,7 +223,23 @@ export default function BusinessPartnerList() {
           />
         </Tooltip>
         <Tooltip title="刪除">
-          <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => modalApi.confirm({ title: '刪除確認', content: '確定要刪除此筆資料嗎？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => deleteMutation.mutate(record.code) })} />
+          <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => {
+              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              const rt = record as any; const recordTitle = rt.name || rt.code || rt.employeeNo || rt.userName || rt.roleName || rt.documentNumber || rt.referenceNumber || recordId || '此資料';
+              setDeletingRecordId(String(recordId));
+              modalApi.confirm({
+                title: `刪除確認 - ${recordTitle}`,
+                content: '確定要刪除此筆資料嗎？此操作無法還原。',
+                centered: true,
+                width: 400,
+                okButtonProps: { danger: true },
+                onOk: () => {
+                  setDeletingRecordId(null);
+                  deleteMutation.mutate(record.code)
+                },
+                onCancel: () => setDeletingRecordId(null)
+              });
+            }} />
         </Tooltip>
       </Space>
     ),
@@ -340,7 +357,13 @@ export default function BusinessPartnerList() {
           `}</style>
           <Table
             bordered
-            rowClassName={(record) => String(record.code) === String(viewId) ? 'selected-table-row' : ''}
+            rowClassName={(record) => {
+            const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+            let cls = '';
+            if (String(record.code) === String(viewId)) cls += 'selected-table-row ';
+            if (recordId && String(recordId) === String(deletingRecordId)) cls += 'deleting-row-highlight';
+            return cls.trim();
+          }}
             style={{ flex: 1 }}
             columns={columns}
             dataSource={listData}

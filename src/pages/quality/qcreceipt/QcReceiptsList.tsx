@@ -21,6 +21,7 @@ import { useParams } from 'react-router-dom';
 
 export default function QcReceiptsList() {
   const { modal } = App.useApp();
+  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const { id: viewId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -109,7 +110,23 @@ export default function QcReceiptsList() {
           </Tooltip>
           {isUnconfirmed && (
             <Tooltip title="刪除">
-              <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => modal.confirm({ title: '刪除確認', content: '確定要刪除此單據嗎？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => deleteMutation.mutate(record.documentNumber) })} />
+              <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => {
+              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              const rt = record as any; const recordTitle = rt.name || rt.code || rt.employeeNo || rt.userName || rt.roleName || rt.documentNumber || rt.referenceNumber || recordId || '此資料';
+              setDeletingRecordId(String(recordId));
+              modal.confirm({
+                title: `刪除確認 - ${recordTitle}`,
+                content: '確定要刪除此單據嗎？此操作無法還原。',
+                centered: true,
+                width: 400,
+                okButtonProps: { danger: true },
+                onOk: () => {
+                  setDeletingRecordId(null);
+                  deleteMutation.mutate(record.documentNumber)
+                },
+                onCancel: () => setDeletingRecordId(null)
+              });
+            }} />
             </Tooltip>
           )}
         </Space>
@@ -170,7 +187,13 @@ export default function QcReceiptsList() {
           `}</style>
           <Table
             bordered
-            rowClassName={(record: any) => record.documentNumber === viewId ? 'selected-table-row' : ''}
+            rowClassName={(record: any) => {
+            const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+            let cls = '';
+            if (record.documentNumber === viewId) cls += 'selected-table-row ';
+            if (recordId && String(recordId) === String(deletingRecordId)) cls += 'deleting-row-highlight';
+            return cls.trim();
+          }}
             style={{ flex: 1 }}
             columns={columns}
             dataSource={displayList}

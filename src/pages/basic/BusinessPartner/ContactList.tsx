@@ -20,6 +20,7 @@ import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 
 export default function ContactList({ businessPartnerCode, isViewMode: isMasterViewMode }: { businessPartnerCode: string; isViewMode: boolean }) {
   const { message: messageApi, modal: modalApi } = App.useApp();
+  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -133,7 +134,23 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
           onClick={() => openViewDrawer(record)}
         />
         {isMasterViewMode && (
-          <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => modalApi.confirm({ title: '刪除確認', content: '確定要刪除此筆聯絡人嗎？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => deleteMutation.mutate(record.id) })} />
+          <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => {
+              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              const rt = record as any; const recordTitle = rt.name || rt.code || rt.employeeNo || rt.userName || rt.roleName || rt.documentNumber || rt.referenceNumber || recordId || '此資料';
+              setDeletingRecordId(String(recordId));
+              modalApi.confirm({
+                title: `刪除確認 - ${recordTitle}`,
+                content: '確定要刪除此筆聯絡人嗎？此操作無法還原。',
+                centered: true,
+                width: 400,
+                okButtonProps: { danger: true },
+                onOk: () => {
+                  setDeletingRecordId(null);
+                  deleteMutation.mutate(record.id)
+                },
+                onCancel: () => setDeletingRecordId(null)
+              });
+            }} />
         )}
       </Space>
     ),
@@ -171,6 +188,10 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
       {/* 資料表格區 */}
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <Table
+            rowClassName={(record) => {
+              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              return recordId && String(recordId) === String(deletingRecordId) ? 'deleting-row-highlight' : '';
+            }}
           virtual
           scroll={{ x: 1200, y: 400 }}
           dataSource={listData}

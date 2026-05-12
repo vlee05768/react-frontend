@@ -16,6 +16,7 @@ interface Props {
 
 export default function ProductBom({ productCode, isViewMode: isMasterViewMode, onEditingChange }: Props) {
   const { modal } = App.useApp();
+  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const { token } = theme.useToken();
   
   const [itemModalOpen, setItemModalOpen] = useState(false);
@@ -113,7 +114,23 @@ export default function ProductBom({ productCode, isViewMode: isMasterViewMode, 
           onClick={() => openEditItem(record)} 
           disabled={!isFormViewMode}
         />
-        <Button type="text" danger icon={<DeleteOutlined />} disabled={!isFormViewMode} onClick={() => modal.confirm({ title: '刪除確認', content: '確定移除？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => handleDeleteItem(record.code) })} />
+        <Button type="text" danger icon={<DeleteOutlined />} disabled={!isFormViewMode} onClick={() => {
+              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              const rt = record as any; const recordTitle = rt.name || rt.code || rt.employeeNo || rt.userName || rt.roleName || rt.documentNumber || rt.referenceNumber || recordId || '此資料';
+              setDeletingRecordId(String(recordId));
+              modal.confirm({
+                title: `刪除確認 - ${recordTitle}`,
+                content: '確定移除？此操作無法還原。',
+                centered: true,
+                width: 400,
+                okButtonProps: { danger: true },
+                onOk: () => {
+                  setDeletingRecordId(null);
+                  handleDeleteItem(record.code)
+                },
+                onCancel: () => setDeletingRecordId(null)
+              });
+            }} />
       </Space>
     )
   };
@@ -186,6 +203,10 @@ export default function ProductBom({ productCode, isViewMode: isMasterViewMode, 
           }
         >
           <Table
+            rowClassName={(record) => {
+              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              return recordId && String(recordId) === String(deletingRecordId) ? 'deleting-row-highlight' : '';
+            }}
             virtual
             scroll={{ x: 1500, y: 400 }}
             columns={columns}

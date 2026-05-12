@@ -22,6 +22,7 @@ interface CategoryItemListProps {
 
 export default function CategoryItemList({ selectedCode }: CategoryItemListProps) {
   const { modal } = App.useApp();
+  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   
   // Drawer states
@@ -110,7 +111,23 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
               <Button type="text" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => handleEdit(record)} />
             </Tooltip>
             <Tooltip title="刪除">
-              <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => modal.confirm({ title: '刪除確認', content: '確定要刪除？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => handleDelete(record) })} />
+              <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => {
+              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              const rt = record as any; const recordTitle = rt.name || rt.code || rt.employeeNo || rt.userName || rt.roleName || rt.documentNumber || rt.referenceNumber || recordId || '此資料';
+              setDeletingRecordId(String(recordId));
+              modal.confirm({
+                title: `刪除確認 - ${recordTitle}`,
+                content: '確定要刪除？此操作無法還原。',
+                centered: true,
+                width: 400,
+                okButtonProps: { danger: true },
+                onOk: () => {
+                  setDeletingRecordId(null);
+                  handleDelete(record)
+                },
+                onCancel: () => setDeletingRecordId(null)
+              });
+            }} />
             </Tooltip>
           </Space>
         ),
@@ -139,6 +156,10 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
 
       <div style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
         <Table
+            rowClassName={(record) => {
+              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              return recordId && String(recordId) === String(deletingRecordId) ? 'deleting-row-highlight' : '';
+            }}
           loading={isFetching}
           dataSource={listData}
           columns={columns as any}

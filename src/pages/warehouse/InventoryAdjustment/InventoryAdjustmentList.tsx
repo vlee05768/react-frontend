@@ -52,6 +52,7 @@ export const useInventoryAdjustmentQueryStore = create((set) => ({
 
 export default function InventoryAdjustmentList() {
   const { message: messageApi, modal } = App.useApp();
+  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const params = useInventoryAdjustmentQueryStore((state: any) => state.params);
   const setParams = useInventoryAdjustmentQueryStore((state: any) => state.setParams);
   
@@ -224,7 +225,23 @@ export default function InventoryAdjustmentList() {
         </Tooltip>
         {record.status === 'Unconfirmed' && (
           <Tooltip title="刪除">
-            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => modal.confirm({ title: '刪除確認', content: '確定要刪除此筆資料嗎？此操作無法還原。', centered: true, width: 400, okButtonProps: { danger: true }, onOk: () => deleteMutation.mutateAsync(record.documentNumber) })} />
+            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => {
+              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              const rt = record as any; const recordTitle = rt.name || rt.code || rt.employeeNo || rt.userName || rt.roleName || rt.documentNumber || rt.referenceNumber || recordId || '此資料';
+              setDeletingRecordId(String(recordId));
+              modal.confirm({
+                title: `刪除確認 - ${recordTitle}`,
+                content: '確定要刪除此筆資料嗎？此操作無法還原。',
+                centered: true,
+                width: 400,
+                okButtonProps: { danger: true },
+                onOk: () => {
+                  setDeletingRecordId(null);
+                  deleteMutation.mutateAsync(record.documentNumber)
+                },
+                onCancel: () => setDeletingRecordId(null)
+              });
+            }} />
           </Tooltip>
         )}
       </Space>
@@ -428,7 +445,13 @@ export default function InventoryAdjustmentList() {
           `}</style>
           <Table
             bordered
-            rowClassName={(record: any) => record.documentNumber === viewId ? 'selected-table-row' : ''}
+            rowClassName={(record: any) => {
+            const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+            let cls = '';
+            if (record.documentNumber === viewId) cls += 'selected-table-row ';
+            if (recordId && String(recordId) === String(deletingRecordId)) cls += 'deleting-row-highlight';
+            return cls.trim();
+          }}
             style={{ flex: 1 }}
             rowKey={(r: any) => r.documentNumber || r.id}
             columns={columns}
