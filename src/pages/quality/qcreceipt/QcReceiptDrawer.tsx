@@ -188,7 +188,7 @@ export default function QcReceiptDrawer() {
     if (isCreating || isEditing) {
       return (
         <Space>
-          <Button key="save" type="primary" htmlType="submit" form="qc-receipt-form" icon={<SaveOutlined />} loading={createMutation.isPending || updateMutation.isPending}>
+          <Button key="save" type="primary" onClick={() => (document.getElementById("qc-receipt-form") as HTMLFormElement)?.requestSubmit()} icon={<SaveOutlined />} loading={createMutation.isPending || updateMutation.isPending}>
             儲存主檔
           </Button>
           <Button key="cancel" onClick={(e) => {

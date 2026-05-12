@@ -370,7 +370,7 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
       const submitText = editMode === 'prepare' ? '備料完成確認' : editMode === 'work' ? '生產完成確認' : '儲存';
       return (
         <Space>
-          <Button key="save" type="primary" htmlType="submit" form="workOrderForm" loading={createMutation.isPending || updateMutation.isPending || preparationConfirmMut.isPending || productionCompleteMut.isPending}>
+          <Button key="save" type="primary" onClick={() => (document.getElementById("workOrderForm") as HTMLFormElement)?.requestSubmit()} loading={createMutation.isPending || updateMutation.isPending || preparationConfirmMut.isPending || productionCompleteMut.isPending}>
             {submitText}
           </Button>
           <Button key="cancel" onClick={handleCancel}>取消</Button>

@@ -305,7 +305,7 @@ export default function OrderDrawer() {
     if (isCreating || isEditing) {
       return (
         <Space>
-          <Button key="save" type="primary" htmlType="submit" form="orderForm" loading={createMutation.isPending || updateMutation.isPending}>儲存</Button>
+          <Button key="save" type="primary" onClick={() => (document.getElementById("orderForm") as HTMLFormElement)?.requestSubmit()} loading={createMutation.isPending || updateMutation.isPending}>儲存</Button>
           <Button key="cancel" onClick={handleClose}>取消</Button>
         </Space>
       );

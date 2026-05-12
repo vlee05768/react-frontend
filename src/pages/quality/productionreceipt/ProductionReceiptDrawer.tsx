@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Spin, Drawer, Space, App } from 'antd';
+import { Spin, Drawer, Space, App, Button } from 'antd';
 import { CheckCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -15,7 +15,9 @@ import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DRAWER_WIDTH_MAIN } from '@/constants/ui';
 
 import { 
-  getApiV1ProductionReceiptByMovementNumber, 
+  getApiV1ProductionReceiptByMovementNumber,
+  postApiV1ProductionReceipt,
+  putApiV1ProductionReceiptByMovementNumber, 
   postApiV1ProductionReceiptByMovementNumberConfirm, 
   postApiV1ProductionReceiptByMovementNumberCancelConfirm,
 } from '@/api/generated';
@@ -30,6 +32,8 @@ export default function ProductionReceiptDrawer() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('master_info');
 
+  const isCreating = id === 'create';
+  const [isEditing, setIsEditing] = useState(isCreating);
   const isVisible = !!id;
 
   const { data: response, isLoading } = useQuery({
@@ -39,6 +43,44 @@ export default function ProductionReceiptDrawer() {
   });
 
   const formData: any = response?.data?.data || response?.data;
+
+  
+  const createMutation = useMutation({
+    mutationFn: (body: any) => postApiV1ProductionReceipt({ body }),
+    onSuccess: (res) => {
+      message.success('新增成功');
+      queryClient.invalidateQueries({ queryKey: ['productionReceipts'] });
+      const newId = (res.data?.data as any)?.documentNumber || (res.data as any)?.documentNumber;
+      navigate(`/production-quality/production-receipts/${newId}`, { replace: true });
+    },
+    onError: (err: any) => message.error(err.response?.data?.message || '新增失敗'),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (body: any) => putApiV1ProductionReceiptByMovementNumber({ path: { movementNumber: id! }, body }),
+    onSuccess: () => {
+      message.success('更新成功');
+      queryClient.invalidateQueries({ queryKey: ['productionReceipt'] });
+      queryClient.invalidateQueries({ queryKey: ['productionReceipts'] });
+      setIsEditing(false);
+    },
+    onError: (err: any) => message.error(err.response?.data?.message || '更新失敗'),
+  });
+
+  const handleFinish = (values: any) => {
+    const payload = {
+      documentDate: values.documentDate ? values.documentDate.format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
+      workOrderNumber: values.workOrderNumber,
+      notes: values.notes || null,
+      responsibleEmployeeCode: values.responsibleEmployeeCode || null,
+    };
+
+    if (isCreating) {
+      createMutation.mutate(payload);
+    } else {
+      updateMutation.mutate(payload);
+    }
+  };
 
   const confirmMutation = useMutation({
     mutationFn: (movementNumber: string) => postApiV1ProductionReceiptByMovementNumberConfirm({ path: { movementNumber } }),
@@ -140,9 +182,39 @@ export default function ProductionReceiptDrawer() {
     );
   };
 
+  
   const getActionBarActions = () => {
-    return null;
+    if (isCreating || isEditing) {
+      return (
+        <Space>
+          <Button key="save" type="primary" onClick={() => (document.getElementById("production-receipt-form") as HTMLFormElement)?.requestSubmit()} loading={createMutation.isPending || updateMutation.isPending}>
+            儲存主檔
+          </Button>
+          <Button key="cancel" onClick={(e) => {
+            e.preventDefault();
+            isCreating ? handleClose() : setIsEditing(false)
+          }}>
+            取消
+          </Button>
+        </Space>
+      );
+    }
+    
+    if (!formData) return null;
+    const isViewMode = !isEditing;
+    const isConfirmed = formData.status === 'Confirmed' || formData.status === 'Closed';
+    
+    return (
+      <Space>
+        {isViewMode && !isConfirmed && (
+          <Button key="edit" type="primary" onClick={(e: any) => { e.preventDefault(); setIsEditing(true); }}>
+            編輯主檔
+          </Button>
+        )}
+      </Space>
+    );
   };
+
 
   let steps: any[] = [];
   if (formData) {
@@ -203,15 +275,15 @@ export default function ProductionReceiptDrawer() {
             heightOffset={formData ? 320 : 160}
           activeTab={activeTab}
           onTabChange={setActiveTab}
-          isCreateMode={false}
-          isEditMode={false}
+          isCreateMode={isCreating}
+          isEditMode={isEditing}
           viewId={id}
           masterContent={
             <DynamicForm
               formId="production-receipt-form"
               fields={mainFormConfig() as any}
               defaultValues={defaultValues}
-              onSubmit={() => {}}
+              onSubmit={handleFinish}
               hideDefaultFooter
               isViewMode={true}
               isUpdateMode={false}

@@ -212,6 +212,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
 
   // 表單驗證失敗時，自動 focus 第一個錯誤欄位
   const handleInternalError = (errors: any) => {
+    console.error("DynamicForm validation errors:", errors);
     const firstErrorKey = Object.keys(errors)[0];
     if (firstErrorKey && formWrapperRef.current) {
       // 嘗試尋找元件：1. 透過 id, 2. 透過 name
