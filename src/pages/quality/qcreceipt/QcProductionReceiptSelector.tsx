@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Modal, Table, Button, Form, Input, InputNumber, Tag } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { getApiV1QcReceiptUnprocessedProductionReceipts } from '@/api/generated';
-import { MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_LARGE } from '@/constants/ui';
+import { MODAL_PICK_BODY_MAX_HEIGHT, MODAL_WIDTH_PICK } from '@/constants/ui';
 
 interface QcProductionReceiptSelectorProps {
   open: boolean;
@@ -173,8 +173,8 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
       title="挑選待QC產品"
       open={open}
       onCancel={handleClose}
-      width={MODAL_WIDTH_LARGE}
-      styles={{ body: { maxHeight: MODAL_BODY_MAX_HEIGHT, overflowY: 'auto' } }}
+      width={MODAL_WIDTH_PICK}
+      styles={{ body: { maxHeight: MODAL_PICK_BODY_MAX_HEIGHT, overflowY: 'auto' } }}
       footer={
         <div className="flex justify-end gap-2">
           <Button onClick={handleClose}>取消</Button>
@@ -200,7 +200,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
         rowKey="lineNumber"
         loading={isLoading}
         pagination={false}
-        scroll={{ x: 1300, y: 400 }} // 3. 欄位總和太長要有水平捲軸 (設定 x 寬度)
+        scroll={{ x: 1300, y: `calc(${MODAL_PICK_BODY_MAX_HEIGHT} - 150px)` }} // 3. 欄位總和太長要有水平捲軸 (設定 x 寬度)
         size="small"
       />
     </Modal>

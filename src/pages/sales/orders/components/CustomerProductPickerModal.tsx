@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getApiV1ProductCustomerByCustomerCodeSearch } from '@/api/generated/sdk.gen';
 import type { ProductDto } from '@/api/generated/types.gen';
 import { DEFAULT_PAGE_SIZE } from '@/constants';
+import { MODAL_WIDTH_PICK, MODAL_PICK_BODY_MAX_HEIGHT } from '@/constants/ui';
 import { DictLabel } from '@/components/Form/DictLabel';
 
 interface SelectedProduct extends ProductDto {
@@ -182,9 +183,9 @@ export function CustomerProductPickerModal({
       title={`挑選客戶產品 - ${customerCode}`}
       open={open}
       onCancel={onCancel}
-      width="80vw"
+      width={MODAL_WIDTH_PICK}
       centered
-      styles={{ body: { height: 'calc(80vh - 110px)', overflow: 'hidden', display: 'flex', flexDirection: 'column' } }}
+      styles={{ body: { height: MODAL_PICK_BODY_MAX_HEIGHT, overflow: 'hidden', display: 'flex', flexDirection: 'column' } }}
       mask={{ closable: false }}
       footer={null}
     >
@@ -232,7 +233,7 @@ export function CustomerProductPickerModal({
           rowKey="code"
           size="small"
           loading={isLoading}
-          scroll={{ x: 'max-content', y: 'calc(80vh - 220px)' }}
+          scroll={{ x: 'max-content', y: `calc(${MODAL_PICK_BODY_MAX_HEIGHT} - 110px)` }}
           pagination={{
             current: page,
             pageSize: pageSize,

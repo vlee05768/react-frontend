@@ -7,6 +7,10 @@
 export const MODAL_WIDTH_SEARCH = '40vw';      // 查詢 Modal 寬度
 export const MODAL_BODY_MAX_HEIGHT = '70vh';   // Modal 內容區最大高度，避免超出螢幕
 
+// --- 挑單 Modal 寬度與高度設定 ---
+export const MODAL_WIDTH_PICK = '70vw';      // 挑單 Modal 寬度
+export const MODAL_PICK_BODY_MAX_HEIGHT = '70vh';   // Modal 內容區最大高度，避免超出螢幕
+
 // --- Drawer 寬度設定 ---
 export const DRAWER_WIDTH_MAIN = '60vw';   // 主表單 (例如：新增/編輯使用者、角色、廠商)
 export const DRAWER_WIDTH_DETAIL = '55vw'; // 明細表單 (例如：聯絡人、分類項目)
