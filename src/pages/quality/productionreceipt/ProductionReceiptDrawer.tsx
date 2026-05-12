@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Spin, Drawer, Button, message, Space } from 'antd';
-import { CheckCircleOutlined, CloseOutlined, SyncOutlined } from '@ant-design/icons';
+import { Spin, Drawer, Space, App } from 'antd';
+import { CheckCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 
+import { ActionButton } from '@/components/common/ActionButton';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 
@@ -25,6 +26,7 @@ import { mainFormConfig } from './ProductionReceiptConfig';
 export default function ProductionReceiptDrawer() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('master_info');
 
@@ -111,16 +113,69 @@ export default function ProductionReceiptDrawer() {
       extra={
         <Space>
           {status === 'Unconfirmed' && (
-            <Button type="primary" icon={<CheckCircleOutlined />} onClick={() => confirmMutation.mutate(id!)} loading={confirmMutation.isPending}>確認單據</Button>
+            <ActionButton intent="success" icon={<CheckCircleOutlined />} 
+              loading={confirmMutation.isPending}
+              onClick={() => {
+                modal.confirm({
+                  title: '確認單據',
+                  content: '確定要確認此單據？',
+                  centered: true,
+                  width: 400,
+                  onOk: () => confirmMutation.mutateAsync(id!)
+                });
+              }}
+            >
+              確認單據
+            </ActionButton>
           )}
           {status === 'Confirmed' && (
-            <Button danger icon={<CloseOutlined />} onClick={() => cancelConfirmMutation.mutate(id!)} loading={cancelConfirmMutation.isPending}>取消確認</Button>
+            <ActionButton intent="warning" icon={<SyncOutlined />} 
+              loading={cancelConfirmMutation.isPending}
+              onClick={() => {
+                modal.confirm({
+                  title: '取消確認',
+                  content: '確定要取消確認此單據？',
+                  centered: true,
+                  width: 400,
+                  okButtonProps: { danger: true },
+                  onOk: () => cancelConfirmMutation.mutateAsync(id!)
+                });
+              }}
+            >
+              取消確認
+            </ActionButton>
           )}
           {status === 'Confirmed' && (
-            <Button style={{ backgroundColor: '#2080f0', color: 'white' }} icon={<CheckCircleOutlined />} onClick={() => closeMutation.mutate(id!)} loading={closeMutation.isPending}>結案單據</Button>
+            <ActionButton intent="primary" icon={<CheckCircleOutlined />} 
+              loading={closeMutation.isPending}
+              onClick={() => {
+                modal.confirm({
+                  title: '結案單據',
+                  content: '確定要結案此單據？',
+                  centered: true,
+                  width: 400,
+                  onOk: () => closeMutation.mutateAsync(id!)
+                });
+              }}
+            >
+              結案單據
+            </ActionButton>
           )}
           {status === 'Closed' && (
-            <Button icon={<SyncOutlined />} onClick={() => cancelCloseMutation.mutate(id!)} loading={cancelCloseMutation.isPending}>取消結案</Button>
+            <ActionButton intent="default" icon={<SyncOutlined />} 
+              loading={cancelCloseMutation.isPending}
+              onClick={() => {
+                modal.confirm({
+                  title: '取消結案',
+                  content: '確定要取消結案此單據？',
+                  centered: true,
+                  width: 400,
+                  onOk: () => cancelCloseMutation.mutateAsync(id!)
+                });
+              }}
+            >
+              取消結案
+            </ActionButton>
           )}
         </Space>
       }
@@ -138,6 +193,7 @@ export default function ProductionReceiptDrawer() {
               fields={mainFormConfig() as any}
               defaultValues={defaultValues}
               onSubmit={() => {}}
+              hideDefaultFooter
               isViewMode={true}
               isUpdateMode={false}
             />

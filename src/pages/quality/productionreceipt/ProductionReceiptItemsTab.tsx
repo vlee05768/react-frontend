@@ -103,9 +103,18 @@ export default function ProductionReceiptItemsTab({ items }: Props) {
 
   return (
     <div className="p-4">
-      <div className="mb-4">
-        <span className="text-sm font-semibold pl-2 border-l-2 border-blue-500 mr-2">入庫明細</span>
-        <Tag className="rounded-full px-2">{items.length} 筆</Tag>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: '16px',
+        padding: '8px 12px',
+        backgroundColor: 'var(--ant-color-fill-alter)',
+        borderRadius: '6px'
+      }}>
+        <div style={{ color: 'var(--ant-color-text-secondary)' }}>
+          目前共有 <span style={{ fontWeight: 500 }}>{items.length}</span> 筆明細
+        </div>
       </div>
       
       <Table

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Drawer, Space, Button, App, Spin } from 'antd';
-import { EditOutlined, CloseOutlined, SaveOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { EditOutlined, SaveOutlined, CheckCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -28,7 +28,7 @@ import QcReceiptItemsTab from './QcReceiptItemsTab';
 export default function QcReceiptDrawer() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
 
@@ -152,26 +152,53 @@ export default function QcReceiptDrawer() {
       extra={
         <Space>
           {isViewMode && !isConfirmed && (
-            <ActionButton icon={<EditOutlined />} onClick={() => setIsEditing(true)} />
-          )}
-          {isViewMode && !isConfirmed && (
-            <Button type="primary" icon={<CheckCircleOutlined />} onClick={() => confirmMutation.mutate()} loading={confirmMutation.isPending}>確認單據</Button>
+            <>
+              <ActionButton intent="success" icon={<CheckCircleOutlined />} 
+                loading={confirmMutation.isPending}
+                onClick={() => {
+                  modal.confirm({
+                    title: '確認單據',
+                    content: '確定要確認此單據？',
+                    centered: true,
+                    width: 400,
+                    onOk: () => confirmMutation.mutateAsync()
+                  });
+                }}
+              >
+                確認單據
+              </ActionButton>
+            </>
           )}
           {isViewMode && isConfirmed && (
-            <Button danger icon={<CloseOutlined />} onClick={() => cancelConfirmMutation.mutate()} loading={cancelConfirmMutation.isPending}>取消確認</Button>
+            <ActionButton intent="warning" icon={<SyncOutlined />} 
+              loading={cancelConfirmMutation.isPending}
+              onClick={() => {
+                modal.confirm({
+                  title: '取消確認',
+                  content: '確定要取消確認此單據？',
+                  centered: true,
+                  width: 400,
+                  okButtonProps: { danger: true },
+                  onOk: () => cancelConfirmMutation.mutateAsync()
+                });
+              }}
+            >
+              取消確認
+            </ActionButton>
           )}
-          {isEditing && (
+          {isViewMode && !isConfirmed && (
+            <Button type="primary" icon={<EditOutlined />} onClick={() => setIsEditing(true)}>
+              編輯主檔
+            </Button>
+          )}
+          {isEditing && activeTab === 'master_info' && (
             <>
-              <ActionButton icon={<CloseOutlined />} onClick={() => isCreating ? handleClose() : setIsEditing(false)} />
-              <ActionButton intent="primary" icon={<SaveOutlined />} 
-                onClick={() => {
-                  const formElement = document.getElementById('qc-receipt-form') as HTMLFormElement;
-                  if (formElement) {
-                    formElement.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-                  }
-                }}
-                loading={createMutation.isPending || updateMutation.isPending} 
-              />
+              <Button type="primary" htmlType="submit" form="qc-receipt-form" icon={<SaveOutlined />} loading={createMutation.isPending || updateMutation.isPending}>
+                儲存主檔
+              </Button>
+              <Button onClick={() => isCreating ? handleClose() : setIsEditing(false)}>
+                取消
+              </Button>
             </>
           )}
         </Space>
@@ -190,6 +217,7 @@ export default function QcReceiptDrawer() {
               fields={mainFormConfig() as any}
               defaultValues={defaultValues}
               onSubmit={handleFinish}
+              hideDefaultFooter
               isViewMode={isFormLocked}
               isUpdateMode={isUpdateMode}
             />

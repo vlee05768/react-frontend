@@ -102,14 +102,26 @@ export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceip
   const existingReferenceNumbers = list.map((item: any) => item.referenceNumber);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex justify-between items-center">
-        <div className="font-semibold text-lg border-l-4 border-blue-500 pl-2">檢驗明細</div>
-        {!isLocked && (
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsSelectorOpen(true)}>
-            挑選未 QC 產品
-          </Button>
-        )}
+    <div>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: '16px',
+        padding: '8px 12px',
+        backgroundColor: 'var(--ant-color-fill-alter)',
+        borderRadius: '6px'
+      }}>
+        <div style={{ color: 'var(--ant-color-text-secondary)' }}>
+          目前共有 <span style={{ fontWeight: 500 }}>{list.length}</span> 筆明細
+        </div>
+        <div>
+          {!isLocked && (
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsSelectorOpen(true)}>
+              挑選未 QC 產品
+            </Button>
+          )}
+        </div>
       </div>
 
       <Table
