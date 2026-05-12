@@ -57,6 +57,7 @@ import { DictSelect } from '@/components/Form/DictSelect';
 import { useEmployeeQueryStore } from '@/stores/employeeStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';;
+import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 
 export default function EmployeeList() {
   const { modal } = App.useApp();
@@ -221,7 +222,7 @@ export default function EmployeeList() {
             <Tooltip title="檢視">
               <Button 
                 type="text" 
-                icon={<EyeOutlined />} 
+                icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
                 style={{ color: '#1890ff' }} 
                 onClick={() => openViewDrawer(record)}
               />
@@ -229,7 +230,7 @@ export default function EmployeeList() {
           )}
           {hasPermission('BasicData.Employees.Delete') && (
             <Tooltip title="刪除">
-              <Button type="text" danger icon={<DeleteOutlined />} onClick={() => {
+              <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => {
               const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
               const rt = record as any; const recordTitle = rt.name || rt.code || rt.employeeNo || rt.userName || rt.roleName || rt.documentNumber || rt.referenceNumber || recordId || '此資料';
               setDeletingRecordId(String(recordId));
@@ -343,7 +344,7 @@ export default function EmployeeList() {
             {hasPermission('BasicData.Employees.Create') && (
               <Button 
                 type="primary" 
-                icon={<PlusOutlined />} 
+                icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
                 onClick={openCreateDrawer}
                 style={{ fontWeight: 500 }}
               >
@@ -476,7 +477,7 @@ export default function EmployeeList() {
         extra={
           <Space>
             {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('BasicData.Employees.Update')) && (
-              <Button type="primary" icon={<EditOutlined />} onClick={startEditMode}>編輯</Button>
+              <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode}>編輯</Button>
             )}
             {(isDrawerEditing || isCreateDrawerOpen) && (
               <>
