@@ -1,5 +1,10 @@
-import { Table, Tag } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import { useState } from 'react';
+import { Table, Button, Tooltip } from 'antd';
+import { EyeOutlined } from '@ant-design/icons';
+import { buildTableColumns } from '@/utils/tableUtils';
+import { DynamicForm } from '@/components/Form/DynamicForm';
+import { itemTableColumns, itemFormConfig } from './ProductionReceiptConfig';
+import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 
 interface ProductionReceiptItem {
   lineNumber: number;
@@ -19,87 +24,48 @@ interface Props {
 }
 
 export default function ProductionReceiptItemsTab({ items }: Props) {
-  const inventoryTypeConfig: Record<string, { label: string; color: string }> = {
-    Material: { label: '原料', color: 'default' },
-    Product: { label: '產品', color: 'success' },
-    SemiFinished: { label: '半成品', color: 'warning' },
-  };
+  const [editingItem, setEditingItem] = useState<any>(null);
 
-  const columns: ColumnsType<ProductionReceiptItem> = [
+  const columns = [
     {
-      title: '序號',
-      dataIndex: 'lineNumber',
-      width: 80,
-      align: 'center',
-      render: (val: number) => val || '-',
+      title: '操作',
+      key: 'actions',
+      width: 60,
+      align: 'center' as const,
+      fixed: 'left' as const,
+      render: (_: any, record: any) => (
+        <Tooltip title="檢視明細">
+          <Button 
+            size="small" 
+            type="text" 
+            icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
+            onClick={() => setEditingItem(record)} 
+          />
+        </Tooltip>
+      ),
     },
-    {
-      title: '存貨類型',
-      dataIndex: 'inventoryType',
-      width: 90,
-      align: 'center',
-      render: (val: string) => {
-        const config = inventoryTypeConfig[val];
-        return config ? <Tag color={config.color} className="m-0">{config.label}</Tag> : (val || '-');
-      },
-    },
-    {
-      title: '製令單號',
-      dataIndex: 'referenceNumber',
-      width: 130,
-      render: (val: string) => <span className="font-mono text-xs">{val || '-'}</span>,
-    },
-    {
-      title: '料號',
-      dataIndex: 'inventoryCode',
-      width: 140,
-      render: (val: string) => <span className="font-mono text-xs">{val || '-'}</span>,
-    },
-    {
-      title: '品名',
-      dataIndex: 'inventoryName',
-      ellipsis: true,
-      minWidth: 160,
-      render: (val: string) => val || '-',
-    },
-    {
-      title: '入庫數量',
-      dataIndex: 'quantity',
-      width: 100,
-      align: 'right',
-      render: (val: number) => <span className="font-medium">{val?.toLocaleString('zh-TW') ?? 0}</span>,
-    },
-    {
-      title: 'QC完成',
-      dataIndex: 'reversalQuantity',
-      width: 100,
-      align: 'right',
-      render: (val: number, record: ProductionReceiptItem) => {
-        const qc = val ?? 0;
-        const total = record.quantity ?? 0;
-        const isComplete = total > 0 && qc >= total;
-        return (
-          <span className={`font-medium ${isComplete ? 'text-green-600' : ''}`}>
-            {qc.toLocaleString('zh-TW')}
-          </span>
-        );
-      },
-    },
-    {
-      title: '儲位',
-      dataIndex: 'targetStorageCode',
-      width: 110,
-      align: 'center',
-      render: (val: string) => val ? <Tag color="blue" className="m-0">{val}</Tag> : '-',
-    },
-    {
-      title: '備註',
-      dataIndex: 'notes',
-      ellipsis: true,
-      minWidth: 140,
-      render: (val: string) => val || '-',
-    },
+    ...buildTableColumns(itemTableColumns())
   ];
+
+  if (editingItem) {
+    return (
+      <div className="view-mode-form">
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+          <h3 style={{ margin: 0 }}>檢視明細</h3>
+          <Button onClick={() => setEditingItem(null)}>返回清單</Button>
+        </div>
+        <DynamicForm
+          formId="productionReceiptItemForm"
+          fields={itemFormConfig() as any}
+          defaultValues={editingItem}
+          onSubmit={() => {}}
+          hideDefaultFooter
+          isViewMode={true}
+          isUpdateMode={false}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4">
@@ -118,7 +84,7 @@ export default function ProductionReceiptItemsTab({ items }: Props) {
       </div>
       
       <Table
-        columns={columns}
+        columns={columns as any}
         dataSource={items}
         rowKey={(record) => record.lineNumber?.toString() || Math.random().toString()}
         pagination={false}
