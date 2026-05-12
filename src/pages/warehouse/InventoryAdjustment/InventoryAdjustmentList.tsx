@@ -263,7 +263,7 @@ export default function InventoryAdjustmentList() {
             <Button type="default" icon={<SearchOutlined />} onClick={() => setIsSearchModalOpen(true)}>
               進階查詢
             </Button>
-            <Button type="primary" icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={openCreateDrawer}>
+            <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer}>
               新增單據
             </Button>
           </Space>

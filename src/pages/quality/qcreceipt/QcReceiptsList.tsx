@@ -37,6 +37,9 @@ export default function QcReceiptsList() {
   });
 
   // Fetch Data
+  const openCreateDrawer = () => navigate('/production-quality/qc-receipts/create');
+
+  // Fetch Data
   const { data: response, isLoading } = useQuery({
     queryKey: ['qcReceipts', params],
     queryFn: () => getApiV1QcReceipt({
@@ -140,8 +143,8 @@ export default function QcReceiptsList() {
             <Button type="default" icon={<SearchOutlined />} onClick={() => setIsSearchModalOpen(true)}>
               進階查詢
             </Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/production-quality/qc-receipts/create')}>
-              新增檢驗單
+            <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer}>
+              新增單據
             </Button>
           </Space>
         }

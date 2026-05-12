@@ -23,20 +23,20 @@ export const qcReceiptSearchConfig = (): any[] => [
     name: 'documentNumber',
     label: '單據號碼',
     componentType: 'Input',
-    colSpan: 24,
+    colSpan: 2,
   },
   {
     name: 'status',
     label: '檢驗狀態',
     componentType: 'Select',
     componentProps: { options: statusOptions },
-    colSpan: 24,
+    colSpan: 2,
   },
   {
     name: 'dateRange',
     label: '檢驗日期',
     componentType: 'DateRangePicker',
-    colSpan: 24,
+    colSpan: 2,
   },
 ];
 
@@ -51,11 +51,11 @@ export const getStatusTag = (status: string) => {
 };
 
 export const mainTableColumns = (): TableColumnConfig[] => [
-  { label: '單據號碼', name: 'documentNumber', width: 140 },
+  { label: '單據號碼', name: 'documentNumber', width: 100 },
   { 
     label: '檢驗日期', 
     name: 'documentDate', 
-    width: 120,
+    width: 80,
     render: (val: string) => val ? dayjs(val).format('YYYY-MM-DD') : '-' 
   },
   { 
