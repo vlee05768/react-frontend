@@ -19,6 +19,7 @@ import {
   postApiV1QcReceipt,
   putApiV1QcReceiptByMovementNumber,
   postApiV1QcReceiptByMovementNumberConfirm,
+  postApiV1QcReceiptByMovementNumberCancelConfirm
 } from '@/api/generated';
 
 import { mainFormConfig } from './QcReceiptConfig';
@@ -101,6 +102,16 @@ export default function QcReceiptDrawer() {
     onError: (err) => message.error(getApiErrorMessage(err, '確認失敗')),
   });
 
+  const cancelConfirmMutation = useMutation({
+    mutationFn: () => postApiV1QcReceiptByMovementNumberCancelConfirm({ path: { movementNumber: id! } }),
+    onSuccess: () => {
+      message.success('取消確認成功');
+      queryClient.invalidateQueries({ queryKey: ['qcReceipt'] });
+      queryClient.invalidateQueries({ queryKey: ['qcReceipts'] });
+    },
+    onError: (err) => message.error(getApiErrorMessage(err, '取消確認失敗')),
+  });
+
   const handleFinish = (values: any) => {
     const payload = {
       documentDate: values.documentDate ? values.documentDate.format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
@@ -145,6 +156,9 @@ export default function QcReceiptDrawer() {
           )}
           {isViewMode && !isConfirmed && (
             <Button type="primary" icon={<CheckCircleOutlined />} onClick={() => confirmMutation.mutate()} loading={confirmMutation.isPending}>確認單據</Button>
+          )}
+          {isViewMode && isConfirmed && (
+            <Button danger icon={<CloseOutlined />} onClick={() => cancelConfirmMutation.mutate()} loading={cancelConfirmMutation.isPending}>取消確認</Button>
           )}
           {isEditing && (
             <>

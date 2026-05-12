@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button, Modal, Table, message, Card } from 'antd';
-import { SearchOutlined, PlusOutlined, EyeOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { SearchOutlined, PlusOutlined, EyeOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants/ui';
-import { getApiV1QcReceipt, postApiV1QcReceiptByMovementNumberConfirm, postApiV1QcReceiptByMovementNumberCancelConfirm, deleteApiV1QcReceiptByMovementNumber } from '@/api/generated';
+import { getApiV1QcReceipt, deleteApiV1QcReceiptByMovementNumber } from '@/api/generated';
 import { useQcReceiptQueryStore } from './useQcReceiptQueryStore';
 import { qcReceiptSearchConfig, mainTableColumns } from './QcReceiptConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
@@ -70,24 +70,6 @@ export default function QcReceiptsList() {
     onError: (err: any) => message.error(err.response?.data?.message || '刪除失敗'),
   });
 
-  const confirmMutation = useMutation({
-    mutationFn: (movementNumber: string) => postApiV1QcReceiptByMovementNumberConfirm({ path: { movementNumber } }),
-    onSuccess: () => {
-      message.success('確認成功');
-      queryClient.invalidateQueries({ queryKey: ['qcReceipts'] });
-    },
-    onError: (err: any) => message.error(err.response?.data?.message || '確認失敗'),
-  });
-
-  const cancelConfirmMutation = useMutation({
-    mutationFn: (movementNumber: string) => postApiV1QcReceiptByMovementNumberCancelConfirm({ path: { movementNumber } }),
-    onSuccess: () => {
-      message.success('取消確認成功');
-      queryClient.invalidateQueries({ queryKey: ['qcReceipts'] });
-    },
-    onError: (err: any) => message.error(err.response?.data?.message || '取消確認失敗'),
-  });
-
   const handleSearch = (values: any) => {
     setParams({
       ...values,
@@ -104,11 +86,9 @@ export default function QcReceiptsList() {
     title: '操作',
     key: 'actions',
     fixed: 'left' as const,
-    width: 220,
+    width: 120,
     render: (_: any, record: any) => {
-      const isConfirmed = record.status === 'Confirmed' || record.status === 'Closed';
-      
-      
+      const isUnconfirmed = record.status === 'Unconfirmed';
       return (
         <Space>
           <Tooltip title="檢視">
@@ -119,46 +99,15 @@ export default function QcReceiptsList() {
               onClick={() => navigate(`/production-quality/qc-receipts/${record.documentNumber}`)} 
             />
           </Tooltip>
-          {!isConfirmed && (
-            <>
-              <Tooltip title="編輯">
-                <Button 
-                  type="text" 
-                  icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-                  onClick={() => navigate(`/production-quality/qc-receipts/${record.documentNumber}`)} 
-                />
-              </Tooltip>
-              <Tooltip title="刪除">
-                <Popconfirm
-                  title="確定要刪除此單據嗎？"
-                  onConfirm={() => deleteMutation.mutate(record.documentNumber)}
-                  okText="確定"
-                  cancelText="取消"
-                >
-                  <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-                </Popconfirm>
-              </Tooltip>
-              <Tooltip title="確認">
-                <Popconfirm
-                  title="確定要確認此單據嗎？"
-                  onConfirm={() => confirmMutation.mutate(record.documentNumber)}
-                  okText="確定"
-                  cancelText="取消"
-                >
-                  <Button size="small" type="primary" className="text-[12px] h-6">確認</Button>
-                </Popconfirm>
-              </Tooltip>
-            </>
-          )}
-          {record.status === 'Confirmed' && (
-            <Tooltip title="取消確認">
+          {isUnconfirmed && (
+            <Tooltip title="刪除">
               <Popconfirm
-                title="確定要取消確認嗎？"
-                onConfirm={() => cancelConfirmMutation.mutate(record.documentNumber)}
+                title="確定要刪除此單據嗎？"
+                onConfirm={() => deleteMutation.mutate(record.documentNumber)}
                 okText="確定"
                 cancelText="取消"
               >
-                <Button size="small" danger className="text-[12px] h-6">取消</Button>
+                <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
               </Popconfirm>
             </Tooltip>
           )}

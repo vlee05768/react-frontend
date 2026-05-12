@@ -1,19 +1,19 @@
 import { useState } from 'react';
-import { Button, Modal, Table, message, Card } from 'antd';
+import { Button, Modal, Table, Card } from 'antd';
 import { SearchOutlined, EyeOutlined } from '@ant-design/icons';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants/ui';
-import { getApiV1ProductionReceipt, postApiV1ProductionReceiptByMovementNumberConfirm, postApiV1ProductionReceiptByMovementNumberCancelConfirm } from '@/api/generated';
+import { getApiV1ProductionReceipt } from '@/api/generated';
 import { useProductionReceiptQueryStore } from './useProductionReceiptQueryStore';
 import { productionReceiptSearchConfig, mainTableColumns } from './ProductionReceiptConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
-import { Tooltip, Popconfirm, Space, Divider } from 'antd';
+import { Tooltip, Space, Divider } from 'antd';
 import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
 import { Form } from 'antd';
 
@@ -22,7 +22,6 @@ import { useParams } from 'react-router-dom';
 export default function ProductionReceiptsList() {
   const { id: viewId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { params, setParams } = useProductionReceiptQueryStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [searchForm] = Form.useForm();
@@ -59,24 +58,6 @@ export default function ProductionReceiptsList() {
 
   const total = (response?.data?.data as any)?.totalRecords || (response?.data as any)?.totalRecords || 0;
 
-  const confirmMutation = useMutation({
-    mutationFn: (movementNumber: string) => postApiV1ProductionReceiptByMovementNumberConfirm({ path: { movementNumber } }),
-    onSuccess: () => {
-      message.success('確認成功');
-      queryClient.invalidateQueries({ queryKey: ['productionReceipts'] });
-    },
-    onError: (err: any) => message.error(err.response?.data?.message || '確認失敗'),
-  });
-
-  const cancelConfirmMutation = useMutation({
-    mutationFn: (movementNumber: string) => postApiV1ProductionReceiptByMovementNumberCancelConfirm({ path: { movementNumber } }),
-    onSuccess: () => {
-      message.success('取消確認成功');
-      queryClient.invalidateQueries({ queryKey: ['productionReceipts'] });
-    },
-    onError: (err: any) => message.error(err.response?.data?.message || '取消確認失敗'),
-  });
-
   const handleSearch = (values: any) => {
     setParams({
       ...values,
@@ -93,10 +74,8 @@ export default function ProductionReceiptsList() {
     title: '操作',
     key: 'actions',
     fixed: 'left' as const,
-    width: 150,
+    width: 120,
     render: (_: any, record: any) => {
-      const isUnconfirmed = record.status === 'Unconfirmed';
-      const isConfirmed = record.status === 'Confirmed';
       return (
         <Space>
           <Tooltip title="檢視">
@@ -107,30 +86,6 @@ export default function ProductionReceiptsList() {
               onClick={() => navigate(`/production-quality/production-receipts/${record.documentNumber}`)} 
             />
           </Tooltip>
-          {isUnconfirmed && (
-            <Tooltip title="確認">
-              <Popconfirm
-                title="確定要確認此單據嗎？"
-                onConfirm={() => confirmMutation.mutate(record.documentNumber)}
-                okText="確定"
-                cancelText="取消"
-              >
-                <Button size="small" type="primary" className="text-[12px] h-6">確認</Button>
-              </Popconfirm>
-            </Tooltip>
-          )}
-          {isConfirmed && (
-            <Tooltip title="取消確認">
-              <Popconfirm
-                title="確定要取消確認嗎？"
-                onConfirm={() => cancelConfirmMutation.mutate(record.documentNumber)}
-                okText="確定"
-                cancelText="取消"
-              >
-                <Button size="small" danger className="text-[12px] h-6">取消</Button>
-              </Popconfirm>
-            </Tooltip>
-          )}
         </Space>
       );
     },
