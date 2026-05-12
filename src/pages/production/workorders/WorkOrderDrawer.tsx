@@ -252,20 +252,6 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
         {isPrepCompleted && (
           <>
             <ActionButton 
-              key="cancel-prepare"
-              intent="warning" 
-              icon={<SyncOutlined />} 
-              disabled={isDetailEditing}
-              onClick={(e) => { e.preventDefault(); modal.confirm({
-                title: '取消備料確認',
-                content: '確定要取消備料確認嗎？取消後將回到新單據狀態。',
-                centered: true, width: 400,
-                onOk: () => preparationCancelMut.mutateAsync({}),
-              })}}
-            >
-              取消備料確認
-            </ActionButton>
-            <ActionButton 
               key="lamination"
               intent="success" 
               icon={<CheckCircleOutlined />} 
@@ -279,11 +265,34 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
             >
               貼合確認
             </ActionButton>
+            <ActionButton 
+              key="cancel-prepare"
+              intent="warning" 
+              icon={<SyncOutlined />} 
+              disabled={isDetailEditing}
+              onClick={(e) => { e.preventDefault(); modal.confirm({
+                title: '取消備料確認',
+                content: '確定要取消備料確認嗎？取消後將回到新單據狀態。',
+                centered: true, width: 400,
+                onOk: () => preparationCancelMut.mutateAsync({}),
+              })}}
+            >
+              取消備料確認
+            </ActionButton>
           </>
         )}
 
         {isInProduction && (
           <>
+            <ActionButton 
+              key="work"
+              intent="primary" 
+              icon={<CheckCircleOutlined />} 
+              disabled={isDetailEditing}
+              onClick={(e) => { e.preventDefault(); setEditMode('work'); }}
+            >
+              生產作業
+            </ActionButton>
             <ActionButton 
               key="cancel-lamination"
               intent="warning" 
@@ -298,34 +307,11 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
             >
               取消貼合確認
             </ActionButton>
-            <ActionButton 
-              key="work"
-              intent="primary" 
-              icon={<CheckCircleOutlined />} 
-              disabled={isDetailEditing}
-              onClick={(e) => { e.preventDefault(); setEditMode('work'); }}
-            >
-              生產作業
-            </ActionButton>
           </>
         )}
 
         {isProdCompleted && (
           <>
-            <ActionButton 
-              key="cancel-production"
-              intent="warning" 
-              icon={<SyncOutlined />} 
-              disabled={isDetailEditing}
-              onClick={(e) => { e.preventDefault(); modal.confirm({
-                title: '取消生產完成',
-                content: '確定要取消生產完成確認嗎？取消後將回到貼合確認狀態。',
-                centered: true, width: 400,
-                onOk: () => productionCancelMut.mutateAsync({}),
-              })}}
-            >
-              取消生產完成
-            </ActionButton>
             <ActionButton 
               key="warehousing"
               intent="success" 
@@ -339,6 +325,20 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
               })}}
             >
               入庫完成
+            </ActionButton>
+            <ActionButton 
+              key="cancel-production"
+              intent="warning" 
+              icon={<SyncOutlined />} 
+              disabled={isDetailEditing}
+              onClick={(e) => { e.preventDefault(); modal.confirm({
+                title: '取消生產完成',
+                content: '確定要取消生產完成確認嗎？取消後將回到貼合確認狀態。',
+                centered: true, width: 400,
+                onOk: () => productionCancelMut.mutateAsync({}),
+              })}}
+            >
+              取消生產完成
             </ActionButton>
           </>
         )}
