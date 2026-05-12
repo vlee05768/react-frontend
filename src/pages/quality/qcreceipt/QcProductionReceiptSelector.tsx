@@ -130,7 +130,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
             value={val} 
             onChange={(v) => handleRowChange(record.lineNumber, 'batchQuantity', v)}
             onFocus={(e) => e.target.select()}
-            style={{ width: '100%' }}
+            style={{ width: '100%', color: 'var(--ant-color-warning)' }}
             disabled={!isSelected} // 有勾選的才能輸入
           />
         );
@@ -156,7 +156,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
             value={val} 
             onChange={(v) => handleRowChange(record.lineNumber, 'goodQuantity', v)}
             onFocus={(e) => e.target.select()}
-            style={{ width: '100%' }}
+            style={{ width: '100%', color: 'var(--ant-color-success)' }}
             disabled={!isSelected} // 有勾選的才能輸入
           />
         );
@@ -170,7 +170,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
       align: 'right' as const,
       render: (_: any, record: any) => {
         const val = editableData[record.lineNumber]?.scrapQuantity ?? record.scrapQuantity ?? 0;
-        return <span style={{ color: val > 0 ? 'var(--ant-color-error)' : 'inherit' }}>{Number(val).toLocaleString('zh-TW')}</span>;
+        return <span style={{ color: 'var(--ant-color-error)' }}>{Number(val).toLocaleString('zh-TW')}</span>;
       }
     },
     { title: '報廢倉', dataIndex: 'scrapTargetStorageCode', width: 130, align: 'center' as const, render: () => 'TW-GEN-SCRAP' },

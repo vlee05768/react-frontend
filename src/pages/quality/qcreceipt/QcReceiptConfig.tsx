@@ -89,16 +89,16 @@ export const mainFormConfig = (): FormFieldConfig[] => [
 ];
 
 export const itemTableColumns = (): TableColumnConfig[] => [
-  { label: '對應單據項次', name: 'referenceNumber', width: 150 },
-  { label: '料號', name: 'inventoryCode', width: 130 },
-  { label: '品名', name: 'inventoryName', width: 140 },
+  { label: '對應單據項次', name: 'referenceNumber', width: 180 },
+  { label: '料號', name: 'inventoryCode', width: 150 },
+  { label: '品名', name: 'inventoryName', width: 150 },
   { label: '來源儲位', name: 'sourceStorageCode', width: 120 },
   { 
     label: '本次QC量', 
     name: 'drawnQuantity', 
     width: 100, 
     align: 'right',
-    render: (val: number) => val?.toLocaleString() || '0'
+    render: (val: number) => <span style={{ color: 'var(--ant-color-warning)' }}>{val?.toLocaleString() || '0'}</span>
   },
   { label: '良品倉', name: 'goodTargetStorageCode', width: 120, render: (v: string) => v || 'TW-GEN-INV' },
   { 
@@ -106,15 +106,15 @@ export const itemTableColumns = (): TableColumnConfig[] => [
     name: 'goodQuantity', 
     width: 100, 
     align: 'right',
-    render: (val: number) => val?.toLocaleString() || '0'
+    render: (val: number) => <span style={{ color: 'var(--ant-color-success)' }}>{val?.toLocaleString() || '0'}</span>
   },
-  { label: '報廢倉', name: 'scrapTargetStorageCode', width: 120, render: (v: string) => v || 'TW-GEN-SCRAP' },
+  { label: '報廢倉', name: 'scrapTargetStorageCode', width: 130, render: (v: string) => v || 'TW-GEN-SCRAP' },
   { 
     label: '報廢量', 
     name: 'scrapQuantity', 
     width: 100, 
     align: 'right',
-    render: (val: number) => val?.toLocaleString() || '0'
+    render: (val: number) => <span style={{ color: 'var(--ant-color-error)' }}>{val?.toLocaleString() || '0'}</span>
   },
   { label: '備註', name: 'notes', width: 200, ellipsis: true },
 ];
@@ -124,10 +124,10 @@ export const itemFormConfig = (): FormFieldConfig[] => [
   { name: 'inventoryCode', label: '料號', componentType: 'Input', editable: 'never', colSpan: 2 },
   { name: 'inventoryName', label: '品名', componentType: 'Input', editable: 'never', colSpan: 2 },
   { name: 'sourceStorageCode', label: '來源儲位', componentType: 'Input', editable: 'never', colSpan: 2 },
-  { name: 'drawnQuantity', label: '本次QC量', componentType: 'InputNumber', editable: 'never', colSpan: 2 },
+  { name: 'drawnQuantity', label: '本次QC量', componentType: 'InputNumber', editable: 'never', colSpan: 2, componentProps: { style: { color: 'var(--ant-color-warning)' } } },
   { name: 'goodTargetStorageCode', label: '良品倉', componentType: 'Input', editable: 'never', colSpan: 2 },
-  { name: 'goodQuantity', label: '良品量', componentType: 'InputNumber', editable: 'never', colSpan: 2 },
+  { name: 'goodQuantity', label: '良品量', componentType: 'InputNumber', editable: 'never', colSpan: 2, componentProps: { style: { color: 'var(--ant-color-success)' } } },
   { name: 'scrapTargetStorageCode', label: '報廢倉', componentType: 'Input', editable: 'never', colSpan: 2 },
-  { name: 'scrapQuantity', label: '報廢量', componentType: 'InputNumber', editable: 'never', colSpan: 2 },
+  { name: 'scrapQuantity', label: '報廢量', componentType: 'InputNumber', editable: 'never', colSpan: 2, componentProps: { style: { color: 'var(--ant-color-error)' } } },
   { name: 'notes', label: '備註', componentType: 'TextArea', editable: 'never', colSpan: 1 },
 ];
