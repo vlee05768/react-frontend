@@ -1,3 +1,4 @@
+import { DictSelect } from '@/components/Form/DictSelect';
 
 
 export const statusOptions = [
@@ -70,7 +71,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
 ];
 
 export const mainFormConfig = (): FormFieldConfig[] => [
-  { name: 'documentNumber', label: '單據號碼', componentType: 'Input', editable: 'never', colSpan: 2 },
+  { name: 'documentNumber', label: '單據號碼', componentType: 'Input', editable: 'never', autoGenerate: true, colSpan: 2 },
   { name: 'documentDate', label: '檢驗日期', componentType: 'DatePicker', editable: 'always', colSpan: 2 },
   { 
     name: 'status', 
@@ -80,6 +81,13 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     customRender: (_field, context) => getStatusTag(context.values.status),
     colSpan: 2 
   },
-  { name: 'responsibleUserName', label: '檢驗人員', componentType: 'Input', editable: 'never', colSpan: 2 },
+  { 
+    name: 'responsibleEmployeeCode', 
+    label: '檢驗人員', 
+    componentType: 'Custom', 
+    editable: 'always', 
+    customRender: (field) => <DictSelect {...field} dictKey="EMPLOYEE" />,
+    colSpan: 2 
+  },
   { name: 'notes', label: '備註', componentType: 'TextArea', editable: 'always', componentProps: { rows: 3 }, colSpan: 1 },
 ];

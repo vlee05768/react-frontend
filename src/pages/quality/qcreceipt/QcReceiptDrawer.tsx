@@ -147,7 +147,8 @@ export default function QcReceiptDrawer() {
       width={DRAWER_WIDTH_MAIN}
       onClose={handleClose}
       open={true}
-      maskClosable={false}
+      mask={{ closable: isViewMode }}
+      keyboard={isViewMode}
       destroyOnClose
       extra={
         <Space>

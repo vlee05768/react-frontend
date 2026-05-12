@@ -108,7 +108,8 @@ export default function ProductionReceiptDrawer() {
       width={DRAWER_WIDTH_MAIN}
       open={isVisible}
       onClose={handleClose}
-      maskClosable={false}
+      mask={{ closable: true }}
+      keyboard={true}
       destroyOnClose
       extra={
         <Space>
