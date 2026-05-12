@@ -1,10 +1,14 @@
 import { useState } from 'react';
-import { Button, Table, message, Popconfirm } from 'antd';
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Button, Table, message, Popconfirm, Tooltip } from 'antd';
+import { PlusOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getApiV1QcReceiptByMovementNumberItems, deleteApiV1QcReceiptByMovementNumberItemsByReferenceNumber, postApiV1QcReceiptByMovementNumberItems } from '@/api/generated';
 import { getApiErrorMessage } from '@/utils/apiError';
 import QcProductionReceiptSelector from './QcProductionReceiptSelector';
+import { buildTableColumns } from '@/utils/tableUtils';
+import { DynamicForm } from '@/components/Form/DynamicForm';
+import { itemTableColumns, itemFormConfig } from './QcReceiptConfig';
+import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 
 interface QcReceiptItemsTabProps {
   documentNumber: string;
@@ -15,6 +19,7 @@ interface QcReceiptItemsTabProps {
 export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceiptItemsTabProps) {
   const queryClient = useQueryClient();
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['qcReceiptItems', documentNumber],
@@ -57,6 +62,8 @@ export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceip
           goodQuantity: item.goodQuantity,
           scrapQuantity: item.scrapQuantity,
           sourceStorageCode: item.targetStorageCode,
+          goodTargetStorageCode: 'TW-GEN-INV',
+          scrapTargetStorageCode: 'TW-GEN-SCRAP',
           notes: remainingQuantity !== 0 ? `待檢驗 (${remainingQuantity})` : '全部檢驗完成',
         };
         await addMutation.mutateAsync(payload);
@@ -71,38 +78,54 @@ export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceip
     {
       title: '操作',
       key: 'actions',
-      width: 60,
+      width: 80,
       align: 'center' as const,
       fixed: 'left' as const,
-      render: (_: any, record: any) => {
-        if (isLocked) return null;
-        return (
-          <Popconfirm title="確定要刪除嗎？" onConfirm={() => deleteMutation.mutate(record.referenceNumber)}>
-            <Button type="text" danger icon={<DeleteOutlined />} />
-          </Popconfirm>
-        );
-      }
+      render: (_: any, record: any) => (
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+          <Tooltip title="檢視明細">
+            <Button 
+              size="small" 
+              type="text" 
+              icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
+              onClick={() => setEditingItem(record)} 
+            />
+          </Tooltip>
+          {!isLocked && (
+            <Popconfirm title="確定要刪除嗎？" onConfirm={() => deleteMutation.mutate(record.referenceNumber)}>
+              <Button size="small" type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
+            </Popconfirm>
+          )}
+        </div>
+      )
     },
-    { title: '產品入庫單號', dataIndex: 'referenceNumber', width: 150 },
-    { title: '料號', dataIndex: 'inventoryCode', width: 130 },
-    { title: '品名', dataIndex: 'inventoryName', width: 140 },
-    { title: '來源儲位', dataIndex: 'sourceStorageCode', width: 120 },
-    { title: '本次QC量', dataIndex: 'drawnQuantity', width: 100, align: 'right' as const },
-    { title: '良品倉', dataIndex: 'goodTargetStorageCode', width: 120 },
-    { title: '良品量', dataIndex: 'goodQuantity', width: 100, align: 'right' as const },
-    { title: '報廢倉', dataIndex: 'scrapTargetStorageCode', width: 120 },
-    { title: '報廢量', dataIndex: 'scrapQuantity', width: 100, align: 'right' as const },
-    { title: '備註', dataIndex: 'notes', width: 200, ellipsis: true },
+    ...buildTableColumns(itemTableColumns())
   ];
 
-  if (isLocked && columns[0].key === 'actions') {
-    columns.shift();
+  if (editingItem) {
+    return (
+      <div className="view-mode-form">
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+          <h3 style={{ margin: 0 }}>檢視明細</h3>
+          <Button onClick={() => setEditingItem(null)}>返回清單</Button>
+        </div>
+        <DynamicForm
+          formId="qcReceiptItemForm"
+          fields={itemFormConfig() as any}
+          defaultValues={editingItem}
+          onSubmit={() => {}}
+          hideDefaultFooter
+          isViewMode={true}
+          isUpdateMode={false}
+        />
+      </div>
+    );
   }
 
   const existingReferenceNumbers = list.map((item: any) => item.referenceNumber);
 
   return (
-    <div>
+    <div className="p-4">
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
@@ -125,7 +148,7 @@ export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceip
       </div>
 
       <Table
-        columns={columns}
+        columns={columns as any}
         dataSource={list}
         rowKey="referenceNumber"
         loading={isLoading}

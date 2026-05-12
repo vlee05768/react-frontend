@@ -40,7 +40,14 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
         item.lineNumber?.toLowerCase().includes(lower)
       );
     }
-    return filtered;
+
+    // Map to include default values
+    return filtered.map((item: any) => ({
+      ...item,
+      batchQuantity: item.quantity,
+      goodQuantity: item.quantity,
+      scrapQuantity: 0
+    }));
   }, [data, excludedReferenceNumbers, keyword]);
 
   const handleRowChange = (lineNumber: string, field: string, value: any) => {
@@ -63,17 +70,15 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
       return editableData[key] || list.find((item: any) => item.lineNumber === key);
     });
     
-    // Validation
-    const invalid = selectedItems.find((item: any) => 
-      !item.batchQuantity || item.batchQuantity <= 0 || item.batchQuantity > item.quantity
-    );
-    if (invalid) {
-      // Maybe show message, but let's just let it pass or use form validation
-    }
-    
     onConfirm(selectedItems);
     setSelectedRowKeys([]);
     setEditableData({});
+  };
+
+  const handleClose = () => {
+    setSelectedRowKeys([]);
+    setEditableData({});
+    onClose();
   };
 
   const columns = [
@@ -86,7 +91,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
       dataIndex: 'batchQuantity', 
       width: 120,
       render: (_: any, record: any) => {
-        const val = editableData[record.lineNumber]?.batchQuantity ?? record.quantity;
+        const val = editableData[record.lineNumber]?.batchQuantity ?? record.batchQuantity;
         return (
           <InputNumber 
             min={1} 
@@ -103,7 +108,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
       dataIndex: 'scrapQuantity', 
       width: 120,
       render: (_: any, record: any) => {
-        const val = editableData[record.lineNumber]?.scrapQuantity ?? 0;
+        const val = editableData[record.lineNumber]?.scrapQuantity ?? record.scrapQuantity;
         return (
           <InputNumber 
             min={0} 
@@ -120,7 +125,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
       width: 100,
       align: 'right' as const,
       render: (_: any, record: any) => {
-        return editableData[record.lineNumber]?.goodQuantity ?? record.quantity;
+        return editableData[record.lineNumber]?.goodQuantity ?? record.goodQuantity;
       }
     },
   ];
@@ -129,12 +134,12 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
     <Modal
       title="挑選待QC產品"
       open={open}
-      onCancel={onClose}
+      onCancel={handleClose}
       width={MODAL_WIDTH_LARGE}
       styles={{ body: { maxHeight: MODAL_BODY_MAX_HEIGHT, overflowY: 'auto' } }}
       footer={
         <div className="flex justify-end gap-2">
-          <Button onClick={onClose}>取消</Button>
+          <Button onClick={handleClose}>取消</Button>
           <Button type="primary" disabled={selectedRowKeys.length === 0} onClick={handleConfirm}>
             確認選擇
           </Button>
