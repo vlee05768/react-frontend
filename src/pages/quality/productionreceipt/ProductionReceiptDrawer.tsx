@@ -153,11 +153,14 @@ export default function ProductionReceiptDrawer() {
 
 
   const getHeaderActions = () => {
+    if (isEditing || isCreating) return null;
     if (!formData) return null;
+
+    const currentStatus = status.toUpperCase();
 
     return (
       <Space>
-        {status === 'Unconfirmed' && (
+        {currentStatus === 'UNCONFIRMED' && (
           <ActionButton 
             key="confirm"
             intent="success" icon={<CheckCircleOutlined />} 
@@ -176,7 +179,7 @@ export default function ProductionReceiptDrawer() {
             確認單據
           </ActionButton>
         )}
-        {status === 'Confirmed' && (
+        {currentStatus === 'CONFIRMED' && (
           <ActionButton 
             key="cancel-confirm"
             intent="warning" icon={<SyncOutlined />} 
@@ -220,7 +223,8 @@ export default function ProductionReceiptDrawer() {
     
     if (!formData) return null;
     const isViewMode = !isEditing;
-    const isConfirmed = formData.status === 'Confirmed' || formData.status === 'Closed';
+    const currentStatus = (formData.status || '').toUpperCase();
+    const isConfirmed = currentStatus === 'CONFIRMED' || currentStatus === 'CLOSED';
     
     return (
       <Space>
@@ -236,16 +240,17 @@ export default function ProductionReceiptDrawer() {
 
   let steps: any[] = [];
   if (formData) {
+    const currentStatus = (formData.status || '').toUpperCase();
     steps = [
       {
         title: '準備中',
-        status: formData.status !== 'Unconfirmed' ? 'finish' : 'process',
+        status: currentStatus !== 'UNCONFIRMED' ? 'finish' : 'process',
         date: formData.createdAt,
         user: formData.createdBy,
       },
       {
         title: '入庫確認',
-        status: formData.status === 'Unconfirmed' ? 'wait' : 'finish',
+        status: currentStatus === 'UNCONFIRMED' ? 'wait' : 'finish',
         date: formData.confirmDate,
         user: formData.confirmUserName,
       }
@@ -288,9 +293,9 @@ export default function ProductionReceiptDrawer() {
           />
         )}
         <div style={{ padding: "8px 24px" }}>
-          {formData && <DocumentLifecycleBanner steps={steps} />}
+          {(!isCreating && formData) && <DocumentLifecycleBanner steps={steps} />}
           <MasterDetailTabs
-            heightOffset={formData ? 320 : 160}
+            heightOffset={(!isCreating && formData) ? 320 : 160}
           activeTab={activeTab}
           onTabChange={setActiveTab}
           isCreateMode={isCreating}
