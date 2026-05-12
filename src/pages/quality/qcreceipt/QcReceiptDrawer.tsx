@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Drawer, Space, Button, App, Spin } from 'antd';
 import { EditOutlined, SaveOutlined, CheckCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -38,6 +38,12 @@ export default function QcReceiptDrawer() {
   const [isEditing, setIsEditing] = useState(isCreating);
   const [activeTab, setActiveTab] = useState('master_info');
 
+  const hasAutoSwitchedRef = useRef(false);
+
+  useEffect(() => {
+    hasAutoSwitchedRef.current = false;
+  }, [id]);
+
   const { data, isLoading } = useQuery({
     queryKey: ['qcReceipt', id],
     queryFn: () => getApiV1QcReceiptByMovementNumber({ path: { movementNumber: id! } }),
@@ -49,6 +55,17 @@ export default function QcReceiptDrawer() {
   
   // Disable fields if it's read mode or it's confirmed
   const isViewMode = !isEditing;
+
+  useEffect(() => {
+    if (isViewMode && receiptData && !isLoading) {
+      if (!hasAutoSwitchedRef.current) {
+        if (Array.isArray(receiptData.items) && receiptData.items.length === 0) {
+          setActiveTab('items');
+        }
+        hasAutoSwitchedRef.current = true;
+      }
+    }
+  }, [isViewMode, receiptData, isLoading]);
   const isUpdateMode = isEditing && !isCreating;
   const isConfirmed = receiptData?.status === 'Confirmed' || receiptData?.status === 'Closed';
   const isFormLocked = isViewMode || isConfirmed;

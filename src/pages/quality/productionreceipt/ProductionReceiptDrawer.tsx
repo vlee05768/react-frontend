@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Spin, Drawer, Space, App, Button } from 'antd';
 import { CheckCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -36,6 +36,12 @@ export default function ProductionReceiptDrawer() {
   const [isEditing, setIsEditing] = useState(isCreating);
   const isVisible = !!id;
 
+  const hasAutoSwitchedRef = useRef(false);
+
+  useEffect(() => {
+    hasAutoSwitchedRef.current = false;
+  }, [id]);
+
   const { data: response, isLoading } = useQuery({
     queryKey: ['productionReceipt', id],
     queryFn: () => getApiV1ProductionReceiptByMovementNumber({ path: { movementNumber: id! } }),
@@ -43,6 +49,18 @@ export default function ProductionReceiptDrawer() {
   });
 
   const formData: any = response?.data?.data || response?.data;
+
+  useEffect(() => {
+    const isViewMode = !isEditing && !isCreating;
+    if (isViewMode && formData && !isLoading) {
+      if (!hasAutoSwitchedRef.current) {
+        if (Array.isArray(formData.items) && formData.items.length === 0) {
+          setActiveTab('items');
+        }
+        hasAutoSwitchedRef.current = true;
+      }
+    }
+  }, [isEditing, isCreating, formData, isLoading]);
 
   
   const createMutation = useMutation({

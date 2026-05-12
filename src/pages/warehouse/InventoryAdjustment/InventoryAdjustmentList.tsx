@@ -1,6 +1,6 @@
 import { ActionButton } from "@/components/common/ActionButton";
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ActionBar } from '@/components/common/ActionBar';
 import { DocumentLifecycleBanner } from '@/components/common/DocumentLifecycleBanner';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
@@ -58,6 +58,8 @@ export default function InventoryAdjustmentList() {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('master_info');
+  const hasAutoSwitchedRef = useRef(false);
+
 
   const { user } = useAuthStore();
   const [searchForm] = Form.useForm();
@@ -65,6 +67,7 @@ export default function InventoryAdjustmentList() {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   
+
   useEffect(() => {
     if (isCreateDrawerOpen || isDrawerEditing) {
       setTimeout(() => {
@@ -87,6 +90,21 @@ export default function InventoryAdjustmentList() {
     enabled: !!viewId,
   });
   const viewData = (viewRes?.data?.data || viewRes?.data) as any;
+
+  useEffect(() => {
+    hasAutoSwitchedRef.current = false;
+  }, [viewData?.documentNumber]);
+
+  useEffect(() => {
+    if (isViewMode && viewData) {
+      if (!hasAutoSwitchedRef.current) {
+        if (Array.isArray(viewData.items) && viewData.items.length === 0) {
+          setActiveTab('items');
+        }
+        hasAutoSwitchedRef.current = true;
+      }
+    }
+  }, [isViewMode, viewData]);
 
   // List query
   const { data, isFetching } = useQuery({

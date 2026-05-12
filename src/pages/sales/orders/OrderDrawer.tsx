@@ -40,6 +40,7 @@ export default function OrderDrawer() {
   const [activeTab, setActiveTab] = useState('master_info');
   const [isDetailEditing, setIsDetailEditing] = useState(false);
 
+
   const { data, isLoading } = useQuery({
     queryKey: ['order', id],
     queryFn: () => getApiV1OrdersByOrderNumber({ path: { orderNumber: id! } }),
@@ -52,6 +53,10 @@ export default function OrderDrawer() {
 
   const isViewMode = !isEditing && !isCreating && !isDetailEditing;
   const hasAutoSwitchedRef = useRef(false);
+
+  useEffect(() => {
+    hasAutoSwitchedRef.current = false;
+  }, [id]);
   
   useEffect(() => {
     // If we just successfully created an order, activeTab should be 'items'. We can just use the state from navigate if we passed it, but actually let's just do it directly.

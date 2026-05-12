@@ -51,6 +51,12 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
 
   const isViewMode = !isCreateMode && editMode === null;
 
+  const hasAutoSwitchedRef = React.useRef(false);
+
+  useEffect(() => {
+    hasAutoSwitchedRef.current = false;
+  }, [id]);
+
   const { data, isLoading } = useQuery({
     queryKey: ["workorder", id],
     queryFn: () => getApiV1WorkOrderByWorkOrderNumber({ path: { workOrderNumber: id! } }),
@@ -75,6 +81,17 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
       setActiveTab('master_info');
     }
   }, [isViewMode]);
+
+  useEffect(() => {
+    if (isViewMode && record && !isLoading) {
+      if (!hasAutoSwitchedRef.current) {
+        if (Array.isArray(record.items) && record.items.length === 0) {
+          setActiveTab('materials');
+        }
+        hasAutoSwitchedRef.current = true;
+      }
+    }
+  }, [isViewMode, record, isLoading]);
 
   const createMutation = useMutation({
     mutationFn: (values: any) => postApiV1WorkOrder({ body: values }),
