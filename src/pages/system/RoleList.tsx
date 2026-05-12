@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { getApiErrorMessage } from "@/utils/apiError";
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import type { InputRef } from 'antd';
 import { App } from 'antd';
 import {
@@ -19,17 +19,19 @@ import {
   Row,
   Col,
   message,
-  
   Drawer,
   Descriptions,
   Switch,
-  Divider
+  Divider,
+  Tree
 } from 'antd';
 import {
   SearchOutlined,
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
+  ArrowsAltOutlined,
+  ShrinkOutlined,
   ClearOutlined,
   SaveOutlined,
   EyeOutlined,
@@ -39,7 +41,8 @@ import {
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
-  getApiV1Role, 
+  getApiV1Role,
+  getApiV1AuthPermissionsTree, 
   getApiV1RoleById,
   postApiV1Role,
   putApiV1RoleById,
@@ -54,9 +57,9 @@ import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { mainDictionary, mainFormConfig, mainTableColumns , roleSearchFormConfig} from './RoleConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
-import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';;
+import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
-
+import type { TreeDataNode } from 'antd';
 
 export default function RoleList() {
   const { modal } = App.useApp();
@@ -71,6 +74,11 @@ export default function RoleList() {
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   
+  // Tree States
+  const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([]);
+  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
+  const [allTreeKeys, setAllTreeKeys] = useState<React.Key[]>([]);
+
   useEffect(() => {
     if (isCreateDrawerOpen || isDrawerEditing) {
       setTimeout(() => {
@@ -86,6 +94,39 @@ export default function RoleList() {
   const { viewId } = useParams<{ viewId: string }>();
   const navigate = useNavigate();
 
+  // 取得權限樹資料
+  const { data: treeRes, isFetching: isFetchingTree } = useQuery({
+    queryKey: ['permissionsTree'],
+    queryFn: () => getApiV1AuthPermissionsTree(),
+  });
+
+  const treeData = useMemo(() => {
+    const rawData = treeRes?.data || [];
+    const keys: React.Key[] = [];
+    
+    const transformToAntdTree = (nodes: any[]): TreeDataNode[] => {
+      return nodes.map(node => {
+        if (!keys.includes(node.key)) {
+          keys.push(node.key);
+        }
+        return {
+          key: node.key,
+          title: node.label || node.title || node.key,
+          children: node.children ? transformToAntdTree(node.children) : undefined
+        };
+      });
+    };
+    
+    const result = transformToAntdTree(rawData);
+    setAllTreeKeys(keys);
+    
+    // 預設全展開
+    if (keys.length > 0 && expandedKeys.length === 0) {
+      setExpandedKeys(keys);
+    }
+    return result;
+  }, [treeRes?.data]);
+
   // 單筆資料查詢 (Drawer)
   const { data: viewRes, isFetching: isFetchingView } = useQuery({
     queryKey: ['roleDetail', viewId],
@@ -94,7 +135,7 @@ export default function RoleList() {
   });
   const viewData = viewRes?.data?.data || viewRes?.data;
 
-  // 當獲取到單筆資料時，更新表單內容 (為了 View Mode 能看到資料)
+  // 當獲取到單筆資料時，更新表單內容與勾選的權限
   useEffect(() => {
     if (viewData) {
       const formattedData = { ...viewData };
@@ -104,6 +145,13 @@ export default function RoleList() {
         }
       });
       setFormDefaultValues(formattedData);
+      
+      // 更新權限樹狀態
+      if (viewData.permissions) {
+        setCheckedKeys(viewData.permissions);
+      } else {
+        setCheckedKeys([]);
+      }
     }
   }, [viewData]);
 
@@ -128,6 +176,7 @@ export default function RoleList() {
       message.success('新增成功');
       setIsCreateDrawerOpen(false);
       setFormDefaultValues({});
+      setCheckedKeys([]);
       queryClient.invalidateQueries({ queryKey: ['roleList'] });
     },
     onError: (error: any) => {
@@ -185,6 +234,7 @@ export default function RoleList() {
           }
         });
         setFormDefaultValues(formattedData);
+        setCheckedKeys(viewData.permissions || []);
       }
     } else if (isCreateDrawerOpen) {
       closeViewDrawer();
@@ -193,7 +243,7 @@ export default function RoleList() {
 
   const openCreateDrawer = () => {
     setFormDefaultValues({});
-    setFormDefaultValues({ isActive: true });
+    setCheckedKeys([]);
     setIsCreateDrawerOpen(true);
   };
 
@@ -202,10 +252,15 @@ export default function RoleList() {
   };
 
   const handleCrudSubmit = (values: any) => {
+    const payload = {
+      ...values,
+      permissions: checkedKeys
+    };
+    
     if (isCreateDrawerOpen) {
-      createMutation.mutate(values);
+      createMutation.mutate(payload);
     } else if (viewId) {
-      updateMutation.mutate({ id: viewId as any, values });
+      updateMutation.mutate({ id: viewId as any, values: payload });
     }
   };
 
@@ -253,51 +308,6 @@ export default function RoleList() {
 
   const columns = buildTableColumns(mainTableColumns(), actionColumn);
 
-  const handleSearch = (values: any) => {
-    const nextParams = { ...values };
-    roleSearchFormConfig().forEach(field => {
-      if (nextParams[field.name] === '' || nextParams[field.name] === null) {
-        nextParams[field.name] = undefined;
-      }
-    });
-    setParams({
-      ...nextParams,
-      pageNumber: 1,
-    });
-    setIsSearchModalOpen(false);
-  };
-
-  const handleSearchReset = () => {
-    searchForm.resetFields();
-    // 僅清空表單，不呼叫 resetParams()，避免自動觸發 API 查詢
-  };
-
-
-  const renderSearchTags = () => {
-    const searchKeys = [];
-    const activeFilters: React.ReactNode[] = [];
-    
-    searchKeys.forEach(key => {
-      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
-        let label = key;
-        let valueStr = String(params[key]);
-
-        activeFilters.push(<Tag color="blue" key={key} style={{ fontSize: '13px', padding: '2px 8px' }}>{label}: {valueStr}</Tag>);
-      }
-    });
-
-    if (activeFilters.length === 0) {
-      return <Tag color="default" style={{ margin: 0, fontSize: '13px', padding: '2px 8px' }}>【全部資料】</Tag>;
-    }
-    
-    return <Space size={[0, 8]} wrap>{activeFilters}</Space>;
-  };
-
-  const openSearchModal = () => {
-    searchForm.setFieldsValue(params);
-    setIsSearchModalOpen(true);
-  };
-
   return (
     <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
       <Card
@@ -322,14 +332,6 @@ export default function RoleList() {
         }
         extra={
           <Space separator={<Divider orientation="vertical" />}>
-{/* <Button 
-              type="default" 
-              icon={<SearchOutlined />} 
-              onClick={openSearchModal}
-              style={{ fontWeight: 500 }}
-            >
-              進階查詢
-            </Button> */}
             {hasPermission('System.Roles.Create') && (
               <Button 
                 type="primary" 
@@ -343,12 +345,8 @@ export default function RoleList() {
           </Space>
         }
       >
-        {/* <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
-          <span style={{ fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
-          <DynamicSearchTags config={roleSearchFormConfig()} params={params} onClose={(key) => setParams({ [key]: undefined, pageNumber: 1 })} />
-        </div> */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                    <style>{`
+          <style>{`
             .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
             .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
             .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -359,7 +357,6 @@ export default function RoleList() {
             .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
             .ant-table-thead > tr > th { text-align: center !important; }
 
-            /* View-Mode Styling for Single Form */
             .view-mode-form .ant-input-disabled,
             .view-mode-form .ant-input[disabled],
             .view-mode-form .ant-select-disabled,
@@ -380,6 +377,12 @@ export default function RoleList() {
             }
             .view-mode-form .ant-select-arrow {
                 display: none !important;
+            }
+            
+            .permissions-tree-card .ant-card-body {
+                padding: 16px;
+                height: calc(100vh - 220px);
+                overflow-y: auto;
             }
           `}</style>
           <Table
@@ -409,40 +412,6 @@ export default function RoleList() {
         </div>
       </Card>
 
-      {/* <Modal
-        title={
-          <div style={{ fontSize: '18px', fontWeight: 600, paddingBottom: '12px', borderBottom: '1px solid #f0f0f0', marginBottom: '8px' }}>
-            查詢條件設定
-          </div>
-        }
-        open={isSearchModalOpen}
-        mask={{ closable: isViewMode }}
-        keyboard={isViewMode}
-        onCancel={() => setIsSearchModalOpen(false)}
-        footer={
-          <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-            <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
-              清空重置
-            </Button>
-            <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
-              執行查詢
-            </Button>
-          </div>
-        }
-        width={MODAL_WIDTH_SEARCH}
-        style={{ top: '10vh' }}
-        styles={{
-          body: {
-            maxHeight: MODAL_BODY_MAX_HEIGHT,
-            overflowY: 'auto',
-            padding: '24px 24px 0 24px'
-          }
-        }}
-        closeIcon={true}
-      >
-        <DynamicSearchForm config={roleSearchFormConfig()} form={searchForm} onSearch={handleSearch} />
-      </Modal> */}
-
       <Drawer
         title={
           <DrawerTitle
@@ -450,7 +419,7 @@ export default function RoleList() {
             isCreate={isCreateDrawerOpen}
             isEdit={isDrawerEditing}
             record={viewData}
-            displayField={(record) => `${record.roleCode || ''} - ${record.name || ''}`.replace(/^ - | - $/g, '')}
+            displayField={(record) => `${record.name || ''} - ${record.caption || ''}`.replace(/^ - | - $/g, '')}
           />
         }
         placement="right"
@@ -459,6 +428,7 @@ export default function RoleList() {
         open={!!viewId || isCreateDrawerOpen}
         mask={{ closable: isViewMode }}
         keyboard={isViewMode}
+        bodyStyle={{ backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', padding: '24px' }}
         extra={
           <Space>
             {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('System.Roles.Update')) && (
@@ -481,16 +451,59 @@ export default function RoleList() {
           </Space>
         }
       >
-                <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
-          <DynamicForm
-            formId="roleForm"
-            fields={mainFormConfig()}
-            defaultValues={formDefaultValues}
-            onSubmit={handleCrudSubmit}
-            isUpdateMode={isDrawerEditing}
-            isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
-            hideDefaultFooter={true}
-          />
+        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+          <Row gutter={[24, 24]}>
+            <Col xs={24} md={10} lg={8}>
+              <Card title="基本資料" variant="borderless" styles={{ body: { padding: '20px' }, header: { padding: '16px 20px', borderBottom: '1px solid #f0f0f0' } }}>
+                <DynamicForm
+                  formId="roleForm"
+                  fields={mainFormConfig()}
+                  defaultValues={formDefaultValues}
+                  onSubmit={handleCrudSubmit}
+                  isUpdateMode={isDrawerEditing}
+                  isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
+                  hideDefaultFooter={true}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} md={14} lg={16}>
+              <Card 
+                title="權限設定" 
+                variant="borderless" 
+                className="permissions-tree-card"
+                styles={{ header: { padding: '16px 20px', borderBottom: '1px solid #f0f0f0' } }}
+                extra={
+                  <Space size="small">
+                    <Tooltip title="全部展開">
+                      <Button type="text" size="small" icon={<ArrowsAltOutlined />} onClick={() => setExpandedKeys(allTreeKeys)} />
+                    </Tooltip>
+                    <Divider type="vertical" />
+                    <Tooltip title="全部收合">
+                      <Button type="text" size="small" icon={<ShrinkOutlined />} onClick={() => setExpandedKeys([])} />
+                    </Tooltip>
+                  </Space>
+                }
+              >
+                <Spin spinning={isFetchingTree}>
+                  <Tree
+                    checkable
+                    disabled={isViewMode}
+                    treeData={treeData}
+                    checkedKeys={checkedKeys}
+                    expandedKeys={expandedKeys}
+                    onCheck={(checkedKeysValue) => {
+                      if (!isViewMode) {
+                        setCheckedKeys(checkedKeysValue as React.Key[]);
+                      }
+                    }}
+                    onExpand={(expandedKeysValue) => {
+                      setExpandedKeys(expandedKeysValue);
+                    }}
+                  />
+                </Spin>
+              </Card>
+            </Col>
+          </Row>
         </Spin>
       </Drawer>
     </div>
