@@ -47,8 +47,8 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
       return {
         ...item,
         unQcQuantity: unQcQty,
-        batchQuantity: unQcQty,
-        goodQuantity: unQcQty,
+        batchQuantity: unQcQty, // 1. 本次QC量預設 = 未QC量
+        goodQuantity: unQcQty,  // 預設良品全滿, 所以報廢為0
         scrapQuantity: 0
       };
     });
@@ -59,7 +59,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
       const rowData = prev[lineNumber] || list.find((item: any) => item.lineNumber === lineNumber);
       const newData = { ...rowData, [field]: value };
       
-      // Auto logic: 先輸入本次QC量後, 再輸入良品量, 自動算出報廢量
+      // Auto logic: 2. 本次QC量 - 良品量 = 報廢量
       if (field === 'batchQuantity' || field === 'goodQuantity') {
         const batch = newData.batchQuantity || 0;
         let good = newData.goodQuantity || 0;
@@ -120,13 +120,15 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
       render: (_: any, record: any) => {
         const val = editableData[record.lineNumber]?.batchQuantity ?? record.batchQuantity;
         const unQc = record.unQcQuantity || 0;
+        const isSelected = selectedRowKeys.includes(record.lineNumber);
         return (
           <InputNumber 
-            min={1} 
-            max={unQc} 
+            min={1} // 最小為1
+            max={unQc} // 最大等於未QC量
             value={val} 
             onChange={(v) => handleRowChange(record.lineNumber, 'batchQuantity', v)}
             style={{ width: '100%' }}
+            disabled={!isSelected} // 有勾選的才能輸入
           />
         );
       }
@@ -139,6 +141,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
       render: (_: any, record: any) => {
         const val = editableData[record.lineNumber]?.goodQuantity ?? record.goodQuantity;
         const batch = editableData[record.lineNumber]?.batchQuantity ?? record.batchQuantity;
+        const isSelected = selectedRowKeys.includes(record.lineNumber);
         return (
           <InputNumber 
             min={0} 
@@ -146,6 +149,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
             value={val} 
             onChange={(v) => handleRowChange(record.lineNumber, 'goodQuantity', v)}
             style={{ width: '100%' }}
+            disabled={!isSelected} // 有勾選的才能輸入
           />
         );
       }
@@ -196,7 +200,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
         rowKey="lineNumber"
         loading={isLoading}
         pagination={false}
-        scroll={{ x: 'max-content', y: 400 }}
+        scroll={{ x: 1300, y: 400 }} // 3. 欄位總和太長要有水平捲軸 (設定 x 寬度)
         size="small"
       />
     </Modal>
