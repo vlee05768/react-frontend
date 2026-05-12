@@ -453,7 +453,7 @@ export default function RoleList() {
       >
         <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
           <Row gutter={[24, 24]}>
-            <Col xs={24} md={10} lg={8}>
+            <Col xs={24} md={14} lg={16}>
               <Card title="基本資料" variant="borderless" styles={{ body: { padding: '20px' }, header: { padding: '16px 20px', borderBottom: '1px solid #f0f0f0' } }}>
                 <DynamicForm
                   formId="roleForm"
@@ -466,7 +466,7 @@ export default function RoleList() {
                 />
               </Card>
             </Col>
-            <Col xs={24} md={14} lg={16}>
+            <Col xs={24} md={10} lg={8}>
               <Card 
                 title="權限設定" 
                 variant="borderless" 
