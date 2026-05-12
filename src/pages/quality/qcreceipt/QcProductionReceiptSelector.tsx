@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Modal, Table, Button, Form, Input, InputNumber } from 'antd';
+import { Modal, Table, Button, Form, Input, InputNumber, Tag } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { getApiV1QcReceiptUnprocessedProductionReceipts } from '@/api/generated';
 import { MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_LARGE } from '@/constants/ui';
@@ -42,12 +42,16 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
     }
 
     // Map to include default values
-    return filtered.map((item: any) => ({
-      ...item,
-      batchQuantity: item.quantity,
-      goodQuantity: item.quantity,
-      scrapQuantity: 0
-    }));
+    return filtered.map((item: any) => {
+      const unQcQty = (item.quantity || 0) - (item.reversalQuantity || 0);
+      return {
+        ...item,
+        unQcQuantity: unQcQty,
+        batchQuantity: unQcQty,
+        goodQuantity: unQcQty,
+        scrapQuantity: 0
+      };
+    });
   }, [data, excludedReferenceNumbers, keyword]);
 
   const handleRowChange = (lineNumber: string, field: string, value: any) => {
@@ -55,12 +59,20 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
       const rowData = prev[lineNumber] || list.find((item: any) => item.lineNumber === lineNumber);
       const newData = { ...rowData, [field]: value };
       
-      // Auto logic
-      if (field === 'batchQuantity' || field === 'scrapQuantity') {
+      // Auto logic: 先輸入本次QC量後, 再輸入良品量, 自動算出報廢量
+      if (field === 'batchQuantity' || field === 'goodQuantity') {
         const batch = newData.batchQuantity || 0;
-        const scrap = newData.scrapQuantity || 0;
-        newData.goodQuantity = Math.max(0, batch - scrap);
+        let good = newData.goodQuantity || 0;
+        
+        // Prevent goodQuantity from exceeding batchQuantity
+        if (good > batch) {
+          good = batch;
+          newData.goodQuantity = good;
+        }
+
+        newData.scrapQuantity = Math.max(0, batch - good);
       }
+
       return { ...prev, [lineNumber]: newData };
     });
   };
@@ -82,39 +94,39 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
   };
 
   const columns = [
-    { title: '產品入庫單號', dataIndex: 'lineNumber', width: 150 },
+    { title: '對應單據項次', dataIndex: 'lineNumber', width: 150 },
     { title: '料號', dataIndex: 'inventoryCode', width: 130 },
-    { title: '品名', dataIndex: 'inventoryName', width: 150 },
-    { title: '待檢驗數量', dataIndex: 'quantity', width: 100, align: 'right' as const },
+    { title: '品名', dataIndex: 'inventoryName', width: 150, ellipsis: true },
+    { title: '所在儲位', dataIndex: 'targetStorageCode', width: 100, align: 'center' as const, render: (v: string) => v ? <Tag color="blue" className="m-0">{v}</Tag> : '-' },
     { 
-      title: '本次檢驗量', 
+      title: '原始入庫量', 
+      dataIndex: 'quantity', 
+      width: 100, 
+      align: 'right' as const,
+      render: (val: number) => val != null ? Number(val).toLocaleString('zh-TW') : '0'
+    },
+    { 
+      title: '未QC量', 
+      dataIndex: 'unQcQuantity', 
+      width: 100, 
+      align: 'right' as const,
+      render: (val: number) => val != null ? Number(val).toLocaleString('zh-TW') : '0'
+    },
+    { 
+      title: '本次QC量', 
       dataIndex: 'batchQuantity', 
       width: 120,
+      align: 'center' as const,
       render: (_: any, record: any) => {
         const val = editableData[record.lineNumber]?.batchQuantity ?? record.batchQuantity;
+        const unQc = record.unQcQuantity || 0;
         return (
           <InputNumber 
             min={1} 
-            max={record.quantity} 
+            max={unQc} 
             value={val} 
             onChange={(v) => handleRowChange(record.lineNumber, 'batchQuantity', v)}
-            className="w-full"
-          />
-        );
-      }
-    },
-    { 
-      title: '報廢量', 
-      dataIndex: 'scrapQuantity', 
-      width: 120,
-      render: (_: any, record: any) => {
-        const val = editableData[record.lineNumber]?.scrapQuantity ?? record.scrapQuantity;
-        return (
-          <InputNumber 
-            min={0} 
-            value={val} 
-            onChange={(v) => handleRowChange(record.lineNumber, 'scrapQuantity', v)}
-            className="w-full"
+            style={{ width: '100%' }}
           />
         );
       }
@@ -122,12 +134,34 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
     { 
       title: '良品量', 
       dataIndex: 'goodQuantity', 
+      width: 120,
+      align: 'center' as const,
+      render: (_: any, record: any) => {
+        const val = editableData[record.lineNumber]?.goodQuantity ?? record.goodQuantity;
+        const batch = editableData[record.lineNumber]?.batchQuantity ?? record.batchQuantity;
+        return (
+          <InputNumber 
+            min={0} 
+            max={batch}
+            value={val} 
+            onChange={(v) => handleRowChange(record.lineNumber, 'goodQuantity', v)}
+            style={{ width: '100%' }}
+          />
+        );
+      }
+    },
+    { title: '良品倉', dataIndex: 'goodTargetStorageCode', width: 100, align: 'center' as const, render: () => 'TW-GEN-INV' },
+    { 
+      title: '報廢量', 
+      dataIndex: 'scrapQuantity', 
       width: 100,
       align: 'right' as const,
       render: (_: any, record: any) => {
-        return editableData[record.lineNumber]?.goodQuantity ?? record.goodQuantity;
+        const val = editableData[record.lineNumber]?.scrapQuantity ?? record.scrapQuantity ?? 0;
+        return <span style={{ color: val > 0 ? 'var(--ant-color-error)' : 'inherit' }}>{Number(val).toLocaleString('zh-TW')}</span>;
       }
     },
+    { title: '報廢倉', dataIndex: 'scrapTargetStorageCode', width: 100, align: 'center' as const, render: () => 'TW-GEN-SCRAP' },
   ];
 
   return (
@@ -141,7 +175,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
         <div className="flex justify-end gap-2">
           <Button onClick={handleClose}>取消</Button>
           <Button type="primary" disabled={selectedRowKeys.length === 0} onClick={handleConfirm}>
-            確認選擇
+            確認選擇 ({selectedRowKeys.length})
           </Button>
         </div>
       }
@@ -162,7 +196,8 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
         rowKey="lineNumber"
         loading={isLoading}
         pagination={false}
-        scroll={{ y: 400 }}
+        scroll={{ x: 'max-content', y: 400 }}
+        size="small"
       />
     </Modal>
   );
