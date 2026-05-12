@@ -22,7 +22,7 @@ import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import { useAuthStore } from '@/stores/useAuthStore';
 import type { OrderDto, CreateOrderDto, UpdateOrderDto } from '@/api/generated/types.gen';
 import { DRAWER_WIDTH_MAIN } from '@/constants/ui';
-import { getFormConfig } from './OrderConfig';
+import { getFormConfig, getStatusTag } from './OrderConfig';
 import OrderItemsTab from './OrderItemsTab';
 
 import { getApiErrorMessage } from '@/utils/apiError';
@@ -376,6 +376,7 @@ export default function OrderDrawer() {
           isEdit={isEditing}
           record={orderData}
           displayField={(r: OrderDto) => r?.orderNumber ? `${r.orderNumber}` : ''}
+          statusTag={(!isCreating && orderData) ? getStatusTag(orderData.status) : undefined}
         />
       }
       open={true}

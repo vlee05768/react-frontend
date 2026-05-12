@@ -27,7 +27,7 @@ import { DynamicForm } from '@/components/Form/DynamicForm';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
-import { mainFormConfig, mainTableColumns, mainSearchFormConfig } from './InventoryAdjustmentConfig';
+import { mainSearchFormConfig, mainFormConfig, mainTableColumns, getStatusTag } from './InventoryAdjustmentConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 import dayjs from 'dayjs';
@@ -498,6 +498,7 @@ export default function InventoryAdjustmentList() {
             isEdit={isDrawerEditing}
             record={viewData}
             displayField={(r) => r?.documentDate ? dayjs(r.documentDate).format("YYYY-MM-DD") : ""}
+            statusTag={(!isCreateDrawerOpen && viewData) ? getStatusTag(viewData.status) : undefined}
           />
         }
         size={DRAWER_WIDTH_MAIN as any}

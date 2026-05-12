@@ -23,7 +23,7 @@ import {
 } from '@/api/generated';
 
 import ProductionReceiptItemsTab from './ProductionReceiptItemsTab';
-import { mainFormConfig } from './ProductionReceiptConfig';
+import { getStatusTag, mainFormConfig } from './ProductionReceiptConfig';
 
 export default function ProductionReceiptDrawer() {
   const navigate = useNavigate();
@@ -276,6 +276,7 @@ export default function ProductionReceiptDrawer() {
           isEdit={false}
           record={{ documentNumber: id }}
           displayField="documentNumber"
+          statusTag={formData ? getStatusTag(formData.status, formData.confirmDate, formData.closeDate) : undefined}
         />
       }
       placement="right"
