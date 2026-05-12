@@ -67,7 +67,8 @@ export default function QcReceiptDrawer() {
     }
   }, [isViewMode, receiptData, isLoading]);
   const isUpdateMode = isEditing && !isCreating;
-  const isConfirmed = receiptData?.status === 'Confirmed' || receiptData?.status === 'Closed';
+  const currentStatus = (receiptData?.status || "").toUpperCase();
+  const isConfirmed = currentStatus === 'CONFIRMED' || currentStatus === 'CLOSED';
   const isFormLocked = isViewMode || isConfirmed;
 
   const defaultValues = useMemo(() => {
@@ -233,16 +234,17 @@ export default function QcReceiptDrawer() {
 
   let steps: any[] = [];
   if (receiptData) {
+    const _status = (receiptData.status || "").toUpperCase();
     steps = [
       {
         title: '準備中',
-        status: receiptData.status !== 'Unconfirmed' ? 'finish' : 'process',
+        status: _status !== 'UNCONFIRMED' ? 'finish' : 'process',
         date: receiptData.createdAt,
         user: receiptData.createdBy,
       },
       {
         title: '檢驗確認',
-        status: receiptData.status === 'Unconfirmed' ? 'wait' : 'finish',
+        status: _status === 'UNCONFIRMED' ? 'wait' : 'finish',
         date: receiptData.confirmDate,
         user: receiptData.confirmUserName,
       }

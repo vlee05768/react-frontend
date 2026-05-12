@@ -3,17 +3,7 @@ import { DictSelect } from '@/components/Form/DictSelect';
 
 
 
-export const getStatusTagProps = (status: string) => {
-  switch (status) {
-    case 'Confirmed':
-      return { color: 'success', text: '已確認' };
-    case 'Closed':
-      return { color: 'default', text: '已結案' };
-    case 'Unconfirmed':
-    default:
-      return { color: 'warning', text: '待確認' };
-  }
-};
+
 
 export const qcReceiptSearchConfig = (): any[] => [
   {
@@ -35,9 +25,20 @@ import { Tag } from 'antd';
 import dayjs from 'dayjs';
 
 
-export const getStatusTag = (status: string) => {
-  const props = getStatusTagProps(status);
-  return <Tag color={props.color}>{props.text}</Tag>;
+import { SyncOutlined, CheckCircleOutlined, LockOutlined } from "@ant-design/icons";
+
+export const getStatusTag = (status: string | null | undefined) => {
+  if (!status) return <Tag color="default">未確認</Tag>;
+  switch (status.toUpperCase()) {
+    case "UNCONFIRMED":
+      return <Tag color="warning" icon={<SyncOutlined />}>未確認</Tag>;
+    case "CONFIRMED":
+      return <Tag color="success" icon={<CheckCircleOutlined />}>已確認</Tag>;
+    case "CLOSED":
+      return <Tag color="processing" icon={<LockOutlined />}>已結案</Tag>;
+    default:
+      return <Tag>{status}</Tag>;
+  }
 };
 
 export const mainTableColumns = (): TableColumnConfig[] => [
