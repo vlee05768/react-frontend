@@ -47,6 +47,13 @@ export default function App() {
             colorBgContainerDisabled: mode === 'dark' ? '#303030' : '#f0f0f0',
           },
           components: {
+
+            Menu: {
+              fontSize: 16,
+              itemHeight: 48,
+              iconSize: 18,
+              collapsedIconSize: 20,
+            },
             Button: {
               // 讓所有 disabled 按鈕的背景變成明顯的灰色，文字也調整為對應的深灰色
               colorBgContainerDisabled: mode === 'dark' ? '#434343' : '#cccccc',
