@@ -7,7 +7,7 @@ import {
 } from 'antd';
 import {
   SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, EyeOutlined, CheckCircleOutlined, SyncOutlined
-} from '@ant-design/icons';
+, ClearOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   getApiV1InventoryAdjustment, 
@@ -225,6 +225,10 @@ export default function InventoryAdjustmentList() {
     setIsSearchModalOpen(false);
   };
 
+  const handleSearchReset = () => {
+    searchForm.resetFields();
+  };
+
   const handleCreateSubmit = (values: any) => {
     const payload = {
       ...values,
@@ -311,13 +315,21 @@ export default function InventoryAdjustmentList() {
       </Card>
 
       <Modal
-        title="進階查詢"
+        title={
+          <div style={{ fontSize: '18px', fontWeight: 600, paddingBottom: '12px', borderBottom: '1px solid #f0f0f0', marginBottom: '8px' }}>
+            查詢條件設定
+          </div>
+        }
         open={isSearchModalOpen}
         onCancel={() => setIsSearchModalOpen(false)}
         footer={
-          <div style={{ textAlign: 'right' }}>
-            <Button onClick={() => searchForm.resetFields()}>重設</Button>
-            <Button type="primary" onClick={() => searchForm.submit()}>查詢</Button>
+          <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+            <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
+              清空重置
+            </Button>
+            <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
+              執行查詢
+            </Button>
           </div>
         }
         width={MODAL_WIDTH_SEARCH}
@@ -329,6 +341,7 @@ export default function InventoryAdjustmentList() {
             padding: '24px 24px 0 24px'
           }
         }}
+        closeIcon={true}
       >
         <DynamicSearchForm 
           config={mainSearchFormConfig()} 

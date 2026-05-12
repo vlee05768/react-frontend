@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button, Modal, Table, message, Card } from 'antd';
-import { SearchOutlined, PlusOutlined, EyeOutlined, DeleteOutlined } from '@ant-design/icons';
+import { SearchOutlined, PlusOutlined, EyeOutlined, DeleteOutlined , ClearOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
@@ -79,6 +79,10 @@ export default function QcReceiptsList() {
       pageNumber: 1,
     });
     setIsSearchModalOpen(false);
+  };
+
+  const handleSearchReset = () => {
+    searchForm.resetFields();
   };
 
   const handleClearTag = (key: string) => {
@@ -192,17 +196,33 @@ export default function QcReceiptsList() {
       </Card>
 
       <Modal
-        title="查詢條件"
-        open={isSearchModalOpen}
-        onCancel={() => setIsSearchModalOpen(false)}
-        width={MODAL_WIDTH_SEARCH}
-        styles={{ body: { maxHeight: MODAL_BODY_MAX_HEIGHT, overflowY: 'auto' } }}
-        footer={
-          <div className="flex justify-end gap-2">
-            <Button onClick={() => searchForm.resetFields()}>重設</Button>
-            <Button type="primary" onClick={() => searchForm.submit()}>查詢</Button>
+        title={
+          <div style={{ fontSize: '18px', fontWeight: 600, paddingBottom: '12px', borderBottom: '1px solid #f0f0f0', marginBottom: '8px' }}>
+            查詢條件設定
           </div>
         }
+        open={isSearchModalOpen}
+        onCancel={() => setIsSearchModalOpen(false)}
+        footer={
+          <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+            <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
+              清空重置
+            </Button>
+            <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
+              執行查詢
+            </Button>
+          </div>
+        }
+        width={MODAL_WIDTH_SEARCH}
+        style={{ top: '10vh' }}
+        styles={{
+          body: {
+            maxHeight: MODAL_BODY_MAX_HEIGHT,
+            overflowY: 'auto',
+            padding: '24px 24px 0 24px'
+          }
+        }}
+        closeIcon={true}
       >
         <DynamicSearchForm
           config={qcReceiptSearchConfig()}
