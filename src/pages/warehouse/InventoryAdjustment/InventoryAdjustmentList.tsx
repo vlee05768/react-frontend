@@ -289,11 +289,6 @@ export default function InventoryAdjustmentList() {
             .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
             .ant-table-thead > tr > th { text-align: center !important; }
           `}</style>
-          <style>{`
-            .selected-table-row > td {
-              background-color: #e6f4ff !important;
-            }
-          `}</style>
           <Table
             bordered
             rowClassName={(record: any) => record.documentNumber === viewId ? 'selected-table-row' : ''}
