@@ -24,6 +24,9 @@ import { useNavigate } from "react-router-dom";
 import { formConfig } from "./WorkOrderConfig";
 import { DRAWER_WIDTH_MAIN } from "@/constants";
 import { DrawerTitle } from "@/components/Form/DrawerTitle";
+import { DocumentLifecycleBanner } from "@/components/common/DocumentLifecycleBanner";
+import type { LifecycleStep } from "@/components/common/DocumentLifecycleBanner";
+import { ActionBar } from "@/components/common/ActionBar";
 import { WorkOrderItemsTab } from "./WorkOrderItemsTab";
 
 interface WorkOrderDrawerProps {
@@ -221,60 +224,21 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
     "取消入庫完成成功"
   );
 
-  const getExtraActions = () => {
-    if (isCreateMode || isEditing) {
-      const submitText = editMode === 'prepare' ? '備料完成確認' : editMode === 'work' ? '生產完成確認' : '儲存';
-      return (
-        <Space>
-          <Button type="primary" htmlType="submit" form="workOrderForm" loading={createMutation.isPending || updateMutation.isPending || preparationConfirmMut.isPending || productionCompleteMut.isPending}>
-            {submitText}
-          </Button>
-          <Button onClick={handleCancel}>取消</Button>
-        </Space>
-      );
-    }
+  
+  const isDraft = record && !record.preparationConfirmDate;
+  const isPrepCompleted = record && !!record.preparationConfirmDate && !record.laminationConfirmDate;
+  const isInProduction = record && !!record.laminationConfirmDate && !record.productionCompleteDate;
+  const isProdCompleted = record && !!record.productionCompleteDate && !record.warehousingCompleteDate;
+  const isWarehousingCompleted = record && !!record.warehousingCompleteDate;
 
+  const getHeaderActions = () => {
+    if (isCreateMode || isEditing) return null;
     if (!record) return null;
-
-    const isDraft = !record.preparationConfirmDate;
-    const isPrepCompleted = !!record.preparationConfirmDate && !record.laminationConfirmDate;
-    const isInProduction = !!record.laminationConfirmDate && !record.productionCompleteDate;
-    const isProdCompleted = !!record.productionCompleteDate && !record.warehousingCompleteDate;
-    const isWarehousingCompleted = !!record.warehousingCompleteDate;
 
     return (
       <Space>
-        {isDraft && (
-          <>
-            <ActionButton 
-              intent="primary" 
-              icon={<CheckCircleOutlined />} 
-              disabled={isDetailEditing}
-              onClick={() => setEditMode('prepare')}
-            >
-              備料作業
-            </ActionButton>
-            <Button type="primary" onClick={() => setEditMode('update')} disabled={isDetailEditing}>
-              編輯主檔
-            </Button>
-          </>
-        )}
-
         {isPrepCompleted && (
           <>
-            <ActionButton 
-              intent="success" 
-              icon={<CheckCircleOutlined />} 
-              disabled={isDetailEditing}
-              onClick={() => modal.confirm({
-                title: '貼合確認',
-                content: '確定要確認貼合程序嗎？確認後可以開始生產。',
-                centered: true, width: 400,
-                onOk: () => laminationConfirmMut.mutateAsync({}),
-              })}
-            >
-              貼合確認
-            </ActionButton>
             <ActionButton 
               intent="warning" 
               icon={<SyncOutlined />} 
@@ -294,14 +258,6 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
         {isInProduction && (
           <>
             <ActionButton 
-              intent="primary" 
-              icon={<CheckCircleOutlined />} 
-              disabled={isDetailEditing}
-              onClick={() => setEditMode('work')}
-            >
-              生產作業
-            </ActionButton>
-            <ActionButton 
               intent="warning" 
               icon={<SyncOutlined />} 
               disabled={isDetailEditing}
@@ -319,19 +275,6 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
 
         {isProdCompleted && (
           <>
-            <ActionButton 
-              intent="success" 
-              icon={<LockOutlined />} 
-              disabled={isDetailEditing}
-              onClick={() => modal.confirm({
-                title: '入庫完成',
-                content: '確定要確認入庫完成嗎？確認後製令將完成所有流程。',
-                centered: true, width: 400,
-                onOk: () => warehousingCompleteMut.mutateAsync({}),
-              })}
-            >
-              入庫完成
-            </ActionButton>
             <ActionButton 
               intent="warning" 
               icon={<SyncOutlined />} 
@@ -369,6 +312,86 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
     );
   };
 
+  const getActionBarActions = () => {
+    if (isCreateMode || isEditing) {
+      const submitText = editMode === 'prepare' ? '備料完成確認' : editMode === 'work' ? '生產完成確認' : '儲存';
+      return (
+        <Space>
+          <Button type="primary" htmlType="submit" form="workOrderForm" loading={createMutation.isPending || updateMutation.isPending || preparationConfirmMut.isPending || productionCompleteMut.isPending}>
+            {submitText}
+          </Button>
+          <Button onClick={handleCancel}>取消</Button>
+        </Space>
+      );
+    }
+
+    if (!record) return null;
+
+    return (
+      <Space>
+        {isDraft && (
+          <>
+            <ActionButton 
+              intent="primary" 
+              icon={<CheckCircleOutlined />} 
+              disabled={isDetailEditing}
+              onClick={() => setEditMode('prepare')}
+            >
+              備料作業
+            </ActionButton>
+            <Button type="primary" onClick={() => setEditMode('update')} disabled={isDetailEditing}>
+              編輯
+            </Button>
+          </>
+        )}
+
+        {isPrepCompleted && (
+          <ActionButton 
+            intent="success" 
+            icon={<CheckCircleOutlined />} 
+            disabled={isDetailEditing}
+            onClick={() => modal.confirm({
+              title: '貼合確認',
+              content: '確定要確認貼合程序嗎？確認後可以開始生產。',
+              centered: true, width: 400,
+              onOk: () => laminationConfirmMut.mutateAsync({}),
+            })}
+          >
+            貼合確認
+          </ActionButton>
+        )}
+
+        {isInProduction && (
+          <ActionButton 
+            intent="primary" 
+            icon={<CheckCircleOutlined />} 
+            disabled={isDetailEditing}
+            onClick={() => setEditMode('work')}
+          >
+            生產作業
+          </ActionButton>
+        )}
+
+        {isProdCompleted && (
+          <ActionButton 
+            intent="success" 
+            icon={<LockOutlined />} 
+            disabled={isDetailEditing}
+            onClick={() => modal.confirm({
+              title: '入庫完成',
+              content: '確定要確認入庫完成嗎？確認後製令將完成所有流程。',
+              centered: true, width: 400,
+              onOk: () => warehousingCompleteMut.mutateAsync({}),
+            })}
+          >
+            入庫完成
+          </ActionButton>
+        )}
+      </Space>
+    );
+  };
+
+
   const masterForm = (
     <DynamicForm
       formId="workOrderForm"
@@ -381,21 +404,96 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
     />
   );
 
+
+  let statusText = "準備中";
+  let statusColor = "bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
+  if (record) {
+    if (isWarehousingCompleted) {
+      statusText = "完工入庫";
+      statusColor = "bg-green-50 text-green-600 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800";
+    } else if (isProdCompleted) {
+      statusText = "生產完工";
+      statusColor = "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800";
+    } else if (isInProduction) {
+      statusText = "貼合確認中";
+      statusColor = "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800";
+    } else if (isPrepCompleted) {
+      statusText = "備料確認";
+      statusColor = "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800";
+    }
+  }
+  const statusTag = record ? <span className={`px-2 py-0.5 text-xs border rounded transition-colors ${statusColor}`}>{statusText}</span> : undefined;
+
+  let steps: LifecycleStep[] = [];
+  if (record) {
+    steps = [
+      {
+        title: '準備中',
+        status: record.preparationConfirmDate ? 'finish' : 'process',
+        date: record.createdAt,
+        user: record.createdBy,
+      },
+      {
+        title: '備料確認',
+        status: !record.preparationConfirmDate ? 'wait' : (record.laminationConfirmDate ? 'finish' : 'process'),
+        date: record.preparationConfirmDate,
+        user: record.preparationConfirmUser,
+      },
+      {
+        title: '貼合確認',
+        status: !record.laminationConfirmDate ? 'wait' : (record.productionCompleteDate ? 'finish' : 'process'),
+        date: record.laminationConfirmDate,
+        user: record.laminationConfirmUser,
+      },
+      {
+        title: '生產完工',
+        status: !record.productionCompleteDate ? 'wait' : (record.warehousingCompleteDate ? 'finish' : 'process'),
+        date: record.productionCompleteDate,
+        user: record.productionCompleteUser,
+      },
+      {
+        title: '完工入庫',
+        status: !record.warehousingCompleteDate ? 'wait' : 'finish',
+        date: record.warehousingCompleteDate,
+        user: record.warehousingCompleteUser,
+      }
+    ];
+  }
+
+  const drawerStyles = {
+    body: { padding: 0 } // Remove body padding to make action bar edge-to-edge
+  };
+
   return (
     <Drawer
-      title={<DrawerTitle moduleName="製令" isCreate={isCreateMode} isEdit={isEditing} record={record} displayField={(r) => r?.workOrderNumber || ''} />}
+      styles={drawerStyles}
+      title={<DrawerTitle moduleName="製令" isCreate={isCreateMode} isEdit={isEditing} record={record} displayField={(r) => r?.workOrderNumber || ''} statusTag={statusTag} />}
+      extra={getHeaderActions()}
       open={true}
       onClose={() => {
         if (onClose) onClose();
         navigate('/production/workorders');
       }}
       size={DRAWER_WIDTH_MAIN as any}
-      extra={getExtraActions()}
+      
       mask={{ closable: isViewMode }}
       keyboard={isViewMode}
     >
+
       <Spin spinning={isLoading}>
-        <MasterDetailTabs
+        {!isCreateMode && record && (
+          <ActionBar 
+            createdBy={record.createdBy}
+            createdAt={record.createdAt}
+            updatedBy={record.updatedBy}
+            updatedAt={record.updatedAt}
+            actions={getActionBarActions()}
+          />
+        )}
+        <div style={{ padding: 24 }}>
+          {!isCreateMode && record && <DocumentLifecycleBanner steps={steps} />}
+          <MasterDetailTabs
+          heightOffset={!isCreateMode && record ? 360 : 180}
           viewId={id}
           entityType="WorkOrder"
           isCreateMode={isCreateMode}
@@ -422,6 +520,7 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
             }
           ]}
         />
+        </div>
       </Spin>
     </Drawer>
   );};

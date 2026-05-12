@@ -13,6 +13,7 @@ export interface MasterDetailTabsProps {
   entityType?: string; // e.g. "Material", "BusinessPartner"
   showAttachments?: boolean; // 新增控制是否顯示附件管理的屬性
   disableTabSwitching?: boolean; // 是否全面停用分頁切換
+  heightOffset?: number; // 控制內部高度的偏移量，預設 180
   detailTabs?: {
     key: string;
     label: string;
@@ -31,6 +32,7 @@ export const MasterDetailTabs: React.FC<MasterDetailTabsProps> = ({
   entityType,
   showAttachments = false,
   disableTabSwitching = false,
+  heightOffset = 180,
   detailTabs = [],
 }) => {
   const isViewMode = !isCreateMode && !isEditMode;
@@ -50,7 +52,7 @@ export const MasterDetailTabs: React.FC<MasterDetailTabsProps> = ({
       forceRender: true,
       disabled: disableTabSwitching,
       children: (
-        <div style={{ height: "calc(100vh - 180px)", overflowY: "auto", overflowX: "hidden", paddingRight: "8px", margin: "0 -8px 0 0" }}>
+        <div style={{ height: `calc(100vh - ${heightOffset}px)`, overflowY: "auto", overflowX: "hidden", paddingRight: "8px", margin: "0 -8px 0 0" }}>
           {masterContent}
         </div>
       ),
