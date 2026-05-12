@@ -25,20 +25,22 @@ import { Tag } from 'antd';
 import dayjs from 'dayjs';
 
 
-import { SyncOutlined, CheckCircleOutlined, LockOutlined } from "@ant-design/icons";
+export const getStatusTagProps = (status: string) => {
+  if (!status) return { color: "warning", text: "待確認" };
+  switch (status.toUpperCase()) {
+    case "CONFIRMED":
+      return { color: "success", text: "已確認" };
+    case "CLOSED":
+      return { color: "default", text: "已結案" };
+    case "UNCONFIRMED":
+    default:
+      return { color: "warning", text: "待確認" };
+  }
+};
 
 export const getStatusTag = (status: string | null | undefined) => {
-  if (!status) return <Tag color="default">未確認</Tag>;
-  switch (status.toUpperCase()) {
-    case "UNCONFIRMED":
-      return <Tag color="warning" icon={<SyncOutlined />}>未確認</Tag>;
-    case "CONFIRMED":
-      return <Tag color="success" icon={<CheckCircleOutlined />}>已確認</Tag>;
-    case "CLOSED":
-      return <Tag color="processing" icon={<LockOutlined />}>已結案</Tag>;
-    default:
-      return <Tag>{status}</Tag>;
-  }
+  const props = getStatusTagProps(status || "");
+  return <Tag color={props.color}>{props.text}</Tag>;
 };
 
 export const mainTableColumns = (): TableColumnConfig[] => [
