@@ -24,7 +24,7 @@ import {
   postApiV1QcReceiptByMovementNumberCancelConfirm
 } from '@/api/generated';
 
-import { mainFormConfig } from './QcReceiptConfig';
+import { mainFormConfig, getStatusTag } from './QcReceiptConfig';
 import QcReceiptItemsTab from './QcReceiptItemsTab';
 
 export default function QcReceiptDrawer() {
@@ -272,6 +272,7 @@ export default function QcReceiptDrawer() {
           isEdit={isEditing}
           record={{ documentNumber: id }}
           displayField="documentNumber"
+          statusTag={!isCreating && receiptData ? getStatusTag(receiptData.status, receiptData.confirmDate, receiptData.closeDate) : undefined}
         />
       }
       placement="right"
