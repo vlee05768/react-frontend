@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './router';
 import { useThemeStore } from './stores/useThemeStore';
+import { useEffect } from 'react';
 
 // 建立 React Query Client，統一全域快取設定
 const queryClient = new QueryClient({
@@ -21,6 +22,15 @@ export default function App() {
   const { mode } = useThemeStore();
   const requestCount = useLoadingStore((state) => state.requestCount);
   const loadingMessage = useLoadingStore((state) => state.loadingMessage);
+
+  useEffect(() => {
+    if (mode === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [mode]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ConfigProvider

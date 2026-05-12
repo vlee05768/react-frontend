@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   /* 由 AntD 和 Tailwind 動態控制背景與字體顏色，移除全域寫死 */
 }
