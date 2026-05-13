@@ -250,7 +250,7 @@ export default function MaterialList() {
               進階查詢
             </Button>
             {hasPermission('Warehouse.Materials.Create') && (
-              <Button type="primary" icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={openCreateDrawer} className="font-medium">
+              <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer} className="font-medium">
                 新增資料
               </Button>
             )}

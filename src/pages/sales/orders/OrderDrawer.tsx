@@ -394,7 +394,7 @@ export default function OrderDrawer() {
             updatedAt={orderData?.updatedAt || undefined}
             actions={getActionBarActions()}
           />
-        <div className="p-[8px 24px]">
+        <div className="p-[8px_24px]">
           {!isCreating && orderData && <DocumentLifecycleBanner steps={steps} />}
           <MasterDetailTabs
             heightOffset={!isCreating && orderData ? 320 : 160}

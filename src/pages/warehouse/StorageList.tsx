@@ -335,7 +335,7 @@ export default function StorageList() {
             {false && (
               <Button 
                 type="primary" 
-                icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
+                icon={<PlusOutlined />} 
                 onClick={openCreateDrawer}
                 className="font-medium"
               >

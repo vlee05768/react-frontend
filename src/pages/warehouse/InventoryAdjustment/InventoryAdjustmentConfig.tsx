@@ -70,7 +70,7 @@ export const mainFormConfig = (_isUpdateMode: boolean = false): FormFieldConfig[
     componentType: "Input",
     editable: "never",
     autoGenerate: true,
-    colSpan: 2,
+    colSpan: 3,
   },
   {
     name: "documentDate",
@@ -78,18 +78,7 @@ export const mainFormConfig = (_isUpdateMode: boolean = false): FormFieldConfig[
     componentType: "DatePicker",
     editable: "always",
     validation: z.any().refine(val => !!val, "請選擇調整日期"),
-    colSpan: 2,
-  },
-  {
-    name: "status",
-    label: "狀態",
-    componentType: "Input",
-    editable: "never",
-    customRender: (_field, context) => {
-      const status = context.values.status;
-      return getStatusTag(status);
-    },
-    colSpan: 2,
+    colSpan: 3,
   },
   {
     name: "responsibleEmployeeCode",
@@ -102,7 +91,7 @@ export const mainFormConfig = (_isUpdateMode: boolean = false): FormFieldConfig[
         dictKey="EMPLOYEE"
       />
     ),
-    colSpan: 2,
+    colSpan: 3,
   },
   {
     name: "notes",

@@ -345,7 +345,7 @@ export default function EmployeeList() {
             {hasPermission('BasicData.Employees.Create') && (
               <Button 
                 type="primary" 
-                icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
+                icon={<PlusOutlined/>} 
                 onClick={openCreateDrawer}
                 className="font-medium"
               >

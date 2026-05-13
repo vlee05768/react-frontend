@@ -69,7 +69,7 @@ export default function ProductionReceiptItemsTab({ items }: Props) {
 
   return (
     <div className="p-4">
-      <div className="flex justify-between items-center mb-4 p-[8px 12px]" style={{backgroundColor: 'var(--ant-color-fill-alter)', borderRadius: '6px'
+      <div className="flex justify-between items-center mb-4 p-[8px_12px]" style={{backgroundColor: 'var(--ant-color-fill-alter)', borderRadius: '6px'
       }}>
         <div style={{ color: 'var(--ant-color-text-secondary)' }}>
           目前共有 <span className="font-medium">{items.length}</span> 筆明細

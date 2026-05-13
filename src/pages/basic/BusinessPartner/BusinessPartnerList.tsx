@@ -313,7 +313,7 @@ export default function BusinessPartnerList() {
             </Button>
             <Button 
               type="primary" 
-              icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
+              icon={<PlusOutlined/>} 
               onClick={openCreateDrawer}
             >
               新增資料
