@@ -237,7 +237,7 @@ export default function MaterialList() {
           body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
         }}
         title={
-          <div className="flex flex-col flex items-center gap-3">
+          <div className="flex items-center gap-3">
             <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
             <div className="m-0 font-semibold" style={{fontSize: '20px', color: 'var(--ant-color-text, inherit)', lineHeight: '24px' }}>
               原料管理

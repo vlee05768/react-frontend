@@ -11,7 +11,7 @@ import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import type { InputRef } from 'antd';
-import { App } from 'antd';
+import { App , Popconfirm} from 'antd';
 import {
   Spin,
   Table,
@@ -320,7 +320,7 @@ export default function EmployeeList() {
           body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
         }}
         title={
-          <div className="flex flex-col flex items-center gap-3">
+          <div className="flex items-center gap-3">
             <div style={{
               width: '4px',
               height: '24px',

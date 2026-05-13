@@ -426,7 +426,7 @@ export default function UserList() {
           body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
         }}
         title={
-          <div className="flex flex-col flex items-center gap-3">
+          <div className="flex items-center gap-3">
             <div style={{
               width: '4px',
               height: '24px',
