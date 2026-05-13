@@ -62,21 +62,27 @@ export default function SalesDeliveryItemsTab({ documentNumber, items, isEditing
   }
 
   return (
-    <div className="space-y-4">
-      {isEditing && (
-        <div className="flex justify-end">
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => message.info('暫未實作')}>
-            新增明細
-          </Button>
+    <div>
+      <div className="flex justify-between items-center mb-4 p-[8px 12px]" style={{backgroundColor: 'var(--ant-color-fill-alter)', borderRadius: '6px'}}>
+        <div style={{ color: 'var(--ant-color-text-secondary)' }}>
+          目前共有 <span>{items.length}</span> 筆明細
         </div>
-      )}
+        <div>
+          {isEditing && (
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => message.info('暫未實作')}>
+              新增明細
+            </Button>
+          )}
+        </div>
+      </div>
       <Table
+        virtual
         columns={columns}
         dataSource={items}
         rowKey="lineNumber"
         pagination={false}
-        scroll={{ x: 'max-content' }}
-        size="middle"
+        scroll={{ x: 'max-content', y: 400 }}
+        size="small"
         bordered
       />
     </div>

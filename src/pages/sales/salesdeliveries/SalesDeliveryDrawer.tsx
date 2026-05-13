@@ -18,6 +18,7 @@ import {
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { ActionBar } from '@/components/common/ActionBar';
+import { DocumentLifecycleBanner } from '@/components/common/DocumentLifecycleBanner';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import { useAuthStore } from '@/stores/useAuthStore';
 import type { SalesDeliveryDto } from '@/api/generated/types.gen';
@@ -252,6 +253,31 @@ export default function SalesDeliveryDrawer() {
       return (deliveryData as any)?.items || [];
   }, [deliveryData]);
 
+
+  let steps: any[] = [];
+  if (deliveryData) {
+    steps = [
+      {
+        title: '準備中',
+        status: deliveryData.confirmDate ? 'finish' : 'process',
+        date: deliveryData.createdAt,
+        user: deliveryData.createdBy,
+      },
+      {
+        title: '單據確認',
+        status: !deliveryData.confirmDate ? 'wait' : (deliveryData.closeDate ? 'finish' : 'process'),
+        date: deliveryData.confirmDate,
+        user: deliveryData.confirmUserName,
+      },
+      {
+        title: '單據結案',
+        status: !deliveryData.closeDate ? 'wait' : 'finish',
+        date: deliveryData.closeDate,
+        user: deliveryData.closeUserName,
+      }
+    ];
+  }
+
   return (
     <Drawer
       styles={{ body: { padding: 0, overflow: 'hidden' as const } }}
@@ -281,6 +307,7 @@ export default function SalesDeliveryDrawer() {
           actions={getActionBarActions()}
         />
         <div className="p-[8px 24px]">
+          {!isCreating && deliveryData && <DocumentLifecycleBanner steps={steps} />}
           <MasterDetailTabs
             heightOffset={!isCreating && deliveryData ? 320 : 160}
             activeTab={activeTab}

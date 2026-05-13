@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Card, Table, Button, Space, Tooltip, App, Modal } from 'antd';
-import { EyeOutlined, PlusOutlined, SearchOutlined, DeleteOutlined, PrinterOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import { Card, Table, Button, Space, Tooltip, App, Modal, Divider } from 'antd';
+import { EyeOutlined, PlusOutlined, SearchOutlined, DeleteOutlined, PrinterOutlined, CheckOutlined, CloseOutlined, ClearOutlined } from '@ant-design/icons';
 import { useNavigate,  } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -140,51 +140,117 @@ export default function SalesDeliveriesList() {
 
   return (
     <div className="p-[16px 16px 0px 16px] flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
-      <Card 
-        title="銷貨單列表"
+      <Card
+        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        styles={{ 
+          header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
+          body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
+        }}
+        title={
+          <div className="flex items-center gap-3">
+            <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
+            <div className="m-0 font-semibold" style={{fontSize: '20px'}}>
+              銷貨單管理
+            </div>
+          </div>
+        }
+        variant="borderless"
         extra={
-          <Space>
-            <DynamicSearchTags 
-              params={queryFields} 
-              config={searchConfig} 
-              onClose={(key) => setParams({ [key]: undefined, pageNumber: 1 })}
-            />
-            <Button onClick={() => { searchForm.reset(queryFields); setIsSearchModalOpen(true); }} icon={<SearchOutlined />}>查詢</Button>
-            {hasPermission('Sales.Deliveries.Create') && <Button type="primary" onClick={() => navigate('/sales/salesdeliveries/create')} icon={<PlusOutlined />}>新增</Button>}
+          <Space separator={<Divider orientation="vertical" />}>
+            <Button
+              type="default"
+              icon={<SearchOutlined />}
+              onClick={() => setIsSearchModalOpen(true)}
+            >
+              進階查詢
+            </Button>
+            {hasPermission('Sales.Deliveries.Create') && (
+              <Button 
+                type="primary" 
+                icon={<PlusOutlined />} 
+                onClick={() => navigate('/sales/salesdeliveries/create')}
+              >
+                新增資料
+              </Button>
+            )}
           </Space>
         }
       >
-        <Table
-          columns={columns}
-          dataSource={listData}
-          rowKey="documentNumber"
-          loading={isLoading}
-          pagination={{ current: pageNumber, pageSize, total, showSizeChanger: true }}
-          onChange={handleTableChange}
-          scroll={{ x: 'max-content' }}
-          onRow={(record) => ({
-            onClick: () => navigate(`/sales/salesdeliveries/${record.documentNumber}`),
-            className: 'cursor-pointer hover:bg-gray-50'
-          })}
-        />
+        <div className="mb-4 flex items-center p-[12px 16px]" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
+          <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
+          <DynamicSearchTags
+            config={searchConfig}
+            params={params}
+            onClose={(key) => setParams({ [key]: undefined, pageNumber: 1 })}
+          />
+        </div>
+        <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <style>{`
+            .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
+            .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-spin-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
+            .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
+            .ant-table-thead > tr > th { text-align: center !important; }
+          `}</style>
+
+          <Table
+            bordered
+            columns={columns}
+            dataSource={listData}
+            rowKey="documentNumber"
+            loading={isLoading}
+            pagination={{ current: pageNumber, pageSize, total, showSizeChanger: true, showTotal: (total) => `共 ${total} 筆資料` }}
+            onChange={handleTableChange}
+            scroll={{ x: 'max-content', y: 300 }}
+            size="middle"
+            onRow={(record) => ({
+              onClick: () => navigate(`/sales/salesdeliveries/${record.documentNumber}`),
+              className: 'cursor-pointer hover:bg-gray-50'
+            })}
+          />
+        </div>
       </Card>
 
       <Modal
-        title="進階查詢"
+        title={
+          <div className="font-semibold pb-3 mb-2" style={{fontSize: '18px', borderBottom: '1px solid #f0f0f0'}}>
+            查詢條件設定
+          </div>
+        }
         open={isSearchModalOpen}
         onCancel={() => setIsSearchModalOpen(false)}
-        footer={null}
+        footer={
+          <div className="pt-4 flex justify-end gap-2" style={{borderTop: '1px solid #f0f0f0'}}>
+            <Button icon={<ClearOutlined />} onClick={() => searchForm.reset()}>
+              清空重置
+            </Button>
+            <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
+              執行查詢
+            </Button>
+          </div>
+        }
         width={MODAL_WIDTH_SEARCH}
-        styles={{ body: { maxHeight: MODAL_BODY_MAX_HEIGHT, overflowY: 'auto' } }}
+        style={{ top: '10vh' }}
+        styles={{
+          body: {
+            maxHeight: MODAL_BODY_MAX_HEIGHT,
+            overflowY: 'auto',
+            padding: '24px 24px 0 24px'
+          }
+        }}
+        closeIcon={true}
       >
         <DynamicSearchForm
           config={searchConfig}
           form={searchForm}
           onSearch={(values) => {
-            setParams({ ...values, pageNumber: 1 });
+            setParams({ ...params, ...values, pageNumber: 1 });
             setIsSearchModalOpen(false);
           }}
-          
         />
       </Modal>
     </div>
