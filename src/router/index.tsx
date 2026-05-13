@@ -21,6 +21,10 @@ import StorageTransactionsList from '@/pages/warehouse/StorageTransactions/Stora
 import ProductsList from '@/pages/warehouse/Products/ProductsList';
 import InventoryAdjustmentList from '@/pages/warehouse/InventoryAdjustment/InventoryAdjustmentList';
 import OrdersList from '@/pages/sales/orders/OrdersList';
+
+import SalesDeliveriesList from '@/pages/sales/salesdeliveries/SalesDeliveriesList';
+import SalesDeliveryDrawer from '@/pages/sales/salesdeliveries/SalesDeliveryDrawer';
+
 import OrderDrawer from '@/pages/sales/orders/OrderDrawer';
 import MaterialList from '@/pages/purchase/Material/MaterialList';
 import MoldList from '@/pages/production/MoldList';
@@ -82,6 +86,9 @@ export const router = createBrowserRouter([
       { path: 'production-quality/production-receipts/:id', element: <><ProductionReceiptsList /><ProductionReceiptDrawer /></> },
       { path: 'sales/orders', element: <OrdersList /> },
       { path: 'sales/orders/:id', element: <><OrdersList /><OrderDrawer /></> },
+      { path: 'sales/salesdeliveries', element: <SalesDeliveriesList /> },
+      { path: 'sales/salesdeliveries/:id', element: <><SalesDeliveriesList /><SalesDeliveryDrawer /></> },
+
       { path: 'business-partners/:viewId?', element: <BusinessPartnerList /> },
       { path: 'demo/form', element: <FormDemo /> }
     ]
