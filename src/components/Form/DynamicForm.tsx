@@ -247,7 +247,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
             return (
               <div 
                 key={groupName} 
-                className="mb-4 p-[8px 24px 0 24px]" style={{border: '1px solid var(--ant-color-border)', borderRadius: '8px', backgroundColor: 'var(--ant-color-bg-container)'
+                className="mb-4 p-6 pt-4 pb-2" style={{border: '1px solid var(--ant-color-border)', borderRadius: '8px', backgroundColor: 'var(--ant-color-bg-container)'
                 }}
               >
                 <Divider 

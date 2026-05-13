@@ -422,7 +422,7 @@ export default function BusinessPartnerList() {
       </Modal>
 
       <Drawer
-        styles={{ body: { padding: 0 } }}
+        styles={{ body: { padding: 0, overflow: 'hidden' } }}
         title={
           <DrawerTitle
             moduleName="廠商客戶"
@@ -471,8 +471,9 @@ export default function BusinessPartnerList() {
           </Space>
             }
           />
-          <div className="p-6">
+          <div className="p-[8px_24px]">
           <MasterDetailTabs
+            heightOffset={160}
             activeTab={activeTab}
             onTabChange={setActiveTab}
             isCreateMode={isCreateDrawerOpen}
