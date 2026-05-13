@@ -55,21 +55,7 @@ export const getColumns = (
 
 
 export const getFormConfig = (): any[] => [
-  {
-    name: "documentDate",
-    label: "單據日期",
-    componentType: "DatePicker",
-    colSpan: 4,
-    editable: "createOnly",
-    validation: z.any(),
-  },
-  {
-    name: "responsibleEmployeeCode",
-    label: "業務員",
-    componentType: "DictSelect",
-    componentProps: { dictKey: "EMPLOYEE" },
-    colSpan: 4,
-  },  
+  // --- 第一排：客戶、客戶名稱、單據日期、業務員 ---
   {
     name: "businessPartnerCode",
     label: "客戶",
@@ -81,10 +67,10 @@ export const getFormConfig = (): any[] => [
       const option = args[1];
       if (option && option.originalData) {
         const bp = option.originalData;
-        setValue("businessPartnerName", bp.name);
-        setValue("businessPartnerPhone", bp.phone);
-        setValue("businessPartnerFax", bp.faxNumber);
-        setValue("address", bp.address);
+        setValue("businessPartnerName", bp.name || undefined);
+        setValue("businessPartnerPhone", bp.phone || undefined);
+        setValue("businessPartnerFax", bp.faxNumber || undefined);
+        setValue("address", bp.address || undefined);
       } else {
         setValue("businessPartnerName", undefined);
         setValue("businessPartnerPhone", undefined);
@@ -102,7 +88,23 @@ export const getFormConfig = (): any[] => [
     colSpan: 4,
     editable: "never",
   },
+  {
+    name: "documentDate",
+    label: "單據日期",
+    componentType: "DatePicker",
+    colSpan: 4,
+    editable: "createOnly",
+    validation: z.any(),
+  },
+  {
+    name: "responsibleEmployeeCode",
+    label: "業務員",
+    componentType: "DictSelect",
+    componentProps: { dictKey: "EMPLOYEE" },
+    colSpan: 4,
+  },
 
+  // --- 第二排：客戶電話、傳真、聯絡人、地址 ---
   {
     name: "businessPartnerPhone",
     label: "客戶電話",
@@ -130,24 +132,25 @@ export const getFormConfig = (): any[] => [
     colSpan: 4,
   },
   {
+    name: "address",
+    label: "地址",
+    componentType: "Input",
+    colSpan: 4,
+    validation: z.string().min(1, "請輸入地址"),
+  },
+
+  // --- 第三排：發票號碼、小計、稅額、總金額 ---
+  {
     name: "invoiceNumber",
     label: "發票號碼",
     componentType: "Input",
     colSpan: 4,
-  },  
-  {
-    name: "address",
-    label: "地址",
-    componentType: "Input",
-    colSpan: 1,
-    validation: z.string().min(1, "請輸入地址"),
   },
-
   {
     name: "subTotal",
     label: "小計",
     componentType: "InputNumber",
-    colSpan: 3,
+    colSpan: 4,
     editable: "never",
     componentProps: {
       formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
@@ -159,7 +162,7 @@ export const getFormConfig = (): any[] => [
     name: "taxAmount",
     label: "稅額",
     componentType: "InputNumber",
-    colSpan: 3,
+    colSpan: 4,
     editable: "never",
     componentProps: {
       formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
@@ -171,7 +174,7 @@ export const getFormConfig = (): any[] => [
     name: "totalAmount",
     label: "總金額",
     componentType: "InputNumber",
-    colSpan: 3,
+    colSpan: 4,
     editable: "never",
     componentProps: {
       formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
@@ -179,6 +182,8 @@ export const getFormConfig = (): any[] => [
       precision: 2,
     }
   },
+
+  // --- 第四排：備註 ---
   {
     name: "notes",
     label: "備註",
