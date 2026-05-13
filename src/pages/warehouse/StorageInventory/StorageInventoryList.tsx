@@ -197,7 +197,14 @@ export default function StorageInventoryList() {
   return (
     <div className="p-4">
       <Card
-        title="產品儲位庫存"
+        title={
+          <div className="flex items-center gap-3">
+            <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
+            <div className="m-0 font-semibold" style={{fontSize: '20px'}}>
+              產品儲位庫存
+            </div>
+          </div>
+        }
         extra={
           <Button icon={<SyncOutlined />} onClick={() => refetch()} loading={isFetching}>
             更新資料

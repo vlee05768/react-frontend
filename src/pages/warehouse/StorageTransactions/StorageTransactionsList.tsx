@@ -256,7 +256,15 @@ export default function StorageTransactionsList() {
 
   return (
     <div className="p-[16px 16px 0px 16px] flex flex-col gap-4" style={{height: 'calc(100vh - 64px)'}}>
-      <Card variant="borderless" className="shadow-sm" style={{ flexShrink: 0 }}>
+      <Card variant="borderless" className="shadow-sm" style={{ flexShrink: 0 }}
+        title={
+          <div className="flex items-center gap-3">
+            <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
+            <div className="m-0 font-semibold" style={{fontSize: '20px'}}>
+              庫存異動明細
+            </div>
+          </div>
+        }>
         <Form 
           
           layout="vertical"
