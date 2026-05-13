@@ -123,3 +123,45 @@ body {
 :where(.dark, .dark *) .ant-table-wrapper .ant-table-tbody > tr.deleting-row-highlight:hover > td {
   background-color: #7a222c !important;
 }
+
+/* Color overrides for disabled InputNumber fields in QC Form */
+.qc-qty-warning .ant-input-number-input,
+.qc-qty-warning.ant-input-number-disabled {
+  color: var(--ant-color-warning) !important;
+  -webkit-text-fill-color: var(--ant-color-warning) !important;
+  font-weight: 600 !important;
+}
+.qc-qty-success .ant-input-number-input,
+.qc-qty-success.ant-input-number-disabled {
+  color: var(--ant-color-success) !important;
+  -webkit-text-fill-color: var(--ant-color-success) !important;
+  font-weight: 600 !important;
+}
+.qc-qty-error .ant-input-number-input,
+.qc-qty-error.ant-input-number-disabled {
+  color: var(--ant-color-error) !important;
+  -webkit-text-fill-color: var(--ant-color-error) !important;
+  font-weight: 600 !important;
+}
+
+/* Color overrides for Work Order Quantities */
+.wo-qty-order .ant-input-number-input,
+.wo-qty-order.ant-input-number-disabled {
+  color: var(--ant-color-info) !important;
+  -webkit-text-fill-color: var(--ant-color-info) !important;
+  font-weight: 600 !important;
+}
+
+.wo-qty-planned .ant-input-number-input,
+.wo-qty-planned.ant-input-number-disabled {
+  color: var(--ant-color-warning) !important;
+  -webkit-text-fill-color: var(--ant-color-warning) !important;
+  font-weight: 600 !important;
+}
+
+.wo-qty-actual .ant-input-number-input,
+.wo-qty-actual.ant-input-number-disabled {
+  color: var(--ant-color-success) !important;
+  -webkit-text-fill-color: var(--ant-color-success) !important;
+  font-weight: 600 !important;
+}

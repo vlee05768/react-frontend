@@ -77,46 +77,70 @@ export default function Login() {
   };
 
   return (
-    <Form
-      form={form}
-      name="login"
-      onFinish={onFinish}
-      layout="vertical"
-      requiredMark={false}
-      size="large"
-      initialValues={{ remember: false }}
-    >
-      <Form.Item
-        name="username"
-        rules={[{ required: true, message: '請輸入帳號' }]}
+    <>
+      <h2 className="text-2xl font-bold text-white mb-2 text-center">歡迎回來</h2>
+      <p className="text-gray-400 text-sm text-center mb-8">請登入您的帳號以繼續操作</p>
+      
+      <Form
+        form={form}
+        name="login"
+        onFinish={onFinish}
+        layout="vertical"
+        requiredMark={false}
+        size="large"
+        initialValues={{ remember: false }}
+        className="login-form"
       >
-        <Input prefix={<UserOutlined />} placeholder="帳號 (預設: admin)" autoFocus />
-      </Form.Item>
-
-      <Form.Item
-        name="password"
-        rules={[{ required: true, message: '請輸入密碼' }]}
-      >
-        <Input.Password prefix={<LockOutlined />} placeholder="密碼" />
-      </Form.Item>
-
-      <div className="flex justify-between items-center mb-6">
-        <Form.Item name="remember" valuePropName="checked" noStyle>
-          <Checkbox>記住我</Checkbox>
-        </Form.Item>
-        <a 
-          className="text-blue-400 hover:text-blue-300 cursor-pointer"
-          onClick={() => navigate(ROUTES.FORGET_PASSWORD)}
+        <Form.Item
+          name="username"
+          label={<span className="text-gray-300">電子郵件 / 帳號</span>}
+          rules={[{ required: true, message: '請輸入帳號' }]}
         >
-          忘記密碼？
-        </a>
-      </div>
+          <Input 
+            prefix={<UserOutlined className="text-gray-500" />} 
+            placeholder="帳號 (預設: admin)" 
+            autoFocus 
+            className="bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500"
+          />
+        </Form.Item>
 
-      <Form.Item>
-        <Button type="primary" htmlType="submit" className="w-full" size="large" loading={loading}>
-          登入
-        </Button>
-      </Form.Item>
-    </Form>
+        <Form.Item
+          name="password"
+          label={<span className="text-gray-300">密碼</span>}
+          rules={[{ required: true, message: '請輸入密碼' }]}
+          className="mb-4"
+        >
+          <Input.Password 
+            prefix={<LockOutlined className="text-gray-500" />} 
+            placeholder="密碼" 
+            className="bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500"
+          />
+        </Form.Item>
+
+        <div className="flex justify-between items-center mb-6">
+          <Form.Item name="remember" valuePropName="checked" noStyle>
+            <Checkbox className="text-gray-400">記住我</Checkbox>
+          </Form.Item>
+          <a 
+            className="text-blue-400 hover:text-blue-300 text-sm transition-colors cursor-pointer"
+            onClick={() => navigate(ROUTES.FORGET_PASSWORD)}
+          >
+            忘記密碼？
+          </a>
+        </div>
+
+        <Form.Item className="mb-0">
+          <Button 
+            type="primary" 
+            htmlType="submit" 
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-12 rounded-lg transition-colors border-none shadow-lg shadow-blue-600/30" 
+            loading={loading}
+          >
+            登入
+          </Button>
+        </Form.Item>
+
+      </Form>
+    </>
   );
 }

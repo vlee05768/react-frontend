@@ -67,23 +67,15 @@ export const mainTableColumns = (): TableColumnConfig[] => [
 ];
 
 export const mainFormConfig = (): FormFieldConfig[] => [
-  { name: 'documentNumber', label: '單據號碼', componentType: 'Input', editable: 'never', autoGenerate: true, colSpan: 2 },
-  { name: 'documentDate', label: '檢驗日期', componentType: 'DatePicker', editable: 'always', colSpan: 2 },
-  { 
-    name: 'status', 
-    label: '狀態', 
-    componentType: 'Input', 
-    editable: 'never',
-    customRender: (_field, context) => getStatusTag(context.values.status, context.values.confirmDate, context.values.closeDate),
-    colSpan: 2 
-  },
+  { name: 'documentNumber', label: '單據號碼', componentType: 'Input', editable: 'never', autoGenerate: true, colSpan: 3 },
+  { name: 'documentDate', label: '檢驗日期', componentType: 'DatePicker', editable: 'always', colSpan: 3 },
   { 
     name: 'responsibleEmployeeCode', 
     label: '檢驗人員', 
     componentType: 'Custom', 
     editable: 'always', 
     customRender: (field) => <DictSelect {...field} dictKey="EMPLOYEE" />,
-    colSpan: 2 
+    colSpan: 3 
   },
   { name: 'notes', label: '備註', componentType: 'TextArea', editable: 'always', componentProps: { rows: 3 }, colSpan: 1 },
 ];
@@ -120,14 +112,14 @@ export const itemTableColumns = (): TableColumnConfig[] => [
 ];
 
 export const itemFormConfig = (): FormFieldConfig[] => [
-  { name: 'referenceNumber', label: '對應單據項次', componentType: 'Input', editable: 'never', colSpan: 2 },
-  { name: 'inventoryCode', label: '料號', componentType: 'Input', editable: 'never', colSpan: 2 },
-  { name: 'inventoryName', label: '品名', componentType: 'Input', editable: 'never', colSpan: 2 },
-  { name: 'sourceStorageCode', label: '來源儲位', componentType: 'Input', editable: 'never', colSpan: 2 },
-  { name: 'drawnQuantity', label: '本次QC量', componentType: 'InputNumber', editable: 'never', colSpan: 2, componentProps: { style: { color: 'var(--ant-color-warning)' } } },
-  { name: 'goodTargetStorageCode', label: '良品倉', componentType: 'Input', editable: 'never', colSpan: 2 },
-  { name: 'goodQuantity', label: '良品量', componentType: 'InputNumber', editable: 'never', colSpan: 2, componentProps: { style: { color: 'var(--ant-color-success)' } } },
-  { name: 'scrapTargetStorageCode', label: '報廢倉', componentType: 'Input', editable: 'never', colSpan: 2 },
-  { name: 'scrapQuantity', label: '報廢量', componentType: 'InputNumber', editable: 'never', colSpan: 2, componentProps: { style: { color: 'var(--ant-color-error)' } } },
+  { name: 'referenceNumber', label: '對應單據項次', componentType: 'Input', editable: 'never', colSpan: 4 },
+  { name: 'inventoryCode', label: '料號', componentType: 'Input', editable: 'never', colSpan: 4 },
+  { name: 'inventoryName', label: '品名', componentType: 'Input', editable: 'never', colSpan: 4 },
+  { name: 'drawnQuantity', label: '本次QC量', componentType: 'InputNumber', editable: 'never', colSpan: 4, componentProps: { className: 'qc-qty-warning w-full' } },
+  { name: 'goodTargetStorageCode', label: '良品倉', componentType: 'Input', editable: 'never', colSpan: 4 },
+  { name: 'goodQuantity', label: '良品量', componentType: 'InputNumber', editable: 'never', colSpan: 4, componentProps: { className: 'qc-qty-success w-full' } },
+  { name: 'scrapTargetStorageCode', label: '報廢倉', componentType: 'Input', editable: 'never', colSpan: 4 },
+  { name: 'scrapQuantity', label: '報廢量', componentType: 'InputNumber', editable: 'never', colSpan: 4, componentProps: { className: 'qc-qty-error w-full' } },
+  { name: 'sourceStorageCode', label: '來源儲位', componentType: 'Input', editable: 'never', colSpan: 4 },
   { name: 'notes', label: '備註', componentType: 'TextArea', editable: 'never', colSpan: 1 },
 ];

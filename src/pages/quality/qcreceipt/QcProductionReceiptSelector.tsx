@@ -130,7 +130,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
             value={val} 
             onChange={(v) => handleRowChange(record.lineNumber, 'batchQuantity', v)}
             onFocus={(e) => e.target.select()}
-            style={{ width: '100%', color: 'var(--ant-color-warning)' }}
+            className="qc-qty-warning w-full"
             disabled={!isSelected} // 有勾選的才能輸入
           />
         );
@@ -156,7 +156,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
             value={val} 
             onChange={(v) => handleRowChange(record.lineNumber, 'goodQuantity', v)}
             onFocus={(e) => e.target.select()}
-            style={{ width: '100%', color: 'var(--ant-color-success)' }}
+            className="qc-qty-success w-full"
             disabled={!isSelected} // 有勾選的才能輸入
           />
         );

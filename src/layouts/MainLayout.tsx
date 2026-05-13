@@ -309,10 +309,12 @@ export default function MainLayout() {
         className={`border-r ${mode === 'dark' ? 'border-[#303030]' : 'border-gray-200'}`}
         width={220}
       >
-        <div className={`h-16 flex items-center justify-center border-b ${mode === 'dark' ? 'border-[#303030]' : 'border-gray-200'}`}>
-          <h1 className={`${mode === 'dark' ? 'text-white' : 'text-gray-800'} font-bold transition-all ${collapsed ? 'text-sm' : 'text-xl'}`}>
-            ERP {collapsed ? '' : 'System'}
-          </h1>
+        <div className={`h-16 flex items-center justify-center border-b ${mode === 'dark' ? 'border-[#303030]' : 'border-gray-200'} overflow-hidden px-4`}>
+          {collapsed ? (
+            <img src={mode === 'dark' ? (import.meta.env.VITE_LOGO_DARK || '/assets/tungfu-logo-dark.svg') : (import.meta.env.VITE_LOGO_LIGHT || '/assets/tungfu-logo-light.svg')} alt="Logo" className="w-8 h-8 object-cover object-left" />
+          ) : (
+            <img src={mode === 'dark' ? (import.meta.env.VITE_LOGO_DARK || '/assets/tungfu-logo-dark.svg') : (import.meta.env.VITE_LOGO_LIGHT || '/assets/tungfu-logo-light.svg')} alt="Logo" className="h-8 w-auto" />
+          )}
         </div>
                 <Menu
           theme={mode}
