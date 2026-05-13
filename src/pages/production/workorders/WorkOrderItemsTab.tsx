@@ -19,15 +19,8 @@ export const WorkOrderItemsTab: React.FC<WorkOrderItemsTabProps> = ({
     : [];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: '16px',
-        padding: '8px 12px',
-        backgroundColor: 'var(--ant-color-fill-alter)',
-        borderRadius: '6px'
+    <div className="flex flex-col">
+      <div className="flex justify-between items-center mb-4 p-[8px 12px]" style={{backgroundColor: 'var(--ant-color-fill-alter)', borderRadius: '6px'
       }}>
         <div style={{ color: 'var(--ant-color-text-secondary)' }}>
           目前共有 <span>{listData.length}</span> 筆應發料資料

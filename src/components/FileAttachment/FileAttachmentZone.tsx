@@ -160,8 +160,8 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
     // 圖片檔案直接顯示縮圖 (如果有 url)
     if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext) && attachment.presignedUrl) {
       return (
-        <div style={{ width: '100%', height: '100%', overflow: 'hidden', borderRadius: 4 }}>
-          <img src={attachment.presignedUrl} alt={attachment.fileName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <div className="w-full h-full" style={{overflow: 'hidden', borderRadius: 4 }}>
+          <img src={attachment.presignedUrl} alt={attachment.fileName} className="w-full h-full" style={{objectFit: 'cover' }} />
         </div>
       );
     }
@@ -170,8 +170,8 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
     const iconName = getIconName(ext);
     if (iconList.includes(iconName)) {
       return (
-        <div style={{ width: '100%', height: '100%', overflow: 'hidden', borderRadius: 4 }}>
-          <img src={`/file-icons/${iconName}.jpg`} alt={ext} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        <div className="w-full h-full" style={{overflow: 'hidden', borderRadius: 4 }}>
+          <img src={`/file-icons/${iconName}.jpg`} alt={ext} className="w-full h-full" style={{objectFit: 'contain' }} />
         </div>
       );
     }
@@ -251,11 +251,11 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
       
       if (iconList.includes(iconName)) {
         return (
-          <div className="ant-upload-list-item ant-upload-list-item-done" style={{ marginTop: 8 }}>
+          <div className="ant-upload-list-item ant-upload-list-item-done mt-2" >
             <div className="ant-upload-list-item-info">
               <span className="ant-upload-span">
                 <div className="ant-upload-list-item-thumbnail" style={{ width: 48, height: 48 }}>
-                  <img src={`/file-icons/${iconName}.jpg`} alt={ext} style={{ objectFit: 'contain', width: '100%', height: '100%' }} />
+                  <img src={`/file-icons/${iconName}.jpg`} alt={ext} className="w-full h-full" style={{objectFit: 'contain'}} />
                 </div>
                 <span className="ant-upload-list-item-name" title={file.name}>{file.name}</span>
               </span>
@@ -273,7 +273,7 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
   return (
     <div>
       <Spin spinning={loading}>
-        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="mb-4 flex justify-between items-center">
           <h3>附件管理</h3>
           {!readonly && (
             <Button type="primary" icon={<UploadOutlined />} onClick={() => setUploadModalVisible(true)}>
@@ -297,17 +297,17 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
                 >
                   <Tooltip title={`${item.fileName || '未命名'} - ${((item.fileSize || 0) / 1024).toFixed(2)} KB`}>
                     <div 
-                      style={{ padding: '12px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                      className="p-3 flex items-center" style={{cursor: 'pointer' }}
                       onClick={() => handleView(item)}
                     >
-                      <div style={{ width: 64, height: 64, display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: token.colorFillAlter, borderRadius: 4, flexShrink: 0, marginRight: 12 }}>
+                      <div className="flex justify-center items-center mr-3" style={{width: 64, height: 64, backgroundColor: token.colorFillAlter, borderRadius: 4, flexShrink: 0}}>
                         {getFileIcon(item)}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, fontWeight: 500, color: token.colorText }}>
+                        <div className="w-full font-medium" style={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, color: token.colorText }}>
                           {item.fileName || '未命名'}
                         </div>
-                        <div style={{ fontSize: 12, color: token.colorTextSecondary, marginTop: 4 }}>
+                        <div className="mt-1" style={{fontSize: 12, color: token.colorTextSecondary}}>
                           {`${((item.fileSize || 0) / 1024).toFixed(2)} KB`}
                         </div>
                       </div>
@@ -326,13 +326,13 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
                     <Tooltip title="檢視">
                       <Button type="text" size="small" icon={<EyeOutlined />} onClick={() => handleView(item)} style={{ color: token.colorTextSecondary }} />
                     </Tooltip>
-                    <div style={{ width: 1, height: 16, backgroundColor: token.colorSplit, margin: '0 8px' }} />
+                    <div className="m-[0 8px]" style={{width: 1, height: 16, backgroundColor: token.colorSplit}} />
                     <Tooltip title="下載">
                       <Button type="text" size="small" icon={<DownloadOutlined />} onClick={() => handleDownload(item)} style={{ color: token.colorTextSecondary }} />
                     </Tooltip>
                     {!readonly && (
                       <>
-                        <div style={{ width: 1, height: 16, backgroundColor: token.colorSplit, margin: '0 8px' }} />
+                        <div className="m-[0 8px]" style={{width: 1, height: 16, backgroundColor: token.colorSplit}} />
                         <Tooltip title="刪除">
                           <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(item)} />
                         </Tooltip>
@@ -362,7 +362,7 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
         centered
         destroyOnHidden
       >
-        <div style={{ marginBottom: 16, color: '#8c8c8c' }}>
+        <div className="mb-4" style={{color: '#8c8c8c' }}>
           💡 提示：您可以直接在彈窗開啟時 <strong>Ctrl+V / Cmd+V</strong> 貼上截圖。
         </div>
         <Dragger {...uploadProps}>

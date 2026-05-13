@@ -1,5 +1,6 @@
+import { Popconfirm } from 'antd';
 import { useState } from 'react';
-import { Button, Modal, Table, message, Card , App } from 'antd';
+import { Button, Modal, Table, message, Card  } from 'antd';
 import { SearchOutlined, PlusOutlined, EyeOutlined, DeleteOutlined , ClearOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -20,7 +21,7 @@ import { Form } from 'antd';
 import { useParams } from 'react-router-dom';
 
 export default function QcReceiptsList() {
-  const { modal } = App.useApp();
+  // const { modal } = App.useApp();
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const { id: viewId } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -110,23 +111,22 @@ export default function QcReceiptsList() {
           </Tooltip>
           {isUnconfirmed && (
             <Tooltip title="刪除">
-              <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => {
-              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              const rt = record as any; const recordTitle = rt.name || rt.code || rt.employeeNo || rt.userName || rt.roleName || rt.documentNumber || rt.referenceNumber || recordId || '此資料';
-              setDeletingRecordId(String(recordId));
-              modal.confirm({
-                title: `刪除確認 - ${recordTitle}`,
-                content: '確定要刪除此單據嗎？此操作無法還原。',
-                centered: true,
-                width: 400,
-                okButtonProps: { danger: true },
-                onOk: () => {
-                  setDeletingRecordId(null);
-                  deleteMutation.mutate(record.documentNumber)
-                },
-                onCancel: () => setDeletingRecordId(null)
-              });
-            }} />
+              <Popconfirm
+            title="刪除確認"
+            description="確定要刪除此筆資料嗎？此操作無法還原。"
+            onConfirm={() => deleteMutation.mutate(record.documentNumber)}
+            onOpenChange={(open) => {
+              const r = record as any;
+              const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              if (typeof setDeletingRecordId !== 'undefined') setDeletingRecordId(open ? String(recordId) : null);
+            }}
+            okButtonProps={{ danger: true }}
+            okText="刪除"
+            cancelText="取消"
+            placement="topLeft"
+          >
+            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
+          </Popconfirm>
             </Tooltip>
           )}
         </Space>

@@ -177,13 +177,9 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
   return (
     <div>
       {isEditingState ? (
-        <div style={{
-          padding: '16px',
-          border: '1px solid var(--ant-color-border-secondary)',
-          borderRadius: '8px',
-          backgroundColor: 'var(--ant-color-bg-container)'
+        <div className="p-4" style={{border: '1px solid var(--ant-color-border-secondary)', borderRadius: '8px', backgroundColor: 'var(--ant-color-bg-container)'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div className="flex justify-between mb-4">
             <Text strong style={{ fontSize: '16px' }}>{isCreating ? '新增明細' : `編輯明細 (${editingItem?.lineNumber})`}</Text>
             <Space>
               <Button type="primary" htmlType="submit" form="itemForm" loading={createMutation.isPending || updateMutation.isPending}>儲存</Button>
@@ -210,14 +206,7 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
         </div>
       ) : (
         <div>
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            marginBottom: '16px',
-            padding: '8px 12px',
-            backgroundColor: 'var(--ant-color-fill-alter)',
-            borderRadius: '6px'
+          <div className="flex justify-between items-center mb-4 p-[8px 12px]" style={{backgroundColor: 'var(--ant-color-fill-alter)', borderRadius: '6px'
           }}>
             <div style={{ color: 'var(--ant-color-text-secondary)' }}>
               目前共有 <span>{listData.length}</span> 筆明細

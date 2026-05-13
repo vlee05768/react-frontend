@@ -253,7 +253,7 @@ export default function StorageTransactionsList() {
   ];
 
   return (
-    <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div className="p-[16px 16px 0px 16px] flex flex-col gap-4" style={{height: 'calc(100vh - 64px)'}}>
       <Card variant="borderless" className="shadow-sm" style={{ flexShrink: 0 }}>
         <Form 
           form={form} 
@@ -320,8 +320,8 @@ export default function StorageTransactionsList() {
 
       <Card 
         variant="borderless" 
-        className="shadow-sm" 
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        className="shadow-sm flex flex-col" 
+        style={{flex: 1, overflow: 'hidden' }}
         styles={{ 
           body: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 0 } 
         }}

@@ -247,24 +247,13 @@ export function DynamicForm<TValues extends Record<string, any>>({
             return (
               <div 
                 key={groupName} 
-                style={{ 
-                  marginBottom: '16px',
-                  padding: '8px 24px 0 24px',
-                  border: '1px solid var(--ant-color-border)',
-                  borderRadius: '8px',
-                  backgroundColor: 'var(--ant-color-bg-container)'
+                className="mb-4 p-[8px 24px 0 24px]" style={{border: '1px solid var(--ant-color-border)', borderRadius: '8px', backgroundColor: 'var(--ant-color-bg-container)'
                 }}
               >
                 <Divider 
                   titlePlacement="center"
                   plain 
-                  style={{ 
-                    marginTop: 0, 
-                    marginBottom: '12px', 
-                    color: 'var(--ant-color-primary)', 
-                    borderColor: 'var(--ant-color-border-secondary)',
-                    fontWeight: 600,
-                    fontSize: '15px'
+                  className="mt-0 mb-3 font-semibold" style={{color: 'var(--ant-color-primary)', borderColor: 'var(--ant-color-border-secondary)', fontSize: '15px'
                   }}
                 >
                   {groupName}

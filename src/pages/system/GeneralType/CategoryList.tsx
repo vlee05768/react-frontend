@@ -141,16 +141,16 @@ export default function CategoryList({ selectedCode, onSelect }: CategoryListPro
   ];
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '16px', borderBottom: '1px solid var(--ant-color-border-secondary, #f0f0f0)' }}>
-        <Typography.Title level={5} style={{ marginTop: 0, marginBottom: 16 }}>類別清單</Typography.Title>
-        <Space style={{ width: '100%' }}>
+    <div className="h-full flex flex-col">
+      <div className="p-4" style={{borderBottom: '1px solid var(--ant-color-border-secondary, #f0f0f0)' }}>
+        <Typography.Title level={5} className="mt-0 mb-4">類別清單</Typography.Title>
+        <Space className="w-full">
           <Input 
             placeholder="搜尋類別" 
             prefix={<SearchOutlined />} 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%' }}
+            className="w-full"
             allowClear
           />
           <Button type="primary" icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={handleAdd}>

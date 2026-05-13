@@ -32,7 +32,7 @@ export default function ProductionReceiptItemsTab({ items }: Props) {
       key: 'actions',
       width: 60,
       align: 'center' as const,
-      fixed: 'left' as const,
+      fixed: 'right' as const,
       render: (_: any, record: any) => (
         <Tooltip title="檢視明細">
           <Button 
@@ -50,8 +50,8 @@ export default function ProductionReceiptItemsTab({ items }: Props) {
   if (editingItem) {
     return (
       <div className="view-mode-form">
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-          <h3 style={{ margin: 0 }}>檢視明細</h3>
+        <div className="flex justify-between mb-4">
+          <h3 className="m-0">檢視明細</h3>
           <Button onClick={() => setEditingItem(null)}>返回清單</Button>
         </div>
         <DynamicForm
@@ -69,17 +69,10 @@ export default function ProductionReceiptItemsTab({ items }: Props) {
 
   return (
     <div className="p-4">
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: '16px',
-        padding: '8px 12px',
-        backgroundColor: 'var(--ant-color-fill-alter)',
-        borderRadius: '6px'
+      <div className="flex justify-between items-center mb-4 p-[8px 12px]" style={{backgroundColor: 'var(--ant-color-fill-alter)', borderRadius: '6px'
       }}>
         <div style={{ color: 'var(--ant-color-text-secondary)' }}>
-          目前共有 <span style={{ fontWeight: 500 }}>{items.length}</span> 筆明細
+          目前共有 <span className="font-medium">{items.length}</span> 筆明細
         </div>
       </div>
       

@@ -92,7 +92,7 @@ export const WorkOrdersList: React.FC = () => {
   const actionColumn = {
     title: "操作",
     key: "action",
-    fixed: "left" as const,
+    fixed: 'right' as const,
     width: 140,
     render: (_: any, record: WorkOrderDto) => (
       <Space size="small">
@@ -138,18 +138,18 @@ export const WorkOrdersList: React.FC = () => {
   const columns = useMemo(() => buildTableColumns(tableColumns, actionColumn), []);
 
   return (
-    <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
+    <div className="p-[16px 16px 0px 16px] flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
       <Card
         variant="borderless"
         styles={{ 
           header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
           body: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '16px 16px 4px 16px' }
         }}
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', borderRadius: 0 }}
+        className="flex flex-col" style={{flex: 1, overflow: 'hidden', borderRadius: 0 }}
         title={
           <Space>
             <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
-            <span style={{ fontSize: '18px', fontWeight: 600 }}>製令管理</span>
+            <span className="font-semibold" style={{fontSize: '18px'}}>製令管理</span>
           </Space>
         }
         extra={
@@ -161,8 +161,8 @@ export const WorkOrdersList: React.FC = () => {
           </Space>
         }
       >
-        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
-          <span style={{ fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
+        <div className="mb-4 flex items-center p-[12px 16px]" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
+          <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
           <DynamicSearchTags
             config={searchConfig}
             params={searchParams}
@@ -170,7 +170,7 @@ export const WorkOrdersList: React.FC = () => {
           />
         </div>
 
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="flex flex-col" style={{flex: 1, overflow: 'hidden' }}>
           <style>{`
             .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
             .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -207,7 +207,7 @@ export const WorkOrdersList: React.FC = () => {
 
       <Modal
         title={
-          <div style={{ fontSize: '18px', fontWeight: 600, paddingBottom: '12px', borderBottom: '1px solid #f0f0f0', marginBottom: '8px' }}>
+          <div className="font-semibold pb-3 mb-2" style={{fontSize: '18px', borderBottom: '1px solid #f0f0f0'}}>
             查詢條件設定
           </div>
         }
@@ -216,7 +216,7 @@ export const WorkOrdersList: React.FC = () => {
         keyboard={true}
         onCancel={() => setIsSearchOpen(false)}
         footer={
-          <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+          <div className="pt-4 flex justify-end gap-2" style={{borderTop: '1px solid #f0f0f0'}}>
             <Button icon={<ClearOutlined />} onClick={() => searchForm.resetFields()}>
               清空重置
             </Button>

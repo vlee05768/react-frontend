@@ -319,7 +319,7 @@ export const getItemColumns = (
     key: "action",
     width: 80,
     align: "center",
-    fixed: "left",
+    fixed: 'right' as const,
     render: (_, record) => {
       if (isViewMode) return null;
       return (

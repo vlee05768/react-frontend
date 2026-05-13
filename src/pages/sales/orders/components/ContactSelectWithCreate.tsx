@@ -91,9 +91,9 @@ export const ContactSelectWithCreate: React.FC<ContactSelectWithCreateProps> = (
 
   return (
     <>
-      <Space.Compact style={{ width: '100%' }}>
+      <Space.Compact className="w-full">
         <Select
-          style={{ width: '100%' }}
+          className="w-full"
           value={value}
           onChange={onChange}
           disabled={disabled || !businessPartnerCode}
@@ -141,7 +141,7 @@ export const ContactSelectWithCreate: React.FC<ContactSelectWithCreateProps> = (
           </Button>
         ]}
       >
-        <div style={{ paddingTop: 16 }}>
+        <div className="pt-4">
           <DynamicForm
             fields={contactFormConfig()}
             onSubmit={handleCreateSubmit}

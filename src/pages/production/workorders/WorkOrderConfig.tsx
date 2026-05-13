@@ -220,28 +220,28 @@ export const tableColumns: TableColumnConfig[] = [
     label: "訂單數量",
     width: 100,
     align: "right",
-    render: (val) => <span style={{ color: 'var(--ant-color-info)', fontWeight: 600 }}>{val != null ? Number(val).toLocaleString() : "-"}</span>,
+    render: (val) => <span className="font-semibold" style={{color: 'var(--ant-color-info)'}}>{val != null ? Number(val).toLocaleString() : "-"}</span>,
   },
   {
     name: "plannedQuantity",
     label: "預計數量",
     width: 100,
     align: "right",
-    render: (val) => <span style={{ color: 'var(--ant-color-warning)', fontWeight: 600 }}>{val != null ? Number(val).toLocaleString() : "-"}</span>,
+    render: (val) => <span className="font-semibold" style={{color: 'var(--ant-color-warning)'}}>{val != null ? Number(val).toLocaleString() : "-"}</span>,
   },
   {
     name: "actualQuantity",
     label: "實際數量",
     width: 100,
     align: "right",
-    render: (val) => <span style={{ color: 'var(--ant-color-success)', fontWeight: 600 }}>{val != null ? Number(val).toLocaleString() : "-"}</span>,
+    render: (val) => <span className="font-semibold" style={{color: 'var(--ant-color-success)'}}>{val != null ? Number(val).toLocaleString() : "-"}</span>,
   },
   {
     name: "goodQuantity",
     label: "良品數量",
     width: 100,
     align: "right",
-    render: (val) => <span style={{ color: 'var(--ant-color-success)', fontWeight: 600 }}>{val != null ? Number(val).toLocaleString() : "-"}</span>,
+    render: (val) => <span className="font-semibold" style={{color: 'var(--ant-color-success)'}}>{val != null ? Number(val).toLocaleString() : "-"}</span>,
   },
 
   {

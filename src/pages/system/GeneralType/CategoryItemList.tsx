@@ -137,16 +137,16 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
 
   if (!selectedCode) {
     return (
-      <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="h-full flex items-center justify-center">
         <Empty description="請從左側選擇一個類別" />
       </div>
     );
   }
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f0f0f0' }}>
-        <Typography.Title level={5} style={{ margin: 0 }}>
+    <div className="h-full flex flex-col">
+      <div className="p-4 flex justify-between items-center" style={{borderBottom: '1px solid #f0f0f0' }}>
+        <Typography.Title level={5} className="m-0">
           {selectedCode} 項目清單
         </Typography.Title>
         <Button type="primary" icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={handleAdd}>
@@ -154,7 +154,7 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
         </Button>
       </div>
 
-      <div style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
+      <div className="p-4" style={{flex: 1, overflowY: 'auto' }}>
         <Table
             rowClassName={(record) => {
               const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;

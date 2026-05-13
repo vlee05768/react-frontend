@@ -136,7 +136,7 @@ export function CustomerProductPickerModal({
             disabled={!isSelected}
             onChange={(val) => handlePriceChange(record.code!, val)}
             size="small"
-            style={{ width: '100%' }}
+            className="w-full"
           />
         );
       }
@@ -158,7 +158,7 @@ export function CustomerProductPickerModal({
             disabled={!isSelected}
             onChange={(val) => handleQuantityChange(record.code!, val)}
             size="small"
-            style={{ width: '100%' }}
+            className="w-full"
           />
         );
       }
@@ -189,7 +189,7 @@ export function CustomerProductPickerModal({
       mask={{ closable: false }}
       footer={null}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexShrink: 0 }}>
+      <div className="flex justify-between items-center mb-4" style={{flexShrink: 0 }}>
         <Space>
           <Input.Search
             placeholder="搜尋產品名稱或編號"

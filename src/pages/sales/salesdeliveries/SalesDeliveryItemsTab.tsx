@@ -45,7 +45,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, items, isEditing
       title: '操作',
       dataIndex: 'action',
       width: 80,
-      fixed: 'left' as const,
+      fixed: 'right' as const,
       render: (_: any, record: any) => (
         <Button 
           type="text" 

@@ -118,7 +118,7 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
               }
             }}
             placeholder="請選擇員工"
-            style={{ width: '100%' }}
+            className="w-full"
           />
         );
       }
@@ -137,7 +137,7 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
           disabled={disabled}
           onChange={(newVal) => handleUpdate(index, 'hours', newVal)}
           placeholder="工時"
-          style={{ width: '100%' }}
+          className="w-full"
         />
       )
     },
@@ -195,7 +195,7 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
         centered
         destroyOnClose
       >
-        <div style={{ marginBottom: 16 }}>
+        <div className="mb-4">
           <div>
             總計: <strong>{tempList.reduce((sum, item) => sum + (item.hours || 0), 0).toFixed(2)}</strong> 小時
           </div>

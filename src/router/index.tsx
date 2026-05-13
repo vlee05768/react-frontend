@@ -39,13 +39,13 @@ import FormDemo from '@/pages/demo/FormDemo';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 // 路由守衛
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((state) => state.token);
   if (!token) {
     return <Navigate to={ROUTES.LOGIN} replace />;
   }
   return children;
-};
+}
 
 export const router = createBrowserRouter([
   {

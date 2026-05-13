@@ -77,7 +77,7 @@ export default function ProductionReceiptsList() {
   const actionColumn = {
     title: '操作',
     key: 'actions',
-    fixed: 'left' as const,
+    fixed: 'right' as const,
     width: 120,
     render: (_: any, record: any) => {
       return (
@@ -98,18 +98,18 @@ export default function ProductionReceiptsList() {
   const columns = buildTableColumns(mainTableColumns(), actionColumn);
 
   return (
-    <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
+    <div className="p-[16px 16px 0px 16px] flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
       <Card
         variant="borderless"
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        style={{flex: 1, overflow: 'hidden' }}
         styles={{ 
           header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
           body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
         }}
         title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="flex flex-col flex items-center gap-3">
             <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
-            <div style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>
+            <div className="m-0 font-semibold" style={{fontSize: '20px'}}>
               製令產品入庫管理
             </div>
           </div>
@@ -122,8 +122,8 @@ export default function ProductionReceiptsList() {
           </Space>
         }
       >
-        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
-          <span style={{ fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
+        <div className="mb-4 flex items-center p-[12px 16px]" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
+          <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
           <DynamicSearchTags
             config={productionReceiptSearchConfig()}
             params={params}
@@ -131,7 +131,7 @@ export default function ProductionReceiptsList() {
           />
         </div>
         
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="flex flex-col" style={{flex: 1, overflow: 'hidden' }}>
           <style>{`
             .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
             .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -166,14 +166,14 @@ export default function ProductionReceiptsList() {
 
       <Modal
         title={
-          <div style={{ fontSize: '18px', fontWeight: 600, paddingBottom: '12px', borderBottom: '1px solid #f0f0f0', marginBottom: '8px' }}>
+          <div className="font-semibold pb-3 mb-2" style={{fontSize: '18px', borderBottom: '1px solid #f0f0f0'}}>
             查詢條件設定
           </div>
         }
         open={isSearchModalOpen}
         onCancel={() => setIsSearchModalOpen(false)}
         footer={
-          <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+          <div className="pt-4 flex justify-end gap-2" style={{borderTop: '1px solid #f0f0f0'}}>
             <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
               清空重置
             </Button>

@@ -2,6 +2,31 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  /* 基礎文字顏色 */
+  --color-ant-text: var(--ant-color-text);
+  --color-ant-text-secondary: var(--ant-color-text-secondary);
+  --color-ant-text-description: var(--ant-color-text-description);
+
+  /* 主題語意顏色 */
+  --color-ant-primary: var(--ant-color-primary);
+  --color-ant-success: var(--ant-color-success);
+  --color-ant-warning: var(--ant-color-warning);
+  --color-ant-error: var(--ant-color-error);
+  --color-ant-info: var(--ant-color-info);
+
+  /* 邊框顏色 */
+  --color-ant-border: var(--ant-color-border);
+  --color-ant-border-secondary: var(--ant-color-border-secondary);
+
+  /* 背景與填充顏色 */
+  --color-ant-bg-container: var(--ant-color-bg-container);
+  --color-ant-fill-alter: var(--ant-color-fill-alter);
+  --color-ant-fill-tertiary: var(--ant-color-fill-tertiary);
+  --color-ant-fill-quaternary: var(--ant-color-fill-quaternary);
+  --color-ant-split: var(--ant-color-split);
+}
+
 :root {
   /* 由 AntD 和 Tailwind 動態控制背景與字體顏色，移除全域寫死 */
 }

@@ -83,7 +83,7 @@ export const itemTableColumns = (): TableColumnConfig[] => [
       return (
         <Tooltip 
           title={
-            <pre style={{ margin: 0, fontSize: '12px', whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+            <pre className="m-0" style={{fontSize: '12px', whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
               {formattedJson}
             </pre>
           } 

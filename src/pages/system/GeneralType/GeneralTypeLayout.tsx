@@ -7,10 +7,10 @@ export default function GeneralTypeLayout() {
   const [selectedCategoryCode, setSelectedCategoryCode] = useState<string | null>(null);
 
   return (
-    <div style={{ padding: '16px', height: 'calc(100vh - 64px)', display: 'flex', gap: '16px' }}>
+    <div className="p-4 flex gap-4" style={{height: 'calc(100vh - 64px)'}}>
       {/* 左側：類別清單 */}
       <Card 
-        style={{ width: '450px', display: 'flex', flexDirection: 'column' }}
+        className="flex flex-col" style={{width: '450px'}}
         styles={{ body: { padding: 0, flex: 1, overflow: 'hidden' } }}
         variant="borderless"
       >
@@ -22,7 +22,7 @@ export default function GeneralTypeLayout() {
 
       {/* 右側：項目清單 */}
       <Card 
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        className="flex flex-col" style={{flex: 1, overflow: 'hidden' }}
         styles={{ body: { padding: 0, flex: 1, overflow: 'hidden' } }}
         variant="borderless"
       >

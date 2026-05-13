@@ -42,8 +42,8 @@ export const DictSelect: React.FC<DictSelectProps> = ({
           {menu}
           {showRefresh && (
             <>
-              <Divider style={{ margin: '4px 0' }} />
-              <Space style={{ padding: '0 8px 4px', display: 'flex', justifyContent: 'center' }}>
+              <Divider className="m-[4px 0]" />
+              <Space className="p-[0 8px 4px] flex justify-center">
                 <Button 
                   type="text" 
                   size="small"

@@ -143,7 +143,7 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
           
           // 在 Antd 中，Tooltip 綁定在 disabled 元素上無法觸發 hover，需要用 wrapper 元素包裝
           const wrappedNode = finalDisabled ? (
-             <span style={{ display: 'block', cursor: 'not-allowed' }}>
+             <span className="block" style={{cursor: 'not-allowed' }}>
                 <div style={{ pointerEvents: 'none' }}>{node}</div>
              </span>
           ) : node;

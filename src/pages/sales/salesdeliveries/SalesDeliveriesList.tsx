@@ -106,7 +106,7 @@ export default function SalesDeliveriesList() {
       title: '操作',
       key: 'action',
       width: 220,
-      fixed: 'left',
+      fixed: 'right' as const,
       render: (_, record: SalesDeliveryDto) => {
         const canView = hasPermission('Sales.Deliveries.View');
         const canUpdate = hasPermission('Sales.Deliveries.Update');

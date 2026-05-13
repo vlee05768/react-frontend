@@ -505,7 +505,7 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
             updatedAt={record?.updatedAt}
             actions={getActionBarActions()}
           />
-        <div style={{ padding: "8px 24px" }}>
+        <div className="p-[8px 24px]">
           {!isCreateMode && record && <DocumentLifecycleBanner steps={steps} />}
           <MasterDetailTabs
           heightOffset={!isCreateMode && record ? 320 : 160}

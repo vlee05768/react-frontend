@@ -1,3 +1,4 @@
+import { Popconfirm } from 'antd';
 import React, { useState } from 'react';
 import { Table, Button, Space, App, Tooltip } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
@@ -113,22 +114,22 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
             />
           </Tooltip>
           {canEdit && (
-            <Button 
-              size="small" 
-              type="text" 
-              danger 
-              icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-              onClick={() => {
-                modal.confirm({
-                  title: '確定要刪除？',
-                  content: '刪除後將無法還原此明細。',
-                  centered: true,
-                  width: 400,
-                  okButtonProps: { danger: true },
-                  onOk: () => deleteMutation.mutate(record.lineNumber)
-                });
-              }}
-            />
+            <Popconfirm
+            title="刪除確認"
+            description="確定要刪除此筆資料嗎？此操作無法還原。"
+            onConfirm={() => deleteMutation.mutate(record.lineNumber)}
+            onOpenChange={() => {
+              // const r...
+              // const recordId...
+              // no deleting record id
+            }}
+            okButtonProps={{ danger: true }}
+            okText="刪除"
+            cancelText="取消"
+            placement="topLeft"
+          >
+            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
+          </Popconfirm>
           )}
         </Space>
       ),
@@ -166,8 +167,8 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
     const readonly = !canEdit;
     return (
       <div className={readonly ? "view-mode-form" : ""}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-          <h3 style={{ margin: 0 }}>
+        <div className="flex justify-between mb-4">
+          <h3 className="m-0">
             {isCreating ? '新增明細' : (readonly ? '檢視明細' : '編輯明細')}
           </h3>
           <Space>
@@ -200,14 +201,7 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
   // List view
   return (
     <div>
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: '16px',
-        padding: '8px 12px',
-        backgroundColor: 'var(--ant-color-fill-alter)',
-        borderRadius: '6px'
+      <div className="flex justify-between items-center mb-4 p-[8px 12px]" style={{backgroundColor: 'var(--ant-color-fill-alter)', borderRadius: '6px'
       }}>
         <div style={{ color: 'var(--ant-color-text-secondary)' }}>
           目前共有 <span>{listData.length}</span> 筆明細

@@ -269,7 +269,7 @@ export default function RoleList() {
   const actionColumn = {
     title: '操作',
     key: 'actions',
-    fixed: 'left' as const,
+    fixed: 'right' as const,
     width: 120,
     render: (_: any, record: any) => (
       <Space>
@@ -285,23 +285,22 @@ export default function RoleList() {
         )}
         {hasPermission('System.Roles.Delete') && (
           <Tooltip title="刪除">
-            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => {
-              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              const rt = record as any; const recordTitle = rt.name || rt.code || rt.employeeNo || rt.userName || rt.roleName || rt.documentNumber || rt.referenceNumber || recordId || '此資料';
-              setDeletingRecordId(String(recordId));
-              modal.confirm({
-                title: `刪除確認 - ${recordTitle}`,
-                content: '確定要刪除此筆資料嗎？此操作無法還原。',
-                centered: true,
-                width: 400,
-                okButtonProps: { danger: true },
-                onOk: () => {
-                  setDeletingRecordId(null);
-                  deleteMutation.mutate(record.id)
-                },
-                onCancel: () => setDeletingRecordId(null)
-              });
-            }} />
+            <Popconfirm
+            title="刪除確認"
+            description="確定要刪除此筆資料嗎？此操作無法還原。"
+            onConfirm={() => deleteMutation.mutate(record.id)}
+            onOpenChange={(open) => {
+              const r = record as any;
+              const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              if (typeof setDeletingRecordId !== 'undefined') setDeletingRecordId(open ? String(recordId) : null);
+            }}
+            okButtonProps={{ danger: true }}
+            okText="刪除"
+            cancelText="取消"
+            placement="topLeft"
+          >
+            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
+          </Popconfirm>
           </Tooltip>
         )}
       </Space>
@@ -311,23 +310,23 @@ export default function RoleList() {
   const columns = buildTableColumns(mainTableColumns(), actionColumn);
 
   return (
-    <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
+    <div className="p-[16px 16px 0px 16px] flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
       <Card
         variant="borderless"
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        style={{flex: 1, overflow: 'hidden' }}
         styles={{ 
           header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
           body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
         }}
         title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="flex flex-col flex items-center gap-3">
             <div style={{
               width: '4px',
               height: '24px',
               backgroundColor: '#1677ff',
               borderRadius: '2px'
             }} />
-            <div style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: 'var(--ant-color-text, inherit)', lineHeight: '24px' }}>
+            <div className="m-0 font-semibold" style={{fontSize: '20px', color: 'var(--ant-color-text, inherit)', lineHeight: '24px' }}>
               角色管理
             </div>
           </div>
@@ -339,7 +338,7 @@ export default function RoleList() {
                 type="primary" 
                 icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
                 onClick={openCreateDrawer}
-                style={{ fontWeight: 500 }}
+                className="font-medium"
               >
                 新增資料
               </Button>
@@ -347,7 +346,7 @@ export default function RoleList() {
           </Space>
         }
       >
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="flex flex-col" style={{flex: 1, overflow: 'hidden' }}>
           <style>{`
             .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
             .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }

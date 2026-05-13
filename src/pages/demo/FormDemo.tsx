@@ -116,7 +116,7 @@ export default function FormDemo() {
     <div className="p-6 max-w-5xl mx-auto">
       <Card className="shadow-md">
         <div className="flex justify-between items-center mb-6 border-b pb-4">
-          <Title level={4} style={{ margin: 0 }}>單檔高彈性表單 (Single Table Dynamic Form)</Title>
+          <Title level={4} className="m-0">單檔高彈性表單 (Single Table Dynamic Form)</Title>
           <div className="flex items-center bg-gray-50 p-2 rounded border">
             <span className="mr-2 text-gray-600 font-medium text-sm">模擬 Update 模式 (鎖定姓名):</span>
             <Switch checked={isUpdateMode} onChange={setIsUpdateMode} />

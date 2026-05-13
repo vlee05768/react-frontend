@@ -150,7 +150,7 @@ export default function StorageInventoryList() {
     return (
       <Button 
         type="link" 
-        style={{ color, padding: 0, fontWeight: 600, textDecoration: 'underline' }}
+        className="p-0 font-semibold" style={{color, textDecoration: 'underline' }}
         onClick={() => navigate(`/warehouse/inventory-movements?storageCode=${record.storageCode}&inventoryCode=${record.inventoryCode}`)}
       >
         {val.toLocaleString('zh-TW')}

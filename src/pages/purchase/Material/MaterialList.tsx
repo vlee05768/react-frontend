@@ -165,7 +165,7 @@ export default function MaterialList() {
   const actionColumn = {
     title: '操作',
     key: 'actions',
-    fixed: 'left' as const,
+    fixed: 'right' as const,
     width: 120,
     render: (_: any, record: any) => (
       <Space>
@@ -181,23 +181,22 @@ export default function MaterialList() {
         )}
         {hasPermission('Warehouse.Materials.Delete') && (
           <Tooltip title="刪除">
-            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => {
-              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              const rt = record as any; const recordTitle = rt.name || rt.code || rt.employeeNo || rt.userName || rt.roleName || rt.documentNumber || rt.referenceNumber || recordId || '此資料';
-              setDeletingRecordId(String(recordId));
-              modal.confirm({
-                title: `刪除確認 - ${recordTitle}`,
-                content: '確定要刪除此筆資料嗎？此操作無法還原。',
-                centered: true,
-                width: 400,
-                okButtonProps: { danger: true },
-                onOk: () => {
-                  setDeletingRecordId(null);
-                  deleteMutation.mutate(record.code)
-                },
-                onCancel: () => setDeletingRecordId(null)
-              });
-            }} />
+            <Popconfirm
+            title="刪除確認"
+            description="確定要刪除此筆資料嗎？此操作無法還原。"
+            onConfirm={() => deleteMutation.mutate(record.code)}
+            onOpenChange={(open) => {
+              const r = record as any;
+              const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              if (typeof setDeletingRecordId !== 'undefined') setDeletingRecordId(open ? String(recordId) : null);
+            }}
+            okButtonProps={{ danger: true }}
+            okText="刪除"
+            cancelText="取消"
+            placement="topLeft"
+          >
+            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
+          </Popconfirm>
           </Tooltip>
         )}
       </Space>
@@ -227,40 +226,40 @@ export default function MaterialList() {
   };
 
   return (
-    <div style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
+    <div className="p-[16px 16px 0px 16px] flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
       <Card
         variant="borderless"
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        style={{flex: 1, overflow: 'hidden' }}
         styles={{ 
           header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
           body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
         }}
         title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="flex flex-col flex items-center gap-3">
             <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
-            <div style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: 'var(--ant-color-text, inherit)', lineHeight: '24px' }}>
+            <div className="m-0 font-semibold" style={{fontSize: '20px', color: 'var(--ant-color-text, inherit)', lineHeight: '24px' }}>
               原料管理
             </div>
           </div>
         }
         extra={
           <Space separator={<Divider orientation="vertical" />}>
-            <Button type="default" icon={<SearchOutlined />} onClick={openSearchModal} style={{ fontWeight: 500 }}>
+            <Button type="default" icon={<SearchOutlined />} onClick={openSearchModal} className="font-medium">
               進階查詢
             </Button>
             {hasPermission('Warehouse.Materials.Create') && (
-              <Button type="primary" icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={openCreateDrawer} style={{ fontWeight: 500 }}>
+              <Button type="primary" icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={openCreateDrawer} className="font-medium">
                 新增資料
               </Button>
             )}
           </Space>
         }
       >
-        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
-          <span style={{ fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
+        <div className="mb-4 flex items-center p-[12px 16px]" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
+          <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)'}}>目前的查詢條件:</span>
           <DynamicSearchTags config={materialSearchFormConfig()} params={params} onClose={(key) => setParams({ [key]: undefined, pageNumber: 1 })} />
         </div>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="flex flex-col" style={{flex: 1, overflow: 'hidden' }}>
           <style>{`
             .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
             .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -317,13 +316,13 @@ export default function MaterialList() {
       </Card>
 
       <Modal
-        title={<div style={{ fontSize: '18px', fontWeight: 600, paddingBottom: '12px', borderBottom: '1px solid #f0f0f0', marginBottom: '8px' }}>查詢條件設定</div>}
+        title={<div className="font-semibold pb-3 mb-2" style={{fontSize: '18px', borderBottom: '1px solid #f0f0f0'}}>查詢條件設定</div>}
         open={isSearchModalOpen}
         mask={{ closable: isViewMode }}
         keyboard={isViewMode}
         onCancel={() => setIsSearchModalOpen(false)}
         footer={
-          <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+          <div className="pt-4 flex justify-end gap-2" style={{borderTop: '1px solid #f0f0f0'}}>
             <Button icon={<ClearOutlined />} onClick={handleSearchReset}>清空重置</Button>
             <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>執行查詢</Button>
           </div>

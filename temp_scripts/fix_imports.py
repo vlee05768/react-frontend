@@ -1,20 +1,19 @@
-import re
-
-with open('/home/hermes/git_projects/erp-frontend-react/src/pages/quality/productionreceipt/ProductionReceiptDrawer.tsx', 'r') as f:
-    content = f.read()
-
-# Replace `import { Spin, Drawer, Space, App } from 'antd';`
-# with `import { Spin, Drawer, Space, App, Button } from 'antd';`
-content = content.replace(
-    "import { Spin, Drawer, Space, App } from 'antd';",
-    "import { Spin, Drawer, Space, App, Button } from 'antd';"
-)
-
-# And fix `Parameter 'e' implicitly has an 'any' type` by changing `(e) =>` to `(e: React.MouseEvent) =>`
-content = content.replace('(e) => { e.preventDefault();', '(e: any) => { e.preventDefault();')
-
-# Ensure handleClose is declared once
-content = re.sub(r'const handleClose = \(\) => \{\n    navigate\(\'/production-quality/production-receipts\'\);\n  \};\n(?=.*?const handleClose)', '', content, flags=re.DOTALL)
-
-with open('/home/hermes/git_projects/erp-frontend-react/src/pages/quality/productionreceipt/ProductionReceiptDrawer.tsx', 'w') as f:
-    f.write(content)
+import os
+for file in [
+    'src/pages/warehouse/InventoryAdjustment/InventoryAdjustmentList.tsx',
+    'src/pages/warehouse/InventoryAdjustment/Tabs/InventoryAdjustmentItemsTab.tsx',
+    'src/pages/quality/qcreceipt/QcReceiptItemsTab.tsx',
+    'src/pages/quality/qcreceipt/QcReceiptsList.tsx',
+    'src/pages/basic/BusinessPartner/ContactList.tsx'
+]:
+    path = os.path.join('/home/hermes/git_projects/erp-frontend-react', file)
+    with open(path, 'r') as f: content = f.read()
+    if '<Popconfirm' in content and 'Popconfirm' not in content[:1000]:
+        with open(path, 'w') as f:
+            f.write("import { Popconfirm } from 'antd';\n" + content)
+            
+    # Also handle setDeletingRecordId not found
+    if 'setDeletingRecordId' in content and 'useState' not in content.split('setDeletingRecordId')[0] and 'setDeletingRecordId' not in content.split('setDeletingRecordId')[0]:
+        content = content.replace("if (typeof setDeletingRecordId !== 'undefined') setDeletingRecordId(open ? String(recordId) : null);", "// no deleting record ID state")
+        with open(path, 'w') as f:
+            f.write(content)

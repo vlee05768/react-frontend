@@ -280,7 +280,7 @@ export default function SalesDeliveryDrawer() {
           updatedAt={deliveryData?.updatedAt || undefined}
           actions={getActionBarActions()}
         />
-        <div style={{ padding: "8px 24px" }}>
+        <div className="p-[8px 24px]">
           <MasterDetailTabs
             heightOffset={!isCreating && deliveryData ? 320 : 160}
             activeTab={activeTab}

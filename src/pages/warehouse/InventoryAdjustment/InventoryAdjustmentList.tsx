@@ -1,3 +1,4 @@
+import { Popconfirm } from 'antd';
 import { ActionButton } from "@/components/common/ActionButton";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
@@ -225,24 +226,23 @@ export default function InventoryAdjustmentList() {
         </Tooltip>
         {record.status === 'Unconfirmed' && (
           <Tooltip title="刪除">
-            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => {
-              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              const rt = record as any; const recordTitle = rt.name || rt.code || rt.employeeNo || rt.userName || rt.roleName || rt.documentNumber || rt.referenceNumber || recordId || '此資料';
-              setDeletingRecordId(String(recordId));
-              modal.confirm({
-                title: `刪除確認 - ${recordTitle}`,
-                content: '確定要刪除此筆資料嗎？此操作無法還原。',
-                centered: true,
-                width: 400,
-                okButtonProps: { danger: true },
-                onOk: () => {
-                  setDeletingRecordId(null);
-                  deleteMutation.mutateAsync(record.documentNumber)
-                },
-                onCancel: () => setDeletingRecordId(null)
-              });
-            }} />
-          </Tooltip>
+          <Popconfirm
+            title="刪除確認"
+            description="確定要刪除此筆資料嗎？此操作無法還原。"
+            onConfirm={() => deleteMutation.mutateAsync(record.documentNumber)}
+            onOpenChange={(open) => {
+              const r = record as any;
+              const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              setDeletingRecordId(open ? String(recordId) : null);
+            }}
+            okButtonProps={{ danger: true }}
+            okText="刪除"
+            cancelText="取消"
+            placement="topLeft"
+          >
+            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
+          </Popconfirm>
+        </Tooltip>
         )}
       </Space>
     ),

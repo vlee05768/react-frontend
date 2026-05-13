@@ -1,6 +1,6 @@
 import { getApiErrorMessage } from "@/utils/apiError";
 import { useState, useMemo } from 'react';
-import { Table, Button, Space,  Drawer } from 'antd';
+import { Table, Button, Space,  Drawer, Popconfirm } from 'antd';
 import { PlusOutlined, DeleteOutlined, EyeOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -123,7 +123,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
   const actionColumn = {
     title: '操作',
     key: 'actions',
-    fixed: 'left' as const,
+    fixed: 'right' as const,
     width: 120,
     render: (_: any, record: any) => (
       <Space>
@@ -134,23 +134,22 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
           onClick={() => openViewDrawer(record)}
         />
         {isMasterViewMode && (
-          <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => {
-              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              const rt = record as any; const recordTitle = rt.name || rt.code || rt.employeeNo || rt.userName || rt.roleName || rt.documentNumber || rt.referenceNumber || recordId || '此資料';
-              setDeletingRecordId(String(recordId));
-              modalApi.confirm({
-                title: `刪除確認 - ${recordTitle}`,
-                content: '確定要刪除此筆聯絡人嗎？此操作無法還原。',
-                centered: true,
-                width: 400,
-                okButtonProps: { danger: true },
-                onOk: () => {
-                  setDeletingRecordId(null);
-                  deleteMutation.mutate(record.id)
-                },
-                onCancel: () => setDeletingRecordId(null)
-              });
-            }} />
+          <Popconfirm
+            title="刪除確認"
+            description="確定要刪除此筆聯絡人嗎？此操作無法還原。"
+            onConfirm={() => deleteMutation.mutate(record.id)}
+            onOpenChange={(open) => {
+              const r = record as any;
+              const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
+              setDeletingRecordId(open ? String(recordId) : null);
+            }}
+            okButtonProps={{ danger: true }}
+            okText="刪除"
+            cancelText="取消"
+            placement="topLeft"
+          >
+            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
+          </Popconfirm>
         )}
       </Space>
     ),
@@ -159,20 +158,13 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
   const columns = buildTableColumns(contactTableColumns(), actionColumn);
 
   return (
-    <div className="detail-container" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="detail-container flex flex-col h-full" >
       {/* 頂部操作列與客製化訊息區 */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: '16px',
-        padding: '8px 12px',
-        backgroundColor: 'var(--ant-color-fill-alter, #f5f5f5)',
-        borderRadius: '6px'
+      <div className="flex justify-between items-center mb-4 p-[8px 12px]" style={{backgroundColor: 'var(--ant-color-fill-alter, #f5f5f5)', borderRadius: '6px'
       }}>
         {/* 左側：訊息 */}
         <div style={{ color: 'var(--ant-color-text-secondary, #8c8c8c)' }}>
-          目前共有 <span style={{ fontWeight: 600, color: 'var(--ant-color-primary)' }}>{listData.length}</span> 筆聯絡人資料
+          目前共有 <span className="font-semibold" style={{color: 'var(--ant-color-primary)' }}>{listData.length}</span> 筆聯絡人資料
         </div>
         
         {/* 右側：操作按鈕 */}
