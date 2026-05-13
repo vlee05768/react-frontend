@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Card, Table, Tabs, Button, Space, Form, Input, Select, ConfigProvider } from 'antd';
+import { useForm, Controller } from 'react-hook-form';
 import { SearchOutlined, ClearOutlined, SyncOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { getApiV1StorageInventory } from '@/api/generated/sdk.gen';
@@ -15,7 +16,8 @@ const { TabPane } = Tabs;
 
 export default function StorageInventoryList() {
   const { mode } = useThemeStore();
-  const [form] = Form.useForm();
+  const searchForm = useForm();
+  const { control, handleSubmit, reset } = searchForm;
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -59,12 +61,12 @@ export default function StorageInventoryList() {
       return prev;
     });
 
-    form.setFieldsValue({
+    reset({
       StorageCode: newStorageCode,
       InventoryCode: newInventoryCode,
       Type: newType,
     });
-  }, [searchParams, form]);
+  }, [searchParams, reset]);
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ['storage-inventory', queryParams],
@@ -134,11 +136,11 @@ export default function StorageInventoryList() {
   }, [data]);
 
   const handleSearch = () => {
-    setQueryParams(form.getFieldsValue());
+    setQueryParams(searchForm.getValues() as any);
   };
 
   const handleReset = () => {
-    form.resetFields();
+    reset();
     setQueryParams({ StorageCode: undefined, InventoryCode: undefined, Type: undefined });
   };
 
@@ -202,15 +204,15 @@ export default function StorageInventoryList() {
           </Button>
         }
       >
-        <Form form={form} layout="inline" className="mb-4" onFinish={handleSearch}>
-          <Form.Item name="StorageCode" label="儲位">
-            <DictSelect dictKey="STORAGE" placeholder="請選擇儲位" style={{ width: 220 }} allowClear />
+        <Form layout="inline" className="mb-4" onFinish={handleSubmit(handleSearch)}>
+          <Form.Item label="儲位">
+            <Controller name="StorageCode" control={control} render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" placeholder="請選擇儲位" style={{ width: 220 }} allowClear />} />
           </Form.Item>
-          <Form.Item name="InventoryCode" label="物料編號">
-            <Input placeholder="請輸入物料編號" allowClear style={{ width: 220 }} />
+          <Form.Item label="物料編號">
+            <Controller name="InventoryCode" control={control} render={({field}: any) => <Input {...field} placeholder="請輸入物料編號" allowClear style={{ width: 220 }} />} />
           </Form.Item>
-          <Form.Item name="Type" label="庫存類型">
-            <Select placeholder="請選擇類型" allowClear style={{ width: 120 }} options={inventoryTypeOptions} />
+          <Form.Item label="庫存類型">
+            <Controller name="Type" control={control} render={({field}: any) => <Select {...field} placeholder="請選擇類型" allowClear style={{ width: 120 }} options={inventoryTypeOptions} />} />
           </Form.Item>
           <Form.Item>
             <Space>

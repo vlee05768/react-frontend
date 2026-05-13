@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useForm, Controller } from 'react-hook-form';
 import { Card, Table, Form, Input, Select, DatePicker, Button, Space, Tag, Row, Col, App } from 'antd';
 import { SearchOutlined, ClearOutlined, DownOutlined, UpOutlined, CopyOutlined } from '@ant-design/icons';
 import { DictSelect } from '@/components/Form/DictSelect';
@@ -26,7 +27,8 @@ const subTypeOptions = [
 
 export default function StorageTransactionsList() {
 
-  const [form] = Form.useForm();
+  const searchForm = useForm();
+  const { control, handleSubmit, reset } = searchForm;
   const navigate = useNavigate();
   const { message } = App.useApp();
   const [expandForm, setExpandForm] = useState(false);
@@ -47,11 +49,11 @@ export default function StorageTransactionsList() {
   });
 
   useEffect(() => {
-    form.setFieldsValue({
+    reset({
       storageCode: initialStorageCode,
       inventoryCode: initialInventoryCode
     });
-  }, [form, initialStorageCode, initialInventoryCode]);
+  }, [reset, initialStorageCode, initialInventoryCode]);
 
   const { data, isFetching } = useQuery({
     queryKey: ['storage-transactions', queryParams, pagination.current, pagination.pageSize],
@@ -86,12 +88,12 @@ export default function StorageTransactionsList() {
   const totalRecords = data?.data?.totalRecords || 0;
 
   const handleSearch = () => {
-    setQueryParams(form.getFieldsValue());
+    setQueryParams(searchForm.getValues());
     setPagination(prev => ({ ...prev, current: 1 }));
   };
 
   const handleReset = () => {
-    form.resetFields();
+    reset();
     setQueryParams({});
     setPagination(prev => ({ ...prev, current: 1 }));
   };
@@ -256,41 +258,41 @@ export default function StorageTransactionsList() {
     <div className="p-[16px 16px 0px 16px] flex flex-col gap-4" style={{height: 'calc(100vh - 64px)'}}>
       <Card variant="borderless" className="shadow-sm" style={{ flexShrink: 0 }}>
         <Form 
-          form={form} 
+          
           layout="vertical"
           className="ant-advanced-search-form"
         >
           <Row gutter={16}>
             <Col xs={24} sm={12} md={8} lg={6}>
-              <Form.Item name="inventoryCode" label="庫存物料編號">
-                <Input placeholder="請輸入庫存物料編號" allowClear />
+              <Form.Item label="庫存物料編號">
+                <Controller name="inventoryCode" control={control} render={({field}) => <Input {...field} placeholder="請輸入庫存物料編號" allowClear />} />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12} md={8} lg={6}>
-              <Form.Item name="storageCode" label="儲位">
-                <DictSelect dictKey="STORAGE" placeholder="請選擇儲位" allowClear />
+              <Form.Item label="儲位">
+                <Controller name="storageCode" control={control} render={({field}) => <DictSelect {...field} dictKey="STORAGE" placeholder="請選擇儲位" allowClear />} />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12} md={8} lg={6}>
-              <Form.Item name="docType" label="單據類型">
-                <Select placeholder="請選擇單據類型" options={docTypeOptions} allowClear />
+              <Form.Item label="單據類型">
+                <Controller name="docType" control={control} render={({field}) => <Select {...field} placeholder="請選擇單據類型" options={docTypeOptions} allowClear />} />
               </Form.Item>
             </Col>
             {expandForm && (
               <>
                 <Col xs={24} sm={12} md={8} lg={6}>
-                  <Form.Item name="sourceDocCode" label="來源單據編號">
-                    <Input placeholder="請輸入來源單據編號" allowClear />
+                  <Form.Item label="來源單據編號">
+                    <Controller name="sourceDocCode" control={control} render={({field}) => <Input {...field} placeholder="請輸入來源單據編號" allowClear />} />
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={8} lg={6}>
-                  <Form.Item name="movementDateRange" label="異動日期區間">
-                    <RangePicker className="w-full" />
+                  <Form.Item label="異動日期區間">
+                    <Controller name="movementDateRange" control={control} render={({field}) => <RangePicker {...field} className="w-full" />} />
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12} md={8} lg={6}>
-                  <Form.Item name="transactionDateRange" label="交易時間區間">
-                    <RangePicker showTime className="w-full" />
+                  <Form.Item label="交易時間區間">
+                    <Controller name="transactionDateRange" control={control} render={({field}) => <RangePicker {...field} showTime className="w-full" />} />
                   </Form.Item>
                 </Col>
               </>
@@ -301,7 +303,7 @@ export default function StorageTransactionsList() {
                   <Button onClick={handleReset} icon={<ClearOutlined />}>
                     清除
                   </Button>
-                  <Button type="primary" onClick={handleSearch} icon={<SearchOutlined />}>
+                  <Button type="primary" onClick={handleSubmit(handleSearch)} icon={<SearchOutlined />}>
                     查詢
                   </Button>
                   <a 

@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { Modal, Table, Button, Form, Input, InputNumber, Tag } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { getApiV1QcReceiptUnprocessedProductionReceipts } from '@/api/generated';
@@ -17,8 +18,8 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
   
   const goodInputRefs = useRef<Map<string, any>>(new Map());
 
-  const [form] = Form.useForm();
-  const keyword = Form.useWatch('keyword', form);
+  const { control, watch } = useForm();
+  const keyword = watch('keyword');
 
   const { data, isLoading } = useQuery({
     queryKey: ['unprocessedProductionReceipts'],
@@ -192,14 +193,17 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
         </div>
       }
     >
-      <Form form={form} layout="inline" className="mb-4">
-        <Form.Item name="keyword" label="關鍵字搜尋">
-          <Input 
-            placeholder="料號/品名/單號" 
-            allowClear 
-            className="w-64" 
-            onFocus={(e) => e.target.select()}
-          />
+      <Form layout="inline" className="mb-4">
+        <Form.Item label="關鍵字搜尋">
+          <Controller name="keyword" control={control} render={({field}) => (
+            <Input 
+              {...field}
+              placeholder="料號/品名/單號" 
+              allowClear 
+              className="w-64" 
+              onFocus={(e) => e.target.select()}
+            />
+          )} />
         </Form.Item>
       </Form>
 

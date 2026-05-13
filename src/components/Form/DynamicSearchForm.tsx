@@ -1,6 +1,6 @@
-
-import { Form, Input, Select, DatePicker, InputNumber, Switch, Row, Col } from 'antd';
-import type { FormInstance } from 'antd';
+import { Form, Row, Col, Input, Select, DatePicker, InputNumber, Switch } from 'antd';
+import type { UseFormReturn } from 'react-hook-form';
+import { Controller } from 'react-hook-form';
 import type { SearchFieldConfig } from './types';
 import { DictSelect } from './DictSelect';
 import { AsyncSelect } from './AsyncSelect';
@@ -9,14 +9,17 @@ const { RangePicker } = DatePicker;
 
 interface DynamicSearchFormProps {
   config: SearchFieldConfig[];
-  form: FormInstance;
+  form: UseFormReturn<any>;
   onSearch?: (values: any) => void;
   layout?: 'horizontal' | 'vertical' | 'inline';
+  id?: string;
 }
 
-export default function DynamicSearchForm({ config, form, onSearch, layout = 'vertical' }: DynamicSearchFormProps) {
-  const renderComponent = (field: SearchFieldConfig) => {
-    const props = field.componentProps || {};
+export default function DynamicSearchForm({ config, form, onSearch, layout = 'vertical', id = 'search-form' }: DynamicSearchFormProps) {
+  const { control, handleSubmit } = form;
+
+  const renderComponent = (field: SearchFieldConfig, onChange: any, value: any, ref: any) => {
+    const props = { ...(field.componentProps || {}), onChange, value, ref };
     
     switch (field.componentType) {
       case 'Input':
@@ -36,7 +39,7 @@ export default function DynamicSearchForm({ config, form, onSearch, layout = 've
       case 'DateRangePicker':
         return <RangePicker className="w-full" {...props} />;
       case 'Switch':
-        return <Switch {...props} />;
+        return <Switch checked={value} {...props} />;
       case 'Custom':
       default:
         return <Input placeholder={`請輸入${field.label}`} allowClear {...props} />;
@@ -45,17 +48,12 @@ export default function DynamicSearchForm({ config, form, onSearch, layout = 've
 
   return (
     <Form 
-      form={form} 
+      id={id}
       layout={layout}
-      onFinish={onSearch}
-      initialValues={config.reduce((acc, curr) => {
-        if (curr.defaultValue !== undefined) acc[curr.name] = curr.defaultValue;
-        return acc;
-      }, {} as Record<string, any>)}
+      onFinish={onSearch ? handleSubmit(onSearch) : undefined}
     >
       <Row gutter={16}>
         {config.map((field) => {
-          // 根據 DynamicForm 邏輯：colSpan 代表「一行幾欄」，將 form 分為 12 個 cell
           const columnsPerRow = Math.max(1, Math.min(12, field.colSpan || 4));
           const cells = 12 / columnsPerRow;
           const antSpan = Math.max(2, Math.min(24, Math.floor(cells * 2)));
@@ -63,11 +61,14 @@ export default function DynamicSearchForm({ config, form, onSearch, layout = 've
           return (
             <Col span={antSpan} key={field.name}>
               <Form.Item 
-                name={field.name} 
                 label={field.label}
-                valuePropName={field.componentType === 'Switch' ? 'checked' : 'value'}
               >
-                {renderComponent(field)}
+                <Controller
+                  name={field.name}
+                  control={control}
+                  defaultValue={field.defaultValue}
+                  render={({ field: { onChange, value, ref } }) => renderComponent(field, onChange, value, ref)}
+                />
               </Form.Item>
             </Col>
           );

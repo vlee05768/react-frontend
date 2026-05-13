@@ -2,6 +2,7 @@
 import { getApiErrorMessage } from "@/utils/apiError";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   Spin, Table, Button, Modal, Form, Space, Card, Tag, Tooltip, Divider, message, Popconfirm, Drawer, Tabs
 , App } from 'antd';
@@ -38,7 +39,7 @@ export default function MaterialList() {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
-  const [searchForm] = Form.useForm();
+  const searchForm = useForm();
   const [formDefaultValues, setFormDefaultValues] = useState<any>({});
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
@@ -217,11 +218,11 @@ export default function MaterialList() {
   };
 
   const handleSearchReset = () => {
-    searchForm.resetFields();
+    searchForm.reset();
   };
 
   const openSearchModal = () => {
-    searchForm.setFieldsValue(params);
+    searchForm.reset(params);
     setIsSearchModalOpen(true);
   };
 
@@ -324,7 +325,7 @@ export default function MaterialList() {
         footer={
           <div className="pt-4 flex justify-end gap-2" style={{borderTop: '1px solid #f0f0f0'}}>
             <Button icon={<ClearOutlined />} onClick={handleSearchReset}>清空重置</Button>
-            <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>執行查詢</Button>
+            <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">執行查詢</Button>
           </div>
         }
         width={MODAL_WIDTH_SEARCH}

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Card, Table, Button, Space, Tooltip, App, Form, Modal } from 'antd';
+import { useForm } from 'react-hook-form';
+import { Card, Table, Button, Space, Tooltip, App, Modal } from 'antd';
 import { EyeOutlined, PlusOutlined, SearchOutlined, DeleteOutlined, PrinterOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { useNavigate,  } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -40,7 +41,7 @@ export default function SalesDeliveriesList() {
     setQuery: (q) => setParams({ ...q, pageNumber: 1 })
   });
 
-  const [searchForm] = Form.useForm();
+  const searchForm = useForm();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
@@ -148,7 +149,7 @@ export default function SalesDeliveriesList() {
               config={searchConfig} 
               onClose={(key) => setParams({ [key]: undefined, pageNumber: 1 })}
             />
-            <Button onClick={() => { searchForm.setFieldsValue(queryFields); setIsSearchModalOpen(true); }} icon={<SearchOutlined />}>查詢</Button>
+            <Button onClick={() => { searchForm.reset(queryFields); setIsSearchModalOpen(true); }} icon={<SearchOutlined />}>查詢</Button>
             {hasPermission('Sales.Deliveries.Create') && <Button type="primary" onClick={() => navigate('/sales/salesdeliveries/create')} icon={<PlusOutlined />}>新增</Button>}
           </Space>
         }

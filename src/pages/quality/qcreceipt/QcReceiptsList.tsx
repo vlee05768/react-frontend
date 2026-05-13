@@ -1,5 +1,6 @@
 import { Popconfirm } from 'antd';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { Button, Modal, Table, message, Card  } from 'antd';
 import { SearchOutlined, PlusOutlined, EyeOutlined, DeleteOutlined , ClearOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,7 +17,6 @@ import { buildTableColumns } from '@/utils/tableUtils';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 import { Tooltip,  Space, Divider } from 'antd';
 import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
-import { Form } from 'antd';
 
 import { useParams } from 'react-router-dom';
 
@@ -28,7 +28,7 @@ export default function QcReceiptsList() {
   const queryClient = useQueryClient();
   const { params, setParams } = useQcReceiptQueryStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const [searchForm] = Form.useForm();
+  const searchForm = useForm();
 
   const { pageNumber, pageSize, ...queryFields } = params;
   useUrlQuerySync({
@@ -85,7 +85,7 @@ export default function QcReceiptsList() {
   };
 
   const handleSearchReset = () => {
-    searchForm.resetFields();
+    searchForm.reset();
   };
 
   const handleClearTag = (key: string) => {
@@ -225,7 +225,7 @@ export default function QcReceiptsList() {
             <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
               清空重置
             </Button>
-            <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
+            <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
               執行查詢
             </Button>
           </div>

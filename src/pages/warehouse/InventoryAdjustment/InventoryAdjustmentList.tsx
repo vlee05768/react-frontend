@@ -2,11 +2,12 @@ import { Popconfirm } from 'antd';
 import { ActionButton } from "@/components/common/ActionButton";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
+import { useForm } from 'react-hook-form';
 import { ActionBar } from '@/components/common/ActionBar';
 import { DocumentLifecycleBanner } from '@/components/common/DocumentLifecycleBanner';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import {
-  Spin, Table, Button, Form, Space, Card, Tooltip, Drawer, App, Divider, Modal
+  Spin, Table, Button, Space, Card, Tooltip, Drawer, App, Divider, Modal
 } from 'antd';
 import {
   SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, EyeOutlined, CheckCircleOutlined, SyncOutlined
@@ -64,7 +65,7 @@ export default function InventoryAdjustmentList() {
 
 
   const { user } = useAuthStore();
-  const [searchForm] = Form.useForm();
+  const searchForm = useForm();
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
@@ -256,7 +257,7 @@ export default function InventoryAdjustmentList() {
   };
 
   const handleSearchReset = () => {
-    searchForm.resetFields();
+    searchForm.reset();
   };
 
   const handleCreateSubmit = (values: any) => {
@@ -483,7 +484,7 @@ export default function InventoryAdjustmentList() {
             <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
               清空重置
             </Button>
-            <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
+            <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
               執行查詢
             </Button>
           </div>

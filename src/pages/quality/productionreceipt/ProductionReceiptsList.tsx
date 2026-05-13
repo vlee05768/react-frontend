@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { Button, Modal, Table, Card } from 'antd';
 import { SearchOutlined, EyeOutlined , ClearOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
@@ -15,7 +16,6 @@ import { buildTableColumns } from '@/utils/tableUtils';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 import { Tooltip, Space, Divider } from 'antd';
 import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
-import { Form } from 'antd';
 
 import { useParams } from 'react-router-dom';
 
@@ -24,7 +24,7 @@ export default function ProductionReceiptsList() {
   const navigate = useNavigate();
   const { params, setParams } = useProductionReceiptQueryStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const [searchForm] = Form.useForm();
+  const searchForm = useForm();
 
   const { pageNumber, pageSize, ...queryFields } = params;
   useUrlQuerySync({
@@ -67,7 +67,7 @@ export default function ProductionReceiptsList() {
   };
 
   const handleSearchReset = () => {
-    searchForm.resetFields();
+    searchForm.reset();
   };
 
   const handleClearTag = (key: string) => {
@@ -177,7 +177,7 @@ export default function ProductionReceiptsList() {
             <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
               清空重置
             </Button>
-            <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
+            <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
               執行查詢
             </Button>
           </div>

@@ -2,6 +2,7 @@
 import { getApiErrorMessage } from "@/utils/apiError";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { useForm } from 'react-hook-form';
 import type { InputRef } from 'antd';
 import {
   Spin,
@@ -71,7 +72,7 @@ export default function UserList() {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
-  const [searchForm] = Form.useForm();
+  const searchForm = useForm();
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   
@@ -369,7 +370,7 @@ export default function UserList() {
   };
 
   const handleSearchReset = () => {
-    searchForm.resetFields();
+    searchForm.reset();
     // 僅清空表單，不呼叫 resetParams()，避免自動觸發 API 查詢
   };
 
@@ -397,7 +398,7 @@ export default function UserList() {
   };
 
   const openSearchModal = () => {
-    searchForm.setFieldsValue(params);
+    searchForm.reset(params);
     setIsSearchModalOpen(true);
   };
 
@@ -540,7 +541,7 @@ export default function UserList() {
             <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
               清空重置
             </Button>
-            <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
+            <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
               執行查詢
             </Button>
           </div>

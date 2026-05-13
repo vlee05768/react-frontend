@@ -2,6 +2,7 @@
 import { getApiErrorMessage } from "@/utils/apiError";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { useForm } from 'react-hook-form';
 import type { InputRef } from 'antd';
 import { App } from 'antd';
 import {
@@ -71,7 +72,7 @@ export default function RoleList() {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
-  const [searchForm] = Form.useForm();
+  const searchForm = useForm();
   const [formDefaultValues, setFormDefaultValues] = useState<any>({});
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;

@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import {
   Spin, Table, Button, Modal, Form, Space, Card, Tooltip, Popconfirm, Drawer, Divider, App
@@ -72,7 +73,7 @@ export default function ProductsList() {
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('master_info');
 
-  const [searchForm] = Form.useForm();
+  const searchForm = useForm();
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const [isBomEditing, setIsBomEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
@@ -242,7 +243,7 @@ export default function ProductsList() {
   };
 
   const handleSearchReset = () => {
-    searchForm.resetFields();
+    searchForm.reset();
   };
 
   const renderSearchTags = () => {
@@ -258,7 +259,7 @@ export default function ProductsList() {
   };
 
   const openSearchModal = () => {
-    searchForm.setFieldsValue(params);
+    searchForm.reset(params);
     setIsSearchModalOpen(true);
   };
 
@@ -375,7 +376,7 @@ export default function ProductsList() {
             <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
               清空重置
             </Button>
-            <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
+            <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
               執行查詢
             </Button>
           </div>

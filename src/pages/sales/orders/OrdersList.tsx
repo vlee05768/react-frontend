@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Card, Table, Button, Space, Tooltip, App, Form, Divider, Modal } from 'antd';
+import { useForm } from 'react-hook-form';
+import { Card, Table, Button, Space, Tooltip, App, Divider, Modal } from 'antd';
 import { EyeOutlined, PlusOutlined, SearchOutlined, ClearOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -37,7 +38,7 @@ export default function OrdersList() {
     setQuery: (q) => setParams({ ...q, page: 1 })
   });
 
-  const [searchForm] = Form.useForm();
+  const searchForm = useForm();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
@@ -207,10 +208,10 @@ export default function OrdersList() {
         onCancel={() => setIsSearchModalOpen(false)}
         footer={
           <div className="pt-4 flex justify-end gap-2" style={{borderTop: '1px solid #f0f0f0'}}>
-            <Button icon={<ClearOutlined />} onClick={() => searchForm.resetFields()}>
+            <Button icon={<ClearOutlined />} onClick={() => searchForm.reset()}>
               清空重置
             </Button>
-            <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
+            <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
               執行查詢
             </Button>
           </div>

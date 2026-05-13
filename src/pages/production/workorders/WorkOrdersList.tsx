@@ -1,5 +1,6 @@
+import { useForm } from 'react-hook-form';
 import React, { useMemo } from "react";
-import { App, Card, Space, Button, Table, Modal, Form } from "antd";
+import { App, Card, Space, Button, Table, Modal } from "antd";
 import { PlusOutlined, DeleteOutlined, EyeOutlined, PrinterOutlined, ClearOutlined, SearchOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
@@ -27,7 +28,7 @@ export const WorkOrdersList: React.FC = () => {
   const navigate = useNavigate();
   const { viewId } = useParams();
 
-  const [searchForm] = Form.useForm();
+  const searchForm = useForm();
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   
   const {
@@ -217,10 +218,10 @@ export const WorkOrdersList: React.FC = () => {
         onCancel={() => setIsSearchOpen(false)}
         footer={
           <div className="pt-4 flex justify-end gap-2" style={{borderTop: '1px solid #f0f0f0'}}>
-            <Button icon={<ClearOutlined />} onClick={() => searchForm.resetFields()}>
+            <Button icon={<ClearOutlined />} onClick={() => searchForm.reset()}>
               清空重置
             </Button>
-            <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
+            <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
               執行查詢
             </Button>
           </div>
