@@ -384,7 +384,7 @@ export default function RoleList() {
             
             .permissions-tree-card .ant-card-body {
                 padding: 16px;
-                height: calc(100vh - 220px);
+                height: calc(100vh - 280px);
                 overflow-y: auto;
             }
           `}</style>
