@@ -5,6 +5,7 @@ import type { SearchFieldConfig } from "@/components/Form/types";
 import type { ColumnsType } from "antd/es/table";
 import type { SalesDeliveryDto } from "@/api/generated/types.gen";
 import dayjs from "dayjs";
+import { ContactSelectWithCreate } from "../orders/components/ContactSelectWithCreate";
 // import { DictLabel } from "@/components/Form/DictLabel";
 
 export const getStatusTag = (row: SalesDeliveryDto) => {
@@ -54,12 +55,135 @@ export const getColumns = (
 
 
 export const getFormConfig = (): any[] => [
-  { name: "documentNumber", label: "單據號碼", componentType: "Input", colSpan: 2, editable: "never" },
-  { name: "documentDate", label: "單據日期", componentType: "DatePicker", colSpan: 2, editable: "createOnly", validation: z.any() },
-  { name: "businessPartnerCode", label: "客戶代碼", componentType: "Input", colSpan: 2, editable: "createOnly", validation: z.string().min(1, "必填") },
-  { name: "businessPartnerName", label: "客戶名稱", componentType: "Input", colSpan: 2, editable: "never" },
-  { name: "partnerContactId", label: "聯絡人", componentType: "Custom", colSpan: 2, editable: "always", customRender: (field: any) => <span>{field.value}</span> },
-  { name: "invoiceNumber", label: "發票號碼", componentType: "Input", colSpan: 2, editable: "always" },
-  { name: "address", label: "送貨地址", componentType: "Input", colSpan: 4, editable: "always" },
-  { name: "notes", label: "備註", componentType: "TextArea", colSpan: 4, editable: "always", componentProps: { rows: 3 } },
+  {
+    name: "documentDate",
+    label: "單據日期",
+    componentType: "DatePicker",
+    colSpan: 4,
+    editable: "createOnly",
+    validation: z.any(),
+  },
+  {
+    name: "responsibleEmployeeCode",
+    label: "業務員",
+    componentType: "DictSelect",
+    componentProps: { dictKey: "EMPLOYEE" },
+    colSpan: 4,
+  },  
+  {
+    name: "businessPartnerCode",
+    label: "客戶",
+    componentType: "AsyncSelect",
+    componentProps: { configKey: "CUSTOMER" },
+    editable: "createOnly",
+    onChange: (_value: any, _context: any, setValue: any, ...args: any[]) => {
+      setValue("partnerContactId", undefined);
+      const option = args[1];
+      if (option && option.originalData) {
+        const bp = option.originalData;
+        setValue("businessPartnerName", bp.name);
+        setValue("businessPartnerPhone", bp.phone);
+        setValue("businessPartnerFax", bp.faxNumber);
+        setValue("address", bp.address);
+      } else {
+        setValue("businessPartnerName", undefined);
+        setValue("businessPartnerPhone", undefined);
+        setValue("businessPartnerFax", undefined);
+        setValue("address", undefined);
+      }
+    },
+    colSpan: 4,
+    validation: z.string().min(1, "請輸入客戶代碼"),
+  },
+  {
+    name: "businessPartnerName",
+    label: "客戶名稱",
+    componentType: "Input",
+    colSpan: 4,
+    editable: "never",
+  },
+
+  {
+    name: "businessPartnerPhone",
+    label: "客戶電話",
+    componentType: "Input",
+    colSpan: 4,
+  },
+  {
+    name: "businessPartnerFax",
+    label: "客戶傳真",
+    componentType: "Input",
+    colSpan: 4,
+  },
+  {
+    name: "partnerContactId",
+    label: "聯絡人",
+    componentType: "Custom",
+    customRender: (field: any, context: any) => (
+      <ContactSelectWithCreate
+        value={field.value}
+        onChange={field.onChange}
+        disabled={field.disabled}
+        businessPartnerCode={context.values?.businessPartnerCode}
+      />
+    ),
+    colSpan: 4,
+  },
+  {
+    name: "invoiceNumber",
+    label: "發票號碼",
+    componentType: "Input",
+    colSpan: 4,
+  },  
+  {
+    name: "address",
+    label: "地址",
+    componentType: "Input",
+    colSpan: 1,
+    validation: z.string().min(1, "請輸入地址"),
+  },
+
+  {
+    name: "subTotal",
+    label: "小計",
+    componentType: "InputNumber",
+    colSpan: 3,
+    editable: "never",
+    componentProps: {
+      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, ''),
+      precision: 2,
+    }
+  },
+  {
+    name: "taxAmount",
+    label: "稅額",
+    componentType: "InputNumber",
+    colSpan: 3,
+    editable: "never",
+    componentProps: {
+      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, ''),
+      precision: 2,
+    }
+  },
+  {
+    name: "totalAmount",
+    label: "總金額",
+    componentType: "InputNumber",
+    colSpan: 3,
+    editable: "never",
+    componentProps: {
+      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, ''),
+      precision: 2,
+    }
+  },
+  {
+    name: "notes",
+    label: "備註",
+    componentType: "TextArea",
+    colSpan: 1,
+    componentProps: { rows: 3 },
+  },
 ];

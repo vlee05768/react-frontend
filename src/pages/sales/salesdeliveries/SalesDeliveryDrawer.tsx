@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Drawer, Space, App, Spin, Empty } from 'antd';
+import { Drawer, Space, Button, App, Spin, Empty } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircleOutlined, SyncOutlined, LockOutlined, UnlockOutlined, FilePdfOutlined } from '@ant-design/icons';
 import { ActionButton } from '@/components/common/ActionButton';
@@ -34,11 +34,12 @@ export default function SalesDeliveryDrawer() {
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
   
-  const { hasPermission } = useAuthStore();
+  const { hasPermission, user } = useAuthStore();
 
   const isCreating = id === 'create';
   const [isEditing, setIsEditing] = useState(isCreating);
   const [activeTab, setActiveTab] = useState('master_info');
+  const [isSaving, setIsSaving] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['salesdelivery', id],
@@ -55,23 +56,26 @@ export default function SalesDeliveryDrawer() {
   const getActionBarActions = () => {
     const canUpdate = hasPermission('Sales.Deliveries.Update');
     if (isCreating || isEditing) {
-      return [
-        <ActionButton key="save" intent="primary" disabled={isLoading} onClick={() => {
-            const btn = document.querySelector('#salesDeliveryForm button[type="submit"]') as HTMLButtonElement;
-            if (btn) btn.click();
-        }}>儲存</ActionButton>,
-        <ActionButton key="cancel" intent="default" disabled={isLoading} onClick={() => {
-          if (isCreating) navigate('/sales/salesdeliveries');
-          else setIsEditing(false);
-        }}>取消</ActionButton>
-      ];
+      return (
+        <Space>
+          <Button key="save" type="primary" onClick={() => (document.getElementById("salesDeliveryForm") as HTMLFormElement)?.requestSubmit()} loading={isSaving}>儲存</Button>
+          <Button key="cancel" onClick={() => {
+            if (isCreating) navigate('/sales/salesdeliveries');
+            else setIsEditing(false);
+          }}>取消</Button>
+        </Space>
+      );
     }
+    
     if (canUpdate && deliveryData && !deliveryData.confirmDate) {
-      return [
-        <ActionButton key="edit" intent="primary" onClick={() => setIsEditing(true)}>編輯</ActionButton>
-      ];
+      return (
+        <Space>
+          <Button key="edit" type="primary" onClick={(e) => { e.preventDefault(); setIsEditing(true); }}>編輯</Button>
+        </Space>
+      );
     }
-    return [];
+    
+    return null;
   };
 
   const getHeaderActions = () => {
@@ -206,6 +210,7 @@ export default function SalesDeliveryDrawer() {
   };
 
   const handleSubmit = async (values: any) => {
+    setIsSaving(true);
     try {
       const data = {
         ...values,
@@ -229,6 +234,8 @@ export default function SalesDeliveryDrawer() {
       }
     } catch (error) {
       modal.error({ title: '儲存失敗', content: getApiErrorMessage(error) });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -236,6 +243,10 @@ export default function SalesDeliveryDrawer() {
     if (isCreating) {
       return {
         documentDate: dayjs(),
+        responsibleEmployeeCode: user?.employeeCode,
+        subTotal: 0,
+        taxAmount: 0,
+        totalAmount: 0,
       };
     }
     if (!deliveryData) return {};
