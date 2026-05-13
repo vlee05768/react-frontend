@@ -22,7 +22,7 @@ export default function GeneralTypeLayout() {
 
       {/* 右側：項目清單 */}
       <Card 
-        className="flex flex-col" style={{flex: 1, overflow: 'hidden' }}
+        className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
         styles={{ body: { padding: 0, flex: 1, overflow: 'hidden' } }}
         variant="borderless"
       >

@@ -268,7 +268,7 @@ export default function ProductsList() {
     <div className="p-[16px 16px 0px 16px] flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
       <Card
         variant="borderless"
-        style={{flex: 1, overflow: 'hidden' }}
+        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
         styles={{ 
           header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
           body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
@@ -304,7 +304,7 @@ export default function ProductsList() {
           <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
           {renderSearchTags()}
         </div>
-        <div className="flex flex-col" style={{flex: 1, overflow: 'hidden' }}>
+        <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <style>{`
             .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
             .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }

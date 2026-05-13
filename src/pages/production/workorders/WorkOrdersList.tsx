@@ -146,7 +146,7 @@ export const WorkOrdersList: React.FC = () => {
           header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
           body: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '16px 16px 4px 16px' }
         }}
-        className="flex flex-col" style={{flex: 1, overflow: 'hidden', borderRadius: 0 }}
+        className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', borderRadius: 0 }}
         title={
           <Space>
             <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
@@ -171,7 +171,7 @@ export const WorkOrdersList: React.FC = () => {
           />
         </div>
 
-        <div className="flex flex-col" style={{flex: 1, overflow: 'hidden' }}>
+        <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <style>{`
             .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
             .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }

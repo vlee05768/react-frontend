@@ -120,7 +120,7 @@ export default function OrdersList() {
   return (
     <div className="p-[16px 16px 0px 16px] flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
       <Card
-        style={{flex: 1, overflow: 'hidden' }}
+        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
         styles={{ 
           header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
           body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
@@ -163,7 +163,7 @@ export default function OrdersList() {
             onClose={(key) => setParams({ [key]: undefined, page: 1 })}
           />
         </div>
-        <div className="flex flex-col" style={{flex: 1, overflow: 'hidden' }}>
+        <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <style>{`
             .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
             .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }

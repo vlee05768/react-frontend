@@ -255,7 +255,7 @@ export default function StorageTransactionsList() {
   ];
 
   return (
-    <div className="p-[16px 16px 0px 16px] flex flex-col gap-4" style={{height: 'calc(100vh - 64px)'}}>
+    <div  style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
       <Card variant="borderless" className="shadow-sm" style={{ flexShrink: 0 }}
         title={
           <div className="flex items-center gap-3">
@@ -331,7 +331,7 @@ export default function StorageTransactionsList() {
       <Card 
         variant="borderless" 
         className="shadow-sm flex flex-col" 
-        style={{flex: 1, overflow: 'hidden' }}
+        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
         styles={{ 
           body: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 0 } 
         }}

@@ -139,7 +139,7 @@ export default function SalesDeliveriesList() {
   }, [hasPermission, navigate, modal, deleteMutation]);
 
   return (
-    <div className="p-4">
+    <div className="p-[16px 16px 0px 16px] flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
       <Card 
         title="銷貨單列表"
         extra={

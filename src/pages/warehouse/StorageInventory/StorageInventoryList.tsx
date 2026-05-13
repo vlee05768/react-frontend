@@ -195,7 +195,7 @@ export default function StorageInventoryList() {
   ];
 
   return (
-    <div className="p-4">
+    <div className="p-[16px 16px 0px 16px] flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
       <Card
         title={
           <div className="flex items-center gap-3">
