@@ -74,7 +74,7 @@ export const getFormConfig = (): any[] => [
     name: "businessPartnerCode",
     label: "客戶",
     componentType: "AsyncSelect",
-    componentProps: { configKey: "CUSTOMER" },
+    componentProps: { configKey: "CUSTOMER", autoFocus: true },
     editable: "createOnly",
     onChange: (_value: any, _context: any, setValue: any, ...args: any[]) => {
       setValue("partnerContactId", undefined);
