@@ -63,6 +63,7 @@ import { buildTableColumns } from '@/utils/tableUtils';
 import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 import type { TreeDataNode } from 'antd';
+import { ActionBar } from '@/components/common/ActionBar';
 
 export default function RoleList() {
   const { modal } = App.useApp();
@@ -415,6 +416,7 @@ export default function RoleList() {
       </Card>
 
       <Drawer
+        styles={{ body: { padding: 0 } }}
         title={
           <DrawerTitle
             moduleName="角色管理"
@@ -431,8 +433,16 @@ export default function RoleList() {
         mask={{ closable: isViewMode }}
         keyboard={isViewMode}
         bodyStyle={{ backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', padding: '24px' }}
-        extra={
-          <Space>
+        
+      >
+        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+          <ActionBar 
+            createdBy={viewData?.createdBy}
+            createdAt={viewData?.createdAt}
+            updatedBy={viewData?.updatedBy}
+            updatedAt={viewData?.updatedAt}
+            actions={
+              <Space>
             {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('System.Roles.Update')) && (
               <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode}>編輯</Button>
             )}
@@ -451,9 +461,9 @@ export default function RoleList() {
               </>
             )}
           </Space>
-        }
-      >
-        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+            }
+          />
+          <div className="p-6">
           <Row gutter={[24, 24]}>
             <Col xs={24} md={14} lg={16}>
               <Card title="基本資料" variant="borderless" styles={{ body: { padding: '20px' }, header: { padding: '16px 20px', borderBottom: '1px solid #f0f0f0' } }}>
@@ -506,6 +516,7 @@ export default function RoleList() {
               </Card>
             </Col>
           </Row>
+                  </div>
         </Spin>
       </Drawer>
     </div>

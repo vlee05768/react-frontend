@@ -57,6 +57,7 @@ import { mainDictionary, mainFormConfig, mainTableColumns , machineSearchFormCon
 import { buildTableColumns } from '@/utils/tableUtils';
 import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';;
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
+import { ActionBar } from '@/components/common/ActionBar';
 
 
 export default function MachineList() {
@@ -444,6 +445,7 @@ export default function MachineList() {
       </Modal>
 
       <Drawer
+        styles={{ body: { padding: 0 } }}
         title={
           <DrawerTitle
             moduleName="機台管理"
@@ -459,8 +461,16 @@ export default function MachineList() {
         open={!!viewId || isCreateDrawerOpen}
         mask={{ closable: isViewMode }}
         keyboard={isViewMode}
-        extra={
-          <Space>
+        
+      >
+                <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+          <ActionBar 
+            createdBy={viewData?.createdBy}
+            createdAt={viewData?.createdAt}
+            updatedBy={viewData?.updatedBy}
+            updatedAt={viewData?.updatedAt}
+            actions={
+              <Space>
             {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('ProductionQuality.Machines.Update')) && (
               <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode}>編輯</Button>
             )}
@@ -479,9 +489,9 @@ export default function MachineList() {
               </>
             )}
           </Space>
-        }
-      >
-                <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+            }
+          />
+          <div className="p-6">
           <DynamicForm
             formId="machineForm"
             fields={mainFormConfig()}
@@ -491,6 +501,7 @@ export default function MachineList() {
             isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
             hideDefaultFooter={true}
           />
+                  </div>
         </Spin>
       </Drawer>
     </div>

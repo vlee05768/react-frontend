@@ -167,7 +167,7 @@ export default function CategoryList({ selectedCode, onSelect }: CategoryListPro
           columns={columns}
           rowKey={(record) => record.id || record.code}
           pagination={false}
-          scroll={{ y: 'calc(100vh - 230px)' }} // Roughly account for header heights
+          scroll={{ y: 'calc(100vh - 230px)', x: 'max-content' }} // Roughly account for header heights
           onRow={(record) => ({
             onClick: () => onSelect(record.code),
             style: {

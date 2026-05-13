@@ -29,6 +29,7 @@ import { buildTableColumns } from '@/utils/tableUtils';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import { DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
+import { ActionBar } from '@/components/common/ActionBar';
 
 
 export default function MaterialList() {
@@ -344,6 +345,7 @@ export default function MaterialList() {
       </Modal>
 
       <Drawer
+        styles={{ body: { padding: 0 } }}
         title={
           <DrawerTitle
             moduleName="原料管理"
@@ -359,8 +361,16 @@ export default function MaterialList() {
         open={!!viewId || isCreateDrawerOpen}
         mask={{ closable: isViewMode }}
         keyboard={isViewMode}
-        extra={
-          <Space>
+        
+      >
+        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+          <ActionBar 
+            createdBy={viewData?.createdBy}
+            createdAt={viewData?.createdAt}
+            updatedBy={viewData?.updatedBy}
+            updatedAt={viewData?.updatedAt}
+            actions={
+              <Space>
             {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('Warehouse.Materials.Update')) && (
               <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode}>編輯</Button>
             )}
@@ -371,9 +381,9 @@ export default function MaterialList() {
               </>
             )}
           </Space>
-        }
-      >
-        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+            }
+          />
+          <div className="p-6">
           <MasterDetailTabs
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -394,6 +404,7 @@ export default function MaterialList() {
               />
             }
           />
+                  </div>
         </Spin>
       </Drawer>
     </div>

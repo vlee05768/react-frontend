@@ -82,7 +82,7 @@ export default function ProductionReceiptItemsTab({ items }: Props) {
         rowKey={(record) => record.lineNumber?.toString() || Math.random().toString()}
         pagination={false}
         size="small"
-        scroll={{ x: 1000 }}
+        scroll={{ x: 'max-content' }}
         bordered
       />
     </div>

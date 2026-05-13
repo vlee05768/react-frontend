@@ -209,7 +209,7 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
             pagination={false}
             size="small"
             bordered
-          />
+           scroll={{ x: 'max-content' }} />
         </div>
       </Modal>
     </>

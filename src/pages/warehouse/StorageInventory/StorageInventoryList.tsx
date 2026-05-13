@@ -257,13 +257,13 @@ export default function StorageInventoryList() {
                         pagination={false}
                         size="small"
                         bordered
-                      />
+                       scroll={{ x: 'max-content' }} />
                     </div>
                   </ConfigProvider>
                 ),
               }}
               pagination={false}
-            />
+             scroll={{ x: 'max-content' }} />
           </TabPane>
           <TabPane tab="依儲位分組" key="2">
             <Table
@@ -299,13 +299,13 @@ export default function StorageInventoryList() {
                         pagination={false}
                         size="small"
                         bordered
-                      />
+                       scroll={{ x: 'max-content' }} />
                     </div>
                   </ConfigProvider>
                 ),
               }}
               pagination={false}
-            />
+             scroll={{ x: 'max-content' }} />
           </TabPane>
         </Tabs>
       </Card>

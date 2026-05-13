@@ -226,7 +226,7 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
           </div>
           <Table
             virtual
-            scroll={{ x: 1800, y: 400 }}
+            scroll={{ x: 'max-content', y: 400 }}
             bordered
             columns={getItemColumns(!isMasterViewMode || orderData.status !== 'Draft', handleEditOpen, handleDelete)}
             dataSource={listData}

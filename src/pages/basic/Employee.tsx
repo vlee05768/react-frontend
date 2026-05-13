@@ -59,6 +59,7 @@ import { useEmployeeQueryStore } from '@/stores/employeeStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';;
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
+import { ActionBar } from '@/components/common/ActionBar';
 
 export default function EmployeeList() {
   const { modal } = App.useApp();
@@ -459,6 +460,7 @@ export default function EmployeeList() {
       </Modal>
 
       <Drawer
+        styles={{ body: { padding: 0 } }}
         title={
           <DrawerTitle
             moduleName="員工基本檔"
@@ -474,8 +476,16 @@ export default function EmployeeList() {
         open={!!viewId || isCreateDrawerOpen}
         mask={{ closable: isViewMode }}
         keyboard={isViewMode}
-        extra={
-          <Space>
+        
+      >
+                <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+          <ActionBar 
+            createdBy={viewData?.createdBy}
+            createdAt={viewData?.createdAt}
+            updatedBy={viewData?.updatedBy}
+            updatedAt={viewData?.updatedAt}
+            actions={
+              <Space>
             {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('BasicData.Employees.Update')) && (
               <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode}>編輯</Button>
             )}
@@ -494,9 +504,9 @@ export default function EmployeeList() {
               </>
             )}
           </Space>
-        }
-      >
-                <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+            }
+          />
+          <div className="p-6">
           <DynamicForm
             formId="employee-form"
             fields={employeeFormConfig}
@@ -506,6 +516,7 @@ export default function EmployeeList() {
             isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
             hideDefaultFooter={true}
           />
+                  </div>
         </Spin>
       </Drawer>
     </div>

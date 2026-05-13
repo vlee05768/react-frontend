@@ -56,6 +56,7 @@ import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 
 
 import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
+import { ActionBar } from '@/components/common/ActionBar';
 
 // Local store for query params
 export const useBPQueryStore = create((set) => ({
@@ -421,6 +422,7 @@ export default function BusinessPartnerList() {
       </Modal>
 
       <Drawer
+        styles={{ body: { padding: 0 } }}
         title={
           <DrawerTitle
             moduleName="廠商客戶"
@@ -439,8 +441,16 @@ export default function BusinessPartnerList() {
         open={!!viewId || isCreateDrawerOpen}
         mask={{ closable: isViewMode }}
         keyboard={isViewMode}
-        extra={
-          <Space>
+        
+      >
+        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+          <ActionBar 
+            createdBy={viewData?.createdBy}
+            createdAt={viewData?.createdAt}
+            updatedBy={viewData?.updatedBy}
+            updatedAt={viewData?.updatedAt}
+            actions={
+              <Space>
             {(!isDrawerEditing && !isCreateDrawerOpen) && (
               <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode}>編輯</Button>
             )}
@@ -459,9 +469,9 @@ export default function BusinessPartnerList() {
               </>
             )}
           </Space>
-        }
-      >
-        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+            }
+          />
+          <div className="p-6">
           <MasterDetailTabs
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -489,6 +499,7 @@ export default function BusinessPartnerList() {
               }
             ]}
           />
+                  </div>
         </Spin>
       </Drawer>
     </div>

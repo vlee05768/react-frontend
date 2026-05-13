@@ -208,7 +208,7 @@ export default function ProductBom({ productCode, isViewMode: isMasterViewMode, 
               return recordId && String(recordId) === String(deletingRecordId) ? 'deleting-row-highlight' : '';
             }}
             virtual
-            scroll={{ x: 1500, y: 400 }}
+            scroll={{ x: 'max-content', y: 400 }}
             columns={columns}
             dataSource={bomData?.items || []}
             rowKey="code"

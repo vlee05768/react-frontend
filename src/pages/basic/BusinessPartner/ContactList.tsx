@@ -185,7 +185,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
               return recordId && String(recordId) === String(deletingRecordId) ? 'deleting-row-highlight' : '';
             }}
           virtual
-          scroll={{ x: 1200, y: 400 }}
+          scroll={{ x: 'max-content', y: 400 }}
           dataSource={listData}
           columns={columns}
           rowKey="id"

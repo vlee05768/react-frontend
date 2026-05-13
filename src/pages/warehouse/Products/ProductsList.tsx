@@ -37,6 +37,7 @@ import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 
 // Local store for query params
 import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
+import { ActionBar } from '@/components/common/ActionBar';
 
 export const useProductQueryStore = create((set) => ({
   params: {
@@ -348,7 +349,7 @@ export default function ProductsList() {
             dataSource={listData}
             rowKey="code"
             loading={isFetching}
-            scroll={{ x: 3500, y: 300 }}
+            scroll={{ x: 'max-content', y: 300 }}
             pagination={{
               current: params.pageNumber,
               pageSize: params.pageSize,
@@ -399,6 +400,7 @@ export default function ProductsList() {
       </Modal>
 
       <Drawer
+        styles={{ body: { padding: 0 } }}
         title={
           <DrawerTitle
             moduleName="產品管理"
@@ -417,8 +419,16 @@ export default function ProductsList() {
         open={!!viewId || isCreateDrawerOpen}
         mask={{ closable: isViewMode }}
         keyboard={isViewMode}
-        extra={
-          <Space>
+        
+      >
+        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+          <ActionBar 
+            createdBy={viewData?.createdBy}
+            createdAt={viewData?.createdAt}
+            updatedBy={viewData?.updatedBy}
+            updatedAt={viewData?.updatedAt}
+            actions={
+              <Space>
             {(!isDrawerEditing && !isCreateDrawerOpen) && (
               <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode} disabled={isBomEditing}>編輯主檔</Button>
             )}
@@ -437,9 +447,9 @@ export default function ProductsList() {
               </>
             )}
           </Space>
-        }
-      >
-        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+            }
+          />
+          <div className="p-6">
           <MasterDetailTabs
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -483,6 +493,7 @@ export default function ProductsList() {
               }
             ]}
           />
+                  </div>
         </Spin>
       </Drawer>
     </div>
