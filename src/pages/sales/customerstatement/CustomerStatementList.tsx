@@ -42,17 +42,17 @@ export default function CustomerStatementList() {
 
   const searchForm = useForm({
     defaultValues: {
-      ...params,
-      dateRange: params.dateRange ? [dayjs(params.dateRange[0]), dayjs(params.dateRange[1])] : undefined
-    }
+      customerCode: params.customerCode || null,
+      dateRange: params.dateRange ? [dayjs(params.dateRange[0]), dayjs(params.dateRange[1])] : null
+    } as any
   });
 
   useEffect(() => {
     if (isSearchModalOpen) {
       searchForm.reset({
-        ...params,
-        dateRange: params.dateRange ? [dayjs(params.dateRange[0]), dayjs(params.dateRange[1])] : undefined
-      });
+        customerCode: params.customerCode || null,
+        dateRange: params.dateRange ? [dayjs(params.dateRange[0]), dayjs(params.dateRange[1])] : null
+      } as any);
     }
   }, [isSearchModalOpen, params, searchForm]);
 
@@ -114,7 +114,11 @@ export default function CustomerStatementList() {
       customerCode: undefined,
       dateRange: undefined
     };
-    searchForm.reset(emptyParams);
+    // 強制將表單值設為 null，確保 Antd UI 元件徹底清空
+    searchForm.reset({
+      customerCode: null,
+      dateRange: null
+    } as any);
     setParams({ ...emptyParams, pageNumber: 1 });
   };
 
