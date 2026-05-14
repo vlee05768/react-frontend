@@ -40,6 +40,14 @@ export default function SalesDeliveryDrawer() {
   const [isEditing, setIsEditing] = useState(isCreating);
   const [activeTab, setActiveTab] = useState('master_info');
   const [isSaving, setIsSaving] = useState(false);
+  const [hasAutoSwitchedTab, setHasAutoSwitchedTab] = useState(false);
+
+  // 當 id 改變時（例如從 create 導向新建的單號），重置相關狀態
+  useEffect(() => {
+    setIsEditing(id === 'create');
+    setHasAutoSwitchedTab(false);
+    setActiveTab('master_info');
+  }, [id]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['salesdelivery', id],
@@ -50,8 +58,6 @@ export default function SalesDeliveryDrawer() {
   });
 
   const deliveryData: SalesDeliveryDto | undefined = (data?.data?.data as any) || undefined;
-
-  const [hasAutoSwitchedTab, setHasAutoSwitchedTab] = useState(false);
 
   // 開啟銷貨單時，如果沒有明細，自動切換到明細 tab
   useEffect(() => {
