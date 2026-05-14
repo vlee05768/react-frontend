@@ -180,51 +180,10 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
   };
 
   const columns: any[] = [
-    { title: '製令單號', dataIndex: 'workOrderNumber', width: 120, ellipsis: true, render: (val: any) => val || '-' },
     { title: '訂單單號', dataIndex: 'lineNumber', width: 180 },
     { title: '商品編碼', dataIndex: 'goodsCode', width: 140 },
     { title: '商品名稱', dataIndex: 'goodsName', width: 200, ellipsis: true },
-    { 
-      title: '單價', 
-      width: 140, 
-      align: 'right', 
-      render: (_: any, row: UndeliveredOrderItemsDto) => {
-        const key = row.lineNumber || '';
-        const isChecked = checkedRowKeys.includes(key);
-        const price = deliveryPrices[key] !== undefined ? deliveryPrices[key] : (Number(row.unitPrice) || 0);
 
-        return (
-          <Tooltip title={!isChecked ? "請先勾選此項目" : ""} placement="top">
-            <InputNumber
-              value={isChecked ? price : undefined}
-              disabled={!isChecked}
-              min={0}
-              size="small"
-              onChange={(val) => {
-                if (val !== null) {
-                  setDeliveryPrices(prev => ({ ...prev, [key]: Number(val) }));
-                }
-              }}
-              style={{ width: '100px' }}
-            />
-          </Tooltip>
-        );
-      }
-    },
-    {
-      title: '小計',
-      width: 120,
-      align: 'right',
-      render: (_: any, row: UndeliveredOrderItemsDto) => {
-        const key = row.lineNumber || '';
-        const isChecked = checkedRowKeys.includes(key);
-        if (!isChecked) return '0';
-        
-        const price = deliveryPrices[key] !== undefined ? deliveryPrices[key] : (Number(row.unitPrice) || 0);
-        const qty = deliveryQuantities[key] || 0;
-        return (price * qty).toLocaleString();
-      }
-    },
     { 
       title: '訂購數量', 
       width: 100, 
@@ -242,6 +201,36 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
       align: 'right', 
       render: (val: any) => <span style={{ fontWeight: 'bold', color: '#18a058' }}>{val != null ? Number(val).toLocaleString() : '0'}</span> 
     },
+    { 
+      title: '單價', 
+      width: 140, 
+      align: 'right', 
+      render: (_: any, row: UndeliveredOrderItemsDto) => {
+        const key = row.lineNumber || '';
+        const isChecked = checkedRowKeys.includes(key);
+        const price = deliveryPrices[key] !== undefined ? deliveryPrices[key] : (Number(row.unitPrice) || 0);
+
+        return (
+          <Tooltip title={!isChecked ? "請先勾選此項目" : ""} placement="top">
+            <InputNumber
+              value={isChecked ? price : undefined}
+              disabled={!isChecked}
+              controls={false}
+              min={0}
+              size="small"
+              onFocus={(e) => e.target.select()}
+              onChange={(val) => {
+                if (val !== null) {
+                  setDeliveryPrices(prev => ({ ...prev, [key]: Number(val) }));
+                }
+              }}
+              style={{ width: '100px' }}
+            />
+          </Tooltip>
+        );
+      }
+    },
+  
     {
       title: '批量出貨數量',
       width: 140,
@@ -263,13 +252,16 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
         return (
           <Tooltip title={!isChecked ? "請先勾選此項目" : ""} placement="top">
             <InputNumber
+              id={`qty-input-${key}`}
               value={isChecked ? qty : undefined}
               disabled={!isChecked}
+              controls={false}
               min={0}
               max={maxLimit}
               size="small"
               status={status}
               placeholder="0.00"
+              onFocus={(e) => e.target.select()}
               onChange={(value) => {
                 setDeliveryQuantities(prev => ({ ...prev, [key]: value || 0 }));
               }}
@@ -279,9 +271,24 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
         );
       }
     },
+    {
+      title: '小計',
+      width: 120,
+      align: 'right',
+      render: (_: any, row: UndeliveredOrderItemsDto) => {
+        const key = row.lineNumber || '';
+        const isChecked = checkedRowKeys.includes(key);
+        if (!isChecked) return '0';
+        
+        const price = deliveryPrices[key] !== undefined ? deliveryPrices[key] : (Number(row.unitPrice) || 0);
+        const qty = deliveryQuantities[key] || 0;
+        return (price * qty).toLocaleString();
+      }
+    },      
     { title: '備品數量', dataIndex: 'spareQuantity', width: 100, align: 'right', render: (val: any) => val != null ? Number(val).toLocaleString() : '0' },
     { title: '現有庫存量', dataIndex: 'stockQuantity', width: 100, align: 'right', render: (val: any) => val != null ? Number(val).toLocaleString() : '0' },
     { title: '要求交期', dataIndex: 'requestedDeliveryDate', width: 120, render: (val: any) => val ? dayjs(val).format('YYYY-MM-DD') : '' },
+    { title: '製令單號', dataIndex: 'workOrderNumber', width: 120, ellipsis: true, render: (val: any) => val || '-' },
     { title: '備註', dataIndex: 'notes', width: 150, ellipsis: true },
   ];
 
@@ -359,13 +366,21 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
             rowSelection={{
               selectedRowKeys: checkedRowKeys,
               onChange: onRowSelectionChange,
+              onSelect: (record, selected) => {
+                if (selected) {
+                  setTimeout(() => {
+                    const el = document.getElementById(`qty-input-${record.lineNumber}`);
+                    if (el) el.focus();
+                  }, 50);
+                }
+              },
               getCheckboxProps: (record) => ({
                 disabled: isRowDisabled(record),
               }),
             }}
             rowClassName={(record) => {
               if (isRowDisabled(record)) {
-                return 'opacity-50 bg-gray-100 cursor-not-allowed';
+                return 'disabled-table-row';
               }
               return '';
             }}

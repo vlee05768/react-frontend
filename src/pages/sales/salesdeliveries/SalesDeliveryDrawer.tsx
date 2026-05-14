@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Drawer, Space, Button, App, Spin, Empty } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CheckCircleOutlined, SyncOutlined, LockOutlined, UnlockOutlined, FilePdfOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, SyncOutlined, FilePdfOutlined } from '@ant-design/icons';
 import { ActionButton } from '@/components/common/ActionButton';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -11,8 +11,6 @@ import {
   putApiV1SalesDeliveryByMovementNumber,
   postApiV1SalesDeliveryByMovementNumberConfirm,
   postApiV1SalesDeliveryByMovementNumberCancelConfirm,
-  postApiV1SalesDeliveryByMovementNumberClose,
-  postApiV1SalesDeliveryByMovementNumberCancelClose,
   getApiV1SalesDeliveryByMovementNumberSalesDeliveryReport
 } from '@/api/generated/sdk.gen';
 import { DynamicForm } from '@/components/Form/DynamicForm';
@@ -103,7 +101,6 @@ export default function SalesDeliveryDrawer() {
     if (!deliveryData) return null;
 
     const isConfirmed = !!deliveryData.confirmDate;
-    const isClosed = !!deliveryData.closeDate;
 
     return (
       <Space>
@@ -131,7 +128,7 @@ export default function SalesDeliveryDrawer() {
           </ActionButton>
         )}
         
-        {isConfirmed && !isClosed && canUpdate && (
+        {isConfirmed && canUpdate && (
           <ActionButton 
             key="cancelConfirm" intent="default"  icon={<SyncOutlined />} 
             onClick={(e) => {
@@ -154,53 +151,7 @@ export default function SalesDeliveryDrawer() {
             取消確認
           </ActionButton>
         )}
-        {isConfirmed && !isClosed && canUpdate && (
-          <ActionButton 
-            key="close" intent="success" icon={<LockOutlined />} 
-            onClick={(e) => {
-              e.preventDefault();
-              modal.confirm({
-                title: '結案',
-                content: '確定要將此銷貨單結案嗎？',
-                onOk: async () => {
-                  try {
-                    await postApiV1SalesDeliveryByMovementNumberClose({ path: { movementNumber: id! } });
-                    message.success('結案成功');
-                    queryClient.invalidateQueries({ queryKey: ['salesdelivery', id] });
-                  } catch(e) {
-                    modal.error({ title: '錯誤', content: getApiErrorMessage(e) });
-                  }
-                }
-              });
-            }}
-          >
-            單據結案
-          </ActionButton>
-        )}
-        {isClosed && canUpdate && (
-          <ActionButton 
-            key="cancelClose" intent="default"  icon={<UnlockOutlined />} 
-            onClick={(e) => {
-              e.preventDefault();
-              modal.confirm({
-                title: '取消結案',
-                content: '確定要取消結案此銷貨單嗎？',
-                onOk: async () => {
-                  try {
-                    await postApiV1SalesDeliveryByMovementNumberCancelClose({ path: { movementNumber: id! } });
-                    message.success('取消結案成功');
-                    queryClient.invalidateQueries({ queryKey: ['salesdelivery', id] });
-                  } catch(e) {
-                    modal.error({ title: '錯誤', content: getApiErrorMessage(e) });
-                  }
-                }
-              });
-            }}
-          >
-            取消結案
-          </ActionButton>
-        )}
-        {isConfirmed && !isClosed && (
+        {isConfirmed && (
           <ActionButton
             key="print" intent="default" icon={<FilePdfOutlined />}
             onClick={async () => {
@@ -294,15 +245,9 @@ export default function SalesDeliveryDrawer() {
       },
       {
         title: '單據確認',
-        status: !deliveryData.confirmDate ? 'wait' : (deliveryData.closeDate ? 'finish' : 'process'),
+        status: !deliveryData.confirmDate ? 'wait' : 'finish',
         date: deliveryData.confirmDate,
         user: deliveryData.confirmUserName,
-      },
-      {
-        title: '單據結案',
-        status: !deliveryData.closeDate ? 'wait' : 'finish',
-        date: deliveryData.closeDate,
-        user: deliveryData.closeUserName,
       }
     ];
   }

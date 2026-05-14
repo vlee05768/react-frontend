@@ -122,10 +122,10 @@ export default function SalesDeliveriesList() {
             {!record.confirmDate && canConfirm && (
               <Tooltip title="確認"><Button type="text" icon={<CheckOutlined />} style={{ color: '#52c41a' }} onClick={() => modal.confirm({ title: '確認銷貨單', content: '確定要確認此銷貨單嗎？', onOk: () => handleAction('confirm', record) })} /></Tooltip>
             )}
-            {record.confirmDate && !record.closeDate && canConfirm && (
+            {record.confirmDate && canConfirm && (
               <Tooltip title="取消確認"><Button type="text" icon={<CloseOutlined />} danger onClick={() => modal.confirm({ title: '取消確認', content: '確定要取消確認此銷貨單嗎？', onOk: () => handleAction('cancelConfirm', record) })} /></Tooltip>
             )}
-            {record.confirmDate && !record.closeDate && canConfirm && (
+            {record.confirmDate && canConfirm && (
               <Tooltip title="列印報表"><Button type="text" icon={<PrinterOutlined />} onClick={() => downloadReport(record)} /></Tooltip>
             )}
             {!record.confirmDate && canDelete && (

@@ -1,20 +1,20 @@
+import { Space, Button } from "antd";
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { z } from "zod";
 import { Tag } from "antd";
-import { SyncOutlined, CheckCircleOutlined, LockOutlined } from "@ant-design/icons";
+import { SyncOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import type { SearchFieldConfig } from "@/components/Form/types";
 import type { ColumnsType } from "antd/es/table";
-import type { SalesDeliveryDto } from "@/api/generated/types.gen";
+import type { SalesDeliveryDto, SalesDeliveryItemDto } from "@/api/generated/types.gen";
 import dayjs from "dayjs";
 import { ContactSelectWithCreate } from "../orders/components/ContactSelectWithCreate";
 // import { DictLabel } from "@/components/Form/DictLabel";
 
 export const getStatusTag = (row: SalesDeliveryDto) => {
-  if (row.closeDate) {
-    return <Tag color="processing" icon={<LockOutlined />}>已結案</Tag>;
-  } else if (row.confirmDate) {
+  if (row.confirmDate) {
     return <Tag color="success" icon={<CheckCircleOutlined />}>已確認</Tag>;
   }
-  return <Tag color="warning" icon={<SyncOutlined />}>未確認</Tag>;
+  return <Tag color="warning" icon={<SyncOutlined />}>待確認</Tag>;
 };
 
 export const searchConfig: SearchFieldConfig[] = [
@@ -210,5 +210,133 @@ export const getFormConfig = (): any[] => [
     componentType: "TextArea",
     colSpan: 1,
     componentProps: { rows: 3 },
+  },
+];
+
+
+export const getItemColumns = (
+  isViewMode: boolean,
+  onEdit: (record: SalesDeliveryItemDto) => void,
+  onDelete: (record: SalesDeliveryItemDto) => void,
+): ColumnsType<SalesDeliveryItemDto> => [
+  {
+    title: "操作",
+    key: "action",
+    width: 80,
+    align: "center",
+    fixed: 'right' as const,
+    render: (_, record) => {
+      if (isViewMode) return null;
+      return (
+        <Space size="small">
+          <Button
+            type="text"
+            icon={<EditOutlined style={{ fontSize: "16px" }} />}
+            onClick={() => onEdit(record)}
+          />
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined style={{ fontSize: "16px" }} />}
+            onClick={() => onDelete(record)}
+          />
+        </Space>
+      );
+    },
+  },
+  { title: '項次', dataIndex: 'serialNumber', width: 80 },
+  { title: '來源單號', dataIndex: 'referenceNumber', width: 160 },
+  { title: '料號', dataIndex: 'inventoryCode', width: 150 },
+  { title: '品名', dataIndex: 'inventoryName', width: 150 },
+  { title: '數量', dataIndex: 'quantity', width: 100, align: 'right' as const, render: (val: any) => val != null ? Number(val).toLocaleString() : '-' },
+  { title: '單價', dataIndex: 'unitPrice', width: 100, align: 'right' as const, render: (val: any) => val != null ? Number(val).toLocaleString() : '-' },
+  { title: '金額', dataIndex: 'amount', width: 100, align: 'right' as const, render: (val: any) => val != null ? Number(val).toLocaleString() : '-' },
+  { title: '出庫儲位', dataIndex: 'sourceStorageCode', width: 120 },
+  { title: '備註', dataIndex: 'notes', ellipsis: true, width: 200 },
+];
+
+export const getItemFormConfig = (): any[] => [
+  {
+    name: "referenceNumber",
+    label: "來源單號",
+    componentType: "Input",
+    colSpan: 4,
+    editable: "never",
+  },
+  {
+    name: "inventoryCode",
+    label: "料號",
+    componentType: "Input",
+    colSpan: 4,
+    editable: "never",
+  },
+  {
+    name: "inventoryName",
+    label: "品名",
+    componentType: "Input",
+    colSpan: 4,
+    editable: "never",
+  },
+  {
+    name: "sourceStorageCode",
+    label: "出庫儲位",
+    componentType: "DictSelect",
+    componentProps: { dictKey: "STORAGE" },
+    colSpan: 4,
+    editable: "never",
+  },
+  {
+    name: "unitPrice",
+    label: "單價",
+    componentType: "InputNumber",
+    colSpan: 4,
+    validation: z.number().min(0, "單價必須大於或等於0"),
+    onChange: (value: any, context: any, setValue: any) => {
+      const qty = context.values.quantity || 0;
+      const amount = Math.round((value || 0) * qty);
+      setValue("amount", amount);
+    },
+    componentProps: {
+      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, "") as unknown as number,
+      style: { width: "100%" },
+    },
+  },
+
+  {
+    name: "quantity",
+    label: "數量",
+    componentType: "InputNumber",
+    colSpan: 4,
+    validation: z.number().min(0, "數量必須大於或等於0"),
+    onChange: (value: any, context: any, setValue: any) => {
+      const price = context.values.unitPrice || 0;
+      const amount = Math.round(price * (value || 0));
+      setValue("amount", amount);
+    },
+    componentProps: {
+      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, "") as unknown as number,
+      style: { width: "100%" },
+    },
+  },
+  {
+    name: "amount",
+    label: "金額",
+    componentType: "InputNumber",
+    colSpan: 4,
+    editable: "never",
+    componentProps: {
+      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, "") as unknown as number,
+      style: { width: "100%" },
+    },
+  },
+  {
+    name: "notes",
+    label: "備註",
+    componentType: "TextArea",
+    colSpan: 1,
+    componentProps: { rows: 2 },
   },
 ];
