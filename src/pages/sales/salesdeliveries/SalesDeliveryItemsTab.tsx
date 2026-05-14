@@ -1,21 +1,27 @@
 
+import { useState } from 'react';
 import { Table, Button, App, Space } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
-import type { SalesDeliveryItemDto } from '@/api/generated/types.gen';
-import { deleteApiV1SalesDeliveryByMovementNumberItemsByLineNumber } from '@/api/generated/sdk.gen';
+import type { SalesDeliveryItemDto, CreateSalesDeliveryItemDto } from '@/api/generated/types.gen';
+import { 
+  deleteApiV1SalesDeliveryByMovementNumberItemsByLineNumber,
+  postApiV1SalesDeliveryByMovementNumberItems
+} from '@/api/generated/sdk.gen';
 import { useMutation } from '@tanstack/react-query';
 import { getApiErrorMessage } from '@/utils/apiError';
+import UndeliveredOrderItemPicker from './components/UndeliveredOrderItemPicker';
 
 interface Props {
   documentNumber: string;
+  customerCode: string;
   items: SalesDeliveryItemDto[];
   isEditing: boolean;
   onRefresh: () => void;
 }
 
-export default function SalesDeliveryItemsTab({ documentNumber, items, isEditing, onRefresh }: Props) {
+export default function SalesDeliveryItemsTab({ documentNumber, customerCode, items, isEditing, onRefresh }: Props) {
   const { modal, message } = App.useApp();
-  
+  const [showPicker, setShowPicker] = useState(false);
 
   const deleteMutation = useMutation({
     mutationFn: (lineNumber: string) => deleteApiV1SalesDeliveryByMovementNumberItemsByLineNumber({ path: { movementNumber: documentNumber, lineNumber } }),
@@ -27,6 +33,30 @@ export default function SalesDeliveryItemsTab({ documentNumber, items, isEditing
       modal.error({ title: '刪除失敗', content: getApiErrorMessage(error) });
     }
   });
+
+  const addItemsMutation = useMutation({
+    mutationFn: async (newItems: CreateSalesDeliveryItemDto[]) => {
+      // Create sequentially or Promise.all. We use sequential to avoid potential DB deadlock or sequence issues.
+      for (const item of newItems) {
+        await postApiV1SalesDeliveryByMovementNumberItems({
+          path: { movementNumber: documentNumber },
+          body: item
+        });
+      }
+    },
+    onSuccess: () => {
+      message.success('明細新增成功');
+      setShowPicker(false);
+      onRefresh();
+    },
+    onError: (error) => {
+      modal.error({ title: '新增失敗', content: getApiErrorMessage(error) });
+    }
+  });
+
+  const handlePickerConfirm = (selectedItems: CreateSalesDeliveryItemDto[]) => {
+    addItemsMutation.mutate(selectedItems);
+  };
 
   const columns: any[] = [
     { title: '項次', dataIndex: 'lineNumber', width: 80 },
@@ -70,7 +100,13 @@ export default function SalesDeliveryItemsTab({ documentNumber, items, isEditing
         <div>
           {isEditing && (
             <Space>
-              <Button type="default" icon={<PlusOutlined />} onClick={() => message.info('暫未實作')}>
+              <Button type="default" icon={<PlusOutlined />} onClick={() => {
+                if (!customerCode) {
+                  message.warning('請先選擇客戶');
+                  return;
+                }
+                setShowPicker(true);
+              }}>
                 挑選未出貨訂單
               </Button>
               <Button type="primary" icon={<PlusOutlined />} onClick={() => message.info('暫未實作')}>
@@ -89,6 +125,13 @@ export default function SalesDeliveryItemsTab({ documentNumber, items, isEditing
         scroll={{ x: 1200, y: 400 }}
         size="small"
         bordered
+      />
+      <UndeliveredOrderItemPicker
+        open={showPicker}
+        customerCode={customerCode}
+        originalOrderItems={items.map(i => i.referenceNumber).filter(Boolean) as string[]}
+        onClose={() => setShowPicker(false)}
+        onConfirm={handlePickerConfirm}
       />
     </div>
   );

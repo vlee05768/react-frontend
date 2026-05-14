@@ -368,6 +368,7 @@ export default function SalesDeliveryDrawer() {
                 children: !isCreating && deliveryData ? (
                   <SalesDeliveryItemsTab 
                     documentNumber={id!}
+                    customerCode={deliveryData.businessPartnerCode || ''}
                     items={items}
                     isEditing={isEditing}
                     onRefresh={() => queryClient.invalidateQueries({ queryKey: ['salesdelivery', id] })}
