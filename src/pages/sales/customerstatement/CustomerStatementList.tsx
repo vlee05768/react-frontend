@@ -1,13 +1,14 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Card, Table, Descriptions, Space } from 'antd';
+import { Card, Table, Descriptions, Space, Button, Modal } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 
 import { getApiV1SalesDeliveryStatisticsGroupByCustomer, getApiV1SalesDeliveryCustomerStatementReport } from '@/api/generated/sdk.gen';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
-import { DEFAULT_PAGE_SIZE } from '@/constants/ui';
+import { DEFAULT_PAGE_SIZE, MODAL_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT } from '@/constants/ui';
 import type { SalesDeliveryGroupByCustomerDto } from '@/api/generated/types.gen';
 import useCustomerStatementQueryStore from './useCustomerStatementQueryStore';
 import { searchConfig, getColumns } from './CustomerStatementConfig';
@@ -15,6 +16,8 @@ import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
 import { useFileDownload } from '@/hooks/useFileDownload';
 
 export default function CustomerStatementList() {
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+
   const { params, setParams } = useCustomerStatementQueryStore();
   
   const { pageNumber, pageSize, ...queryFields } = params;
@@ -97,6 +100,7 @@ export default function CustomerStatementList() {
       formattedValues.dateRange = values.dateRange.map((d: any) => d ? (typeof d === 'string' ? d : d.format('YYYY-MM-DD')) : undefined).filter(Boolean);
     }
     setParams({ ...formattedValues, pageNumber: 1 });
+    setIsSearchModalOpen(false);
   };
 
   const handlePrint = (row: SalesDeliveryGroupByCustomerDto) => {
@@ -128,19 +132,20 @@ export default function CustomerStatementList() {
         title="對帳單報表"
         extra={
           <Space>
-            <DynamicSearchTags
-              config={searchConfig}
-              params={queryFields}
-              onClose={(key) => setParams({ [key]: undefined, pageNumber: 1 })}
-            />
+            <Button type="primary" icon={<SearchOutlined />} onClick={() => setIsSearchModalOpen(true)}>
+              查詢條件
+            </Button>
           </Space>
         }
       >
-        <DynamicSearchForm
-          form={searchForm}
-          config={searchConfig}
-          onSearch={handleSearch}
-        />
+        <div className="mb-4 flex items-center p-[12px_16px]" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
+          <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
+          <DynamicSearchTags
+            config={searchConfig}
+            params={queryFields}
+            onClose={(key) => setParams({ [key]: undefined, pageNumber: 1 })}
+          />
+        </div>
         
         <div className="px-6 py-4 flex flex-col gap-4 overflow-hidden flex-1">
           <Descriptions bordered size="small" column={4}>
@@ -186,6 +191,30 @@ export default function CustomerStatementList() {
           />
         </div>
       </Card>
+
+      <Modal
+        title="查詢條件"
+        open={isSearchModalOpen}
+        onCancel={() => setIsSearchModalOpen(false)}
+        width={MODAL_WIDTH_SEARCH}
+        okText="搜尋"
+        cancelText="取消"
+        onOk={() => searchForm.handleSubmit(handleSearch)()}
+        styles={{
+          body: {
+            maxHeight: MODAL_BODY_MAX_HEIGHT,
+            overflowY: 'auto',
+            padding: '24px 24px 0 24px'
+          }
+        }}
+        closeIcon={true}
+      >
+        <DynamicSearchForm
+          config={searchConfig}
+          form={searchForm}
+          onSearch={handleSearch}
+        />
+      </Modal>
     </div>
   );
 }
