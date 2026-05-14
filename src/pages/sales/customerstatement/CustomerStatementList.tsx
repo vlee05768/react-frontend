@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Card, Table, Descriptions, Space, Button, Modal } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
@@ -26,7 +26,16 @@ export default function CustomerStatementList() {
     page: pageNumber || 1,
     pageSize: pageSize || DEFAULT_PAGE_SIZE,
     setPagination: (p, s) => setParams({ pageNumber: p, pageSize: s }),
-    setQuery: (q) => setParams({ ...q, pageNumber: 1 })
+    setQuery: (q) => {
+      const formattedQ = { ...q };
+      if (formattedQ.dateRange && typeof formattedQ.dateRange === 'string') {
+        const parts = (formattedQ.dateRange as string).split(',');
+        if (parts.length === 2) {
+          formattedQ.dateRange = [parts[0], parts[1]];
+        }
+      }
+      setParams({ ...formattedQ, pageNumber: 1 });
+    }
   });
 
   const { downloadFile, isDownloading } = useFileDownload();
@@ -37,6 +46,15 @@ export default function CustomerStatementList() {
       dateRange: params.dateRange ? [dayjs(params.dateRange[0]), dayjs(params.dateRange[1])] : undefined
     }
   });
+
+  useEffect(() => {
+    if (isSearchModalOpen) {
+      searchForm.reset({
+        ...params,
+        dateRange: params.dateRange ? [dayjs(params.dateRange[0]), dayjs(params.dateRange[1])] : undefined
+      });
+    }
+  }, [isSearchModalOpen, params, searchForm]);
 
   const { data, isFetching } = useQuery({
     queryKey: ['customer-statements', params],
