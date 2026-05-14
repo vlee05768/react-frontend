@@ -38,6 +38,7 @@ export default function SalesDeliveryDrawer() {
 
   const isCreating = id === 'create';
   const [isEditing, setIsEditing] = useState(isCreating);
+  const [isDetailEditing, setIsDetailEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('master_info');
   const [isSaving, setIsSaving] = useState(false);
   const [hasAutoSwitchedTab, setHasAutoSwitchedTab] = useState(false);
@@ -69,7 +70,7 @@ export default function SalesDeliveryDrawer() {
     }
   }, [isCreating, deliveryData, hasAutoSwitchedTab]);
 
-  const isViewMode = !isEditing && !isCreating;
+  const isViewMode = !isEditing && !isCreating && !isDetailEditing;
 
   const getActionBarActions = () => {
     const canUpdate = hasPermission('Sales.Deliveries.Update');
@@ -88,7 +89,7 @@ export default function SalesDeliveryDrawer() {
     if (canUpdate && deliveryData && !deliveryData.confirmDate) {
       return (
         <Space>
-          <Button key="edit" type="primary" onClick={(e) => { e.preventDefault(); setIsEditing(true); }}>編輯</Button>
+          <Button key="edit" type="primary" disabled={isDetailEditing} onClick={(e) => { e.preventDefault(); setIsEditing(true); }}>編輯</Button>
         </Space>
       );
     }
@@ -109,6 +110,7 @@ export default function SalesDeliveryDrawer() {
         {!isConfirmed && canUpdate && (
           <ActionButton 
             key="confirm" intent="success" icon={<CheckCircleOutlined />} 
+            disabled={isDetailEditing || !hasItems}
             onClick={(e) => {
               e.preventDefault();
               modal.confirm({
@@ -133,6 +135,7 @@ export default function SalesDeliveryDrawer() {
         {isConfirmed && canUpdate && (
           <ActionButton 
             key="cancelConfirm" intent="default"  icon={<SyncOutlined />} 
+            disabled={isDetailEditing}
             onClick={(e) => {
               e.preventDefault();
               modal.confirm({
@@ -231,6 +234,8 @@ export default function SalesDeliveryDrawer() {
       return (deliveryData as any)?.items || [];
   }, [deliveryData]);
 
+  const hasItems = items && items.length > 0;
+
 
   let steps: any[] = [];
   if (deliveryData) {
@@ -287,6 +292,7 @@ export default function SalesDeliveryDrawer() {
             isCreateMode={isCreating}
             isEditMode={isEditing}
             viewId={id}
+            disableTabSwitching={isDetailEditing}
             masterContent={
               <div style={{ display: activeTab === 'master_info' ? 'block' : 'none' }}>
                 <DynamicForm
@@ -306,6 +312,7 @@ export default function SalesDeliveryDrawer() {
                 label: '銷貨明細',
                 children: !isCreating && deliveryData ? (
                   <SalesDeliveryItemsTab 
+                    onEditingChange={setIsDetailEditing}
                     documentNumber={id!}
                     customerCode={deliveryData.businessPartnerCode || ''}
                     items={items}
