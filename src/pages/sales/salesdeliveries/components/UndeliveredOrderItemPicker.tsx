@@ -242,7 +242,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
       title="挑選未出貨訂單明細"
       open={open}
       onCancel={onClose}
-      maskClosable={false}
+      mask={{ closable: false }}
       keyboard={false}
       width="90vw"
       style={{ top: 20 }}

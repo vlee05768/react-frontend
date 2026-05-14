@@ -101,7 +101,7 @@ export function ErpDrawer({
       onClose={onClose}
       open={open}
       // ERP UX 憲法: Drawer 禁背景關閉
-      maskClosable={false}
+      mask={{ closable: false }}
       footer={renderFooter()}
       className="erp-drawer"
     >

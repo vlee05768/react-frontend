@@ -103,7 +103,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
         <div>
           {canModifyItems && (
             <Space>
-              <Button type="default" icon={<PlusOutlined />} onClick={() => {
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => {
                 if (!customerCode) {
                   message.warning('請先選擇客戶');
                   return;
@@ -112,9 +112,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
               }}>
                 挑選未出貨訂單
               </Button>
-              <Button type="primary" icon={<PlusOutlined />} onClick={() => message.info('暫未實作')}>
-                新增明細
-              </Button>
+
             </Space>
           )}
         </div>
