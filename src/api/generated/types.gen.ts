@@ -14966,13 +14966,13 @@ export type GetApiV1SalesDeliveryStatisticsGroupByCustomerData = {
          */
         CustomerCode?: string;
         /**
-         * 頁碼
-         */
-        pageNumber?: number;
-        /**
          * 每頁筆數
          */
         pageSize?: number;
+        /**
+         * 頁碼
+         */
+        pageNumber?: number;
     };
     url: '/api/v1/SalesDelivery/statistics/group-by-customer';
 };
@@ -15029,13 +15029,13 @@ export type GetApiV1SalesDeliveryCustomerStatementReportData = {
          */
         CustomerCode?: string;
         /**
-         * 頁碼
-         */
-        pageNumber?: number;
-        /**
          * 每頁筆數
          */
         pageSize?: number;
+        /**
+         * 頁碼
+         */
+        pageNumber?: number;
     };
     url: '/api/v1/SalesDelivery/customer-statement-report';
 };
@@ -15663,6 +15663,20 @@ export type GetApiV1StorageInventoryResponses = {
 };
 
 export type GetApiV1StorageInventoryResponse = GetApiV1StorageInventoryResponses[keyof GetApiV1StorageInventoryResponses];
+
+export type GetApiV1SystemMaintenanceVersionData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/SystemMaintenance/version';
+};
+
+export type GetApiV1SystemMaintenanceVersionResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type PostApiV1SystemMaintenanceSyncSequenceRulesData = {
     body?: never;

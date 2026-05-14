@@ -21,6 +21,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { ROUTES } from '@/constants/routes';
+import { useSystemVersion } from '@/hooks/useSystemVersion';
 
 const { Header, Sider, Content } = Layout;
 
@@ -91,6 +92,7 @@ export default function MainLayout() {
   const { user, permissionTree, fetchUserProfile, logout, hasPermission } = useAuthStore();
   const { mode, toggleTheme } = useThemeStore();
   const [loading, setLoading] = useState(true);
+  const { frontendVersion, backendVersion } = useSystemVersion();
 
   useEffect(() => {
     const initProfile = async () => {
@@ -313,22 +315,33 @@ export default function MainLayout() {
         className={`border-r ${mode === 'dark' ? 'border-[#303030]' : 'border-gray-200'}`}
         width={220}
       >
-        <div className={`h-16 flex items-center justify-center border-b ${mode === 'dark' ? 'border-[#303030]' : 'border-gray-200'} overflow-hidden px-4`}>
-          {collapsed ? (
-            <img src={mode === 'dark' ? (import.meta.env.VITE_LOGO_DARK || '/assets/tungfu-logo-dark.svg') : (import.meta.env.VITE_LOGO_LIGHT || '/assets/tungfu-logo-light.svg')} alt="Logo" className="w-8 h-8 object-cover object-left" />
-          ) : (
-            <img src={mode === 'dark' ? (import.meta.env.VITE_LOGO_DARK || '/assets/tungfu-logo-dark.svg') : (import.meta.env.VITE_LOGO_LIGHT || '/assets/tungfu-logo-light.svg')} alt="Logo" className="h-8 w-auto" />
-          )}
+        <div className="flex flex-col h-full">
+          <div className={`h-16 flex items-center justify-center border-b ${mode === 'dark' ? 'border-[#303030]' : 'border-gray-200'} overflow-hidden px-4 flex-shrink-0`}>
+            {collapsed ? (
+              <img src={mode === 'dark' ? (import.meta.env.VITE_LOGO_DARK || '/assets/tungfu-logo-dark.svg') : (import.meta.env.VITE_LOGO_LIGHT || '/assets/tungfu-logo-light.svg')} alt="Logo" className="w-8 h-8 object-cover object-left" />
+            ) : (
+              <img src={mode === 'dark' ? (import.meta.env.VITE_LOGO_DARK || '/assets/tungfu-logo-dark.svg') : (import.meta.env.VITE_LOGO_LIGHT || '/assets/tungfu-logo-light.svg')} alt="Logo" className="h-8 w-auto" />
+            )}
+          </div>
+          <div className="flex-1 overflow-y-auto overflow-x-hidden">
+            <Menu
+              theme={mode}
+              mode="inline"
+              selectedKeys={[location.pathname]}
+              openKeys={openKeys}
+              onOpenChange={onOpenChange}
+              onClick={handleMenuClick}
+              items={generateMenuItems()}
+              style={{ borderRight: 0 }}
+            />
+          </div>
+          <div className={`p-4 text-center text-xs flex-shrink-0 transition-opacity duration-300 ${collapsed ? 'opacity-0 pointer-events-none h-0 p-0 overflow-hidden' : 'opacity-100'} ${mode === 'dark' ? 'text-gray-500 border-t border-[#303030] bg-[#141414]' : 'text-gray-400 border-t border-gray-200 bg-[#ffffff]'}`}>
+            <div className="flex flex-col space-y-1">
+              <div>前端: <span className="font-mono">{frontendVersion}</span></div>
+              <div>後端: <span className="font-mono">{backendVersion}</span></div>
+            </div>
+          </div>
         </div>
-                <Menu
-          theme={mode}
-          mode="inline"
-          selectedKeys={[location.pathname]}
-          openKeys={openKeys}
-          onOpenChange={onOpenChange}
-          onClick={handleMenuClick}
-          items={generateMenuItems()}
-        />
       </Sider>
       <Layout className={`flex-1 ${mode === 'dark' ? 'bg-[#141414]' : 'bg-[#f5f5f5]'}`}>
         <Header 
