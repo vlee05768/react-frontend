@@ -61,14 +61,11 @@ export default function CustomerStatementList() {
     queryFn: () => getApiV1SalesDeliveryStatisticsGroupByCustomer({
       query: {
         DateRange: params.dateRange as string[],
-        CustomerCode: params.customerCode || undefined,
-        pageNumber: params.pageNumber,
-        pageSize: params.pageSize
+        CustomerCode: params.customerCode || undefined
       }
     }),
     enabled: !!params.dateRange && params.dateRange.length === 2,
   });
-
   const pagedResult = data?.data;
   const tableData = (pagedResult?.data || pagedResult || []) as SalesDeliveryGroupByCustomerDto[];
   const totalRecords = (pagedResult as any)?.totalRecords || tableData.length;
@@ -135,9 +132,7 @@ export default function CustomerStatementList() {
       apiFunction: () => getApiV1SalesDeliveryCustomerStatementReport({
         query: {
           DateRange: [dayjs(params.dateRange![0]).format('YYYY-MM-DD'), dayjs(params.dateRange![1]).format('YYYY-MM-DD')],
-          CustomerCode: row.businessPartnerCode!,
-          pageNumber: 1,
-          pageSize: 100
+          CustomerCode: row.businessPartnerCode!
         },
         // @ts-ignore
         responseType: 'blob'
