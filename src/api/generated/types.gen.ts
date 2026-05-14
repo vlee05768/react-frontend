@@ -1483,7 +1483,7 @@ export type CreateSalesDeliveryDto = {
     /**
      * 銷貨明細
      */
-    items: Array<CreateSalesDeliveryItemDto>;
+    items?: Array<CreateSalesDeliveryItemDto> | null;
 };
 
 /**
