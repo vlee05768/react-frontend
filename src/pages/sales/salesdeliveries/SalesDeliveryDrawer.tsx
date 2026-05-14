@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Drawer, Space, Button, App, Spin, Empty } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircleOutlined, SyncOutlined, LockOutlined, UnlockOutlined, FilePdfOutlined } from '@ant-design/icons';
@@ -50,6 +50,14 @@ export default function SalesDeliveryDrawer() {
   });
 
   const deliveryData: SalesDeliveryDto | undefined = (data?.data?.data as any) || undefined;
+
+  // 如果主檔有資料，但明細為 0 時，自動切換至「銷貨明細」頁籤並開啟編輯模式
+  useEffect(() => {
+    if (!isCreating && deliveryData && (!deliveryData.items || deliveryData.items.length === 0)) {
+      setActiveTab('items');
+      setIsEditing(true);
+    }
+  }, [isCreating, deliveryData?.documentNumber, deliveryData?.items?.length]);
 
   const isViewMode = !isEditing && !isCreating;
 
