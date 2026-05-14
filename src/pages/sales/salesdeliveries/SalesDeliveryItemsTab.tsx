@@ -16,12 +16,15 @@ interface Props {
   customerCode: string;
   items: SalesDeliveryItemDto[];
   isEditing: boolean;
+  isConfirmed: boolean;
   onRefresh: () => void;
 }
 
-export default function SalesDeliveryItemsTab({ documentNumber, customerCode, items, isEditing, onRefresh }: Props) {
+export default function SalesDeliveryItemsTab({ documentNumber, customerCode, items, isEditing, isConfirmed, onRefresh }: Props) {
   const { modal, message } = App.useApp();
   const [showPicker, setShowPicker] = useState(false);
+
+  const canModifyItems = !isEditing && !isConfirmed;
 
   const deleteMutation = useMutation({
     mutationFn: (lineNumber: string) => deleteApiV1SalesDeliveryByMovementNumberItemsByLineNumber({ path: { movementNumber: documentNumber, lineNumber } }),
@@ -70,7 +73,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
     { title: '備註', dataIndex: 'notes', ellipsis: true, width: 200 },
   ];
 
-  if (isEditing) {
+  if (canModifyItems) {
     columns.unshift({
       title: '操作',
       dataIndex: 'action',
@@ -98,7 +101,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
           目前共有 <span>{items.length}</span> 筆明細
         </div>
         <div>
-          {isEditing && (
+          {canModifyItems && (
             <Space>
               <Button type="default" icon={<PlusOutlined />} onClick={() => {
                 if (!customerCode) {

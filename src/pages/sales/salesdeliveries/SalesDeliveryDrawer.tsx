@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Drawer, Space, Button, App, Spin, Empty } from 'antd';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircleOutlined, SyncOutlined, LockOutlined, UnlockOutlined, FilePdfOutlined } from '@ant-design/icons';
 import { ActionButton } from '@/components/common/ActionButton';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -30,7 +30,6 @@ import { getApiErrorMessage } from '@/utils/apiError';
 
 export default function SalesDeliveryDrawer() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { id } = useParams();
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
@@ -54,16 +53,7 @@ export default function SalesDeliveryDrawer() {
 
   const [hasAutoSwitchedTab, setHasAutoSwitchedTab] = useState(false);
 
-  // 1. 若是剛建立完主檔（透過 location.state.autoEdit 傳遞），自動開啟編輯模式
-  useEffect(() => {
-    if (!isCreating && deliveryData && location.state?.autoEdit) {
-      setIsEditing(true);
-      // 清除 state 避免重整後又進入編輯模式
-      navigate('.', { replace: true, state: {} });
-    }
-  }, [isCreating, deliveryData?.documentNumber, location.state]);
-
-  // 2. 開啟銷貨單時，如果沒有明細，自動切換到明細 tab
+  // 開啟銷貨單時，如果沒有明細，自動切換到明細 tab
   useEffect(() => {
     if (!isCreating && deliveryData && !hasAutoSwitchedTab) {
       if (!deliveryData.items || deliveryData.items.length === 0) {
@@ -244,7 +234,7 @@ export default function SalesDeliveryDrawer() {
         message.success('建立成功');
         const newId = (res.data as any)?.data?.documentNumber || (res.data as any)?.documentNumber;
         if (newId) {
-          navigate(`/sales/salesdeliveries/${newId}`, { replace: true, state: { autoEdit: true } });
+          navigate(`/sales/salesdeliveries/${newId}`, { replace: true });
         } else {
           navigate('/sales/salesdeliveries');
         }
@@ -371,6 +361,7 @@ export default function SalesDeliveryDrawer() {
                     customerCode={deliveryData.businessPartnerCode || ''}
                     items={items}
                     isEditing={isEditing}
+                    isConfirmed={!!deliveryData.confirmDate}
                     onRefresh={() => queryClient.invalidateQueries({ queryKey: ['salesdelivery', id] })}
                   />
                 ) : (
