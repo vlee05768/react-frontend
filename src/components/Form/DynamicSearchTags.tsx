@@ -63,7 +63,7 @@ export default function DynamicSearchTags({ config, params, onClose, emptyNode =
       <Tag 
         color="blue" 
         key={field.name as string} 
-        closable 
+        closable={!field.rules?.required}
         onClose={(e) => {
           e.preventDefault(); // 避免點擊 x 時觸發其他事件
           onClose(field.name as string);

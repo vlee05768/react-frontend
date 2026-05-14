@@ -78,6 +78,7 @@ export interface SearchFieldConfig<TValues = any> extends FieldDef<TValues> {
   componentProps?: Record<string, any>;
   colSpan?: number; // 版面佔比（代表一行幾欄，例如 4 代表一行 4 欄，預設 4）
   defaultValue?: any;
+  rules?: Record<string, any>;
   // 當此條件有值時，上方 Tag 要怎麼顯示？
   // 如果是 Select，會自動對應 options label。
   // 若需要客製化 (例如 boolean, 日期區間) 可透過 formatTag 覆寫。

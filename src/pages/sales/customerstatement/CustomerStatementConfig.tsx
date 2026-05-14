@@ -9,9 +9,10 @@ export const searchConfig: SearchFieldConfig[] = [
     name: "dateRange", 
     label: "查詢期間", 
     componentType: "DateRangePicker", 
-    colSpan: 4,
+    colSpan: 2,
+    rules: { required: '請選擇查詢期間' },
     componentProps: {
-        allowClear: false
+        allowClear: true
     }
   },
   { 

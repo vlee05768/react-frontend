@@ -62,11 +62,15 @@ export default function DynamicSearchForm({ config, form, onSearch, layout = 've
             <Col span={antSpan} key={field.name}>
               <Form.Item 
                 label={field.label}
+                required={field.rules?.required}
+                validateStatus={form.formState.errors[field.name] ? 'error' : ''}
+                help={form.formState.errors[field.name]?.message as string}
               >
                 <Controller
                   name={field.name}
                   control={control}
                   defaultValue={field.defaultValue}
+                  rules={field.rules}
                   render={({ field: { onChange, value, ref } }) => renderComponent(field, onChange, value, ref)}
                 />
               </Form.Item>

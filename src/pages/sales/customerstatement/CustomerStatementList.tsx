@@ -115,7 +115,7 @@ export default function CustomerStatementList() {
   const handleClear = () => {
     searchForm.reset({
       customerCode: undefined,
-      dateRange: [dayjs().subtract(1, 'month').startOf('month'), dayjs().subtract(1, 'month').endOf('month')]
+      dateRange: undefined
     });
   };
 
