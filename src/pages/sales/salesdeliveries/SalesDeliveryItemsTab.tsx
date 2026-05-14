@@ -81,7 +81,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, items, isEditing
         dataSource={items}
         rowKey="lineNumber"
         pagination={false}
-        scroll={{ x: 'max-content', y: 400 }}
+        scroll={{ x: 1200, y: 400 }}
         size="small"
         bordered
       />

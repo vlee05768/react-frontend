@@ -33,7 +33,7 @@ export const WorkOrderItemsTab: React.FC<WorkOrderItemsTabProps> = ({
       <div>
         <Table
           virtual
-          scroll={{ x: 'max-content', y: 400 }}
+          scroll={{ x: 1200, y: 400 }}
           bordered
           size="small"
           rowKey="materialCode"
