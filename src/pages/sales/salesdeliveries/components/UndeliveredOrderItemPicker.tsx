@@ -262,7 +262,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
     >
       <div className="flex flex-col h-full">
         {/* 搜尋區域 */}
-        <div className="mb-4 bg-gray-50 p-4 rounded-md">
+        <div className="mb-4 bg-gray-50 dark:bg-gray-800 p-4 rounded-md">
           <Space>
             <Input 
               value={anyCondition} 
