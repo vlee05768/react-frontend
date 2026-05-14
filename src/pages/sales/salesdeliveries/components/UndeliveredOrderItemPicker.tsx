@@ -24,12 +24,14 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
   
   const [checkedRowKeys, setCheckedRowKeys] = useState<React.Key[]>([]);
   const [deliveryQuantities, setDeliveryQuantities] = useState<Record<string, number>>({});
+  const [deliveryPrices, setDeliveryPrices] = useState<Record<string, number>>({});
 
   // Reset state when opening modal
   useEffect(() => {
     if (open) {
       setCheckedRowKeys([]);
       setDeliveryQuantities({});
+      setDeliveryPrices({});
     }
   }, [open, customerCode]);
 
@@ -111,6 +113,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
     setCheckedRowKeys(newSelectedRowKeys);
     
     const newQuantities = { ...deliveryQuantities };
+    const newPrices = { ...deliveryPrices };
     
     // Assign default quantity for newly selected rows
     selectedRows.forEach(item => {
@@ -121,16 +124,21 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
         const maxQty = Math.min(remainingQty, stockQty);
         newQuantities[key] = maxQty > 0 ? maxQty : 0;
       }
+      if (newPrices[key] === undefined) {
+        newPrices[key] = Number(item.unitPrice) || 0;
+      }
     });
 
     // Clean up unselected rows
     Object.keys(newQuantities).forEach(key => {
       if (!newSelectedRowKeys.includes(key)) {
         delete newQuantities[key];
+        delete newPrices[key];
       }
     });
 
     setDeliveryQuantities(newQuantities);
+    setDeliveryPrices(newPrices);
   };
 
   const handleConfirm = () => {
@@ -147,7 +155,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
     const salesDeliveryItems: CreateSalesDeliveryItemDto[] = selectedItems.map(item => {
       const key = item.lineNumber || '';
       const deliveryQty = Number(deliveryQuantities[key]) || 0;
-      const unitPrice = Number(item.unitPrice) || 0;
+      const unitPrice = deliveryPrices[key] !== undefined ? Number(deliveryPrices[key]) : (Number(item.unitPrice) || 0);
 
       return {
         lineNumber: '', // Let parent or backend assign
@@ -176,7 +184,47 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
     { title: '訂單單號', dataIndex: 'lineNumber', width: 180 },
     { title: '商品編碼', dataIndex: 'goodsCode', width: 140 },
     { title: '商品名稱', dataIndex: 'goodsName', width: 200, ellipsis: true },
-    { title: '單價', dataIndex: 'unitPrice', width: 100, align: 'right', render: (val: any) => val != null ? Number(val).toLocaleString() : '0' },
+    { 
+      title: '單價', 
+      width: 140, 
+      align: 'right', 
+      render: (_: any, row: UndeliveredOrderItemsDto) => {
+        const key = row.lineNumber || '';
+        const isChecked = checkedRowKeys.includes(key);
+        const price = deliveryPrices[key] !== undefined ? deliveryPrices[key] : (Number(row.unitPrice) || 0);
+
+        return (
+          <Tooltip title={!isChecked ? "請先勾選此項目" : ""} placement="top">
+            <InputNumber
+              value={isChecked ? price : undefined}
+              disabled={!isChecked}
+              min={0}
+              size="small"
+              onChange={(val) => {
+                if (val !== null) {
+                  setDeliveryPrices(prev => ({ ...prev, [key]: Number(val) }));
+                }
+              }}
+              style={{ width: '100px' }}
+            />
+          </Tooltip>
+        );
+      }
+    },
+    {
+      title: '小計',
+      width: 120,
+      align: 'right',
+      render: (_: any, row: UndeliveredOrderItemsDto) => {
+        const key = row.lineNumber || '';
+        const isChecked = checkedRowKeys.includes(key);
+        if (!isChecked) return '0';
+        
+        const price = deliveryPrices[key] !== undefined ? deliveryPrices[key] : (Number(row.unitPrice) || 0);
+        const qty = deliveryQuantities[key] || 0;
+        return (price * qty).toLocaleString();
+      }
+    },
     { 
       title: '訂購數量', 
       width: 100, 
