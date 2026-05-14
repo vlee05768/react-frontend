@@ -10,8 +10,6 @@ import {
   deleteApiV1SalesDeliveryByMovementNumber,
   postApiV1SalesDeliveryByMovementNumberConfirm,
   postApiV1SalesDeliveryByMovementNumberCancelConfirm,
-  postApiV1SalesDeliveryByMovementNumberClose,
-  postApiV1SalesDeliveryByMovementNumberCancelClose,
   getApiV1SalesDeliveryByMovementNumberSalesDeliveryReport
 } from '@/api/generated/sdk.gen';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
@@ -23,6 +21,7 @@ import useSalesDeliveryQueryStore from './useSalesDeliveryQueryStore';
 import { searchConfig, getColumns } from './SalesDeliveryConfig';
 import { getApiErrorMessage } from '@/utils/apiError';
 import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
+import { useFileDownload } from '@/hooks/useFileDownload';
 
 export default function SalesDeliveriesList() {
   const navigate = useNavigate();
@@ -69,12 +68,12 @@ export default function SalesDeliveriesList() {
     setParams({ pageNumber: pagination.current, pageSize: pagination.pageSize });
   };
 
+  const { downloadFile, isDownloading } = useFileDownload();
+
   const handleAction = async (action: string, row: SalesDeliveryDto) => {
     try {
       if (action === 'confirm') await postApiV1SalesDeliveryByMovementNumberConfirm({ path: { movementNumber: row.documentNumber! } });
       if (action === 'cancelConfirm') await postApiV1SalesDeliveryByMovementNumberCancelConfirm({ path: { movementNumber: row.documentNumber! } });
-      if (action === 'close') await postApiV1SalesDeliveryByMovementNumberClose({ path: { movementNumber: row.documentNumber! } });
-      if (action === 'cancelClose') await postApiV1SalesDeliveryByMovementNumberCancelClose({ path: { movementNumber: row.documentNumber! } });
       message.success('操作成功');
       queryClient.invalidateQueries({ queryKey: ['salesdeliveries'] });
     } catch (error) {
@@ -82,24 +81,7 @@ export default function SalesDeliveriesList() {
     }
   };
 
-  const downloadReport = async (row: SalesDeliveryDto) => {
-    const hide = message.loading('報表產生中...', 0);
-    try {
-      const res = await getApiV1SalesDeliveryByMovementNumberSalesDeliveryReport({ path: { movementNumber: row.documentNumber! }, responseType: 'blob' as any });
-      const blobUrl = URL.createObjectURL(res.data as any);
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = `銷貨單報表_${row.documentNumber}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-      hide();
-    } catch (error) {
-      hide();
-      modal.error({ title: '錯誤', content: getApiErrorMessage(error) });
-    }
-  };
+
 
   const columns = useMemo(() => {
     const baseColumns = getColumns((row) => navigate(`/sales/salesdeliveries/${row.documentNumber}`));
@@ -126,7 +108,24 @@ export default function SalesDeliveriesList() {
               <Tooltip title="取消確認"><Button type="text" icon={<CloseOutlined />} danger onClick={() => modal.confirm({ title: '取消確認', content: '確定要取消確認此銷貨單嗎？', onOk: () => handleAction('cancelConfirm', record) })} /></Tooltip>
             )}
             {record.confirmDate && canConfirm && (
-              <Tooltip title="列印報表"><Button type="text" icon={<PrinterOutlined />} onClick={() => downloadReport(record)} /></Tooltip>
+              <Tooltip title="列印報表">
+                <Button 
+                  type="text" 
+                  icon={<PrinterOutlined />} 
+                  loading={isDownloading}
+                  onClick={() => {
+                    downloadFile({
+                      apiFunction: () => getApiV1SalesDeliveryByMovementNumberSalesDeliveryReport({ 
+                        path: { movementNumber: record.documentNumber! },
+                        // @ts-ignore
+                        responseType: 'blob'
+                      }),
+                      successMessage: '銷貨單報表已於新分頁開啟',
+                      openInNewTab: true
+                    });
+                  }} 
+                />
+              </Tooltip>
             )}
             {!record.confirmDate && canDelete && (
               <Tooltip title="刪除"><Button type="text" danger icon={<DeleteOutlined />} onClick={() => modal.confirm({ title: '確認刪除', content: '確定要刪除此銷貨單嗎？此操作無法還原。', okButtonProps: { danger: true }, onOk: () => deleteMutation.mutate(record.documentNumber!) })} /></Tooltip>
@@ -209,7 +208,7 @@ export default function SalesDeliveriesList() {
             size="middle"
             onRow={(record) => ({
               onClick: () => navigate(`/sales/salesdeliveries/${record.documentNumber}`),
-              className: 'cursor-pointer hover:bg-gray-50'
+              className: 'cursor-pointer'
             })}
           />
         </div>

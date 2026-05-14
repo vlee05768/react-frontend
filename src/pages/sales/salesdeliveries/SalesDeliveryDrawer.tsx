@@ -25,12 +25,14 @@ import { getFormConfig, getStatusTag } from './SalesDeliveryConfig';
 import SalesDeliveryItemsTab from './SalesDeliveryItemsTab';
 
 import { getApiErrorMessage } from '@/utils/apiError';
+import { useFileDownload } from '@/hooks/useFileDownload';
 
 export default function SalesDeliveryDrawer() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
+  const { downloadFile, isDownloading } = useFileDownload();
   
   const { hasPermission, user } = useAuthStore();
 
@@ -154,25 +156,21 @@ export default function SalesDeliveryDrawer() {
         {isConfirmed && (
           <ActionButton
             key="print" intent="default" icon={<FilePdfOutlined />}
-            onClick={async () => {
-                const hide = message.loading('報表產生中...', 0);
-                try {
-                  const res = await getApiV1SalesDeliveryByMovementNumberSalesDeliveryReport({ path: { movementNumber: id! }, responseType: 'blob' as any });
-                  const blobUrl = URL.createObjectURL(res.data as any);
-                  const link = document.createElement('a');
-                  link.href = blobUrl;
-                  link.download = `銷貨單報表_${id}.pdf`;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                  setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-                  hide();
-                } catch (error) {
-                  hide();
-                  modal.error({ title: '錯誤', content: getApiErrorMessage(error) });
-                }
+            loading={isDownloading}
+            onClick={() => {
+              downloadFile({
+                apiFunction: () => getApiV1SalesDeliveryByMovementNumberSalesDeliveryReport({ 
+                  path: { movementNumber: id! },
+                  // @ts-ignore
+                  responseType: 'blob'
+                }),
+                successMessage: '銷貨單報表已於新分頁開啟',
+                openInNewTab: true
+              });
             }}
-          >列印報表</ActionButton>
+          >
+            列印報表
+          </ActionButton>
         )}
       </Space>
     );
