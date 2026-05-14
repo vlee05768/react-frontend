@@ -110,14 +110,22 @@ export default function CustomerStatementList() {
   }, [tableData, params]);
 
   const handleClear = () => {
-    searchForm.reset({
+    const emptyParams = {
       customerCode: undefined,
       dateRange: undefined
-    });
+    };
+    searchForm.reset(emptyParams);
+    setParams({ ...emptyParams, pageNumber: 1 });
   };
 
   const handleSearch = (values: any) => {
-    const formattedValues = { ...values };
+    // 確保所有表單欄位都有預設的 key，這樣 setParams 展開合併時才能正確覆蓋掉 store 中舊的值
+    const baseValues = searchConfig.reduce((acc, field) => {
+      acc[field.name] = undefined;
+      return acc;
+    }, {} as Record<string, any>);
+
+    const formattedValues = { ...baseValues, ...values };
     if (values.dateRange && Array.isArray(values.dateRange)) {
       formattedValues.dateRange = values.dateRange.map((d: any) => d ? (typeof d === 'string' ? d : d.format('YYYY-MM-DD')) : undefined).filter(Boolean);
     }
