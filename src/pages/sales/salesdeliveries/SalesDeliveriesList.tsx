@@ -248,7 +248,11 @@ export default function SalesDeliveriesList() {
           config={searchConfig}
           form={searchForm}
           onSearch={(values) => {
-            setParams({ ...params, ...values, pageNumber: 1 });
+            const formattedValues = { ...values };
+            if (values.dateRange && Array.isArray(values.dateRange)) {
+              formattedValues.dateRange = values.dateRange.map((d: any) => d ? d.format('YYYY-MM-DD') : undefined).filter(Boolean);
+            }
+            setParams({ ...params, ...formattedValues, pageNumber: 1 });
             setIsSearchModalOpen(false);
           }}
         />

@@ -18,9 +18,29 @@ export const getStatusTag = (row: SalesDeliveryDto) => {
 };
 
 export const searchConfig: SearchFieldConfig[] = [
-  { name: "keyword", label: "關鍵字", componentType: "Input", colSpan: 2 },
-  { name: "businessPartnerCode", label: "客戶代碼", componentType: "Input", colSpan: 2 },
-  { name: "businessPartnerName", label: "客戶名稱", componentType: "Input", colSpan: 2 },
+  { name: "documentNumber", label: "單據號碼", componentType: "Input", colSpan: 2 },
+  { 
+    name: "customerCodeOrName", 
+    label: "客戶", 
+    componentType: "AsyncSelect",
+    componentProps: { configKey: "CUSTOMER" }, 
+    colSpan: 2 
+  },
+  { name: "invoiceNumber", label: "發票號碼", componentType: "Input", colSpan: 2 },
+  { 
+    name: "shippedConfirmed", 
+    label: "狀態", 
+    componentType: "Select",
+    componentProps: {
+      options: [
+        { label: '已確認', value: true },
+        { label: '未確認', value: false }
+      ]
+    },
+    colSpan: 2 
+  },
+  { name: "dateRange", label: "銷貨日期區間", componentType: "DateRangePicker", colSpan: 4 },
+  { name: "others", label: "備註/地址", componentType: "Input", colSpan: 2 },
 ];
 
 export const getColumns = (
