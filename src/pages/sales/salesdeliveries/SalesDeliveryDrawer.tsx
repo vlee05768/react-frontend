@@ -52,15 +52,26 @@ export default function SalesDeliveryDrawer() {
 
   const deliveryData: SalesDeliveryDto | undefined = (data?.data?.data as any) || undefined;
 
-  // 若是剛建立完主檔（透過 location.state.autoEdit 傳遞），且明細為 0 時，自動切換至「銷貨明細」頁籤並開啟編輯模式
+  const [hasAutoSwitchedTab, setHasAutoSwitchedTab] = useState(false);
+
+  // 1. 若是剛建立完主檔（透過 location.state.autoEdit 傳遞），自動開啟編輯模式
   useEffect(() => {
-    if (!isCreating && deliveryData && location.state?.autoEdit && (!deliveryData.items || deliveryData.items.length === 0)) {
-      setActiveTab('items');
+    if (!isCreating && deliveryData && location.state?.autoEdit) {
       setIsEditing(true);
       // 清除 state 避免重整後又進入編輯模式
       navigate('.', { replace: true, state: {} });
     }
-  }, [isCreating, deliveryData?.documentNumber, deliveryData?.items?.length, location.state]);
+  }, [isCreating, deliveryData?.documentNumber, location.state]);
+
+  // 2. 開啟銷貨單時，如果沒有明細，自動切換到明細 tab
+  useEffect(() => {
+    if (!isCreating && deliveryData && !hasAutoSwitchedTab) {
+      if (!deliveryData.items || deliveryData.items.length === 0) {
+        setActiveTab('items');
+      }
+      setHasAutoSwitchedTab(true);
+    }
+  }, [isCreating, deliveryData, hasAutoSwitchedTab]);
 
   const isViewMode = !isEditing && !isCreating;
 

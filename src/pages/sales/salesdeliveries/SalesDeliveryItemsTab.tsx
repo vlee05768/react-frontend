@@ -1,5 +1,5 @@
 
-import { Table, Button, App } from 'antd';
+import { Table, Button, App, Space } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { SalesDeliveryItemDto } from '@/api/generated/types.gen';
 import { deleteApiV1SalesDeliveryByMovementNumberItemsByLineNumber } from '@/api/generated/sdk.gen';
@@ -69,9 +69,14 @@ export default function SalesDeliveryItemsTab({ documentNumber, items, isEditing
         </div>
         <div>
           {isEditing && (
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => message.info('暫未實作')}>
-              新增明細
-            </Button>
+            <Space>
+              <Button type="default" icon={<PlusOutlined />} onClick={() => message.info('暫未實作')}>
+                挑選未出貨訂單
+              </Button>
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => message.info('暫未實作')}>
+                新增明細
+              </Button>
+            </Space>
           )}
         </div>
       </div>
