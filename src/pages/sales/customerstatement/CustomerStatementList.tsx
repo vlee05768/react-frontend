@@ -112,6 +112,13 @@ export default function CustomerStatementList() {
     };
   }, [tableData, params]);
 
+  const handleClear = () => {
+    searchForm.reset({
+      customerCode: undefined,
+      dateRange: [dayjs().subtract(1, 'month').startOf('month'), dayjs().subtract(1, 'month').endOf('month')]
+    });
+  };
+
   const handleSearch = (values: any) => {
     const formattedValues = { ...values };
     if (values.dateRange && Array.isArray(values.dateRange)) {
@@ -215,9 +222,14 @@ export default function CustomerStatementList() {
         open={isSearchModalOpen}
         onCancel={() => setIsSearchModalOpen(false)}
         width={MODAL_WIDTH_SEARCH}
-        okText="搜尋"
-        cancelText="取消"
-        onOk={() => searchForm.handleSubmit(handleSearch)()}
+        footer={[
+          <Button key="clear" onClick={handleClear}>
+            清除
+          </Button>,
+          <Button key="submit" type="primary" onClick={() => searchForm.handleSubmit(handleSearch)()}>
+            搜尋
+          </Button>
+        ]}
         styles={{
           body: {
             maxHeight: MODAL_BODY_MAX_HEIGHT,
