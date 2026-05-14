@@ -47,11 +47,15 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
     enabled: open && !!customerCode,
   });
 
+  const resData = data?.data as any;
+  const pagedResult = resData?.data;
+  
   const tableData = useMemo(() => {
-    const rawData = (data?.data as any)?.data as UndeliveredOrderItemsDto[] || [];
+    const rawDataArray = (Array.isArray(pagedResult) ? pagedResult : pagedResult?.data) || [];
+    const rawData = rawDataArray as UndeliveredOrderItemsDto[];
     
     // Filter out already added order items
-    const filteredData = rawData.filter(item => {
+    const filteredData = rawData.filter((item: UndeliveredOrderItemsDto) => {
       const key = item.lineNumber || '';
       return !originalOrderItems.includes(key);
     });
@@ -68,9 +72,9 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
     });
 
     return filteredData;
-  }, [data, originalOrderItems]);
+  }, [pagedResult, originalOrderItems]);
 
-  const totalRecords = (data?.data as any)?.totalRecords || 0;
+  const totalRecords = pagedResult?.totalRecords || (Array.isArray(pagedResult) ? pagedResult.length : 0);
 
   const handleSearch = () => {
     setPage(1);
