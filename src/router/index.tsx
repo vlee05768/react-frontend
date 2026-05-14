@@ -24,6 +24,7 @@ import OrdersList from '@/pages/sales/orders/OrdersList';
 
 import SalesDeliveriesList from '@/pages/sales/salesdeliveries/SalesDeliveriesList';
 import SalesDeliveryDrawer from '@/pages/sales/salesdeliveries/SalesDeliveryDrawer';
+import CustomerStatementList from '@/pages/sales/customerstatement/CustomerStatementList';
 
 import OrderDrawer from '@/pages/sales/orders/OrderDrawer';
 import MaterialList from '@/pages/purchase/Material/MaterialList';
@@ -88,6 +89,7 @@ export const router = createBrowserRouter([
       { path: 'sales/orders/:id', element: <><OrdersList /><OrderDrawer /></> },
       { path: 'sales/salesdeliveries', element: <SalesDeliveriesList /> },
       { path: 'sales/salesdeliveries/:id', element: <><SalesDeliveriesList /><SalesDeliveryDrawer /></> },
+      { path: 'sales/statements', element: <CustomerStatementList /> },
 
       { path: 'business-partners/:viewId?', element: <BusinessPartnerList /> },
       { path: 'demo/form', element: <FormDemo /> }
