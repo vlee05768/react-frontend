@@ -230,6 +230,8 @@ export default function MainLayout() {
 
   // 產生 Breadcrumb 資料
   const generateBreadcrumbItems = () => {
+    const appTitle = import.meta.env.VITE_APP_TITLE || 'ERP 系統';
+
     const items: any[] = [
       {
         title: <span className="cursor-pointer" onClick={() => navigate(ROUTES.HOME)}><HomeOutlined /></span>,
@@ -237,11 +239,14 @@ export default function MainLayout() {
     ];
 
     if (location.pathname === ROUTES.HOME) {
+      document.title = appTitle; // 首頁直接顯示專案名稱
       return items;
     }
 
     // 反查當前路徑對應的 Permission Key
     const matchedEntry = Object.entries(ROUTE_MAPPING).find(([, path]) => location.pathname.startsWith(path));
+    
+    let pageTitle = '';
     
     if (matchedEntry && permissionTree) {
       const [key] = matchedEntry; // e.g. "BasicData.BusinessPartners"
@@ -253,8 +258,14 @@ export default function MainLayout() {
         const title = findNodeTitle(permissionTree, currentPath);
         if (title) {
           items.push({ title });
+          pageTitle = title; // 抓取最後一個節點的名稱當作頁面名稱
         }
       });
+    }
+
+    // 更新網頁標題: VITE_APP_TITLE - 模組名稱
+    if (pageTitle) {
+      document.title = `${appTitle} - ${pageTitle}`;
     }
 
     return items;
@@ -354,6 +365,11 @@ export default function MainLayout() {
             <Breadcrumb items={generateBreadcrumbItems()} className={`${mode === 'dark' ? 'text-gray-300' : ''}`} />
           </div>
           <div className="flex items-center gap-2">
+            {import.meta.env.DEV && (
+              <span className="text-orange-500 font-bold text-xs bg-orange-100 dark:bg-orange-900/30 px-2 py-1 rounded border border-orange-200 dark:border-orange-800">
+                Dev: {import.meta.env.VITE_DEV_API_TARGET?.replace(/^https?:\/\//, '') || '未知'}
+              </span>
+            )}
             <Button 
               type="text" 
               icon={mode === 'dark' ? <SunOutlined /> : <MoonOutlined />} 

@@ -6,6 +6,7 @@ import { RouterProvider } from 'react-router-dom';
 import { router } from './router';
 import { useThemeStore } from './stores/useThemeStore';
 import { useEffect } from 'react';
+import { DevBanner } from './components/DevBanner';
 
 // 建立 React Query Client，統一全域快取設定
 const queryClient = new QueryClient({
@@ -72,6 +73,7 @@ export default function App() {
           }
         }}
       >
+        <DevBanner />
         <AntdApp message={{ top: 80 }}>
           <RouterProvider router={router} />
           {requestCount > 0 && <Spin fullscreen size="large" description={loadingMessage} />}
