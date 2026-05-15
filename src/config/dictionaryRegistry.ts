@@ -1,4 +1,4 @@
-import { getApiV1Role, getApiV1GeneralTypesGetTypes, getApiV1BusinessPartners, getApiV1Storage, getApiV1Machine } from '@/api/generated/sdk.gen';
+import { getApiV1Role, getApiV1GeneralTypesGetTypes, getApiV1BusinessPartners, getApiV1Storage, getApiV1Machine, getApiV1Employee } from '@/api/generated/sdk.gen';
 import { MAX_PAGE_SIZE } from '@/constants';
 
 export const DICTIONARY_REGISTRY = {
@@ -118,7 +118,6 @@ export const DICTIONARY_REGISTRY = {
   // 員工
   EMPLOYEE: {
     queryFn: async () => {
-      const { getApiV1Employee } = await import('@/api/generated/sdk.gen');
       const res = await getApiV1Employee({ query: { pageSize: MAX_PAGE_SIZE } as any });
       const rawData = (res.data as any)?.data?.data || (res.data as any)?.data || [];
       return rawData.map((item: any) => ({

@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { Drawer, Button, Space, Tag, Typography } from 'antd';
-import { ArrowLeft, Save, Edit3 } from 'lucide-react';
+import { ArrowLeftOutlined, SaveOutlined, EditOutlined } from '@ant-design/icons';
 
 const { Text } = Typography;
 
@@ -59,7 +59,7 @@ export function ErpDrawer({
           <Button 
             type="primary" 
             ghost 
-            icon={<Edit3 size={16} />} 
+            icon={<EditOutlined />} 
             onClick={onEdit}
           >
             編輯
@@ -76,15 +76,16 @@ export function ErpDrawer({
         {auditInfo}
       </div>
       <Space>
-        <Button onClick={onClose} icon={<ArrowLeft size={16} />}>
+        <Button onClick={onClose} icon={<ArrowLeftOutlined />}>
           {isEditing ? '取消' : '返回'}
         </Button>
         {isEditing && onSave && (
-          <Button 
-            type="primary" 
-            onClick={onSave} 
+          <Button
+            type="primary"
+            onClick={onSave}
             loading={isSaving}
-            icon={<Save size={16} />}
+            icon={<SaveOutlined />}
+            htmlType="button"
           >
             儲存
           </Button>

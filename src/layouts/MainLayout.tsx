@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { Layout, Menu, Button, Dropdown, Spin, App, Breadcrumb } from 'antd';
 import { 
   SunOutlined, MoonOutlined,
-  MenuUnfoldOutlined, 
-  MenuFoldOutlined, 
   UserOutlined, 
   LogoutOutlined,
   DashboardOutlined,
@@ -316,7 +314,11 @@ export default function MainLayout() {
         width={220}
       >
         <div className="flex flex-col h-full">
-          <div className={`h-16 flex items-center justify-center border-b ${mode === 'dark' ? 'border-[#303030]' : 'border-gray-200'} overflow-hidden px-4 flex-shrink-0`}>
+          <div 
+            className={`h-16 flex items-center justify-center border-b ${mode === 'dark' ? 'border-[#303030]' : 'border-gray-200'} overflow-hidden px-4 flex-shrink-0 cursor-pointer transition-opacity hover:opacity-80`}
+            onClick={() => setCollapsed(!collapsed)}
+            title="切換選單"
+          >
             {collapsed ? (
               <img src={mode === 'dark' ? (import.meta.env.VITE_LOGO_DARK || '/assets/tungfu-logo-dark.svg') : (import.meta.env.VITE_LOGO_LIGHT || '/assets/tungfu-logo-light.svg')} alt="Logo" className="w-8 h-8 object-cover object-left" />
             ) : (
@@ -349,12 +351,6 @@ export default function MainLayout() {
           style={{ background: mode === 'dark' ? '#141414' : '#ffffff' }}
         >
           <div className="flex items-center gap-4">
-            <Button
-              type="text"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-              className={`${mode === 'dark' ? 'text-white hover:text-gray-300' : 'text-gray-800 hover:text-gray-600'}`}
-            />
             <Breadcrumb items={generateBreadcrumbItems()} className={`${mode === 'dark' ? 'text-gray-300' : ''}`} />
           </div>
           <div className="flex items-center gap-2">

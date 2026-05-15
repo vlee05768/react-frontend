@@ -23,3 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 temp_scripts/
+
+# Docker volumes and temp files
+deploy/prod/postgres/data/
+deploy/prod/minio/data/
+deploy/prod/backend/temp/
+deploy/prod/.env

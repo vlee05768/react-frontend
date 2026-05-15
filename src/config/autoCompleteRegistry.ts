@@ -1,4 +1,4 @@
-import { getApiV1BusinessPartners, getApiV1BusinessPartnersByCode, getApiV1Material, getApiV1MaterialByCode, getApiV1Product, getApiV1ProductByCode } from '@/api/generated/sdk.gen';
+import { getApiV1BusinessPartners, getApiV1BusinessPartnersByCode, getApiV1Material, getApiV1MaterialByCode, getApiV1Product, getApiV1ProductByCode, getApiV1BusinessPartnersByBusinessPartnerCodeContacts, getApiV1BusinessPartnersByBusinessPartnerCodeContactsByContactId, getApiV1Mold, getApiV1MoldByCode, getApiV1Storage, getApiV1StorageByCode, getApiV1Employee } from '@/api/generated/sdk.gen';
 
 export interface AutoCompleteConfig {
   /** 搜尋用的 API 呼叫 (依特性: 會有固定條件、預設 pageSize=100) */
@@ -40,7 +40,6 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
     queryFn: async (keyword: string, additionalParams?: any) => {
       const bpCode = additionalParams?.businessPartnerCode;
       if (!bpCode) return [];
-      const { getApiV1BusinessPartnersByBusinessPartnerCodeContacts } = await import('@/api/generated/sdk.gen');
       const res = await getApiV1BusinessPartnersByBusinessPartnerCodeContacts({
         path: { businessPartnerCode: String(bpCode) },
         query: { page: 1, pageSize: 100, keyword: keyword || undefined } as any
@@ -50,7 +49,6 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
     fetchByValue: async (id: number, additionalParams?: any) => {
       const bpCode = additionalParams?.businessPartnerCode;
       if (!bpCode || !id) return null;
-      const { getApiV1BusinessPartnersByBusinessPartnerCodeContactsByContactId } = await import('@/api/generated/sdk.gen');
       const res = await getApiV1BusinessPartnersByBusinessPartnerCodeContactsByContactId({
         path: { businessPartnerCode: String(bpCode), contactId: id }
       });
@@ -127,7 +125,6 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
   // 模具 (Mold)
   MOLD: {
     queryFn: async (keyword: string) => {
-      const { getApiV1Mold } = await import('@/api/generated/sdk.gen');
       const res = await getApiV1Mold({
         query: {
           CodeOrName: keyword || undefined,
@@ -137,7 +134,6 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       return (res.data as any)?.data?.data || (res.data as any)?.data || [];
     },
     fetchByValue: async (code: string) => {
-      const { getApiV1MoldByCode } = await import('@/api/generated/sdk.gen');
       const res = await getApiV1MoldByCode({ path: { code } });
       return (res.data as any)?.data;
     },
@@ -151,7 +147,6 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
   // 儲位 (Storage)
   STORAGE: {
     queryFn: async (keyword: string) => {
-      const { getApiV1Storage } = await import('@/api/generated/sdk.gen');
       const res = await getApiV1Storage({
         query: {
           CodeOrName: keyword || undefined,
@@ -161,7 +156,6 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       return (res.data as any)?.data?.data || (res.data as any)?.data || [];
     },
     fetchByValue: async (code: string) => {
-      const { getApiV1StorageByCode } = await import('@/api/generated/sdk.gen');
       const res = await getApiV1StorageByCode({ path: { code } });
       return (res.data as any)?.data;
     },
@@ -176,7 +170,6 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
   // 員工 (Employee)
   EMPLOYEE: {
     queryFn: async (keyword: string) => {
-      const { getApiV1Employee } = await import('@/api/generated/sdk.gen');
       const res = await getApiV1Employee({
         query: {
           EmployeeNo: keyword || undefined,
@@ -188,7 +181,6 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
     fetchByValue: async (idOrCode: any) => {
       // Because employee uses ID for fetch but we need employeeNo for value
       // Just fallback to listing if fetchByValue by employeeNo is needed
-      const { getApiV1Employee } = await import('@/api/generated/sdk.gen');
       const res = await getApiV1Employee({
         query: {
           EmployeeNo: String(idOrCode),
