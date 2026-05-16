@@ -425,7 +425,7 @@ export default function MoldList() {
         footer={
           <div className="pt-4 flex justify-end gap-2" style={{borderTop: '1px solid #f0f0f0'}}>
             <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
-              清空重置
+              清除條件
             </Button>
             <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
               執行查詢

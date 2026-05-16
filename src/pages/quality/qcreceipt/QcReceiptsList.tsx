@@ -223,7 +223,7 @@ export default function QcReceiptsList() {
         footer={
           <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
             <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
-              清空重置
+              清除條件
             </Button>
             <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
               執行查詢
