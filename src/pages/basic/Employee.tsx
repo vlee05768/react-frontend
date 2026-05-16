@@ -275,7 +275,7 @@ export default function EmployeeList() {
   };
 
   const handleSearchReset = () => {
-    searchForm.reset();
+    searchForm.reset(Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = undefined; return acc; }, {}));
     // 僅清空表單，不呼叫 resetParams()，避免自動觸發 API 查詢
   };
 

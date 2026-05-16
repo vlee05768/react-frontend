@@ -244,7 +244,7 @@ export default function ProductsList() {
   };
 
   const handleSearchReset = () => {
-    searchForm.reset();
+    searchForm.reset(Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = undefined; return acc; }, {}));
   };
 
   const renderSearchTags = () => {

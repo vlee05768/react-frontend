@@ -67,7 +67,7 @@ export default function ProductionReceiptsList() {
   };
 
   const handleSearchReset = () => {
-    searchForm.reset();
+    searchForm.reset(Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = undefined; return acc; }, {}));
   };
 
   const handleClearTag = (key: string) => {

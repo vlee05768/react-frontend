@@ -140,7 +140,7 @@ export default function StorageInventoryList() {
   };
 
   const handleReset = () => {
-    reset();
+    reset(Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = undefined; return acc; }, {}));
     setQueryParams({ StorageCode: undefined, InventoryCode: undefined, Type: undefined });
   };
 
