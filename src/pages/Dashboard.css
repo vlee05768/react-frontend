@@ -1,0 +1,105 @@
+.dashboard-container {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* 上方 KPI 卡片樣式 */
+.dashboard-card { 
+  background-color: var(--ant-color-bg-container, #ffffff);
+  border-radius: 8px; 
+  position: relative; 
+  overflow: hidden; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: space-between; 
+  padding: 16px; 
+  transition: transform 0.2s, box-shadow 0.2s; 
+  cursor: pointer;
+  border: 1px solid var(--ant-color-border-secondary, #f0f0f0);
+}
+.dark .dashboard-card {
+  background-color: #1f1f1f;
+  border-color: #333;
+}
+.dashboard-card:hover { 
+  transform: translateY(-2px); 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+}
+.dark .dashboard-card:hover {
+  background-color: #262626;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+.card-border { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+
+/* 流程節點主標題樣式 */
+.flow-node-header { 
+  background-color: var(--ant-color-bg-container, #ffffff);
+  border: 1px solid var(--ant-color-border-secondary, #f0f0f0);
+  border-radius: 8px; 
+  padding: 16px 8px; 
+  text-align: center; 
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.dark .flow-node-header {
+  background-color: #1f1f1f;
+  border-color: #333;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* 子模組按鈕樣式 */
+.sub-btn {
+  background-color: var(--ant-color-bg-layout, #f5f5f5);
+  border: 1px solid var(--ant-color-border, #d9d9d9);
+  border-radius: 6px; 
+  padding: 10px 12px; 
+  font-size: 13px; 
+  color: var(--ant-color-text, #333);
+  transition: all 0.2s; 
+  cursor: pointer; 
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.dark .sub-btn {
+  background-color: #262626;
+  border-color: #3f3f46;
+  color: #d1d5db;
+}
+.sub-btn:hover {
+  background-color: var(--ant-color-bg-text-hover, #e6f4ff);
+  color: var(--ant-color-primary, #1677ff);
+  border-color: var(--ant-color-primary, #1677ff);
+  transform: translateX(4px);
+}
+.dark .sub-btn:hover {
+  background-color: #3f3f46;
+  color: #fff;
+  border-color: #1677ff;
+}
+
+/* 開發中子模組按鈕樣式 (虛線框) */
+.sub-btn-dev {
+  background-color: transparent; 
+  border: 1px dashed var(--ant-color-border, #d9d9d9);
+  border-radius: 6px; 
+  padding: 10px 12px; 
+  font-size: 13px; 
+  color: var(--ant-color-text-tertiary, #999);
+  cursor: not-allowed; 
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.dark .sub-btn-dev {
+  border-color: #52525b;
+  color: #71717a;
+}
+
+.flow-col { flex: 1; display: flex; flex-direction: column; min-width: 140px; }
+.flow-arrow { display: flex; justify-content: center; color: var(--ant-color-text-secondary, #666); padding-top: 36px; padding-left: 8px; padding-right: 8px; }
+.dark .flow-arrow { color: #4b5563; }

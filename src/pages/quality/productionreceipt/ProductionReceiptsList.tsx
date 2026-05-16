@@ -110,7 +110,7 @@ export default function ProductionReceiptsList() {
           <div className="flex items-center gap-3">
             <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
             <div className="m-0 font-semibold" style={{fontSize: '20px'}}>
-              製令產品入庫管理
+              生產入庫單管理
             </div>
           </div>
         }

@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 export const DevBanner: React.FC = () => {
   // 為了能夠動態追蹤 Title 的變化，我們需要一個 State 甚至監聽器
-  const [originalTitle, setOriginalTitle] = useState(document.title);
+  // 移除未使用的 originalTitle 與 setOriginalTitle
   
   // 只有在 Vite 的開發模式下才會執行，build (production) 之後這個組件會回傳 null
   if (!import.meta.env.DEV) {
@@ -34,7 +34,6 @@ export const DevBanner: React.FC = () => {
     // 因為各個頁面可能也會去改 document.title，我們攔截並加上 [DEV] 前綴
     const updateTitle = () => {
       const currentTitle = document.title;
-      const apiHost = apiTarget.replace(/^https?:\/\//, ''); // 去除 http:// 讓標題短一點
       
       // 避免無限迴圈：如果還沒有包含 [DEV] 標記才加上去
       if (!currentTitle.startsWith('[DEV]')) {
