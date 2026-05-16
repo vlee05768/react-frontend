@@ -11679,6 +11679,14 @@ export type GetApiV1MaterialData = {
          */
         IsActive?: boolean;
         /**
+         * 廠牌
+         */
+        Brand?: string;
+        /**
+         * 型號
+         */
+        ModelNo?: string;
+        /**
          * 其他雜項
          */
         Others?: string;

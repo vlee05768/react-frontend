@@ -110,6 +110,20 @@ export const materialSearchFormConfig = (): SearchFieldConfig[] => [
     colSpan: 2,
   },
   {
+    name: "Brand",
+    label: "廠牌",
+    componentType: "Input",
+    componentProps: { placeholder: "請輸入廠牌" },
+    colSpan: 2,
+  },
+  {
+    name: "ModelNo",
+    label: "型號",
+    componentType: "Input",
+    componentProps: { placeholder: "請輸入型號" },
+    colSpan: 2,
+  },
+  {
     name: "Others",
     label: "其他雜項",
     componentType: "Input",
