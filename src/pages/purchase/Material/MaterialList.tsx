@@ -219,7 +219,7 @@ export default function MaterialList() {
   };
 
   const handleSearchReset = () => {
-    searchForm.reset(Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = undefined; return acc; }, {}));
+    searchForm.reset(Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = null; return acc; }, {}));
   };
 
   const openSearchModal = () => {

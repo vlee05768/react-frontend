@@ -269,7 +269,7 @@ export default function MachineList() {
   };
 
   const handleSearchReset = () => {
-    searchForm.reset(Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = undefined; return acc; }, {}));
+    searchForm.reset(Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = null; return acc; }, {}));
     // 僅清空表單，不呼叫 resetParams()，避免自動觸發 API 查詢
   };
 
