@@ -247,7 +247,7 @@ export default function MaterialList() {
         extra={
           <Space separator={<Divider orientation="vertical" />}>
             <Button type="default" icon={<SearchOutlined />} onClick={openSearchModal} className="font-medium">
-              進階查詢
+              查詢
             </Button>
             {hasPermission('Warehouse.Materials.Create') && (
               <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer} className="font-medium">

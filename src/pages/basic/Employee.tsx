@@ -340,7 +340,7 @@ export default function EmployeeList() {
               onClick={openSearchModal}
               className="font-medium"
             >
-              進階查詢
+              查詢
             </Button>
             {hasPermission('BasicData.Employees.Create') && (
               <Button 

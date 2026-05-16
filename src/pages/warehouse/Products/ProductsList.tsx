@@ -288,7 +288,7 @@ export default function ProductsList() {
               icon={<SearchOutlined />}
               onClick={openSearchModal}
             >
-              進階查詢
+              查詢
             </Button>
             <Button 
               type="primary" 

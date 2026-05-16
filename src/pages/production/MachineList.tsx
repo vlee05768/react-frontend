@@ -329,7 +329,7 @@ export default function MachineList() {
               onClick={openSearchModal}
               className="font-medium"
             >
-              進階查詢
+              查詢
             </Button>
             {hasPermission('ProductionQuality.Machines.Create') && (
               <Button 

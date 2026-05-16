@@ -161,7 +161,7 @@ export default function SalesDeliveriesList() {
               icon={<SearchOutlined />}
               onClick={() => setIsSearchModalOpen(true)}
             >
-              進階查詢
+              查詢
             </Button>
             {hasPermission('Sales.Deliveries.Create') && (
               <Button 

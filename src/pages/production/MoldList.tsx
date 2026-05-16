@@ -331,7 +331,7 @@ export default function MoldList() {
               onClick={openSearchModal}
               className="font-medium"
             >
-              進階查詢
+              查詢
             </Button>
             {hasPermission('ProductionQuality.Molds.Create') && (
               <Button 

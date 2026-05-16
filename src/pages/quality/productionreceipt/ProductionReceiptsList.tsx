@@ -117,7 +117,7 @@ export default function ProductionReceiptsList() {
         extra={
           <Space separator={<Divider orientation="vertical" />}>
             <Button type="default" icon={<SearchOutlined />} onClick={() => setIsSearchModalOpen(true)}>
-              進階查詢
+              查詢
             </Button>
           </Space>
         }

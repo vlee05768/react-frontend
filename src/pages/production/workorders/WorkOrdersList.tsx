@@ -156,7 +156,7 @@ export const WorkOrdersList: React.FC = () => {
         }
         extra={
           <Space>
-            <Button onClick={() => setIsSearchOpen(true)}>進階查詢</Button>
+            <Button onClick={() => setIsSearchOpen(true)}>查詢</Button>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => openDrawer()}>
               新增
             </Button>

@@ -416,7 +416,7 @@ export default function InventoryAdjustmentList() {
         extra={
           <Space separator={<Divider orientation="vertical" />}>
             <Button type="default" icon={<SearchOutlined />} onClick={() => setIsSearchModalOpen(true)}>
-              進階查詢
+              查詢
             </Button>
             <Button type="primary" icon={<PlusOutlined />} onClick={openCreateDrawer}>
               新增單據

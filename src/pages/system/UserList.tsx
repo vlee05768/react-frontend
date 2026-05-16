@@ -446,7 +446,7 @@ export default function UserList() {
               onClick={openSearchModal}
               className="font-medium"
             >
-              進階查詢
+              查詢
             </Button>
             {hasPermission('System.Users.Create') && (
               <Button 

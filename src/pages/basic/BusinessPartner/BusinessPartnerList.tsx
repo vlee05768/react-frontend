@@ -309,7 +309,7 @@ export default function BusinessPartnerList() {
               icon={<SearchOutlined />}
               onClick={openSearchModal}
             >
-              進階查詢
+              查詢
             </Button>
             <Button 
               type="primary" 
