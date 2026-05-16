@@ -65,7 +65,7 @@ export default function InventoryAdjustmentList() {
 
 
   const { user } = useAuthStore();
-  const searchForm = useForm();
+  const searchForm = useForm({ values: params });
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;

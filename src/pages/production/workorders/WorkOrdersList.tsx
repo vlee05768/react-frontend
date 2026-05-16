@@ -28,7 +28,7 @@ export const WorkOrdersList: React.FC = () => {
   const navigate = useNavigate();
   const { viewId } = useParams();
 
-  const searchForm = useForm();
+  
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   
   const {
@@ -37,6 +37,7 @@ export const WorkOrdersList: React.FC = () => {
     setSearchParams,
     setPagination,
   } = useWorkOrderQueryStore();
+  const searchForm = useForm({ values: searchParams });
 
   const { downloadFile, isDownloading } = useFileDownload();
 

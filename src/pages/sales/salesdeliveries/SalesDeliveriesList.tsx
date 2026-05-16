@@ -40,7 +40,7 @@ export default function SalesDeliveriesList() {
     setQuery: (q) => setParams({ ...q, pageNumber: 1 })
   });
 
-  const searchForm = useForm();
+  const searchForm = useForm({ values: params });
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   const { data, isLoading } = useQuery({

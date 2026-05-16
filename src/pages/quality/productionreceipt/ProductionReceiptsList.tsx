@@ -24,7 +24,7 @@ export default function ProductionReceiptsList() {
   const navigate = useNavigate();
   const { params, setParams } = useProductionReceiptQueryStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const searchForm = useForm();
+  const searchForm = useForm({ values: params });
 
   const { pageNumber, pageSize, ...queryFields } = params;
   useUrlQuerySync({

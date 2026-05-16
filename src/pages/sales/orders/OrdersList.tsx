@@ -38,7 +38,7 @@ export default function OrdersList() {
     setQuery: (q) => setParams({ ...q, page: 1 })
   });
 
-  const searchForm = useForm();
+  const searchForm = useForm({ values: params });
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   const { data, isLoading } = useQuery({

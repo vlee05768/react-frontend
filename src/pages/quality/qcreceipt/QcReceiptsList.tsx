@@ -28,7 +28,7 @@ export default function QcReceiptsList() {
   const queryClient = useQueryClient();
   const { params, setParams } = useQcReceiptQueryStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const searchForm = useForm();
+  const searchForm = useForm({ values: params });
 
   const { pageNumber, pageSize, ...queryFields } = params;
   useUrlQuerySync({

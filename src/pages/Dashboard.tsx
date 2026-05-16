@@ -73,7 +73,7 @@ export default function Dashboard() {
               <span>前往列表</span> <span className="ml-1">→</span>
             </div>
           </div>
-          <div className="dashboard-card" onClick={() => navigate('/warehouse/inventory-adjustments?type=Scrap')}>
+          <div className="dashboard-card" onClick={() => navigate('/warehouse/inventory-adjustments?Others=報廢')}>
             <div className="card-border bg-rose-500"></div>
             <div className="text-sm font-medium text-rose-500 dark:text-rose-400">⚠️ 異常報廢警示</div>
             <div className="text-3xl font-bold text-rose-500 mt-2">2</div>
