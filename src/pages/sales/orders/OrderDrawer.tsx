@@ -72,6 +72,7 @@ export default function OrderDrawer() {
   const defaultValues = useMemo(() => {
     if (isCreating) {
       return {
+        orderNumber: '【系統自動編碼】',
         orderDate: dayjs(),
         requestedDeliveryDate: dayjs().add(1, 'month'),
         promisedDeliveryDate: dayjs().add(1, 'month'),
@@ -180,6 +181,10 @@ export default function OrderDrawer() {
 
     try {
       if (isCreating) {
+        // 如果是自動編碼的顯示文字，在送出前移除它避免後端驗證報錯
+        if (formattedValues.orderNumber === '【系統自動編碼】') {
+          delete formattedValues.orderNumber;
+        }
         await createMutation.mutateAsync(formattedValues as CreateOrderDto);
       } else {
         await updateMutation.mutateAsync(formattedValues as UpdateOrderDto);

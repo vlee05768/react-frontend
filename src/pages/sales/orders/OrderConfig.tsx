@@ -173,6 +173,9 @@ export const getFormConfig = (): any[] => [
     componentType: "Input",
     colSpan: 4,
     editable: "never",
+    componentProps: {
+      placeholder: "【系統自動編碼】"
+    }
   },
   {
     name: "orderDate",
