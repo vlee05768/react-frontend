@@ -134,6 +134,8 @@ export const materialSearchFormConfig = (): SearchFieldConfig[] => [
 export const mainTableColumns = (): TableColumnConfig[] => [
   { label: "編號", name: "code", width: 200 },
   { label: "名稱", name: "name", width: 250, ellipsis: true },
+  { label: "廠牌", name: "brand", width: 150, ellipsis: true },
+  { label: "型號", name: "modelNo", width: 150, ellipsis: true },
   {
     label: "型態",
     name: "materialForm",
