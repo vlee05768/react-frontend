@@ -17,7 +17,7 @@ export default function Dashboard() {
 
         {/* KPI Cards Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-10 h-32">
-          <div className="dashboard-card" onClick={() => navigate('/sales/orders')}>
+          <div className="dashboard-card" onClick={() => navigate('/sales/orders?unprocessedOrders=true')}>
             <div className="card-border bg-orange-500"></div>
             <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">未完成訂單</div>
             <div className="text-3xl font-bold text-orange-500 mt-2">1,109</div>
@@ -25,7 +25,7 @@ export default function Dashboard() {
               <span>前往列表</span> <span className="ml-1">→</span>
             </div>
           </div>
-          <div className="dashboard-card" onClick={() => navigate('/production/workorders')}>
+          <div className="dashboard-card" onClick={() => navigate('/production/workorders?status=Draft')}>
             <div className="card-border bg-red-500"></div>
             <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">未開工製令</div>
             <div className="text-3xl font-bold text-red-500 mt-2">15</div>
@@ -33,7 +33,7 @@ export default function Dashboard() {
               <span>前往列表</span> <span className="ml-1">→</span>
             </div>
           </div>
-          <div className="dashboard-card" onClick={() => navigate('/production/workorders')}>
+          <div className="dashboard-card" onClick={() => navigate('/production/workorders?status=InPreparation')}>
             <div className="card-border bg-blue-500"></div>
             <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">待發/領料提示</div>
             <div className="text-3xl font-bold text-blue-500 mt-2">6</div>
@@ -41,7 +41,7 @@ export default function Dashboard() {
               <span>前往列表</span> <span className="ml-1">→</span>
             </div>
           </div>
-          <div className="dashboard-card" onClick={() => navigate('/production-quality/production-receipts')}>
+          <div className="dashboard-card" onClick={() => navigate('/production-quality/production-receipts?notQcFinished=true')}>
             <div className="card-border bg-purple-500"></div>
             <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">待 QC 檢驗 (PR)</div>
             <div className="text-3xl font-bold text-purple-500 mt-2">12</div>
@@ -57,7 +57,7 @@ export default function Dashboard() {
               <span>前往列表</span> <span className="ml-1">→</span>
             </div>
           </div>
-          <div className="dashboard-card" onClick={() => navigate('/sales/salesdeliveries')}>
+          <div className="dashboard-card" onClick={() => navigate('/sales/salesdeliveries?shippedConfirmed=false')}>
             <div className="card-border bg-yellow-500"></div>
             <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">待銷貨出庫 (SD)</div>
             <div className="text-3xl font-bold text-yellow-500 mt-2">24</div>
@@ -65,7 +65,7 @@ export default function Dashboard() {
               <span>前往列表</span> <span className="ml-1">→</span>
             </div>
           </div>
-          <div className="dashboard-card" onClick={() => navigate('/purchase/materials')}>
+          <div className="dashboard-card" onClick={() => { /* TODO: navigate('/purchase/purchaseorders?status=Draft') */ alert('採購單模組開發中'); }}>
             <div className="card-border bg-indigo-500"></div>
             <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">採購待核准</div>
             <div className="text-3xl font-bold text-indigo-500 mt-2">3</div>
@@ -73,7 +73,7 @@ export default function Dashboard() {
               <span>前往列表</span> <span className="ml-1">→</span>
             </div>
           </div>
-          <div className="dashboard-card" onClick={() => navigate('/warehouse/inventory-adjustments')}>
+          <div className="dashboard-card" onClick={() => navigate('/warehouse/inventory-adjustments?type=Scrap')}>
             <div className="card-border bg-rose-500"></div>
             <div className="text-sm font-medium text-rose-500 dark:text-rose-400">⚠️ 異常報廢警示</div>
             <div className="text-3xl font-bold text-rose-500 mt-2">2</div>
@@ -94,7 +94,7 @@ export default function Dashboard() {
         <div className="bg-white dark:bg-[#191919] p-8 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm dark:shadow-none">
           
           {/* 核心業務流程 Core Flow (Columns) */}
-          <div className="flex items-start justify-between gap-2 overflow-x-auto pb-4">
+          <div className="flex items-start justify-between gap-2 overflow-x-auto pb-4 flowchart-container">
             
             {/* 基本資料模組列 (放最左邊) */}
             <div className="flow-col">
