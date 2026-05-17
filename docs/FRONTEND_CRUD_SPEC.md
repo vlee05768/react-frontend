@@ -42,6 +42,10 @@
 - **查詢按鈕操作 (Search Actions)**：
   - 查詢表單中的【清空重置】按鈕，僅需清空表單的所有查詢條件，**絕對不要關閉查詢視窗**，讓使用者能繼續輸入新的條件。
   - 【清空重置】按鈕**不應自動呼叫 API 執行查詢**，必須讓使用者自行點擊「執行查詢」按鈕後，才以清空後的條件觸發 API 請求。
+- **列表查詢狀態網址同步 (URL State Synchronization)**：
+  - 所有列表頁面 (List Views) 的查詢條件、`pageNumber` 與 `pageSize` 都必須綁定 URL Query 字串（建議透過 `useUrlQuerySync` 等 Hook 實作）。
+  - 當使用者點擊「清除」或「重置」時，除了清空表單，也需一併清除 URL 上對應的 Query 參數。
+  - 確保使用者重新整理頁面、操作瀏覽器上下頁或複製網址分享時，能精準保留當下的查詢條件與分頁狀態。
 - **表單排版 (Form Layout)**：
   - 統一使用兩欄式佈局 `<Row gutter={16}>` 搭配 `<Col span={12}>`。
 
@@ -50,8 +54,9 @@
 - **元件自適應 (Responsive Components)**：
   - 所有輸入元件 (`Input`, `Select`, `Input type="date"`) 皆須設定 `style={{ width: '100%' }}` 以撐滿所在的 `Col`。
 - **關聯資料選單 (Relational Selects)**：
-  - 具備關聯性質的欄位 (如：部門代碼) 應使用 `<Select>`。
+  - 具備關聯性質的欄位 (如：部門代碼) 應使用 `<Select>` 或 `<AutoComplete>`。
   - 必須透過真實 API (`getApiV1GeneralTypesGetTypes` 等) 取得選項 (`options`)。
+  - **必須明確傳入 `pageSize: -1` 參數**，以觸發後端「不分頁」機制，確保選單資料不會被截斷，能獲取完整選項清單。
   - 必須開啟 `showSearch` 與 `filterOption` 支援關鍵字過濾。
   - 下拉選單載入時需綁定 `loading` 狀態 (`isFetching`)。
 - **日期欄位處理 (Date Fields)**：
@@ -102,3 +107,10 @@
 ## 7. 表單自動聚焦 (Auto Focus)
 - 當進入 **新增 (Create)** 或 **編輯 (Update)** 模式時，系統應自動將游標聚焦 (Focus) 在表單中**第一個可編輯的輸入欄位**。
 - 實作方式：於 `useEffect` 監聽 Drawer 開啟狀態 (`isCreateDrawerOpen` 與 `isDrawerEditing`)，透過 DOM Selector (`document.querySelector`) 尋找 Drawer 內第一個 `:not([disabled])` 的 `input`, `textarea` 或 `select` 並呼叫 `.focus()`，以確保正確跳過被唯讀鎖定 (`updateDisabled` 或 `createDisabled`) 的欄位，停留在第一個可以編輯的欄位。
+
+## 8. 系統佈局與導覽 (Layout & Navigation)
+
+- **側邊欄導覽列縮合防護 (Sidebar Collapsed State Protection)**：
+  - 在處理側邊選單 (`Layout.Sider`) 的自動展開邏輯時，必須監聽側邊欄是否處於「縮合 (Collapsed)」狀態。
+  - 當路由發生變化 (例如：由首頁點擊待處理事項卡片跳轉至模組列表) 時，若側邊欄為縮合狀態，**嚴禁自動計算並展開 `openKeys`**。
+  - 避免選單在只顯示 Icon 的縮合狀態下，因路由改變而突兀彈出子選單，干擾使用者的閱讀與操作體驗。
