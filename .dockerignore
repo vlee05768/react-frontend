@@ -13,3 +13,9 @@ dist-ssr
 *.sw?
 *.log
 temp_scripts
+deploy/prod/postgres
+deploy/prod/minio
+deploy/prod/migration
+deploy/prod/logs
+deploy/prod/backend
+deploy/prod/frontend
