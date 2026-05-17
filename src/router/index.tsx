@@ -20,6 +20,7 @@ import StorageInventoryList from '@/pages/warehouse/StorageInventory/StorageInve
 import StorageTransactionsList from '@/pages/warehouse/StorageTransactions/StorageTransactionsList';
 import ProductsList from '@/pages/warehouse/Products/ProductsList';
 import InventoryAdjustmentList from '@/pages/warehouse/InventoryAdjustment/InventoryAdjustmentList';
+import BrandModelsLayout from '@/pages/warehouse/BrandModels/BrandModelsLayout';
 import OrdersList from '@/pages/sales/orders/OrdersList';
 
 import SalesDeliveriesList from '@/pages/sales/salesdeliveries/SalesDeliveriesList';
@@ -77,6 +78,7 @@ export const router = createBrowserRouter([
       { path: 'warehouse/inventory-movements', element: <StorageTransactionsList /> },
       { path: 'warehouse/products/:viewId?', element: <ProductsList /> },
       { path: 'warehouse/inventory-adjustments/:viewId?', element: <InventoryAdjustmentList /> },
+      { path: 'warehouse/brand-models', element: <BrandModelsLayout /> },
       { path: 'purchase/materials/:viewId?', element: <MaterialList /> },
       { path: 'production-quality/molds/:viewId?', element: <MoldList /> },
       { path: 'production-quality/machines/:viewId?', element: <MachineList /> },
