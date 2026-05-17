@@ -32,7 +32,7 @@ export const ContactSelectWithCreate: React.FC<ContactSelectWithCreateProps> = (
     queryKey: ['partnerContactList', businessPartnerCode],
     queryFn: () => getApiV1BusinessPartnersByBusinessPartnerCodeContacts({
       path: { businessPartnerCode: businessPartnerCode! },
-      query: { pageSize: 100 } as any // 確保拿足夠數量
+      query: { pageSize: -1 } as any // 確保拿足夠數量
     }),
     enabled: !!businessPartnerCode,
   });

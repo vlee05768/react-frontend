@@ -19,7 +19,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
         query: {
           CodeOrName: keyword || undefined,
           Types: ['C'], // 固定條件：只搜尋客戶
-          pageSize: 100 // 特性：最大分頁限制一律傳入 100
+          pageSize: -1 // 特性：最大分頁限制一律傳入 100
         } as any
       });
       return (res.data as any)?.data?.data || (res.data as any)?.data || [];
@@ -42,7 +42,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       if (!bpCode) return [];
       const res = await getApiV1BusinessPartnersByBusinessPartnerCodeContacts({
         path: { businessPartnerCode: String(bpCode) },
-        query: { page: 1, pageSize: 100, keyword: keyword || undefined } as any
+        query: { page: 1, pageSize: -1, keyword: keyword || undefined } as any
       });
       return (res.data as any)?.data || res.data || [];
     },
@@ -61,7 +61,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       const res = await getApiV1Material({
         query: {
           CodeOrName: keyword || undefined,
-          pageSize: 100
+          pageSize: -1
         } as any
       });
       return (res.data as any)?.data?.data || (res.data as any)?.data || [];
@@ -83,7 +83,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       const res = await getApiV1Product({
         query: {
           CodeOrName: keyword || undefined,
-          pageSize: 100
+          pageSize: -1
         } as any
       });
       return (res.data as any)?.data?.data || (res.data as any)?.data || [];
@@ -106,7 +106,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
         query: {
           CodeOrName: keyword || undefined,
           Types: ['S'],
-          pageSize: 100
+          pageSize: -1
         } as any
       });
       return (res.data as any)?.data?.data || (res.data as any)?.data || [];
@@ -128,7 +128,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       const res = await getApiV1Mold({
         query: {
           CodeOrName: keyword || undefined,
-          pageSize: 100
+          pageSize: -1
         } as any
       });
       return (res.data as any)?.data?.data || (res.data as any)?.data || [];
@@ -150,7 +150,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       const res = await getApiV1Storage({
         query: {
           CodeOrName: keyword || undefined,
-          pageSize: 100
+          pageSize: -1
         } as any
       });
       return (res.data as any)?.data?.data || (res.data as any)?.data || [];
@@ -173,7 +173,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       const res = await getApiV1Employee({
         query: {
           EmployeeNo: keyword || undefined,
-          pageSize: 100
+          pageSize: -1
         } as any
       });
       return (res.data as any)?.data?.data || (res.data as any)?.data || [];
@@ -184,7 +184,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       const res = await getApiV1Employee({
         query: {
           EmployeeNo: String(idOrCode),
-          pageSize: 10
+          pageSize: -1
         } as any
       });
       const list = (res.data as any)?.data?.data || (res.data as any)?.data || [];

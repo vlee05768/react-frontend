@@ -31,7 +31,7 @@ export default function ProductMolds({ productCode, isViewMode: isMasterViewMode
     const { data: linkedMolds, isLoading: linkedMoldsLoading } = useQuery({
       queryKey: ['productMolds', productCode],
       queryFn: async () => {
-        const res = await getApiV1ProductByProductCodeMolds({ path: { productCode }, query: { pageSize: 100 } });
+        const res = await getApiV1ProductByProductCodeMolds({ path: { productCode }, query: { pageSize: -1 } });
         return res.data?.data?.data || [];
       },
       enabled: !!productCode
