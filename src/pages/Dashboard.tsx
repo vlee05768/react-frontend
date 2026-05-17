@@ -1,11 +1,79 @@
 import { useNavigate } from 'react-router-dom';
+import { useQueries } from '@tanstack/react-query';
+import { Spin } from 'antd';
+import {
+  getApiV1Orders,
+  getApiV1WorkOrder,
+  getApiV1ProductionReceipt,
+  getApiV1QcReceipt,
+  getApiV1SalesDelivery,
+  getApiV1PurchaseOrder,
+  getApiV1InventoryAdjustment
+} from '@/api/generated/sdk.gen';
 import './Dashboard.css';
+
+// 輔助函數：從 API 回傳中提取 totalRecords
+const extractTotal = (res: any) => {
+  if (!res) return 0;
+  const resData = res.data;
+  return resData?.data?.totalRecords ?? resData?.totalRecords ?? resData?.data?.data?.totalRecords ?? 0;
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
 
+  const queries = useQueries({
+    queries: [
+      {
+        queryKey: ['dashboard', 'orders', 'unprocessed'],
+        queryFn: () => getApiV1Orders({ query: { UnprocessedOrders: true, pageNumber: 1, pageSize: 1 } })
+      },
+      {
+        queryKey: ['dashboard', 'workorders', 'draft'],
+        queryFn: () => getApiV1WorkOrder({ query: { Status: 'Draft', pageNumber: 1, pageSize: 1 } })
+      },
+      {
+        queryKey: ['dashboard', 'workorders', 'in_prep'],
+        queryFn: () => getApiV1WorkOrder({ query: { Status: 'InPreparation', pageNumber: 1, pageSize: 1 } })
+      },
+      {
+        queryKey: ['dashboard', 'production_receipts', 'not_qc'],
+        queryFn: () => getApiV1ProductionReceipt({ query: { NotQcFinished: true, pageNumber: 1, pageSize: 1 } })
+      },
+      {
+        queryKey: ['dashboard', 'qc_receipts', 'all'],
+        queryFn: () => getApiV1QcReceipt({ query: { pageNumber: 1, pageSize: 1 } })
+      },
+      {
+        queryKey: ['dashboard', 'sales_deliveries', 'not_shipped'],
+        queryFn: () => getApiV1SalesDelivery({ query: { ShippedConfirmed: false, pageNumber: 1, pageSize: 1 } })
+      },
+      {
+        queryKey: ['dashboard', 'purchase_orders', 'draft'],
+        queryFn: () => getApiV1PurchaseOrder({ query: { Status: 'Draft', pageNumber: 1, pageSize: 1 } })
+      },
+      {
+        queryKey: ['dashboard', 'inventory_adjustments', 'scrap'],
+        queryFn: () => getApiV1InventoryAdjustment({ query: { Others: '報廢', pageNumber: 1, pageSize: 1 } })
+      }
+    ]
+  });
+
+  const [
+    unprocessedOrdersQuery,
+    draftWorkOrdersQuery,
+    inPrepWorkOrdersQuery,
+    notQcPRsQuery,
+    qcReceiptsQuery,
+    notShippedSDsQuery,
+    draftPOsQuery,
+    scrapAdjustmentsQuery
+  ] = queries;
+
+  const isLoading = queries.some(q => q.isLoading);
+
   return (
-    <div className="p-6 md:p-10 min-h-screen">
+    <div className="p-6 md:p-10 min-h-screen relative">
       <div className="dashboard-container">
         {/* Header Section */}
         <div className="flex justify-between items-end mb-4">
@@ -16,73 +84,74 @@ export default function Dashboard() {
         </div>
 
         {/* KPI Cards Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-10 h-32">
-          <div className="dashboard-card" onClick={() => navigate('/sales/orders?unprocessedOrders=true')}>
-            <div className="card-border bg-orange-500"></div>
-            <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">未完成訂單</div>
-            <div className="text-3xl font-bold text-orange-500 mt-2">1,109</div>
-            <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
-              <span>前往列表</span> <span className="ml-1">→</span>
+        <Spin spinning={isLoading}>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-10 h-32">
+            <div className="dashboard-card" onClick={() => navigate('/sales/orders?unprocessedOrders=true')}>
+              <div className="card-border bg-orange-500"></div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">未完成訂單</div>
+              <div className="text-3xl font-bold text-orange-500 mt-2">{extractTotal(unprocessedOrdersQuery.data)}</div>
+              <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
+                <span>前往列表</span> <span className="ml-1">→</span>
+              </div>
+            </div>
+            <div className="dashboard-card" onClick={() => navigate('/production/workorders?status=Draft')}>
+              <div className="card-border bg-red-500"></div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">未開工製令</div>
+              <div className="text-3xl font-bold text-red-500 mt-2">{extractTotal(draftWorkOrdersQuery.data)}</div>
+              <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
+                <span>前往列表</span> <span className="ml-1">→</span>
+              </div>
+            </div>
+            <div className="dashboard-card" onClick={() => navigate('/production/workorders?status=InPreparation')}>
+              <div className="card-border bg-blue-500"></div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">待發/領料提示</div>
+              <div className="text-3xl font-bold text-blue-500 mt-2">{extractTotal(inPrepWorkOrdersQuery.data)}</div>
+              <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
+                <span>前往列表</span> <span className="ml-1">→</span>
+              </div>
+            </div>
+            <div className="dashboard-card" onClick={() => navigate('/production-quality/production-receipts?notQcFinished=true')}>
+              <div className="card-border bg-purple-500"></div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">待 QC 檢驗 (PR)</div>
+              <div className="text-3xl font-bold text-purple-500 mt-2">{extractTotal(notQcPRsQuery.data)}</div>
+              <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
+                <span>前往列表</span> <span className="ml-1">→</span>
+              </div>
+            </div>
+            <div className="dashboard-card" onClick={() => navigate('/production-quality/qc-receipts')}>
+              <div className="card-border bg-teal-500"></div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">待 QC 入庫</div>
+              <div className="text-3xl font-bold text-teal-500 mt-2">{extractTotal(qcReceiptsQuery.data)}</div>
+              <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
+                <span>前往列表</span> <span className="ml-1">→</span>
+              </div>
+            </div>
+            <div className="dashboard-card" onClick={() => navigate('/sales/salesdeliveries?shippedConfirmed=false')}>
+              <div className="card-border bg-yellow-500"></div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">待銷貨出庫 (SD)</div>
+              <div className="text-3xl font-bold text-yellow-500 mt-2">{extractTotal(notShippedSDsQuery.data)}</div>
+              <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
+                <span>前往列表</span> <span className="ml-1">→</span>
+              </div>
+            </div>
+            <div className="dashboard-card" onClick={() => { alert('採購單模組開發中'); }}>
+              <div className="card-border bg-indigo-500"></div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">採購待核准</div>
+              <div className="text-3xl font-bold text-indigo-500 mt-2">{extractTotal(draftPOsQuery.data)}</div>
+              <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
+                <span>前往列表</span> <span className="ml-1">→</span>
+              </div>
+            </div>
+            <div className="dashboard-card" onClick={() => navigate('/warehouse/inventory-adjustments?Others=報廢')}>
+              <div className="card-border bg-rose-500"></div>
+              <div className="text-sm font-medium text-rose-500 dark:text-rose-400">⚠️ 異常報廢警示</div>
+              <div className="text-3xl font-bold text-rose-500 mt-2">{extractTotal(scrapAdjustmentsQuery.data)}</div>
+              <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
+                <span>檢視明細</span> <span className="ml-1">→</span>
+              </div>
             </div>
           </div>
-          <div className="dashboard-card" onClick={() => navigate('/production/workorders?status=Draft')}>
-            <div className="card-border bg-red-500"></div>
-            <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">未開工製令</div>
-            <div className="text-3xl font-bold text-red-500 mt-2">15</div>
-            <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
-              <span>前往列表</span> <span className="ml-1">→</span>
-            </div>
-          </div>
-          <div className="dashboard-card" onClick={() => navigate('/production/workorders?status=InPreparation')}>
-            <div className="card-border bg-blue-500"></div>
-            <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">待發/領料提示</div>
-            <div className="text-3xl font-bold text-blue-500 mt-2">6</div>
-            <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
-              <span>前往列表</span> <span className="ml-1">→</span>
-            </div>
-          </div>
-          <div className="dashboard-card" onClick={() => navigate('/production-quality/production-receipts?notQcFinished=true')}>
-            <div className="card-border bg-purple-500"></div>
-            <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">待 QC 檢驗 (PR)</div>
-            <div className="text-3xl font-bold text-purple-500 mt-2">12</div>
-            <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
-              <span>前往列表</span> <span className="ml-1">→</span>
-            </div>
-          </div>
-          <div className="dashboard-card" onClick={() => navigate('/production-quality/qc-receipts')}>
-            <div className="card-border bg-teal-500"></div>
-            <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">待 QC 入庫</div>
-            <div className="text-3xl font-bold text-teal-500 mt-2">8</div>
-            <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
-              <span>前往列表</span> <span className="ml-1">→</span>
-            </div>
-          </div>
-          <div className="dashboard-card" onClick={() => navigate('/sales/salesdeliveries?shippedConfirmed=false')}>
-            <div className="card-border bg-yellow-500"></div>
-            <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">待銷貨出庫 (SD)</div>
-            <div className="text-3xl font-bold text-yellow-500 mt-2">24</div>
-            <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
-              <span>前往列表</span> <span className="ml-1">→</span>
-            </div>
-          </div>
-          <div className="dashboard-card" onClick={() => { /* TODO: navigate('/purchase/purchaseorders?status=Draft') */ alert('採購單模組開發中'); }}>
-            <div className="card-border bg-indigo-500"></div>
-            <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">採購待核准</div>
-            <div className="text-3xl font-bold text-indigo-500 mt-2">3</div>
-            <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
-              <span>前往列表</span> <span className="ml-1">→</span>
-            </div>
-          </div>
-          <div className="dashboard-card" onClick={() => navigate('/warehouse/inventory-adjustments?Others=報廢')}>
-            <div className="card-border bg-rose-500"></div>
-            <div className="text-sm font-medium text-rose-500 dark:text-rose-400">⚠️ 異常報廢警示</div>
-            <div className="text-3xl font-bold text-rose-500 mt-2">2</div>
-            <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
-              <span>檢視明細</span> <span className="ml-1">→</span>
-            </div>
-          </div>
-        </div>
-
+        </Spin>
         {/* Flowchart Section */}
         <div className="flex justify-between items-end mb-4 mt-8">
           <h2 className="text-xl font-bold tracking-wider border-l-4 border-blue-500 pl-3 text-gray-800 dark:text-gray-200">
