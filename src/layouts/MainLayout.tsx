@@ -76,7 +76,6 @@ const ROUTE_PERMISSION_MAP: Record<string, string> = {
   '/warehouse/inventory': 'Warehouse.Inventory.View',
   '/warehouse/inventory-movements': 'Warehouse.InventoryMovements.View',
   '/warehouse/inventory-adjustments': 'Warehouse.InventoryAdjustments.View',
-  '/warehouse/brand-models': 'Warehouse.BrandModels.View',
   '/production-quality/molds': 'ProductionQuality.Molds.View',
   '/production-quality/machines': 'ProductionQuality.Machines.View',
   '/production/workorders': 'ProductionQuality.WorkOrders.View',

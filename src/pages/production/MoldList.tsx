@@ -58,12 +58,22 @@ import { buildTableColumns } from '@/utils/tableUtils';
 import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';;
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 import { ActionBar } from '@/components/common/ActionBar';
+import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
 
 
 export default function MoldList() {
   const { modal } = App.useApp();
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const { params, setParams, resetParams } = useMoldQueryStore();
+
+  const { page, pageNumber, pageSize, ...queryFields } = params;
+  useUrlQuerySync({
+    query: queryFields,
+    page: page || pageNumber || 1,
+    pageSize: pageSize || 20,
+    setPagination: (p, s) => setParams({ [params.pageNumber !== undefined ? 'pageNumber' : 'page']: p, pageSize: s }),
+    setQuery: (q) => setParams({ ...q, [params.pageNumber !== undefined ? 'pageNumber' : 'page']: 1 })
+  });
   const { hasPermission } = useAuthStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
@@ -424,7 +434,11 @@ export default function MoldList() {
         onCancel={() => setIsSearchModalOpen(false)}
         footer={
           <div className="pt-4 flex justify-end gap-2" style={{borderTop: '1px solid #f0f0f0'}}>
-            <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
+            <Button icon={<ClearOutlined />} onClick={() => {
+              const emptyVals = Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = undefined; return acc; }, {});
+              searchForm.reset(emptyVals);
+              setParams({ ...emptyVals, [params.pageNumber !== undefined ? 'pageNumber' : 'page']: 1 });
+            }}>
               清除條件
             </Button>
             <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">

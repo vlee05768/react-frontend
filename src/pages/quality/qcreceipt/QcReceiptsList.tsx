@@ -84,9 +84,6 @@ export default function QcReceiptsList() {
     setIsSearchModalOpen(false);
   };
 
-  const handleSearchReset = () => {
-    searchForm.reset(Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = null; return acc; }, {}));
-  };
 
   const handleClearTag = (key: string) => {
     setParams({ [key]: undefined, pageNumber: 1 });
@@ -222,7 +219,11 @@ export default function QcReceiptsList() {
         onCancel={() => setIsSearchModalOpen(false)}
         footer={
           <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-            <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
+            <Button icon={<ClearOutlined />} onClick={() => {
+              const emptyVals = Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = undefined; return acc; }, {});
+              searchForm.reset(emptyVals);
+              setParams({ ...emptyVals, [params.pageNumber !== undefined ? 'pageNumber' : 'page']: 1 });
+            }}>
               清除條件
             </Button>
             <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">

@@ -64,11 +64,21 @@ import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WID
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 import type { TreeDataNode } from 'antd';
 import { ActionBar } from '@/components/common/ActionBar';
+import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
 
 export default function RoleList() {
   const { modal } = App.useApp();
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const { params, setParams, resetParams } = useRoleQueryStore();
+
+  const { page, pageNumber, pageSize, ...queryFields } = params;
+  useUrlQuerySync({
+    query: queryFields,
+    page: page || pageNumber || 1,
+    pageSize: pageSize || 20,
+    setPagination: (p, s) => setParams({ [params.pageNumber !== undefined ? 'pageNumber' : 'page']: p, pageSize: s }),
+    setQuery: (q) => setParams({ ...q, [params.pageNumber !== undefined ? 'pageNumber' : 'page']: 1 })
+  });
   const { hasPermission } = useAuthStore();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);

@@ -374,7 +374,11 @@ export default function ProductsList() {
         onCancel={() => setIsSearchModalOpen(false)}
         footer={
           <div className="pt-4 flex justify-end gap-2" style={{borderTop: '1px solid #f0f0f0'}}>
-            <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
+            <Button icon={<ClearOutlined />} onClick={() => {
+              const emptyVals = Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = undefined; return acc; }, {});
+              searchForm.reset(emptyVals);
+              setParams({ ...emptyVals, [params.pageNumber !== undefined ? 'pageNumber' : 'page']: 1 });
+            }}>
               清除條件
             </Button>
             <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">

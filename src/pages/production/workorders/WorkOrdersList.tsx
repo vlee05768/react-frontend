@@ -15,7 +15,7 @@ import DynamicSearchForm from "@/components/Form/DynamicSearchForm";
 import { buildTableColumns } from "@/utils/tableUtils";
 import { searchConfig, tableColumns } from "./WorkOrderConfig";
 import { useWorkOrderQueryStore } from "./useWorkOrderQueryStore";
-// import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
+import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
 import { useFileDownload } from '@/hooks/useFileDownload';
 import { WorkOrderDrawer } from "./WorkOrderDrawer";
 import { MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from "@/constants";
@@ -37,6 +37,15 @@ export const WorkOrdersList: React.FC = () => {
     setSearchParams,
     setPagination,
   } = useWorkOrderQueryStore();
+
+  const { page, pageNumber, pageSize, ...queryFields } = { ...searchParams, ...pagination };
+  useUrlQuerySync({
+    query: queryFields,
+    page: page || pageNumber || 1,
+    pageSize: pageSize || 20,
+    setPagination: (p, s) => setPagination(p, s),
+    setQuery: (q) => { setSearchParams(q); setPagination(1, pagination.pageSize); }
+  });
   const searchForm = useForm({ values: searchParams });
 
   const { downloadFile, isDownloading } = useFileDownload();
@@ -219,7 +228,11 @@ export const WorkOrdersList: React.FC = () => {
         onCancel={() => setIsSearchOpen(false)}
         footer={
           <div className="pt-4 flex justify-end gap-2" style={{borderTop: '1px solid #f0f0f0'}}>
-            <Button icon={<ClearOutlined />} onClick={() => searchForm.reset(Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = null; return acc; }, {}))}>
+            <Button icon={<ClearOutlined />} onClick={() => {
+              const emptyVals = Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = undefined; return acc; }, {});
+              searchForm.reset(emptyVals);
+              { setSearchParams(emptyVals); setPagination(1, pagination.pageSize); }
+            }}>
               清除條件
             </Button>
             <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
