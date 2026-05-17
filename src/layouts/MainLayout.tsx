@@ -50,6 +50,7 @@ const ROUTE_MAPPING: Record<string, string> = {
   'Warehouse.Inventory': '/warehouse/inventory',
   'Warehouse.InventoryMovements': '/warehouse/inventory-movements',
   'Warehouse.InventoryAdjustments': '/warehouse/inventory-adjustments',
+  'Warehouse.BrandModels': '/warehouse/brand-models',
   'ProductionQuality.Molds': '/production-quality/molds',
   'ProductionQuality.Machines': '/production-quality/machines',
   'ProductionQuality.WorkOrders': '/production/workorders',
@@ -59,6 +60,7 @@ const ROUTE_MAPPING: Record<string, string> = {
 
 // 路由權限對照表 (Path -> Required Permission Key)
 const ROUTE_PERMISSION_MAP: Record<string, string> = {
+  '/warehouse/brand-models': 'Warehouse.BrandModels.View',
   '/employee': 'BasicData.Employees.View',
   '/business-partners': 'BasicData.BusinessPartners.View',
   '/sales/orders': 'Sales.Orders.View',
@@ -74,6 +76,7 @@ const ROUTE_PERMISSION_MAP: Record<string, string> = {
   '/warehouse/inventory': 'Warehouse.Inventory.View',
   '/warehouse/inventory-movements': 'Warehouse.InventoryMovements.View',
   '/warehouse/inventory-adjustments': 'Warehouse.InventoryAdjustments.View',
+  '/warehouse/brand-models': 'Warehouse.BrandModels.View',
   '/production-quality/molds': 'ProductionQuality.Molds.View',
   '/production-quality/machines': 'ProductionQuality.Machines.View',
   '/production/workorders': 'ProductionQuality.WorkOrders.View',
@@ -138,6 +141,8 @@ export default function MainLayout() {
 
 // 根據當前路由自動展開對應的主選單
   useEffect(() => {
+    if (collapsed) return; // 避免在縮合狀態下設定 openKeys，導致浮動選單跳出
+    
     const matchedEntry = Object.entries(ROUTE_MAPPING).find(([, path]) => location.pathname.startsWith(path));
     if (matchedEntry) {
       const [key] = matchedEntry;
@@ -146,7 +151,7 @@ export default function MainLayout() {
         setOpenKeys([parentKey]);
       }
     }
-  }, [location.pathname, permissionTree]);
+  }, [location.pathname, permissionTree, collapsed]);
 
   const onOpenChange = (keys: string[]) => {
     const latestOpenKey = keys.find((key) => openKeys.indexOf(key) === -1);
