@@ -37,7 +37,6 @@ import QcReceiptDrawer from '@/pages/quality/qcreceipt/QcReceiptDrawer';
 import ProductionReceiptsList from '@/pages/quality/productionreceipt/ProductionReceiptsList';
 import ProductionReceiptDrawer from '@/pages/quality/productionreceipt/ProductionReceiptDrawer';
 import BusinessPartnerList from '@/pages/basic/BusinessPartner/BusinessPartnerList';
-import FormDemo from '@/pages/demo/FormDemo';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 // 路由守衛
@@ -94,7 +93,6 @@ export const router = createBrowserRouter([
       { path: 'sales/statements', element: <CustomerStatementList /> },
 
       { path: 'business-partners/:viewId?', element: <BusinessPartnerList /> },
-      { path: 'demo/form', element: <FormDemo /> }
     ]
   },
   { path: ROUTES.FORBIDDEN, element: <Forbidden /> },
