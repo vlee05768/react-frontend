@@ -198,3 +198,31 @@ body {
   opacity: 0.5;
   cursor: not-allowed !important;
 }
+
+/* === 輸入框 Focus 狀態辨識度優化 === */
+.ant-input, 
+.ant-select-selector, 
+.ant-input-number, 
+.ant-picker {
+  transition: all 0.3s ease !important;
+}
+
+.ant-input:focus,
+.ant-input-focused,
+.ant-select-focused .ant-select-selector,
+.ant-input-number-focused,
+.ant-picker-focused {
+  background-color: var(--ant-color-primary-bg) !important;
+  border-color: var(--ant-color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(22, 104, 220, 0.2) !important;
+}
+
+:where(.dark, .dark *) .ant-input:focus,
+:where(.dark, .dark *) .ant-input-focused,
+:where(.dark, .dark *) .ant-select-focused .ant-select-selector,
+:where(.dark, .dark *) .ant-input-number-focused,
+:where(.dark, .dark *) .ant-picker-focused {
+  background-color: #112a45 !important;
+  border-color: var(--ant-color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(22, 104, 220, 0.4) !important;
+}
