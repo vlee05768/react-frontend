@@ -13,6 +13,7 @@ import { buildTableColumns } from '@/utils/tableUtils';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
+import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
 
 
 interface CategoryListProps {
@@ -27,6 +28,19 @@ export default function CategoryList({ selectedCode, onSelect }: CategoryListPro
   // Drawer states
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
+
+  useUrlQuerySync({
+    query: { search: searchTerm },
+    page: 1,
+    pageSize: 50,
+    setPagination: () => {},
+    setQuery: (q: any) => {
+      if (q.search !== undefined) {
+        setSearchTerm(q.search);
+      }
+    },
+    enabled: true 
+  });
 
   // Query
   const { data, isFetching } = useQuery({

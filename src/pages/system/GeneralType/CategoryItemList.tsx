@@ -14,6 +14,7 @@ import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { DRAWER_WIDTH_DETAIL } from '@/constants';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
+import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
 
 
 interface CategoryItemListProps {
@@ -28,6 +29,18 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
   // Drawer states
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
+
+  // Pagination states
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 20 });
+
+  useUrlQuerySync({
+    query: {},
+    page: pagination.current,
+    pageSize: pagination.pageSize,
+    setPagination: (page, pageSize) => setPagination({ current: page, pageSize }),
+    setQuery: () => {},
+    enabled: true 
+  });
 
   // Query
   const { data, isFetching } = useQuery({

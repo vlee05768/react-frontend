@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, Table, Tabs, Button, Space, Form, Input, Select, ConfigProvider } from 'antd';
 import { useForm, Controller } from 'react-hook-form';
 import { SearchOutlined, ClearOutlined, SyncOutlined } from '@ant-design/icons';
@@ -11,6 +11,7 @@ import dayjs from 'dayjs';
 import { inventoryTypeOptions } from './StorageInventoryConfig';
 import { EllipsisText } from '@/components/Table/EllipsisText';
 import { DictSelect } from '@/components/Form/DictSelect';
+import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
 
 const { TabPane } = Tabs;
 
@@ -21,10 +22,14 @@ export default function StorageInventoryList() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
+  const initialStorageCode = searchParams.get('storageCode') || undefined;
+  const initialInventoryCode = searchParams.get('inventoryCode') || undefined;
+  const initialType = searchParams.get('type') || undefined;
+
   const [queryParams, setQueryParams] = useState({
-    StorageCode: searchParams.get('storageCode') || undefined,
-    InventoryCode: searchParams.get('inventoryCode') || undefined,
-    Type: searchParams.get('type') || undefined,
+    StorageCode: initialStorageCode,
+    InventoryCode: initialInventoryCode,
+    Type: initialType,
   });
 
   const [activeTab, setActiveTab] = useState<string>('1');
@@ -33,40 +38,30 @@ export default function StorageInventoryList() {
   const [expandedInventoryKeys, setExpandedInventoryKeys] = useState<readonly React.Key[]>([]);
   const [expandedStorageKeys, setExpandedStorageKeys] = useState<readonly React.Key[]>([]);
 
-  useEffect(() => {
-    const newStorageCode = searchParams.get('storageCode') || undefined;
-    const newInventoryCode = searchParams.get('inventoryCode') || undefined;
-    const newType = searchParams.get('type') || undefined;
-
-    if (newStorageCode) {
-      setActiveTab('2');
-      setExpandedStorageKeys([newStorageCode]);
-      setExpandedInventoryKeys([]);
-    } else {
-      setActiveTab('1');
-      if (newInventoryCode) {
-        setExpandedInventoryKeys([newInventoryCode]);
-        setExpandedStorageKeys([]);
+  useUrlQuerySync({
+    query: queryParams,
+    page: 1,
+    pageSize: 1,
+    setPagination: () => {}, // StorageInventory 列表沒有分頁
+    setQuery: (newQuery: any) => {
+      const q = newQuery as any;
+      setQueryParams(prev => ({ ...prev, ...q }));
+      searchForm.reset({ ...q, StorageCode: q.StorageCode || initialStorageCode, InventoryCode: q.InventoryCode || initialInventoryCode });
+      
+      // 更新對應的 Tab 與展開狀態
+      if (q.StorageCode) {
+        setActiveTab('2');
+        setExpandedStorageKeys([q.StorageCode]);
+        setExpandedInventoryKeys([]);
+      } else {
+        setActiveTab('1');
+        if (q.InventoryCode) {
+          setExpandedInventoryKeys([q.InventoryCode]);
+          setExpandedStorageKeys([]);
+        }
       }
     }
-
-    setQueryParams(prev => {
-      if (prev.StorageCode !== newStorageCode || prev.InventoryCode !== newInventoryCode || prev.Type !== newType) {
-        return {
-          StorageCode: newStorageCode,
-          InventoryCode: newInventoryCode,
-          Type: newType,
-        };
-      }
-      return prev;
-    });
-
-    reset({
-      StorageCode: newStorageCode,
-      InventoryCode: newInventoryCode,
-      Type: newType,
-    });
-  }, [searchParams, reset]);
+  });
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ['storage-inventory', queryParams],

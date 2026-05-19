@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { Card, Table, Form, Input, Select, DatePicker, Button, Space, Tag, Row, Col, App } from 'antd';
@@ -9,6 +9,7 @@ import { getApiV1StorageTransactions } from '@/api/generated/sdk.gen';
 import type { InventoryTransactionDto } from '@/api/generated/types.gen';
 import dayjs from 'dayjs';
 import { EllipsisText } from '@/components/Table/EllipsisText';
+import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
 
 const { RangePicker } = DatePicker;
 
@@ -37,24 +38,34 @@ export default function StorageTransactionsList() {
   const initialStorageCode = searchParams.get('storageCode') || undefined;
   const initialInventoryCode = searchParams.get('inventoryCode') || undefined;
 
+  const [queryParams, setQueryParams] = useState<any>({
+    storageCode: initialStorageCode,
+    inventoryCode: initialInventoryCode
+  });
+
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 20,
     total: 0
   });
 
-  const [queryParams, setQueryParams] = useState<any>({
-    storageCode: initialStorageCode,
-    inventoryCode: initialInventoryCode
+  useUrlQuerySync({
+    query: queryParams,
+    page: pagination.current,
+    pageSize: pagination.pageSize,
+    setPagination: (page: number, pageSize: number) => setPagination(prev => ({ ...prev, current: page, pageSize })),
+    setQuery: (newQuery: any) => {
+      const q = newQuery as any;
+      if (q.movementDateRange && Array.isArray(q.movementDateRange) && q.movementDateRange.length === 2) {
+        q.movementDateRange = [dayjs(q.movementDateRange[0]), dayjs(q.movementDateRange[1])];
+      }
+      if (q.transactionDateRange && Array.isArray(q.transactionDateRange) && q.transactionDateRange.length === 2) {
+        q.transactionDateRange = [dayjs(q.transactionDateRange[0]), dayjs(q.transactionDateRange[1])];
+      }
+      setQueryParams((prev: any) => ({ ...prev, ...q }));
+      searchForm.reset({ ...q, storageCode: q.storageCode || initialStorageCode, inventoryCode: q.inventoryCode || initialInventoryCode });
+    }
   });
-
-  useEffect(() => {
-    reset({
-      storageCode: initialStorageCode,
-      inventoryCode: initialInventoryCode
-    });
-  }, [reset, initialStorageCode, initialInventoryCode]);
-
   const { data, isFetching } = useQuery({
     queryKey: ['storage-transactions', queryParams, pagination.current, pagination.pageSize],
     queryFn: async () => {
