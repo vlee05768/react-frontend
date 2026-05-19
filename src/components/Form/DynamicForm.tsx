@@ -14,6 +14,8 @@ interface DynamicFormProps<TValues extends Record<string, any>> {
   onSubmit: (data: TValues) => void;
   isUpdateMode?: boolean;
   isViewMode?: boolean;
+  isLoading?: boolean; // 新增 loading 狀態
+  className?: string; // 供自訂樣式
   formId?: string;
   hideDefaultFooter?: boolean;
   validationMode?: 'onBlur' | 'onChange' | 'onSubmit' | 'onTouched' | 'all';
@@ -25,9 +27,11 @@ export function DynamicForm<TValues extends Record<string, any>>({
   onSubmit,
   isUpdateMode = false,
   isViewMode = false,
-  formId,
+  isLoading = false,
+  className,
   hideDefaultFooter = false,
-  validationMode = 'onSubmit',
+  formId,
+  validationMode = 'onBlur',
 }: DynamicFormProps<TValues>) {
   
   // 1. 儲存最新的 Schema Reference
@@ -237,7 +241,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
   };
 
   return (
-    <div ref={formWrapperRef} className="dynamic-form-wrapper">
+    <div ref={formWrapperRef} className={`dynamic-form-wrapper ${className || ''}`}>
       <Form layout="vertical" onFinish={handleSubmit(handleInternalSubmit, handleInternalError)} id={formId} disabled={isViewMode} className={isViewMode ? 'view-mode-form' : ''}>
       {/* 支援 grid 與群組排版 */}
       {hasGroups ? (
@@ -268,11 +272,11 @@ export function DynamicForm<TValues extends Record<string, any>>({
       )}
       
       {/* 操作區塊 */}
-      {!hideDefaultFooter && (
-        <div className="mt-6 flex justify-end pt-4 border-t border-gray-100">
+      {!hideDefaultFooter && !isViewMode && (
+        <div className="mt-6 flex justify-end pt-4 border-t border-gray-100 dark:border-gray-800">
           <Space>
-            <Button onClick={() => methods.reset()}>重設</Button>
-            <Button type="primary" htmlType="submit">
+            <Button onClick={() => methods.reset()} disabled={isLoading}>重設</Button>
+            <Button type="primary" htmlType="submit" loading={isLoading}>
               儲存
             </Button>
           </Space>

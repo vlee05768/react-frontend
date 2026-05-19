@@ -11,12 +11,9 @@ export function initializeApi() {
   });
 
   client.instance.interceptors.request.use((request) => {
-    // 檢查全域 Store 是否已經有被手動設定過訊息（而不是預設的）
-    const currentMsg = useLoadingStore.getState().loadingMessage;
-    const hasCustomMsgInStore = currentMsg !== '處理中，請稍候...' && currentMsg !== '資料載入中...' && currentMsg !== '資料新增中...' && currentMsg !== '資料更新中...' && currentMsg !== '資料刪除中...';
-
-    // 優先讀取自訂的 Header 設定的 Loading 訊息
-    let msg = hasCustomMsgInStore ? currentMsg : '處理中，請稍候...';
+    // 預設關閉全域 Loading，除非是需要全域鎖死的長時任務才在呼叫時主動呼叫 showLoading()
+    // 或是如果未來你想針對 POST/PUT/DELETE 依然使用全域，可以在這裡限制
+    
     let customMsg = null;
     
     // axios/hey-api 的 headers 物件在不同版本/環境下的處理方式差異很大
@@ -39,17 +36,10 @@ export function initializeApi() {
       }
     }
 
+    // 只有當明確傳入 X-Loading-Message 時，才觸發全域 Loading 遮罩
     if (customMsg) {
-      msg = customMsg;
-    } else if (!hasCustomMsgInStore && request.method) {
-      const method = request.method.toUpperCase();
-      if (method === 'GET') msg = '資料載入中...';
-      else if (method === 'POST') msg = '資料新增中...';
-      else if (method === 'PUT' || method === 'PATCH') msg = '資料更新中...';
-      else if (method === 'DELETE') msg = '資料刪除中...';
+      useLoadingStore.getState().showLoading(customMsg);
     }
-    // 如果已經在 mutation 裡手動 call 過 showLoading()，這裡就不會覆蓋掉它，而是更新計數
-    useLoadingStore.getState().showLoading(msg);
     const token = useAuthStore.getState().token;
     if (token) {
       // For Axios instance
