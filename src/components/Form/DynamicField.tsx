@@ -1,11 +1,11 @@
+// 這裡不再需要 imports Input, Select 等，因為已經抽離到 FieldRegistry 中
 import React from 'react';
-import { Form, Input, Select, InputNumber, DatePicker, Switch, Tooltip } from 'antd';
+import { Form, Tooltip } from 'antd';
 import { Controller } from 'react-hook-form';
 import type { Control, UseFormSetValue, UseFormTrigger } from 'react-hook-form';
 import { z } from 'zod';
 import type { FieldConfig, FormContext } from './types';
-import { DictSelect } from './DictSelect';
-import { AsyncSelect } from './AsyncSelect';
+import { FIELD_REGISTRY } from './FieldRegistry';
 
 interface DynamicFieldProps {
   config: FieldConfig;
@@ -163,62 +163,20 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
 
         // 渲染對應的輸入元件
         let ComponentNode: React.ReactNode = null;
-        switch (resolvedComponentType) {
-          case 'Input':
-            ComponentNode = renderWithTooltip(<Input {...commonProps} />);
-            break;
-          case 'TextArea':
-            // TextArea 通常是換行，不需要 ellipsis
-            const textAreaProps: any = { ...commonProps };
-            if (textAreaProps.style) {
-              delete textAreaProps.style.textOverflow;
-            }
-            // 確保 TextArea 至少有 3 行的高度
-            if (!textAreaProps.rows && !textAreaProps.autoSize) {
-              textAreaProps.autoSize = { minRows: 3 };
-            }
-            ComponentNode = <Input.TextArea {...textAreaProps} />;
-            break;
-          case 'Select':
-            ComponentNode = renderWithTooltip(<Select {...commonProps} />);
-            break;
-          case 'DictSelect':
-            ComponentNode = renderWithTooltip(<DictSelect {...(commonProps as any)} />);
-            break;
-          case 'AsyncSelect':
-            ComponentNode = renderWithTooltip(<AsyncSelect {...(commonProps as any)} />);
-            break;
-          case 'InputNumber': {
-            const inputNumberProps = { ...commonProps };
-            if (isViewMode && !inputNumberProps.formatter) {
-              inputNumberProps.formatter = (val: any) => {
-                if (val === null || val === undefined || val === '') return '';
-                const num = Number(val);
-                if (isNaN(num)) return String(val);
-                if (componentProps?.precision !== undefined) {
-                  return num.toLocaleString(undefined, { 
-                    minimumFractionDigits: componentProps.precision,
-                    maximumFractionDigits: componentProps.precision 
-                  });
-                }
-                return num.toLocaleString();
-              };
-            }
-            ComponentNode = renderWithTooltip(<InputNumber {...inputNumberProps} />);
-            break;
-          }
-          case 'DatePicker':
-            ComponentNode = renderWithTooltip(<DatePicker {...commonProps} />);
-            break;
-          case 'Switch':
-            // Switch 的值是 checked
-            ComponentNode = <Switch checked={field.value} onChange={handleChange} disabled={finalDisabled} {...componentProps} />;
-            break;
-          case 'Custom':
-            ComponentNode = config.customRender ? config.customRender({ ...commonProps }, context, setValue) : null;
-            break;
-          default:
-            ComponentNode = renderWithTooltip(<Input {...commonProps} />);
+        if (resolvedComponentType === 'Custom') {
+          ComponentNode = config.customRender ? config.customRender({ ...commonProps }, context, setValue) : null;
+        } else if (resolvedComponentType === 'Switch') {
+          // Switch 的值是 checked
+          const renderer = FIELD_REGISTRY['Switch'];
+          ComponentNode = renderer ? renderer({ checked: field.value, onChange: handleChange, disabled: finalDisabled, ...componentProps }) : null;
+        } else {
+          const renderer = FIELD_REGISTRY[resolvedComponentType as string] || FIELD_REGISTRY['Input'];
+          const options = { 
+            isViewMode, 
+            precision: componentProps?.precision 
+          };
+          const rawNode = renderer(commonProps, options);
+          ComponentNode = renderWithTooltip(rawNode);
         }
 
         // 處理 boolean 元件的特殊排版 (不用 label 包裝，而是放在右側)
