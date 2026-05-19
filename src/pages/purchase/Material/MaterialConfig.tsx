@@ -7,6 +7,8 @@ import type {
 
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
 import { DictLabel } from "@/components/Form/DictLabel";
+import { BrandSelect } from "./components/BrandSelect";
+import { ModelSelect } from "./components/ModelSelect";
 
 export const materialFormOptions = [
   { label: "捲材 (R)", value: "R" },
@@ -268,34 +270,47 @@ export const mainFormConfig = (): FormFieldConfig[] => [
   {
     name: "brand",
     label: "廠牌",
-    componentType: "Input",
+    componentType: "Custom",
+    customRender: (field: any) => (
+      <BrandSelect
+        value={field.value}
+        onChange={field.onChange}
+        disabled={field.disabled}
+      />
+    ),
     group: "基本規格",
     colSpan: 4,
     editable: "createOnly",
     validation: z.string().min(1, "請輸入廠牌(英文大寫)"),
-    componentProps: {
-      placeholder: "請輸入廠牌(英文大寫)",
-      maxLength: 20,
-    },
     onChange: (val, ctx, setValue) => {
       const upper = (val || "").replace(/[\u4e00-\u9fff]/g, "").toUpperCase();
       setValue("brand", upper);
       ctx.values.brand = upper;
+      
+      if (!upper) {
+        setValue("modelNo", undefined);
+        ctx.values.modelNo = undefined;
+      }
+      
       generateCode(ctx, setValue);
     },
   },
   {
     name: "modelNo",
     label: "型號",
-    componentType: "Input",
+    componentType: "Custom",
+    customRender: (field: any, context: any) => (
+      <ModelSelect
+        value={field.value}
+        onChange={field.onChange}
+        disabled={field.disabled || !context.values.brand}
+        brand={context.values.brand}
+      />
+    ),
     group: "基本規格",
     colSpan: 4,
     editable: "createOnly",
     validation: z.string().min(1, "請輸入型號(英文大寫)"),
-    componentProps: {
-      placeholder: "請輸入型號(英文大寫)",
-      maxLength: 20,
-    },
     onChange: (val, ctx, setValue) => {
       const upper = (val || "").replace(/[\u4e00-\u9fff]/g, "").toUpperCase();
       setValue("modelNo", upper);
