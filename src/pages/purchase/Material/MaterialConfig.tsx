@@ -215,7 +215,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: "編號",
     componentType: "Input",
     group: "基本規格",
-    colSpan: 4,
+    colSpan: 3,
     autoGenerate: true,
   },
   {
@@ -223,7 +223,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: "名稱",
     componentType: "Input",
     group: "基本規格",
-    colSpan: 4,
+    colSpan: 3,
     autoGenerate: true,
   },
   {
@@ -231,7 +231,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: "類別",
     componentType: "DictSelect",
     group: "基本規格",
-    colSpan: 4,
+    colSpan: 6,
     editable: "createOnly",
     validation: z.string().min(1, "請選擇類別"),
     componentProps: { dictKey: "MATERIAL_TYPE", allowClear: true },
@@ -245,7 +245,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: "型態",
     componentType: "Select",
     group: "基本規格",
-    colSpan: 4,
+    colSpan: 6,
     editable: "createOnly",
     validation: z.string().min(1, "請選擇型態"),
     componentProps: { options: materialFormOptions, allowClear: true },
@@ -284,13 +284,14 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     validation: z.string().min(1, "請輸入廠牌(英文大寫)"),
     onChange: (val, ctx, setValue) => {
       const upper = (val || "").replace(/[\u4e00-\u9fff]/g, "").toUpperCase();
-      setValue("brand", upper);
-      ctx.values.brand = upper;
       
-      if (!upper) {
+      if (ctx.values.brand !== upper) {
         setValue("modelNo", undefined);
         ctx.values.modelNo = undefined;
       }
+
+      setValue("brand", upper);
+      ctx.values.brand = upper;
       
       generateCode(ctx, setValue);
     },
