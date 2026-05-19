@@ -192,14 +192,21 @@ export const getFormConfig = (): any[] => [
     componentProps: { configKey: "CUSTOMER" },
     editable: "createOnly",
     onChange: (_value: any, _context: any, setValue: any, ...args: any[]) => {
-      // 若變更了客戶，則清空聯絡人
-      setValue("partnerContactId", undefined);
-
-      const option = args[1];
-      if (option && option.originalData) {
-        const bp = option.originalData;
-        if (bp.address) setValue("shippingAddress", bp.address);
-        if (bp.paymentTerms) setValue("paymentTerms", bp.paymentTerms);
+      // 若清空客戶，一併清空相關欄位
+      if (!_value) {
+        setValue("partnerContactId", undefined);
+        setValue("customerPoNumber", undefined);
+        setValue("paymentTerms", undefined);
+        setValue("shippingAddress", undefined);
+        // Note: 電話和傳真好像沒有在 Orders 中?
+      } else {
+        setValue("partnerContactId", undefined);
+        const option = args[1];
+        if (option && option.originalData) {
+          const bp = option.originalData;
+          if (bp.address) setValue("shippingAddress", bp.address);
+          if (bp.paymentTerms) setValue("paymentTerms", bp.paymentTerms);
+        }
       }
     },
     colSpan: 2,

@@ -83,19 +83,28 @@ export const getFormConfig = (): any[] => [
     componentProps: { configKey: "CUSTOMER", autoFocus: true },
     editable: "createOnly",
     onChange: (_value: any, _context: any, setValue: any, ...args: any[]) => {
-      setValue("partnerContactId", undefined);
-      const option = args[1];
-      if (option && option.originalData) {
-        const bp = option.originalData;
-        setValue("businessPartnerName", bp.name || undefined);
-        setValue("businessPartnerPhone", bp.phone || undefined);
-        setValue("businessPartnerFax", bp.faxNumber || undefined);
-        setValue("address", bp.address || undefined);
-      } else {
+      if (!_value) {
+        setValue("partnerContactId", undefined);
         setValue("businessPartnerName", undefined);
         setValue("businessPartnerPhone", undefined);
         setValue("businessPartnerFax", undefined);
         setValue("address", undefined);
+        // 若有其他付款條件等欄位也可在此清空 (依據業務需求，若表單上有就可以清)
+      } else {
+        setValue("partnerContactId", undefined);
+        const option = args[1];
+        if (option && option.originalData) {
+          const bp = option.originalData;
+          setValue("businessPartnerName", bp.name || undefined);
+          setValue("businessPartnerPhone", bp.phone || undefined);
+          setValue("businessPartnerFax", bp.faxNumber || undefined);
+          setValue("address", bp.address || undefined);
+        } else {
+          setValue("businessPartnerName", undefined);
+          setValue("businessPartnerPhone", undefined);
+          setValue("businessPartnerFax", undefined);
+          setValue("address", undefined);
+        }
       }
     },
     colSpan: 4,
