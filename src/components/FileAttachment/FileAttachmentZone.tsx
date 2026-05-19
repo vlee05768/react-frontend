@@ -78,6 +78,9 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
           referenceType,
           referenceId,
           files,
+        },
+        headers: {
+          'X-Loading-Message': '檔案上傳中...'
         }
       });
       message.success('上傳成功');
