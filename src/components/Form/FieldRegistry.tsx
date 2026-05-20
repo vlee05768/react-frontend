@@ -17,7 +17,17 @@ export type FieldComponentType =
 export type FieldRenderer = (props: any, options?: any) => React.ReactNode;
 
 export const FIELD_REGISTRY: Record<string, FieldRenderer> = {
-  Input: (props) => <Input {...props} />,
+  Input: (props) => {
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      try {
+        e.target.select();
+      } catch (err) {
+        console.error(err);
+      }
+      props.onFocus?.(e);
+    };
+    return <Input {...props} onFocus={handleFocus} />;
+  },
   
   TextArea: (props) => {
     const textAreaProps = { ...props };
@@ -51,8 +61,28 @@ export const FIELD_REGISTRY: Record<string, FieldRenderer> = {
         }
         return num.toLocaleString();
       };
+    } else if (!inputNumberProps.formatter) {
+      // 編輯模式下，若無指定自訂 formatter，則自動套用千分位格式化與對應的 parser (防呆與高可讀性)
+      inputNumberProps.formatter = (val: any) => {
+        if (val === null || val === undefined || val === '') return '';
+        return `${val}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      };
+      inputNumberProps.parser = (val: any) => {
+        if (val === null || val === undefined || val === '') return '';
+        return val.replace(/\$\s?|(,*)/g, '') as unknown as number;
+      };
     }
-    return <InputNumber {...inputNumberProps} />;
+
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      try {
+        e.target.select();
+      } catch (err) {
+        console.error(err);
+      }
+      props.onFocus?.(e);
+    };
+
+    return <InputNumber {...inputNumberProps} onFocus={handleFocus} />;
   },
   
   DatePicker: (props) => <DatePicker {...props} />,
