@@ -3,10 +3,6 @@ import { PersonnelWorkingHoursField } from "./PersonnelWorkingHoursField";
 import { Tag } from "antd";
 import {
   SyncOutlined,
-  CheckCircleOutlined,
-  LockOutlined,
-  PlayCircleOutlined,
-  CloseCircleOutlined,
 } from "@ant-design/icons";
 import type {
   SearchFieldConfig,
@@ -14,56 +10,21 @@ import type {
   TableColumnConfig,
 } from "@/components/Form/types";
 import dayjs from "dayjs";
+import { DictTag } from "@/components/Form/DictTag";
 
 export const getStatusTag = (status: string | null | undefined) => {
   const hollowStyle = { background: "transparent", borderColor: "currentColor" };
-  if (!status) return <Tag color="default" style={hollowStyle}>新單據</Tag>;
-  switch (status) {
-    case "Draft":
-      return (
-        <Tag color="default" icon={<SyncOutlined />} style={hollowStyle}>
-          新單據
-        </Tag>
-      );
-    case "InPreparation":
-      return (
-        <Tag color="processing" icon={<SyncOutlined spin />} style={hollowStyle}>
-          備料中
-        </Tag>
-      );
-    case "PreparationCompleted":
-      return (
-        <Tag color="cyan" icon={<CheckCircleOutlined />} style={hollowStyle}>
-          備料確認
-        </Tag>
-      );
-    case "InProduction":
-      return (
-        <Tag color="purple" icon={<PlayCircleOutlined />} style={hollowStyle}>
-          生產中
-        </Tag>
-      );
-    case "ProductionCompleted":
-      return (
-        <Tag color="magenta" icon={<CheckCircleOutlined />} style={hollowStyle}>
-          生產完成
-        </Tag>
-      );
-    case "WarehousingCompleted":
-      return (
-        <Tag color="success" icon={<LockOutlined />} style={hollowStyle}>
-          入庫完成
-        </Tag>
-      );
-    case "Cancelled":
-      return (
-        <Tag color="error" icon={<CloseCircleOutlined />} style={hollowStyle}>
-          已取消
-        </Tag>
-      );
-    default:
-      return <Tag color="default" style={hollowStyle}>{status}</Tag>;
-  }
+  return (
+    <DictTag 
+      dictKey="WORK_ORDER_STATUS" 
+      value={status || 'Draft'} 
+      bordered={true}
+      style={hollowStyle}
+      icons={{
+        InPreparation: <SyncOutlined spin />
+      }}
+    />
+  );
 };
 
 export const searchConfig: SearchFieldConfig[] = [

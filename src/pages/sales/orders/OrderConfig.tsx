@@ -1,25 +1,16 @@
 import { z } from "zod";
-import { Tag, Button, Space } from "antd";
-import { EditOutlined, DeleteOutlined, CheckOutlined, CloseOutlined, SyncOutlined, CheckCircleOutlined, LockOutlined } from "@ant-design/icons";
+import { Button, Space } from "antd";
+import { EditOutlined, DeleteOutlined, CheckOutlined, CloseOutlined } from "@ant-design/icons";
 import type { SearchFieldConfig } from "@/components/Form/types";
 import type { ColumnsType } from "antd/es/table";
 import type { OrderDto, OrderItemDto } from "@/api/generated/types.gen";
 import dayjs from "dayjs";
 import { ContactSelectWithCreate } from "./components/ContactSelectWithCreate";
 import { DictLabel } from "@/components/Form/DictLabel";
+import { DictTag } from "@/components/Form/DictTag";
 
 export const getStatusTag = (status: string | null | undefined) => {
-  if (!status) return <Tag color="default">新單據</Tag>;
-  switch (status) {
-    case "Draft":
-      return <Tag color="warning" icon={<SyncOutlined />}>新單據</Tag>;
-    case "Confirmed":
-      return <Tag color="success" icon={<CheckCircleOutlined />}>已確認</Tag>;
-    case "Finished":
-      return <Tag color="processing" icon={<LockOutlined />}>已結案</Tag>;
-    default:
-      return <Tag color="default">{status}</Tag>;
-  }
+  return <DictTag dictKey="ORDER_STATUS" value={status || 'Draft'} />;
 };
 
 export const searchConfig: SearchFieldConfig[] = [
@@ -362,14 +353,7 @@ export const getItemColumns = (
     width: 90,
     align: "center",
     ellipsis: true,
-    render: (val: string) =>
-      val ? (
-        <Tag color="blue">
-          <DictLabel dictKey="PRODUCT_TYPE" value={val} />
-        </Tag>
-      ) : (
-        "-"
-      ),
+    render: (val: string) => <DictTag dictKey="PRODUCT_TYPE" value={val} />,
   },
   {
     title: "商品編碼",

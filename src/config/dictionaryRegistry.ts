@@ -5,8 +5,8 @@ export const DICTIONARY_REGISTRY = {
   // 純靜態選項，直接定義原型
   IsActive: {
     queryFn: async () => [
-      { text: '啟用', val: true },
-      { text: '停用', val: false },
+      { text: '啟用', val: true, color: 'success', icon: 'CheckCircle' },
+      { text: '停用', val: false, color: 'error', icon: 'CloseCircle' },
     ],
     fieldNames: { label: 'text', value: 'val' }
   },
@@ -15,9 +15,9 @@ export const DICTIONARY_REGISTRY = {
   // 訂單狀態
   ORDER_STATUS: {
     queryFn: async () => [
-      { text: '新單據', val: 'Draft' },
-      { text: '已確認', val: 'Confirmed' },
-      { text: '已完成', val: 'Finished' },
+      { text: '新單據', val: 'Draft', color: 'warning', icon: 'Sync' },
+      { text: '已確認', val: 'Confirmed', color: 'success', icon: 'CheckCircle' },
+      { text: '已結案', val: 'Finished', color: 'processing', icon: 'Lock' },
     ],
     fieldNames: { label: 'text', value: 'val' }
   },
@@ -52,9 +52,9 @@ export const DICTIONARY_REGISTRY = {
   // 產品類型
   PRODUCT_TYPE: {
     queryFn: async () => [
-      { text: '產品', val: 'P' },
-      { text: '材料', val: 'M' },
-      { text: '自訂', val: 'O' },
+      { text: '產品', val: 'P', color: 'orange', icon: 'BoxPlot' },
+      { text: '材料', val: 'M', color: 'cyan', icon: 'Database' },
+      { text: '自訂', val: 'O', color: 'default', icon: 'Build' },
     ],
     fieldNames: { label: 'text', value: 'val' }
   },
@@ -181,6 +181,39 @@ export const DICTIONARY_REGISTRY = {
       }));
     },
     fieldNames: { label: '_displayName', value: 'code' },
+  },
+
+  // 庫存調整單狀態
+  INVENTORY_ADJUSTMENT_STATUS: {
+    queryFn: async () => [
+      { text: '未確認', val: 'Unconfirmed', color: 'warning', icon: 'Sync' },
+      { text: '已確認', val: 'Confirmed', color: 'success', icon: 'CheckCircle' },
+      { text: '已結案', val: 'Closed', color: 'processing', icon: 'Lock' },
+    ],
+    fieldNames: { label: 'text', value: 'val' }
+  },
+
+  // 工單/製令狀態
+  WORK_ORDER_STATUS: {
+    queryFn: async () => [
+      { text: '新單據', val: 'Draft', color: 'default', icon: 'Sync' },
+      { text: '備料中', val: 'InPreparation', color: 'processing', icon: 'Sync' },
+      { text: '備料確認', val: 'PreparationCompleted', color: 'cyan', icon: 'CheckCircle' },
+      { text: '生產中', val: 'InProduction', color: 'purple', icon: 'PlayCircle' },
+      { text: '生產完成', val: 'ProductionCompleted', color: 'magenta', icon: 'CheckCircle' },
+      { text: '入庫完成', val: 'WarehousingCompleted', color: 'success', icon: 'Lock' },
+      { text: '已取消', val: 'Cancelled', color: 'error', icon: 'CloseCircle' },
+    ],
+    fieldNames: { label: 'text', value: 'val' }
+  },
+
+  // 員工在職狀態
+  EMPLOYEE_STATUS: {
+    queryFn: async () => [
+      { text: '在職', val: 1, color: 'success', icon: 'CheckCircle' },
+      { text: '離職', val: 2, color: 'error', icon: 'CloseCircle' },
+    ],
+    fieldNames: { label: 'text', value: 'val' }
   }
 };
 

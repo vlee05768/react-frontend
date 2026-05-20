@@ -5,7 +5,7 @@ import { getApiV1ProductCustomerByCustomerCodeSearch } from '@/api/generated/sdk
 import type { ProductDto } from '@/api/generated/types.gen';
 import { DEFAULT_PAGE_SIZE } from '@/constants';
 import { MODAL_WIDTH_PICK, MODAL_PICK_BODY_MAX_HEIGHT } from '@/constants/ui';
-import { DictLabel } from '@/components/Form/DictLabel';
+import { DictTag } from '@/components/Form/DictTag';
 
 interface SelectedProduct extends ProductDto {
   orderUnitPrice: number;
@@ -169,7 +169,7 @@ export function CustomerProductPickerModal({
       key: 'type',
       width: 140,
       align: 'center' as const,
-      render: (val: string) => val ? <Tag color="blue"><DictLabel dictKey="PRODUCT_TYPE" value={val} /></Tag> : '-'
+      render: (val: string) => <DictTag dictKey="PRODUCT_TYPE" value={val} />
     },
     { title: '單位', dataIndex: 'unit', key: 'unit', width: 80, align: 'center' as const },
   ];

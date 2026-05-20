@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { FieldConfig, TableColumnConfig, SearchFieldConfig } from '@/components/Form/types';
 import { DictLabel } from '@/components/Form/DictLabel';
-import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import { DictTag } from '@/components/Form/DictTag';
 
 // 1. Data Dictionary (Single Source of Truth)
 export const employeeDictionary = {
@@ -127,7 +127,7 @@ export const employeeTableColumns: TableColumnConfig<any>[] = [
   {
     ...employeeDictionary.status,
     align: 'center',
-    render: (v: number) => v === 1 ? <CheckOutlined style={{ color: 'green' }} /> : (v === 2 ? <CloseOutlined style={{ color: 'red' }} /> : null),
+    render: (v: number) => <DictTag dictKey="EMPLOYEE_STATUS" value={v} />,
   },
   {
     ...employeeDictionary.notes,

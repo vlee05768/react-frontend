@@ -1,24 +1,13 @@
 import { z } from "zod";
 import type { SearchFieldConfig, FormFieldConfig, TableColumnConfig } from "@/components/Form/types";
-import { Tag } from "antd";
 import { EllipsisText } from "@/components/Table/EllipsisText";
-import { CheckCircleOutlined, SyncOutlined, LockOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { AsyncSelect } from "@/components/Form/AsyncSelect";
 import { DictSelect } from "@/components/Form/DictSelect";
+import { DictTag } from "@/components/Form/DictTag";
 
 export const getStatusTag = (status: string | null | undefined) => {
-  if (!status) return <Tag color="default">未確認</Tag>;
-  switch (status.toUpperCase()) {
-    case "UNCONFIRMED":
-      return <Tag color="warning" icon={<SyncOutlined />}>未確認</Tag>;
-    case "CONFIRMED":
-      return <Tag color="success" icon={<CheckCircleOutlined />}>已確認</Tag>;
-    case "CLOSED":
-      return <Tag color="processing" icon={<LockOutlined />}>已結案</Tag>;
-    default:
-      return <Tag>{status}</Tag>;
-  }
+  return <DictTag dictKey="INVENTORY_ADJUSTMENT_STATUS" value={status || 'Unconfirmed'} />;
 };
 
 export const mainSearchFormConfig = (): SearchFieldConfig[] => [
