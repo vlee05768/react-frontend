@@ -213,7 +213,7 @@ export default function SalesDeliveryDrawer() {
     if (isCreating) {
       return {
         documentDate: dayjs(),
-        responsibleEmployeeCode: user?.employeeCode,
+        responsibleEmployeeCode: user?.employeeCode || undefined,
         subTotal: 0,
         taxAmount: 0,
         totalAmount: 0,

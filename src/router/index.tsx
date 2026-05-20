@@ -1,5 +1,6 @@
-import React from 'react';
+import { lazy, Suspense, type ReactNode, type LazyExoticComponent, type ComponentType } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { Spin } from 'antd';
 import { ROUTES } from '@/constants/routes';
 import AuthLayout from '@/layouts/AuthLayout';
 import Login from '@/pages/auth/Login';
@@ -9,38 +10,64 @@ import NotFound from '@/pages/exception/404';
 import Forbidden from '@/pages/exception/403';
 import Dashboard from '@/pages/Dashboard';
 import MainLayout from '@/layouts/MainLayout';
-import Employee from '@/pages/basic/Employee';
-import Profile from '@/pages/system/Profile';
-import UserList from '@/pages/system/UserList';
-import RoleList from '@/pages/system/RoleList';
-import SystemMaintenance from '@/pages/system/SystemMaintenance';
-import GeneralTypeLayout from '@/pages/system/GeneralType/GeneralTypeLayout';
-import StorageList from '@/pages/warehouse/StorageList';
-import StorageInventoryList from '@/pages/warehouse/StorageInventory/StorageInventoryList';
-import StorageTransactionsList from '@/pages/warehouse/StorageTransactions/StorageTransactionsList';
-import ProductsList from '@/pages/warehouse/Products/ProductsList';
-import InventoryAdjustmentList from '@/pages/warehouse/InventoryAdjustment/InventoryAdjustmentList';
-import BrandModelsLayout from '@/pages/warehouse/BrandModels/BrandModelsLayout';
-import OrdersList from '@/pages/sales/orders/OrdersList';
-
-import SalesDeliveriesList from '@/pages/sales/salesdeliveries/SalesDeliveriesList';
-import SalesDeliveryDrawer from '@/pages/sales/salesdeliveries/SalesDeliveryDrawer';
-import CustomerStatementList from '@/pages/sales/customerstatement/CustomerStatementList';
-
-import OrderDrawer from '@/pages/sales/orders/OrderDrawer';
-import MaterialList from '@/pages/purchase/Material/MaterialList';
-import MoldList from '@/pages/production/MoldList';
-import MachineList from '@/pages/production/MachineList';
-import { WorkOrdersList } from '@/pages/production/workorders/WorkOrdersList';
-import QcReceiptsList from '@/pages/quality/qcreceipt/QcReceiptsList';
-import QcReceiptDrawer from '@/pages/quality/qcreceipt/QcReceiptDrawer';
-import ProductionReceiptsList from '@/pages/quality/productionreceipt/ProductionReceiptsList';
-import ProductionReceiptDrawer from '@/pages/quality/productionreceipt/ProductionReceiptDrawer';
-import BusinessPartnerList from '@/pages/basic/BusinessPartner/BusinessPartnerList';
 import { useAuthStore } from '@/stores/useAuthStore';
 
+// 路由延遲載入封裝輔助 HOC
+const withSuspense = <P extends object>(
+  LazyComponent: LazyExoticComponent<ComponentType<P>>
+) => {
+  return (props: P) => (
+    <Suspense
+      fallback={
+        <div className="h-full w-full flex items-center justify-center p-8 min-h-[200px]">
+          <Spin size="large" tip="頁面載入中..." />
+        </div>
+      }
+    >
+      <LazyComponent {...props} />
+    </Suspense>
+  );
+};
+
+// 延遲載入頁面組件
+const Employee = withSuspense(lazy(() => import('@/pages/basic/Employee')));
+const Profile = withSuspense(lazy(() => import('@/pages/system/Profile')));
+const UserList = withSuspense(lazy(() => import('@/pages/system/UserList')));
+const RoleList = withSuspense(lazy(() => import('@/pages/system/RoleList')));
+const SystemMaintenance = withSuspense(lazy(() => import('@/pages/system/SystemMaintenance')));
+const GeneralTypeLayout = withSuspense(lazy(() => import('@/pages/system/GeneralType/GeneralTypeLayout')));
+const StorageList = withSuspense(lazy(() => import('@/pages/warehouse/StorageList')));
+const StorageInventoryList = withSuspense(lazy(() => import('@/pages/warehouse/StorageInventory/StorageInventoryList')));
+const StorageTransactionsList = withSuspense(lazy(() => import('@/pages/warehouse/StorageTransactions/StorageTransactionsList')));
+const ProductsList = withSuspense(lazy(() => import('@/pages/warehouse/Products/ProductsList')));
+const InventoryAdjustmentList = withSuspense(lazy(() => import('@/pages/warehouse/InventoryAdjustment/InventoryAdjustmentList')));
+const BrandModelsLayout = withSuspense(lazy(() => import('@/pages/warehouse/BrandModels/BrandModelsLayout')));
+const OrdersList = withSuspense(lazy(() => import('@/pages/sales/orders/OrdersList')));
+const SalesDeliveriesList = withSuspense(lazy(() => import('@/pages/sales/salesdeliveries/SalesDeliveriesList')));
+const SalesDeliveryDrawer = withSuspense(lazy(() => import('@/pages/sales/salesdeliveries/SalesDeliveryDrawer')));
+const CustomerStatementList = withSuspense(lazy(() => import('@/pages/sales/customerstatement/CustomerStatementList')));
+const OrderDrawer = withSuspense(lazy(() => import('@/pages/sales/orders/OrderDrawer')));
+const MaterialList = withSuspense(lazy(() => import('@/pages/purchase/Material/MaterialList')));
+const MoldList = withSuspense(lazy(() => import('@/pages/production/MoldList')));
+const MachineList = withSuspense(lazy(() => import('@/pages/production/MachineList')));
+
+// Named export 延遲載入
+const WorkOrdersList = withSuspense(
+  lazy(() =>
+    import('@/pages/production/workorders/WorkOrdersList').then((module) => ({
+      default: module.WorkOrdersList,
+    }))
+  )
+);
+
+const QcReceiptsList = withSuspense(lazy(() => import('@/pages/quality/qcreceipt/QcReceiptsList')));
+const QcReceiptDrawer = withSuspense(lazy(() => import('@/pages/quality/qcreceipt/QcReceiptDrawer')));
+const ProductionReceiptsList = withSuspense(lazy(() => import('@/pages/quality/productionreceipt/ProductionReceiptsList')));
+const ProductionReceiptDrawer = withSuspense(lazy(() => import('@/pages/quality/productionreceipt/ProductionReceiptDrawer')));
+const BusinessPartnerList = withSuspense(lazy(() => import('@/pages/basic/BusinessPartner/BusinessPartnerList')));
+
 // 路由守衛
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({ children }: { children: ReactNode }) {
   const token = useAuthStore((state) => state.token);
   if (!token) {
     return <Navigate to={ROUTES.LOGIN} replace />;
