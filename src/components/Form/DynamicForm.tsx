@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { Form, Button, Space, Row, Col, Divider } from 'antd';
 import type { FieldConfig, FormContext } from './types';
 import { DynamicField } from './DynamicField';
+import { isEqual } from 'lodash-es';
 import { ANIMATION_DELAY_MS } from '@/constants';
 
 interface DynamicFormProps<TValues extends Record<string, any>> {
@@ -106,10 +107,13 @@ export function DynamicForm<TValues extends Record<string, any>>({
     
   }, [fields, context]); 
 
+  const prevDefaultValuesRef = useRef<DefaultValues<TValues> | undefined>(undefined);
+
   // 當 defaultValues 改變時 (例如 API 資料載入完成)，重置表單值
   useEffect(() => {
-    if (defaultValues) {
+    if (defaultValues && !isEqual(prevDefaultValuesRef.current, defaultValues)) {
       methods.reset(defaultValues);
+      prevDefaultValuesRef.current = defaultValues;
     }
   }, [defaultValues, methods]);
 
