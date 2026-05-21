@@ -26,6 +26,7 @@ import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { mainFormConfig, mainTableColumns, productSearchFormConfig } from './ProductConfig';
 import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
+import { TableActions } from '@/utils/tableActions';
 import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, DRAWER_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 
 // Detail Tabs
@@ -193,36 +194,14 @@ export default function ProductsList() {
     title: '操作',
     key: 'actions',
     fixed: 'right' as const,
-    width: 120,
+    width: 120, // 雙按鈕設為 120
     render: (_: any, record: any) => (
-      <Space>
-        <Tooltip title="檢視">
-          <Button 
-            type="text" 
-            icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-            style={{ color: '#1890ff' }} 
-            onClick={() => openViewDrawer(record)}
-          />
-        </Tooltip>
-        <Tooltip title="刪除">
-          <Popconfirm
-            title="刪除確認"
-            description="確定要刪除此筆資料嗎？此操作無法還原。"
-            onConfirm={() => deleteMutation.mutate(record.code)}
-            onOpenChange={(open) => {
-              const r = record as any;
-              const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              setDeletingRecordId(open ? String(recordId) : null);
-            }}
-            okButtonProps={{ danger: true }}
-            okText="刪除"
-            cancelText="取消"
-            placement="topLeft"
-          >
-            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-          </Popconfirm>
-        </Tooltip>
-      </Space>
+      <TableActions
+        onView={() => openViewDrawer(record)}
+        onDelete={() => deleteMutation.mutate(record.code)}
+        recordName={`產品 ${record.code}`}
+        deleteConfirmType="popconfirm"
+      />
     ),
   };
 

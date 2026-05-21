@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Card, Table, Button, Space, Tooltip, App, Modal, Divider, Tag } from 'antd';
-import { EyeOutlined, PlusOutlined, SearchOutlined, DeleteOutlined, PrinterOutlined, CheckOutlined, CloseOutlined, ClearOutlined } from '@ant-design/icons';
+import { Card, Table, Button, Space, App, Modal, Divider, Tag } from 'antd';
+import { PlusOutlined, SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import { useNavigate,  } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -15,6 +15,7 @@ import {
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
+import { TableActions } from '@/utils/tableActions';
 import { DEFAULT_PAGE_SIZE, MODAL_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT } from '@/constants/ui';
 import { useAuthStore } from '@/stores/useAuthStore';
 import type { SalesDeliveryDto } from '@/api/generated/types.gen';
@@ -94,7 +95,7 @@ export default function SalesDeliveriesList() {
     const actionColumn = {
       title: '操作',
       key: 'action',
-      width: 220,
+      width: 220, // 檢視 + 確認/取消 + 列印 + 刪除最多4個按鈕，設為 220
       fixed: 'right' as const,
       render: (_: any, record: SalesDeliveryDto) => {
         const canView = hasPermission('Sales.Deliveries.View');
@@ -103,40 +104,35 @@ export default function SalesDeliveriesList() {
         const canConfirm = hasPermission('Sales.Deliveries.Update'); // Assuming same perm
 
         return (
-          <Space size="middle" onClick={(e) => e.stopPropagation()}>
-            {(canView || canUpdate) && (
-              <Tooltip title="檢視"><Button type="text" icon={<EyeOutlined />} style={{ color: '#1677ff' }} onClick={() => navigate(`/sales/salesdeliveries/${record.documentNumber}`)} /></Tooltip>
-            )}
-            {!record.confirmDate && canConfirm && (
-              <Tooltip title="確認"><Button type="text" icon={<CheckOutlined />} style={{ color: '#52c41a' }} onClick={() => modal.confirm({ title: '確認銷貨單', content: '確定要確認此銷貨單嗎？', onOk: () => handleAction('confirm', record) })} /></Tooltip>
-            )}
-            {record.confirmDate && canConfirm && (
-              <Tooltip title="取消確認"><Button type="text" icon={<CloseOutlined />} danger onClick={() => modal.confirm({ title: '取消確認', content: '確定要取消確認此銷貨單嗎？', onOk: () => handleAction('cancelConfirm', record) })} /></Tooltip>
-            )}
-            {record.confirmDate && canConfirm && (
-              <Tooltip title="列印報表">
-                <Button 
-                  type="text" 
-                  icon={<PrinterOutlined />} 
-                  loading={isDownloading}
-                  onClick={() => {
-                    downloadFile({
-                      apiFunction: () => getApiV1SalesDeliveryByMovementNumberSalesDeliveryReport({ 
-                        path: { movementNumber: record.documentNumber! },
-                        // @ts-ignore
-                        responseType: 'blob'
-                      }),
-                      successMessage: '銷貨單報表已於新分頁開啟',
-                      openInNewTab: true
-                    });
-                  }} 
-                />
-              </Tooltip>
-            )}
-            {!record.confirmDate && canDelete && (
-              <Tooltip title="刪除"><Button type="text" danger icon={<DeleteOutlined />} onClick={() => modal.confirm({ title: '確認刪除', content: '確定要刪除此銷貨單嗎？此操作無法還原。', okButtonProps: { danger: true }, onOk: () => deleteMutation.mutate(record.documentNumber!) })} /></Tooltip>
-            )}
-          </Space>
+          <TableActions
+            onView={(canView || canUpdate) ? () => navigate(`/sales/salesdeliveries/${record.documentNumber}`) : undefined}
+            onConfirm={(!record.confirmDate && canConfirm) ? () => modal.confirm({
+              title: '確認銷貨單',
+              content: '確定要確認此銷貨單嗎？確認後將扣減庫存並產生庫存過帳憑證。',
+              onOk: () => handleAction('confirm', record)
+            }) : undefined}
+            onCancelConfirm={(record.confirmDate && canConfirm) ? () => modal.confirm({
+              title: '取消確認銷貨單',
+              content: '警告：確定要取消確認此銷貨單嗎？取消後將恢復庫存，並可能影響已產生的帳款對帳。',
+              okButtonProps: { danger: true },
+              onOk: () => handleAction('cancelConfirm', record)
+            }) : undefined}
+            onPrint={(record.confirmDate && canConfirm) ? () => {
+              downloadFile({
+                apiFunction: () => getApiV1SalesDeliveryByMovementNumberSalesDeliveryReport({ 
+                  path: { movementNumber: record.documentNumber! },
+                  // @ts-ignore
+                  responseType: 'blob'
+                }),
+                successMessage: '銷貨單報表已於新分頁開啟',
+                openInNewTab: true
+              });
+            } : undefined}
+            onDelete={(!record.confirmDate && canDelete) ? () => deleteMutation.mutate(record.documentNumber!) : undefined}
+            recordName={`銷貨單 ${record.documentNumber}`}
+            deleteConfirmType="modal"
+            isPrinting={isDownloading}
+          />
         );
       }
     };

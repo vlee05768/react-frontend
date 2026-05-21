@@ -30,14 +30,13 @@ import {
   SearchOutlined,
   PlusOutlined,
   EditOutlined,
-  DeleteOutlined,
   ClearOutlined,
   SaveOutlined,
-  EyeOutlined,
   AppstoreOutlined,
   CheckOutlined,
   CloseOutlined
 } from '@ant-design/icons';
+import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   getApiV1Mold, 
@@ -227,38 +226,12 @@ export default function MoldList() {
     fixed: 'right' as const,
     width: 120,
     render: (_: any, record: any) => (
-      <Space>
-        {hasPermission('ProductionQuality.Molds.View') && (
-          <Tooltip title="檢視">
-            <Button 
-              type="text" 
-              icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-              style={{ color: '#1890ff' }} 
-              onClick={() => openViewDrawer(record)}
-            />
-          </Tooltip>
-        )}
-        {hasPermission('ProductionQuality.Molds.Delete') && (
-          <Tooltip title="刪除">
-            <Popconfirm
-            title="刪除確認"
-            description="確定要刪除此筆資料嗎？此操作無法還原。"
-            onConfirm={() => deleteMutation.mutate(record.code)}
-            onOpenChange={(open) => {
-              const r = record as any;
-              const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              if (typeof setDeletingRecordId !== 'undefined') setDeletingRecordId(open ? String(recordId) : null);
-            }}
-            okButtonProps={{ danger: true }}
-            okText="刪除"
-            cancelText="取消"
-            placement="topLeft"
-          >
-            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-          </Popconfirm>
-          </Tooltip>
-        )}
-      </Space>
+      <TableActions
+        onView={hasPermission('ProductionQuality.Molds.View') ? () => openViewDrawer(record) : undefined}
+        onDelete={hasPermission('ProductionQuality.Molds.Delete') ? () => deleteMutation.mutate(record.code) : undefined}
+        recordName={record.name || record.code}
+        deleteConfirmType="popconfirm"
+      />
     ),
   };
 

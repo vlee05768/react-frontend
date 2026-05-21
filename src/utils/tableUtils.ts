@@ -44,9 +44,13 @@ export function generateTableColumns<TValues>(
       };
     });
 
-  // 如果有提供 Action 欄位，預設放到最左邊 (可根據專案習慣調整，有些人喜歡放最右邊)
+  // 如果有提供 Action 欄位，根據其 fixed 屬性決定放最右邊或最左邊 (預設無 fixed 或非 right 則放最左邊)
   if (actionColumn) {
-    columns.unshift(actionColumn);
+    if (actionColumn.fixed === 'right') {
+      columns.push(actionColumn);
+    } else {
+      columns.unshift(actionColumn);
+    }
   }
 
   return columns;
@@ -121,7 +125,11 @@ export function buildTableColumns<TValues>(
   });
 
   if (actionColumn) {
-    columns.unshift(actionColumn);
+    if (actionColumn.fixed === 'right') {
+      columns.push(actionColumn);
+    } else {
+      columns.unshift(actionColumn);
+    }
   }
 
   return columns;

@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import React, { useMemo } from "react";
 import { App, Card, Space, Button, Table, Modal } from "antd";
-import { PlusOutlined, DeleteOutlined, EyeOutlined, PrinterOutlined, ClearOutlined, SearchOutlined } from "@ant-design/icons";
+import { PlusOutlined, ClearOutlined, SearchOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { 
@@ -13,13 +13,13 @@ import type { WorkOrderDto } from "@/api/generated/types.gen";
 import DynamicSearchTags from "@/components/Form/DynamicSearchTags";
 import DynamicSearchForm from "@/components/Form/DynamicSearchForm";
 import { buildTableColumns } from "@/utils/tableUtils";
+import { TableActions } from "@/utils/tableActions";
 import { searchConfig, tableColumns } from "./WorkOrderConfig";
 import { useWorkOrderQueryStore } from "./useWorkOrderQueryStore";
 import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
 import { useFileDownload } from '@/hooks/useFileDownload';
 import { WorkOrderDrawer } from "./WorkOrderDrawer";
 import { MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from "@/constants";
-import { TABLE_ACTION_ICON_SIZE } from "@/constants/ui";
 import { getApiErrorMessage } from "@/utils/apiError";
 
 export const WorkOrdersList: React.FC = () => {
@@ -104,45 +104,26 @@ export const WorkOrdersList: React.FC = () => {
     title: "操作",
     key: "action",
     fixed: 'right' as const,
-    width: 140,
+    width: 120, // 檢視 + 列印 或 檢視 + 刪除 都是雙按鈕，寬度設為 120 即可
     render: (_: any, record: WorkOrderDto) => (
-      <Space size="small">
-        <Button
-          type="text"
-          icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />}
-          onClick={() => openDrawer(record.workOrderNumber || undefined)}
-          title="檢視/編輯"
-        />
-        
-        {record.status !== "Draft" && (
-          <Button
-            type="text"
-            icon={<PrinterOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />}
-            onClick={() => {
-              downloadFile({
-                apiFunction: () => getApiV1WorkOrderByWorkOrderNumberReport({ 
-                  path: { workOrderNumber: record.workOrderNumber as string },
-                  // @ts-ignore
-                  responseType: 'blob' 
-                }),
-                successMessage: '製令單已於新分頁開啟',
-                openInNewTab: true
-              });
-            }}
-            loading={isDownloading}
-          />
-        )}
-
-        {record.status === "Draft" && (
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />}
-            onClick={() => handleDelete(record.workOrderNumber as string)}
-            title="刪除"
-          />
-        )}
-      </Space>
+      <TableActions
+        onView={() => openDrawer(record.workOrderNumber || undefined)}
+        onPrint={record.status !== "Draft" ? () => {
+          downloadFile({
+            apiFunction: () => getApiV1WorkOrderByWorkOrderNumberReport({ 
+              path: { workOrderNumber: record.workOrderNumber as string },
+              // @ts-ignore
+              responseType: 'blob' 
+            }),
+            successMessage: '製令單已於新分頁開啟',
+            openInNewTab: true
+          });
+        } : undefined}
+        onDelete={record.status === "Draft" ? () => handleDelete(record.workOrderNumber as string) : undefined}
+        recordName={`製令單 ${record.workOrderNumber}`}
+        deleteConfirmType="modal"
+        isPrinting={isDownloading}
+      />
     ),
   };
 

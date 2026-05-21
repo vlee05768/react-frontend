@@ -1,4 +1,4 @@
-import { Popconfirm, Tag} from 'antd';
+import { Tag } from 'antd';
 import { ActionButton } from "@/components/common/ActionButton";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
@@ -7,10 +7,10 @@ import { ActionBar } from '@/components/common/ActionBar';
 import { DocumentLifecycleBanner } from '@/components/common/DocumentLifecycleBanner';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import {
-  Spin, Table, Button, Space, Card, Tooltip, Drawer, App, Divider, Modal
+  Spin, Table, Button, Space, Card, Drawer, App, Divider, Modal
 } from 'antd';
 import {
-  SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, EyeOutlined, CheckCircleOutlined, SyncOutlined
+  SearchOutlined, PlusOutlined, EditOutlined, SaveOutlined, CheckCircleOutlined, SyncOutlined
 , ClearOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -31,6 +31,7 @@ import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { mainSearchFormConfig, mainFormConfig, mainTableColumns, getStatusTag } from './InventoryAdjustmentConfig';
 import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
+import { TableActions } from '@/utils/tableActions';
 import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 import dayjs from 'dayjs';
 
@@ -55,7 +56,6 @@ export const useInventoryAdjustmentQueryStore = create((set) => ({
 
 export default function InventoryAdjustmentList() {
   const { message: messageApi, modal } = App.useApp();
-  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const params = useInventoryAdjustmentQueryStore((state: any) => state.params);
   const setParams = useInventoryAdjustmentQueryStore((state: any) => state.setParams);
   const { page, pageNumber, pageSize, ...queryFields } = params;
@@ -222,39 +222,15 @@ export default function InventoryAdjustmentList() {
   const actionColumn = {
     title: '操作',
     key: 'actions',
-    fixed: 'left' as const,
-    width: 120,
+    fixed: 'right' as const,
+    width: 120, // 雙按鈕設為 120
     render: (_: any, record: any) => (
-      <Space>
-        <Tooltip title="檢視">
-          <Button 
-            type="text" 
-            icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-            style={{ color: '#1890ff' }} 
-            onClick={() => openViewDrawer(record)}
-          />
-        </Tooltip>
-        {record.status === 'Unconfirmed' && (
-          <Tooltip title="刪除">
-          <Popconfirm
-            title="刪除確認"
-            description="確定要刪除此筆資料嗎？此操作無法還原。"
-            onConfirm={() => deleteMutation.mutateAsync(record.documentNumber)}
-            onOpenChange={(open) => {
-              const r = record as any;
-              const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              setDeletingRecordId(open ? String(recordId) : null);
-            }}
-            okButtonProps={{ danger: true }}
-            okText="刪除"
-            cancelText="取消"
-            placement="topLeft"
-          >
-            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-          </Popconfirm>
-        </Tooltip>
-        )}
-      </Space>
+      <TableActions
+        onView={() => openViewDrawer(record)}
+        onDelete={record.status === 'Unconfirmed' ? () => deleteMutation.mutateAsync(record.documentNumber) : undefined}
+        recordName={`庫存調整單 ${record.documentNumber}`}
+        deleteConfirmType="modal"
+      />
     ),
   };
 
@@ -501,10 +477,8 @@ export default function InventoryAdjustmentList() {
             onChange={handleTableChange}
             bordered
             rowClassName={(record: any) => {
-            const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
             let cls = '';
             if (record.documentNumber === viewId) cls += 'selected-table-row ';
-            if (recordId && String(recordId) === String(deletingRecordId)) cls += 'deleting-row-highlight';
             return cls.trim();
           }}
             style={{ flex: 1 }}

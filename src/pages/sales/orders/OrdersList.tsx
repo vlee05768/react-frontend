@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Card, Table, Button, Space, Tooltip, App, Divider, Modal, Tag } from 'antd';
-import { EyeOutlined, PlusOutlined, SearchOutlined, ClearOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Card, Table, Button, Space, App, Divider, Modal, Tag } from 'antd';
+import { PlusOutlined, SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -9,7 +9,8 @@ import { getApiV1Orders, deleteApiV1OrdersByOrderNumber } from '@/api/generated/
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
-import { TABLE_ACTION_ICON_SIZE, DEFAULT_PAGE_SIZE, MODAL_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT } from '@/constants/ui';
+import { TableActions } from '@/utils/tableActions';
+import { DEFAULT_PAGE_SIZE, MODAL_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT } from '@/constants/ui';
 import { useAuthStore } from '@/stores/useAuthStore';
 import type { OrderDto } from '@/api/generated/types.gen';
 import useOrderQueryStore from './useOrderQueryStore';
@@ -78,7 +79,7 @@ export default function OrdersList() {
     const actionColumn = {
       title: '操作',
       key: 'action',
-      width: 140,
+      width: 120, // 檢視 + 刪除 為雙按鈕，寬度設為 120 即可
       fixed: 'right' as const,
       render: (_: any, record: OrderDto) => {
         const canView = hasPermission('Sales.Orders.View');
@@ -87,36 +88,12 @@ export default function OrdersList() {
         const isDraft = record.status === 'Draft';
 
         return (
-          <Space size="middle">
-            {(canView || canUpdate) && (
-              <Tooltip title="檢視">
-                <Button
-                  type="text"
-                  style={{ color: '#1890ff' }}
-                  icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />}
-                  onClick={() => navigate(`/sales/orders/${record.orderNumber}`)}
-                />
-              </Tooltip>
-            )}
-
-            {canDelete && isDraft && (
-              <Tooltip title="刪除">
-                <Button
-                  type="text"
-                  danger
-                  icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />}
-                  onClick={() => modal.confirm({
-                    title: '刪除訂單',
-                    content: `確定要刪除訂單 ${record.orderNumber} 嗎？此操作無法還原。`,
-                    centered: true,
-                    width: 400,
-                    okButtonProps: { danger: true },
-                    onOk: () => { deleteMutation.mutate(record.orderNumber!); },
-                  })}
-                />
-              </Tooltip>
-            )}
-          </Space>
+          <TableActions
+            onView={(canView || canUpdate) ? () => navigate(`/sales/orders/${record.orderNumber}`) : undefined}
+            onDelete={(canDelete && isDraft) ? () => deleteMutation.mutate(record.orderNumber!) : undefined}
+            recordName={`銷售訂單 ${record.orderNumber}`}
+            deleteConfirmType="modal"
+          />
         );
       },
     };
