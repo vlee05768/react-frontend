@@ -3,7 +3,7 @@ import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { z } from "zod";
 import { Tag } from "antd";
 import { SyncOutlined, CheckCircleOutlined } from "@ant-design/icons";
-import type { SearchFieldConfig } from "@/components/Form/types";
+import type { SearchFieldConfig, TableColumnConfig } from "@/components/Form/types";
 import type { ColumnsType } from "antd/es/table";
 import type { SalesDeliveryDto, SalesDeliveryItemDto } from "@/api/generated/types.gen";
 import dayjs from "dayjs";
@@ -45,31 +45,31 @@ export const searchConfig: SearchFieldConfig[] = [
 
 export const getColumns = (
   onEdit: (row: SalesDeliveryDto) => void,
-  
-): ColumnsType<SalesDeliveryDto> => [
+): TableColumnConfig<SalesDeliveryDto>[] => [
   {
-    title: "單據號碼",
-    dataIndex: "documentNumber",
+    label: "單據號碼",
+    name: "documentNumber",
     width: 150,
     fixed: "left",
+    sortable: { multiple: 1 },
     render: (val, row) => (
       <a onClick={(e) => { e.preventDefault(); onEdit(row); }} className="text-blue-500 hover:underline">
         {val}
       </a>
     ),
   },
-  { title: "單據日期", dataIndex: "documentDate", width: 120, render: (val) => (val ? dayjs(val).format("YYYY-MM-DD") : "-") },
-  { title: "客戶代碼", dataIndex: "businessPartnerCode", width: 100 },
-  { title: "客戶名稱", dataIndex: "businessPartnerName", width: 180, ellipsis: true },
-  { title: "發票號碼", dataIndex: "invoiceNumber", width: 120 },
-  { title: "業務員", dataIndex: "responsibleUserName", width: 100 },
-  { title: "小計", dataIndex: "subTotal", width: 100, align: "right", render: (val) => val != null ? Number(val).toLocaleString() : "-" },
-  { title: "稅額", dataIndex: "taxAmount", width: 100, align: "right", render: (val) => val != null ? Number(val).toLocaleString() : "-" },
-  { title: "總金額", dataIndex: "totalAmount", width: 120, align: "right", render: (val) => <span className="font-semibold">{val != null ? Number(val).toLocaleString() : "-"}</span> },
-  { title: "狀態", key: "status", width: 100, render: (_, row) => getStatusTag(row) },
-  { title: "確認人員", dataIndex: "confirmUserName", width: 100 },
-  { title: "確認日期", dataIndex: "confirmDate", width: 120, render: (val) => (val ? dayjs(val).format("YYYY-MM-DD") : "-") },
-  { title: "備註", dataIndex: "notes", ellipsis: true, width: 200 },
+  { label: "單據日期", name: "documentDate", width: 120, sortable: { multiple: 2 }, render: (val) => (val ? dayjs(val).format("YYYY-MM-DD") : "-") },
+  { label: "客戶代碼", name: "businessPartnerCode", width: 100 },
+  { label: "客戶名稱", name: "businessPartnerName", width: 180, ellipsis: true },
+  { label: "發票號碼", name: "invoiceNumber", width: 120, sortable: { multiple: 3 } },
+  { label: "業務員", name: "responsibleUserName", width: 100 },
+  { label: "小計", name: "subTotal", width: 100, align: "right", render: (val) => val != null ? Number(val).toLocaleString() : "-" },
+  { label: "稅額", name: "taxAmount", width: 100, align: "right", render: (val) => val != null ? Number(val).toLocaleString() : "-" },
+  { label: "總金額", name: "totalAmount", width: 120, align: "right", render: (val) => <span className="font-semibold">{val != null ? Number(val).toLocaleString() : "-"}</span> },
+  { label: "狀態", name: "status", width: 100, render: (_, row) => getStatusTag(row) },
+  { label: "確認人員", name: "confirmUserName", width: 100 },
+  { label: "確認日期", name: "confirmDate", width: 120, render: (val) => (val ? dayjs(val).format("YYYY-MM-DD") : "-") },
+  { label: "備註", name: "notes", ellipsis: true, width: 200 },
 ];
 
 
@@ -234,7 +234,7 @@ export const getItemColumns = (
     width: 80,
     align: "center",
     fixed: 'right' as const,
-    render: (_, record) => {
+    render: (_: any, record: SalesDeliveryItemDto) => {
       if (isViewMode) return null;
       return (
         <Space size="small">

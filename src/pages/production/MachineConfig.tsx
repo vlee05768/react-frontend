@@ -17,9 +17,9 @@ export const mainFormConfig = (): FormFieldConfig[] => [
 ];
 
 export const mainTableColumns = (): TableColumnConfig[] => [
-  { ...mainDictionary.code, width: 120 },
-  { ...mainDictionary.name, width: 150 },
-  { ...mainDictionary.type, width: 120 },
+  { ...mainDictionary.code, sortable: { multiple: 1 }, width: 120 },
+  { ...mainDictionary.name, sortable: { multiple: 2 }, width: 150 },
+  { ...mainDictionary.type, sortable: { multiple: 3 }, width: 120 },
   { ...mainDictionary.capacity, width: 150 },
 ];
 

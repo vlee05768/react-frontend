@@ -269,7 +269,7 @@ export default function InventoryAdjustmentList() {
     });
   };
 
-  const columns = buildTableColumns(mainTableColumns(), actionColumn);
+  const columns = buildTableColumns(mainTableColumns(), actionColumn, params.SortRules);
 
   const handleSearch = (values: any) => {
     setParams({ ...values, pageNumber: 1 });

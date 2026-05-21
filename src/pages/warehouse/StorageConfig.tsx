@@ -26,9 +26,9 @@ export const mainFormConfig = (): FormFieldConfig[] => [
 ];
 
 export const mainTableColumns = (): TableColumnConfig[] => [
-  { ...mainDictionary.code, width: 120 },
-  { ...mainDictionary.name, width: 150 },
-  { ...mainDictionary.type, width: 120 },
+  { ...mainDictionary.code, sortable: { multiple: 1 }, width: 120 },
+  { ...mainDictionary.name, sortable: { multiple: 2 }, width: 150 },
+  { ...mainDictionary.type, sortable: { multiple: 3 }, width: 120 },
   { ...mainDictionary.location, width: 120 },
   { ...mainDictionary.area, width: 120 },
   { ...mainDictionary.isCalculateInventory, width: 100, align: 'center', render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{ color: 'green' }} /> : (v === false ? <CloseOutlined style={{ color: 'red' }} /> : null) },

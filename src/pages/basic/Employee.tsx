@@ -265,7 +265,7 @@ export default function EmployeeList() {
     });
   };
 
-  const columns = buildTableColumns(employeeTableColumns, actionColumn);
+  const columns = buildTableColumns(employeeTableColumns, actionColumn, params.SortRules);
 
   const handleSearch = (values: any) => {
     // 確保清空的欄位能覆蓋 Zustand store 中的舊值

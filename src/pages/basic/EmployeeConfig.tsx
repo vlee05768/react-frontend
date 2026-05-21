@@ -99,14 +99,17 @@ export const employeeFormConfig: FieldConfig<any>[] = [
 export const employeeTableColumns: TableColumnConfig<any>[] = [
   {
     ...employeeDictionary.employeeNo,
+    sortable: { multiple: 1 },
     render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v,
   },
   {
     ...employeeDictionary.name,
+    sortable: { multiple: 2 },
     render: (v: any) => typeof v === 'number' ? new Intl.NumberFormat('en-US').format(v) : v,
   },
   {
     ...employeeDictionary.departmentCode,
+    sortable: { multiple: 3 },
     label: '部門名稱', // Override label for table header if needed
     render: (v: any) => <DictLabel dictKey="DEPARTMENT" value={v} />,
   },
@@ -116,6 +119,7 @@ export const employeeTableColumns: TableColumnConfig<any>[] = [
   },
   {
     ...employeeDictionary.hireDate,
+    sortable: { multiple: 4 },
     align: 'center',
     render: (v: string) => v ? v.substring(0, 10) : '-',
   },
@@ -126,6 +130,7 @@ export const employeeTableColumns: TableColumnConfig<any>[] = [
   },
   {
     ...employeeDictionary.status,
+    sortable: { multiple: 5 },
     align: 'center',
     render: (v: number) => <DictTag dictKey="EMPLOYEE_STATUS" value={v} />,
   },

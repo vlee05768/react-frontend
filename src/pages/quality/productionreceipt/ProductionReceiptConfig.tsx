@@ -53,10 +53,11 @@ export const getStatusTag = (
 };
 
 export const mainTableColumns = (): TableColumnConfig[] => [
-  { label: "單據號碼", name: "documentNumber", width: 100 },
+  { label: "單據號碼", name: "documentNumber", sortable: { multiple: 1 }, width: 100 },
   {
     label: "狀態",
     name: "status",
+    sortable: { multiple: 3 },
     width: 100,
     align: "center",
     render: (status: string, record: any) =>
@@ -65,6 +66,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   {
     label: "單據日期",
     name: "documentDate",
+    sortable: { multiple: 2 },
     width: 100,
     render: (val: string) => (val ? dayjs(val).format("YYYY-MM-DD") : "-"),
   },

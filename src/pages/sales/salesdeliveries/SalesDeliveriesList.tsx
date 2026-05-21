@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Card, Table, Button, Space, Tooltip, App, Modal, Divider } from 'antd';
+import { Card, Table, Button, Space, Tooltip, App, Modal, Divider, Tag } from 'antd';
 import { EyeOutlined, PlusOutlined, SearchOutlined, DeleteOutlined, PrinterOutlined, CheckOutlined, CloseOutlined, ClearOutlined } from '@ant-design/icons';
 import { useNavigate,  } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -14,6 +14,7 @@ import {
 } from '@/api/generated/sdk.gen';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
+import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
 import { DEFAULT_PAGE_SIZE, MODAL_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT } from '@/constants/ui';
 import { useAuthStore } from '@/stores/useAuthStore';
 import type { SalesDeliveryDto } from '@/api/generated/types.gen';
@@ -64,8 +65,13 @@ export default function SalesDeliveriesList() {
     }
   });
 
-  const handleTableChange = (pagination: any) => {
-    setParams({ pageNumber: pagination.current, pageSize: pagination.pageSize });
+  const handleTableChange = (pagination: any, _: any, sorter: any) => {
+    const rules = formatSorterToRules(sorter);
+    setParams({ 
+      pageNumber: pagination.current, 
+      pageSize: pagination.pageSize,
+      SortRules: rules || undefined
+    });
   };
 
   const { downloadFile, isDownloading } = useFileDownload();
@@ -85,12 +91,12 @@ export default function SalesDeliveriesList() {
 
   const columns = useMemo(() => {
     const baseColumns = getColumns((row) => navigate(`/sales/salesdeliveries/${row.documentNumber}`));
-    baseColumns.unshift({
+    const actionColumn = {
       title: '操作',
       key: 'action',
       width: 220,
       fixed: 'right' as const,
-      render: (_, record: SalesDeliveryDto) => {
+      render: (_: any, record: SalesDeliveryDto) => {
         const canView = hasPermission('Sales.Deliveries.View');
         const canUpdate = hasPermission('Sales.Deliveries.Update');
         const canDelete = hasPermission('Sales.Deliveries.Delete');
@@ -133,9 +139,9 @@ export default function SalesDeliveriesList() {
           </Space>
         );
       }
-    });
-    return baseColumns;
-  }, [hasPermission, navigate, modal, deleteMutation]);
+    };
+    return buildTableColumns(baseColumns, actionColumn, params.SortRules);
+  }, [hasPermission, navigate, modal, deleteMutation, isDownloading, params.SortRules]);
 
   return (
     <div className="p-[16px_16px_0px_16px] flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
@@ -175,13 +181,47 @@ export default function SalesDeliveriesList() {
           </Space>
         }
       >
-        <div className="mb-4 flex items-center p-[12px_16px]" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
-          <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
-          <DynamicSearchTags
-            config={searchConfig}
-            params={params}
-            onClose={(key) => setParams({ [key]: undefined, pageNumber: 1 })}
-          />
+        <div className="mb-4 flex items-center p-[12px_16px]" style={{flexWrap: 'wrap', gap: '8px 12px', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
+          <div className="flex items-center" style={{ flexWrap: 'wrap' }}>
+            <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
+            <DynamicSearchTags
+              config={searchConfig}
+              params={params}
+              onClose={(key) => setParams({ [key]: undefined, pageNumber: 1 })}
+            />
+          </div>
+          {params.SortRules && (
+            <>
+              <div style={{ width: '1px', height: '16px', backgroundColor: '#d9d9d9', margin: '0 4px' }} />
+              <div className="flex items-center" style={{ flexWrap: 'wrap' }}>
+                <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>排序順序:</span>
+                <Space size={[0, 8]} wrap>
+                  {params.SortRules.split(',').map((rule: string) => {
+                    const [field, order] = rule.split(':');
+                    if (!field) return null;
+                    const col = getColumns(() => {}).find(c => c.name === field);
+                    const label = col ? col.label : field;
+                    return (
+                      <Tag
+                        key={field}
+                        closable
+                        color="processing"
+                        onClose={(e) => {
+                          e.preventDefault();
+                          const newRules = (params as any).SortRules.split(',')
+                            .filter((r: string) => !r.startsWith(`${field}:`))
+                            .join(',');
+                          setParams({ ...params, SortRules: newRules || undefined, pageNumber: 1 });
+                        }}
+                      >
+                        {label} {order === 'asc' ? '↑' : '↓'}
+                      </Tag>
+                    );
+                  })}
+                </Space>
+              </div>
+            </>
+          )}
         </div>
         <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <style>{`

@@ -273,7 +273,7 @@ export default function StorageList() {
     });
   };
 
-  const columns = buildTableColumns(mainTableColumns(), actionColumn);
+  const columns = buildTableColumns(mainTableColumns(), actionColumn, params.SortRules);
 
   const handleSearch = (values: any) => {
     const nextParams = { ...values };

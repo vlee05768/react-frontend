@@ -330,7 +330,7 @@ export default function RoleList() {
     });
   };
 
-  const columns = buildTableColumns(mainTableColumns(), actionColumn);
+  const columns = buildTableColumns(mainTableColumns(), actionColumn, params.SortRules);
 
   return (
     <div className="p-[16px 16px 0px 16px] flex flex-col" style={{height: 'calc(100vh - 64px)'}}>

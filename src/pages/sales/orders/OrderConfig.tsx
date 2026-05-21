@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Button, Space } from "antd";
 import { EditOutlined, DeleteOutlined, CheckOutlined, CloseOutlined } from "@ant-design/icons";
-import type { SearchFieldConfig } from "@/components/Form/types";
+import type { SearchFieldConfig, TableColumnConfig } from "@/components/Form/types";
 import type { ColumnsType } from "antd/es/table";
 import type { OrderDto, OrderItemDto } from "@/api/generated/types.gen";
 import dayjs from "dayjs";
@@ -73,86 +73,78 @@ export const searchConfig: SearchFieldConfig[] = [
   },
 ];
 
-export const getColumns = (): ColumnsType<OrderDto> => [
+export const getColumns = (): TableColumnConfig<OrderDto>[] => [
   {
-    title: "訂單編號",
-    dataIndex: "orderNumber",
-    key: "orderNumber",
+    label: "訂單編號",
+    name: "orderNumber",
     width: 150,
+    sortable: { multiple: 1 },
   },
   {
-    title: "訂單日期",
-    dataIndex: "orderDate",
-    key: "orderDate",
+    label: "訂單日期",
+    name: "orderDate",
     width: 120,
+    sortable: { multiple: 2 },
     render: (date: string) => (date ? dayjs(date).format("YYYY-MM-DD") : "-"),
   },
   {
-    title: "訂單狀態",
-    dataIndex: "status",
-    key: "status",
+    label: "訂單狀態",
+    name: "status",
     width: 100,
+    sortable: { multiple: 3 },
     render: (status: string) => getStatusTag(status),
   },
 
   {
-    title: "客戶代碼",
-    dataIndex: "businessPartnerCode",
-    key: "businessPartnerCode",
+    label: "客戶代碼",
+    name: "businessPartnerCode",
     width: 120,
   },
   {
-    title: "客戶名稱",
-    dataIndex: "businessPartnerName",
-    key: "businessPartnerName",
+    label: "客戶名稱",
+    name: "businessPartnerName",
     width: 180,
     ellipsis: true,
   },
   {
-    title: "小計",
-    dataIndex: "subTotal",
-    key: "subTotal",
+    label: "小計",
+    name: "subTotal",
     width: 120,
     align: "right",
     render: (val: number) =>
       val != null ? Number(val.toFixed(2)).toLocaleString() : "0",
   },
   {
-    title: "稅額",
-    dataIndex: "taxAmount",
-    key: "taxAmount",
+    label: "稅額",
+    name: "taxAmount",
     width: 100,
     align: "right",
     render: (val: number) =>
       val != null ? Number(val.toFixed(2)).toLocaleString() : "0",
   },
   {
-    title: "總金額",
-    dataIndex: "totalAmount",
-    key: "totalAmount",
+    label: "總金額",
+    name: "totalAmount",
     width: 120,
     align: "right",
     render: (val: number) =>
       val != null ? Number(val.toFixed(2)).toLocaleString() : "0",
   },
   {
-    title: "交貨日期",
-    dataIndex: "requestedDeliveryDate",
-    key: "requestedDeliveryDate",
+    label: "交貨日期",
+    name: "requestedDeliveryDate",
     width: 120,
     render: (date: string) => (date ? dayjs(date).format("YYYY-MM-DD") : "-"),
   },
   {
-    title: "承諾交貨日期",
-    dataIndex: "promisedDeliveryDate",
-    key: "promisedDeliveryDate",
+    label: "承諾交貨日期",
+    name: "promisedDeliveryDate",
     width: 140,
     render: (date: string) => (date ? dayjs(date).format("YYYY-MM-DD") : "-"),
   },
   {
-    title: "備註",
-    dataIndex: "notes",
-    key: "notes",
+    label: "備註",
+    name: "notes",
     ellipsis: true,
   },
 ];
@@ -321,7 +313,7 @@ export const getItemColumns = (
     width: 80,
     align: "center",
     fixed: 'right' as const,
-    render: (_, record) => {
+    render: (_: any, record: OrderItemDto) => {
       if (isViewMode) return null;
       return (
         <Space size="small">

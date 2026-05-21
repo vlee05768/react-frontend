@@ -88,16 +88,18 @@ import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
 import { DictLabel } from "@/components/Form/DictLabel";
 
 export const mainTableColumns = (): TableColumnConfig[] => [
-  { label: "產品代碼", name: "code", width: 180 },
+  { label: "產品代碼", name: "code", sortable: { multiple: 1 }, width: 180 },
   {
     label: "產品名稱",
     name: "name",
+    sortable: { multiple: 2 },
     width: 220,
     render: (val: string) => <EllipsisText text={val} maxWidth={220} />,
   },
   {
     label: "類別",
     name: "typeName",
+    sortable: { multiple: 3 },
     width: 70,
     render: (val: string) => (val ? <Tag color="blue">{val}</Tag> : null),
   },
