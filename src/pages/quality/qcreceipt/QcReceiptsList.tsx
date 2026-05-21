@@ -13,7 +13,7 @@ import { MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants/ui';
 import { getApiV1QcReceipt, deleteApiV1QcReceiptByMovementNumber } from '@/api/generated';
 import { useQcReceiptQueryStore } from './useQcReceiptQueryStore';
 import { qcReceiptSearchConfig, mainTableColumns } from './QcReceiptConfig';
-import { buildTableColumns } from '@/utils/tableUtils';
+import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 import { Tooltip,  Space, Divider } from 'antd';
 import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
@@ -131,6 +131,17 @@ export default function QcReceiptsList() {
     },
   };
 
+    const handleTableChange = (pagination: any, _filters: any, sorter: any) => {
+    const pageNumber = pagination.current || 1;
+    const pageSize = pagination.pageSize || 20;
+    const sortRules = formatSorterToRules(sorter);
+    setParams({
+      pageNumber,
+      pageSize,
+      SortRules: sortRules || undefined,
+    });
+  };
+
   const columns = buildTableColumns(mainTableColumns(), actionColumn);
 
   return (
@@ -183,6 +194,7 @@ export default function QcReceiptsList() {
             .ant-table-thead > tr > th { text-align: center !important; }
           `}</style>
           <Table
+            onChange={handleTableChange}
             bordered
             rowClassName={(record: any) => {
             const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
@@ -203,7 +215,7 @@ export default function QcReceiptsList() {
               total: total,
               showSizeChanger: true,
               showTotal: (t) => `共 ${t} 筆資料`,
-              onChange: (page, pageSize) => setParams({ pageNumber: page, pageSize }),
+              
             }}
           />
         </div>

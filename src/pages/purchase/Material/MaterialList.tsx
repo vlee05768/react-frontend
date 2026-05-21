@@ -25,7 +25,7 @@ import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { mainFormConfig, mainTableColumns, materialSearchFormConfig } from './MaterialConfig';
-import { buildTableColumns } from '@/utils/tableUtils';
+import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import { DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
@@ -215,6 +215,17 @@ export default function MaterialList() {
     ),
   };
 
+    const handleTableChange = (pagination: any, _filters: any, sorter: any) => {
+    const pageNumber = pagination.current || 1;
+    const pageSize = pagination.pageSize || 20;
+    const sortRules = formatSorterToRules(sorter);
+    setParams({
+      pageNumber,
+      pageSize,
+      SortRules: sortRules || undefined,
+    });
+  };
+
   const columns = buildTableColumns(mainTableColumns(), actionColumn);
 
   const handleSearch = (values: any) => {
@@ -270,6 +281,42 @@ export default function MaterialList() {
         <div className="mb-4 flex items-center p-[12px 16px]" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
           <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)'}}>目前的查詢條件:</span>
           <DynamicSearchTags config={materialSearchFormConfig()} params={params} onClose={(key) => setParams({ [key]: undefined, pageNumber: 1 })} />
+        {((params as any).SortRules) && (
+          <>
+            <Divider type="vertical" style={{ height: '20px', borderColor: '#d9d9d9', margin: '0 16px' }} />
+            <span className="mr-3 font-medium" style={{ fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)' }}>
+              排序順序:
+            </span>
+            {(params as any).SortRules.split(',').map((rule: string, idx: number) => {
+              const [field, order] = rule.split(':');
+              const label = mainTableColumns().find(col => col.name === field)?.label || field;
+              return (
+                <Tag
+                  key={idx}
+                  color="blue"
+                  closable
+                  onClose={() => {
+                    const newRules = (params as any).SortRules.split(',')
+                      .filter((r: string) => !r.startsWith(`${field}:`))
+                      .join(',');
+                    setParams({ SortRules: newRules || undefined, [params.pageNumber !== undefined ? 'pageNumber' : 'page']: 1 });
+                  }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                >
+                  {label} ({order === 'asc' ? '升序 ↗' : '降序 ↘'})
+                </Tag>
+              );
+            })}
+            <Button
+              type="link"
+              size="small"
+              onClick={() => setParams({ SortRules: undefined, [params.pageNumber !== undefined ? 'pageNumber' : 'page']: 1 })}
+              style={{ padding: 0, fontSize: '12px' }}
+            >
+              清除排序
+            </Button>
+          </>
+        )}
         </div>
         <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <style>{`
@@ -301,6 +348,7 @@ export default function MaterialList() {
             .view-mode-form .ant-select-arrow { display: none !important; }
           `}</style>
           <Table
+            onChange={handleTableChange}
             bordered
             rowClassName={(record) => {
             const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
@@ -321,7 +369,7 @@ export default function MaterialList() {
               total: totalRecords,
               showSizeChanger: true,
               showTotal: (total) => `共 ${total} 筆資料`,
-              onChange: (page, pageSize) => setParams({ pageNumber: page, pageSize }),
+              
             }}
           />
         </div>

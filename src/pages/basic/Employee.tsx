@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { employeeFormConfig, employeeTableColumns, employeeSearchConfig } from './EmployeeConfig';
-import { buildTableColumns } from '@/utils/tableUtils';
+import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 
@@ -254,7 +254,18 @@ export default function EmployeeList() {
       ),
     };
 
-    const columns = buildTableColumns(employeeTableColumns, actionColumn);
+      const handleTableChange = (pagination: any, _filters: any, sorter: any) => {
+    const pageNumber = pagination.current || 1;
+    const pageSize = pagination.pageSize || 20;
+    const sortRules = formatSorterToRules(sorter);
+    setParams({
+      pageNumber,
+      pageSize,
+      SortRules: sortRules || undefined,
+    });
+  };
+
+  const columns = buildTableColumns(employeeTableColumns, actionColumn);
 
   const handleSearch = (values: any) => {
     // 確保清空的欄位能覆蓋 Zustand store 中的舊值
@@ -395,6 +406,7 @@ export default function EmployeeList() {
             }
           `}</style>
           <Table
+            onChange={handleTableChange}
             bordered
             rowClassName={(record) => {
             const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
@@ -415,7 +427,7 @@ export default function EmployeeList() {
               total: totalRecords,
               showSizeChanger: true,
               showTotal: (total) => `共 ${total} 筆資料`,
-              onChange: (page, pageSize) => setParams({ pageNumber: page, pageSize }),
+              
             }}
           />
         </div>

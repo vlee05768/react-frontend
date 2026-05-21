@@ -25,7 +25,7 @@ import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { mainFormConfig, mainTableColumns, productSearchFormConfig } from './ProductConfig';
-import { buildTableColumns } from '@/utils/tableUtils';
+import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
 import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, DRAWER_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 
 // Detail Tabs
@@ -226,6 +226,17 @@ export default function ProductsList() {
     ),
   };
 
+    const handleTableChange = (pagination: any, _filters: any, sorter: any) => {
+    const pageNumber = pagination.current || 1;
+    const pageSize = pagination.pageSize || 20;
+    const sortRules = formatSorterToRules(sorter);
+    setParams({
+      pageNumber,
+      pageSize,
+      SortRules: sortRules || undefined,
+    });
+  };
+
   const columns = buildTableColumns(mainTableColumns(), actionColumn);
 
   const handleSearch = (values: any) => {
@@ -336,6 +347,7 @@ export default function ProductsList() {
             }
           `}</style>
           <Table
+            onChange={handleTableChange}
             bordered
             rowClassName={(record) => {
             const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
@@ -356,7 +368,7 @@ export default function ProductsList() {
               total: totalRecords,
               showSizeChanger: true,
               showTotal: (total) => `共 ${total} 筆資料`,
-              onChange: (page, pageSize) => setParams({ pageNumber: page, pageSize }),
+              
             }}
           />
         </div>

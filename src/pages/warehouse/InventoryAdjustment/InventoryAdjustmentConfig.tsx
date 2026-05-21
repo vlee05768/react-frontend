@@ -32,7 +32,7 @@ export const mainSearchFormConfig = (): SearchFieldConfig[] => [
 ];
 
 export const mainTableColumns = (): TableColumnConfig[] => [
-  { label: "單據號碼", name: "documentNumber", width: 140 },
+  { label: "單據號碼", name: "documentNumber", width: 140 , sortable: { multiple: 1 } },
   { 
     label: "調整日期", 
     name: "documentDate", 
@@ -48,7 +48,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   },
   { label: "負責人員", name: "responsibleUserName", width: 100 },
   { label: "備註", name: "notes", width: 200, render: (val: string) => <EllipsisText text={val} maxWidth={180} /> },
-  { label: "建立時間", name: "createdAt", width: 160, render: (val: string) => val ? dayjs(val).format("YYYY-MM-DD HH:mm:ss") : "-" },
+  { label: "建立時間", name: "createdAt", width: 160, render: (val: string) => val ? dayjs(val).format("YYYY-MM-DD HH:mm:ss") : "-" , sortable: { multiple: 5 } },
   { label: "更新時間", name: "updatedAt", width: 160, render: (val: string) => val ? dayjs(val).format("YYYY-MM-DD HH:mm:ss") : "-" },
 ];
 

@@ -12,7 +12,7 @@ import { MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants/ui';
 import { getApiV1ProductionReceipt } from '@/api/generated';
 import { useProductionReceiptQueryStore } from './useProductionReceiptQueryStore';
 import { productionReceiptSearchConfig, mainTableColumns } from './ProductionReceiptConfig';
-import { buildTableColumns } from '@/utils/tableUtils';
+import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 import { Tooltip, Space, Divider } from 'antd';
 import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
@@ -92,6 +92,17 @@ export default function ProductionReceiptsList() {
     },
   };
 
+    const handleTableChange = (pagination: any, _filters: any, sorter: any) => {
+    const pageNumber = pagination.current || 1;
+    const pageSize = pagination.pageSize || 20;
+    const sortRules = formatSorterToRules(sorter);
+    setParams({
+      pageNumber,
+      pageSize,
+      SortRules: sortRules || undefined,
+    });
+  };
+
   const columns = buildTableColumns(mainTableColumns(), actionColumn);
 
   return (
@@ -141,6 +152,7 @@ export default function ProductionReceiptsList() {
             .ant-table-thead > tr > th { text-align: center !important; }
           `}</style>
           <Table
+            onChange={handleTableChange}
             bordered
             rowClassName={(record: any) => record.documentNumber === viewId ? 'selected-table-row' : ''}
             style={{ flex: 1 }}
@@ -155,7 +167,7 @@ export default function ProductionReceiptsList() {
               total: total,
               showSizeChanger: true,
               showTotal: (t) => `共 ${t} 筆資料`,
-              onChange: (page, pageSize) => setParams({ pageNumber: page, pageSize }),
+              
             }}
           />
         </div>
