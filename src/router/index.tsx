@@ -20,7 +20,7 @@ const withSuspense = <P extends object>(
     <Suspense
       fallback={
         <div className="h-full w-full flex items-center justify-center p-8 min-h-[200px]">
-          <Spin size="large" tip="頁面載入中..." />
+          <Spin size="large" description="頁面載入中..." />
         </div>
       }
     >

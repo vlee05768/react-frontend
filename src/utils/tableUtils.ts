@@ -1,6 +1,7 @@
 import type { FieldConfig, TableColumnConfig } from '@/components/Form/types';
 import { EllipsisText } from '@/components/Table/EllipsisText';
 import React from 'react';
+import { Tooltip } from 'antd';
 
 /**
  * 將 FieldConfig 陣列轉換為 Ant Design Table 支援的 columns 格式。
@@ -38,7 +39,7 @@ export function generateTableColumns<TValues>(
         width: tableProps.width,
         align: tableProps.align || defaultAlign,
         render: tableProps.render,
-        sorter: tableProps.sortable ? true : undefined,
+        sorter: tableProps.sortable === true ? true : (tableProps.sortable ? tableProps.sortable : undefined),
         fixed: tableProps.fixed,
       };
     });
@@ -53,12 +54,32 @@ export function generateTableColumns<TValues>(
 
 
 /**
+ * 解析 SortRules 字串為鍵值對 map
+ * 例如: "type:asc,code:desc" -> { type: 'ascend', code: 'descend' }
+ */
+export function parseSortRules(sortRules?: string): Record<string, 'ascend' | 'descend' | null> {
+  const result: Record<string, 'ascend' | 'descend' | null> = {};
+  if (!sortRules) return result;
+
+  sortRules.split(',').forEach(rule => {
+    const [field, order] = rule.split(':');
+    if (field && order) {
+      result[field] = order === 'asc' ? 'ascend' : 'descend';
+    }
+  });
+  return result;
+}
+
+/**
  * [新架構] 將 TableColumnConfig 陣列轉換為 Ant Design Table 支援的 columns 格式。
  */
 export function buildTableColumns<TValues>(
   columnConfigs: TableColumnConfig<TValues>[],
-  actionColumn?: any
+  actionColumn?: any,
+  sortRules?: string
 ) {
+  const sortMap = parseSortRules(sortRules);
+
   const columns = columnConfigs.map(config => {
     // 預設 render 函數
     let render = config.render;
@@ -74,15 +95,27 @@ export function buildTableColumns<TValues>(
       };
     }
 
+    // 判斷當前此欄位的受控 sortOrder
+    const currentSortOrder = sortMap[config.name] || null;
+
+    // 如果支援排序，則包裝表頭 Title 加上 Tooltip 提示
+    const title = config.sortable ? (
+      React.createElement(Tooltip, {
+        title: "點擊可排序，按住 Shift 鍵可啟用多欄位排序",
+        placement: "top"
+      }, React.createElement('span', { style: { cursor: 'pointer', textDecoration: 'underline dotted var(--ant-color-text-quaternary, #bfbfbf)', textUnderlineOffset: '4px' } }, config.label))
+    ) : config.label;
+
     return {
-      title: config.label,
+      title: title,
       dataIndex: config.name,
       key: config.name,
       width: config.width,
       // 專案規範: 欄位名稱一律置中 (需透過 global CSS 或標籤，這裡僅設定列本身的 alignment，而 global css .ant-table-thead > tr > th 會強迫置中)
       align: config.align || 'left',
       render: render,
-      sorter: config.sortable ? true : undefined,
+      sorter: config.sortable === true ? true : (config.sortable ? config.sortable : undefined),
+      sortOrder: config.sortable ? currentSortOrder : undefined,
       fixed: config.fixed,
     };
   });
@@ -92,4 +125,28 @@ export function buildTableColumns<TValues>(
   }
 
   return columns;
+}
+
+/**
+ * 將 Ant Design Table 的 sorter 轉換為後端能識別的多欄位排序規則字串
+ * 返回格式如: "type:asc,code:desc"
+ */
+export function formatSorterToRules(sorter: any): string | undefined {
+  if (!sorter) return undefined;
+
+  // 1. 如果是多欄位排序，sorter 會是一個陣列
+  if (Array.isArray(sorter)) {
+    const activeSorts = sorter
+      .filter((s: any) => s.field && s.order) // 過濾掉沒有被排序的欄位
+      .map((s: any) => `${s.field}:${s.order === 'ascend' ? 'asc' : 'desc'}`);
+    
+    return activeSorts.length > 0 ? activeSorts.join(',') : undefined;
+  }
+
+  // 2. 如果是單一欄位排序，sorter 會是一個物件
+  if (sorter.field && sorter.order) {
+    return `${sorter.field}:${sorter.order === 'ascend' ? 'asc' : 'desc'}`;
+  }
+
+  return undefined;
 }

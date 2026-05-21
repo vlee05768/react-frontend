@@ -56,7 +56,7 @@ export interface TableColumnConfig<TValues = any> extends FieldDef<TValues> {
   width?: number;
   align?: 'left' | 'center' | 'right';
   render?: (value: any, record: TValues, index: number) => ReactNode;
-  sortable?: boolean;
+  sortable?: boolean | { multiple: number };
   fixed?: 'left' | 'right' | boolean;
   show?: boolean;
   ellipsis?: boolean; // 支援文字過長折疊與 Tooltip 預覽

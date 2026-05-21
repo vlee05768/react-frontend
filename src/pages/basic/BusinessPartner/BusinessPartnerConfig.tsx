@@ -16,16 +16,19 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     label: "編號",
     name: "code",
     width: 120,
+    sortable: { multiple: 1 },
   },
   {
     label: "名稱",
     name: "name",
     width: 200,
+    sortable: { multiple: 2 },
   },
   {
     label: "統一編號",
     name: "taxId",
     width: 120,
+    sortable: { multiple: 3 },
   },
   {
     label: "東裕客戶",
@@ -38,6 +41,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     label: "廠商客戶檔類型",
     name: "type",
     width: 150,
+    sortable: { multiple: 4 },
     render: (val: string) => {
       const opt = bpTypeOptions.find((o) => o.value === val);
       return opt ? opt.label : val;

@@ -48,7 +48,7 @@ import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { mainFormConfig, mainTableColumns, bpTypeOptions, bpSearchFormConfig } from './BusinessPartnerConfig';
-import { buildTableColumns } from '@/utils/tableUtils';
+import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
 import { App } from 'antd';
 import ContactList from './ContactList';
 import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, DRAWER_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';;
@@ -67,9 +67,10 @@ export const useBPQueryStore = create((set) => ({
     Types: undefined,
     IsTYCustomer: undefined,
     Others: undefined,
+    SortRules: undefined,
   },
   setParams: (newParams: any) => set((state: any) => ({ params: { ...state.params, ...newParams } })),
-  resetParams: () => set({ params: { pageNumber: 1, pageSize: DEFAULT_PAGE_SIZE, CodeOrName: undefined, Types: undefined, IsTYCustomer: undefined, Others: undefined } }),
+  resetParams: () => set({ params: { pageNumber: 1, pageSize: DEFAULT_PAGE_SIZE, CodeOrName: undefined, Types: undefined, IsTYCustomer: undefined, Others: undefined, SortRules: undefined } }),
 }));
 
 export default function BusinessPartnerList() {
@@ -246,7 +247,7 @@ export default function BusinessPartnerList() {
     ),
   };
 
-  const columns = buildTableColumns(mainTableColumns(), actionColumn);
+  const columns = buildTableColumns(mainTableColumns(), actionColumn, params.SortRules);
 
   const handleSearch = (values: any) => {
     const nextParams = { ...values };
@@ -321,9 +322,49 @@ export default function BusinessPartnerList() {
           </Space>
         }
       >
-        <div className="mb-4 flex items-center p-[12px 16px]" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
-          <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
-          {renderSearchTags()}
+        <div className="mb-4 flex items-center p-[12px 16px]" style={{ flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0, gap: '16px' }}>
+          <div className="flex items-center" style={{ flexWrap: 'wrap' }}>
+            <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
+            {renderSearchTags()}
+          </div>
+          {params.SortRules && (
+            <div className="flex items-center" style={{ flexWrap: 'wrap', paddingLeft: '16px', borderLeft: '1px solid #d9d9d9' }}>
+              <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>排序順序:</span>
+              <Space size={[4, 8]} wrap>
+                {params.SortRules.split(',').map((rule: string) => {
+                  const [field, order] = rule.split(':');
+                  // 根據 field name 轉換成中文標題
+                  const colConfig = mainTableColumns().find(c => c.name === field);
+                  const label = colConfig ? colConfig.label : field;
+                  const orderText = order === 'asc' ? '升序 ↗' : '降序 ↘';
+                  return (
+                    <Tag
+                      key={field}
+                      color="blue"
+                      closable
+                      onClose={() => {
+                        // 移除此排序條件
+                        const remainingRules = params.SortRules.split(',')
+                          .filter((r: string) => !r.startsWith(`${field}:`))
+                          .join(',');
+                        setParams({ SortRules: remainingRules || undefined, pageNumber: 1 });
+                      }}
+                    >
+                      {label} ({orderText})
+                    </Tag>
+                  );
+                })}
+                <Button 
+                  type="link" 
+                  size="small" 
+                  style={{ padding: 0, height: 'auto', fontSize: '12px' }}
+                  onClick={() => setParams({ SortRules: undefined, pageNumber: 1 })}
+                >
+                  清除排序
+                </Button>
+              </Space>
+            </div>
+          )}
         </div>
         <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <style>{`
@@ -371,13 +412,20 @@ export default function BusinessPartnerList() {
             rowKey="code"
             loading={isFetching}
             scroll={{ x: 'max-content', y: 300 }}
+            onChange={(pagination, filters, sorter) => {
+              const sortRules = formatSorterToRules(sorter);
+              setParams({
+                pageNumber: pagination.current,
+                pageSize: pagination.pageSize,
+                SortRules: sortRules,
+              });
+            }}
             pagination={{
               current: currentPage,
               pageSize: currentPageSize,
               total: totalRecords,
               showSizeChanger: true,
               showTotal: (total) => `共 ${total} 筆資料`,
-              onChange: (page, pageSize) => setParams({ pageNumber: page, pageSize }),
             }}
           />
         </div>
