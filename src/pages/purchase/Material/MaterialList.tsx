@@ -7,8 +7,9 @@ import {
   Spin, Table, Button, Modal, Form, Space, Card, Tag, Tooltip, Divider, message, Popconfirm, Drawer, Tabs
 , App } from 'antd';
 import {
-  SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ClearOutlined, SaveOutlined, EyeOutlined
+  SearchOutlined, PlusOutlined, EditOutlined, ClearOutlined, SaveOutlined
 } from '@ant-design/icons';
+import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   getApiV1Material, 
@@ -25,7 +26,7 @@ import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { mainFormConfig, mainTableColumns, materialSearchFormConfig } from './MaterialConfig';
-import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
+import { buildTableColumns, formatSorterToRules, getColumnLabel } from '@/utils/tableUtils';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import { DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
@@ -180,38 +181,12 @@ export default function MaterialList() {
     fixed: 'right' as const,
     width: 120,
     render: (_: any, record: any) => (
-      <Space>
-        {hasPermission('Warehouse.Materials.View') && (
-          <Tooltip title="檢視">
-            <Button 
-              type="text" 
-              icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-              style={{ color: '#1890ff' }} 
-              onClick={() => openViewDrawer(record)}
-            />
-          </Tooltip>
-        )}
-        {hasPermission('Warehouse.Materials.Delete') && (
-          <Tooltip title="刪除">
-            <Popconfirm
-            title="刪除確認"
-            description="確定要刪除此筆資料嗎？此操作無法還原。"
-            onConfirm={() => deleteMutation.mutate(record.code)}
-            onOpenChange={(open) => {
-              const r = record as any;
-              const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              if (typeof setDeletingRecordId !== 'undefined') setDeletingRecordId(open ? String(recordId) : null);
-            }}
-            okButtonProps={{ danger: true }}
-            okText="刪除"
-            cancelText="取消"
-            placement="topLeft"
-          >
-            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-          </Popconfirm>
-          </Tooltip>
-        )}
-      </Space>
+      <TableActions
+        onView={hasPermission('Warehouse.Materials.View') ? () => openViewDrawer(record) : undefined}
+        onDelete={hasPermission('Warehouse.Materials.Delete') ? () => deleteMutation.mutate(record.code) : undefined}
+        recordName={record.name || record.code}
+        deleteConfirmType="popconfirm"
+      />
     ),
   };
 
@@ -289,7 +264,7 @@ export default function MaterialList() {
             </span>
             {(params as any).SortRules.split(',').map((rule: string, idx: number) => {
               const [field, order] = rule.split(':');
-              const label = mainTableColumns().find(col => col.name === field)?.label || field;
+              const label = getColumnLabel(field, mainTableColumns());
               return (
                 <Tag
                   key={idx}

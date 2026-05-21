@@ -1,8 +1,8 @@
-import { Popconfirm } from 'antd';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Button, Modal, Table, message, Card  } from 'antd';
-import { SearchOutlined, PlusOutlined, EyeOutlined, DeleteOutlined , ClearOutlined } from '@ant-design/icons';
+import { Button, Modal, Table, message, Card, Tag  } from 'antd';
+import { SearchOutlined, PlusOutlined, ClearOutlined } from '@ant-design/icons';
+import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
@@ -13,16 +13,14 @@ import { MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants/ui';
 import { getApiV1QcReceipt, deleteApiV1QcReceiptByMovementNumber } from '@/api/generated';
 import { useQcReceiptQueryStore } from './useQcReceiptQueryStore';
 import { qcReceiptSearchConfig, mainTableColumns } from './QcReceiptConfig';
-import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
-import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
-import { Tooltip,  Space, Divider } from 'antd';
+import { buildTableColumns, formatSorterToRules, getColumnLabel } from '@/utils/tableUtils';
+import { Space, Divider } from 'antd';
 import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
 
 import { useParams } from 'react-router-dom';
 
 export default function QcReceiptsList() {
   // const { modal } = App.useApp();
-  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const { id: viewId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -92,41 +90,17 @@ export default function QcReceiptsList() {
   const actionColumn = {
     title: '操作',
     key: 'actions',
-    fixed: 'left' as const,
+    fixed: 'right' as const,
     width: 120,
     render: (_: any, record: any) => {
       const isUnconfirmed = record.status === 'Unconfirmed';
       return (
-        <Space>
-          <Tooltip title="檢視">
-            <Button 
-              type="text" 
-              icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-              style={{ color: '#1890ff' }} 
-              onClick={() => navigate(`/production-quality/qc-receipts/${record.documentNumber}`)} 
-            />
-          </Tooltip>
-          {isUnconfirmed && (
-            <Tooltip title="刪除">
-              <Popconfirm
-            title="刪除確認"
-            description="確定要刪除此筆資料嗎？此操作無法還原。"
-            onConfirm={() => deleteMutation.mutate(record.documentNumber)}
-            onOpenChange={(open) => {
-              const r = record as any;
-              const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              if (typeof setDeletingRecordId !== 'undefined') setDeletingRecordId(open ? String(recordId) : null);
-            }}
-            okButtonProps={{ danger: true }}
-            okText="刪除"
-            cancelText="取消"
-            placement="topLeft"
-          >
-            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-          </Popconfirm>
-            </Tooltip>
-          )}
-        </Space>
+        <TableActions
+          onView={() => navigate(`/production-quality/qc-receipts/${record.documentNumber}`)}
+          onDelete={isUnconfirmed ? () => deleteMutation.mutate(record.documentNumber) : undefined}
+          recordName={record.documentNumber}
+          deleteConfirmType="modal"
+        />
       );
     },
   };
@@ -172,13 +146,50 @@ export default function QcReceiptsList() {
           </Space>
         }
       >
-        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
-          <span style={{ fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
-          <DynamicSearchTags
-            config={qcReceiptSearchConfig()}
-            params={params}
-            onClose={handleClearTag}
-          />
+        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0, gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
+            <DynamicSearchTags
+              config={qcReceiptSearchConfig()}
+              params={params}
+              onClose={handleClearTag}
+            />
+          </div>
+          {params.SortRules && (
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', paddingLeft: '16px', borderLeft: '1px solid #d9d9d9' }}>
+              <span style={{ fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>排序順序:</span>
+              <Space size={[4, 8]} wrap>
+                {params.SortRules.split(',').map((rule: string) => {
+                  const [field, order] = rule.split(':');
+                  const label = getColumnLabel(field, mainTableColumns());
+                  const orderText = order === 'asc' ? '升序 ↗' : '降序 ↘';
+                  return (
+                    <Tag
+                      key={field}
+                      color="blue"
+                      closable
+                      onClose={() => {
+                        const remainingRules = params.SortRules.split(',')
+                          .filter((r: string) => !r.startsWith(`${field}:`))
+                          .join(',');
+                        setParams({ SortRules: remainingRules || undefined, pageNumber: 1 });
+                      }}
+                    >
+                      {label} ({orderText})
+                    </Tag>
+                  );
+                })}
+                <Button 
+                  type="link" 
+                  size="small" 
+                  style={{ padding: 0, height: 'auto', fontSize: '12px' }}
+                  onClick={() => setParams({ SortRules: undefined, pageNumber: 1 })}
+                >
+                  清除排序
+                </Button>
+              </Space>
+            </div>
+          )}
         </div>
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -197,12 +208,8 @@ export default function QcReceiptsList() {
             onChange={handleTableChange}
             bordered
             rowClassName={(record: any) => {
-            const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-            let cls = '';
-            if (record.documentNumber === viewId) cls += 'selected-table-row ';
-            if (recordId && String(recordId) === String(deletingRecordId)) cls += 'deleting-row-highlight';
-            return cls.trim();
-          }}
+              return record.documentNumber === viewId ? 'selected-table-row' : '';
+            }}
             style={{ flex: 1 }}
             columns={columns}
             dataSource={displayList}

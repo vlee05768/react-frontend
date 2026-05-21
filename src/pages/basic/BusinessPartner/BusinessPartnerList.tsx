@@ -27,11 +27,10 @@ import {
   SearchOutlined,
   PlusOutlined,
   EditOutlined,
-  DeleteOutlined,
   ClearOutlined,
-  SaveOutlined,
-  EyeOutlined
+  SaveOutlined
 } from '@ant-design/icons';
+import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   getApiV1BusinessPartners, 
@@ -48,7 +47,7 @@ import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { mainFormConfig, mainTableColumns, bpTypeOptions, bpSearchFormConfig } from './BusinessPartnerConfig';
-import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
+import { buildTableColumns, formatSorterToRules, getColumnLabel } from '@/utils/tableUtils';
 import { App } from 'antd';
 import ContactList from './ContactList';
 import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, DRAWER_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';;
@@ -215,35 +214,12 @@ export default function BusinessPartnerList() {
     fixed: 'right' as const,
     width: 120,
     render: (_: any, record: any) => (
-      <Space>
-        {/* Permission logic usually has: hasPermission('BasicData.BusinessPartners.View') */}
-        <Tooltip title="檢視">
-          <Button 
-            type="text" 
-            icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-            style={{ color: '#1890ff' }} 
-            onClick={() => openViewDrawer(record)}
-          />
-        </Tooltip>
-        <Tooltip title="刪除">
-          <Popconfirm
-            title="刪除確認"
-            description="確定要刪除此筆資料嗎？此操作無法還原。"
-            onConfirm={() => deleteMutation.mutate(record.code)}
-            onOpenChange={(open) => {
-              const r = record as any;
-              const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              setDeletingRecordId(open ? String(recordId) : null);
-            }}
-            okButtonProps={{ danger: true }}
-            okText="刪除"
-            cancelText="取消"
-            placement="topLeft"
-          >
-            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-          </Popconfirm>
-        </Tooltip>
-      </Space>
+      <TableActions
+        onView={() => openViewDrawer(record)}
+        onDelete={() => deleteMutation.mutate(record.code)}
+        recordName={record.name || record.code}
+        deleteConfirmType="popconfirm"
+      />
     ),
   };
 
@@ -334,8 +310,7 @@ export default function BusinessPartnerList() {
                 {params.SortRules.split(',').map((rule: string) => {
                   const [field, order] = rule.split(':');
                   // 根據 field name 轉換成中文標題
-                  const colConfig = mainTableColumns().find(c => c.name === field);
-                  const label = colConfig ? colConfig.label : field;
+                  const label = getColumnLabel(field, mainTableColumns());
                   const orderText = order === 'asc' ? '升序 ↗' : '降序 ↘';
                   return (
                     <Tag

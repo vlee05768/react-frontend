@@ -2,6 +2,7 @@ import type { FieldConfig, TableColumnConfig } from '@/components/Form/types';
 import { EllipsisText } from '@/components/Table/EllipsisText';
 import React from 'react';
 import { Tooltip } from 'antd';
+import dayjs from 'dayjs';
 
 /**
  * 將 FieldConfig 陣列轉換為 Ant Design Table 支援的 columns 格式。
@@ -80,11 +81,54 @@ export function parseSortRules(sortRules?: string): Record<string, 'ascend' | 'd
 export function buildTableColumns<TValues>(
   columnConfigs: TableColumnConfig<TValues>[],
   actionColumn?: any,
-  sortRules?: string
+  sortRules?: string,
+  options?: { showAudit?: boolean }
 ) {
   const sortMap = parseSortRules(sortRules);
 
-  const columns = columnConfigs.map(config => {
+  let configs = [...columnConfigs];
+  
+  // 決定是否顯示建檔與更新資訊 (稽核欄位)
+  // 預設只要有傳入 sortRules (即 arguments.length >= 3) 且沒有被顯式設為 false，或者是顯式設為 true，就顯示
+  const shouldShowAudit = options?.showAudit ?? (arguments.length >= 3 || sortRules !== undefined);
+  const hasAuditFields = configs.some(c => c.name === 'createdAt' || c.name === 'createdBy');
+  
+  if (shouldShowAudit && !hasAuditFields) {
+    configs.push(
+      {
+        label: '建檔人員',
+        name: 'createdBy' as any,
+        sortable: true,
+        width: 110,
+        align: 'center',
+      },
+      {
+        label: '建檔時間',
+        name: 'createdAt' as any,
+        sortable: true,
+        width: 150,
+        align: 'center',
+        render: (v: string) => v ? dayjs(v).format('YYYY-MM-DD HH:mm') : '-',
+      },
+      {
+        label: '更新人員',
+        name: 'updatedBy' as any,
+        sortable: true,
+        width: 110,
+        align: 'center',
+      },
+      {
+        label: '更新時間',
+        name: 'updatedAt' as any,
+        sortable: true,
+        width: 150,
+        align: 'center',
+        render: (v: string) => v ? dayjs(v).format('YYYY-MM-DD HH:mm') : '-',
+      }
+    );
+  }
+
+  const columns = configs.map(config => {
     // 預設 render 函數
     let render = config.render;
 
@@ -158,3 +202,23 @@ export function formatSorterToRules(sorter: any): string | undefined {
 
   return undefined;
 }
+
+/**
+ * 根據欄位名稱與表格設定檔，取得欄位的中文名稱（含稽核欄位支援）。
+ */
+export function getColumnLabel(field: string, columnConfigs: any[]): string {
+  const auditLabels: Record<string, string> = {
+    createdBy: '建檔人員',
+    createdAt: '建檔時間',
+    updatedBy: '更新人員',
+    updatedAt: '更新時間',
+  };
+  
+  if (auditLabels[field]) {
+    return auditLabels[field];
+  }
+  
+  const config = columnConfigs.find(c => c.name === field || c.key === field || c.dataIndex === field);
+  return config ? (config.label || config.title) : field;
+}
+

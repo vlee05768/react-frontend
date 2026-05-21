@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Button, Modal, Table, Card } from 'antd';
-import { SearchOutlined, EyeOutlined , ClearOutlined } from '@ant-design/icons';
+import { Button, Modal, Table, Card, Tag } from 'antd';
+import { SearchOutlined, ClearOutlined } from '@ant-design/icons';
+import { TableActions } from '@/utils/tableActions';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
@@ -12,9 +13,8 @@ import { MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants/ui';
 import { getApiV1ProductionReceipt } from '@/api/generated';
 import { useProductionReceiptQueryStore } from './useProductionReceiptQueryStore';
 import { productionReceiptSearchConfig, mainTableColumns } from './ProductionReceiptConfig';
-import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
-import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
-import { Tooltip, Space, Divider } from 'antd';
+import { buildTableColumns, formatSorterToRules, getColumnLabel } from '@/utils/tableUtils';
+import { Space, Divider } from 'antd';
 import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
 
 import { useParams } from 'react-router-dom';
@@ -78,16 +78,9 @@ export default function ProductionReceiptsList() {
     width: 120,
     render: (_: any, record: any) => {
       return (
-        <Space>
-          <Tooltip title="檢視">
-            <Button 
-              type="text" 
-              icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-              style={{ color: '#1890ff' }} 
-              onClick={() => navigate(`/production-quality/production-receipts/${record.documentNumber}`)} 
-            />
-          </Tooltip>
-        </Space>
+        <TableActions
+          onView={() => navigate(`/production-quality/production-receipts/${record.documentNumber}`)}
+        />
       );
     },
   };
@@ -130,13 +123,50 @@ export default function ProductionReceiptsList() {
           </Space>
         }
       >
-        <div className="mb-4 flex items-center p-[12px_16px]" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
-          <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
-          <DynamicSearchTags
-            config={productionReceiptSearchConfig()}
-            params={params}
-            onClose={handleClearTag}
-          />
+        <div className="mb-4 flex items-center p-[12px_16px]" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0, gap: '16px' }}>
+          <div className="flex items-center" style={{ flexWrap: 'wrap' }}>
+            <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
+            <DynamicSearchTags
+              config={productionReceiptSearchConfig()}
+              params={params}
+              onClose={handleClearTag}
+            />
+          </div>
+          {params.SortRules && (
+            <div className="flex items-center" style={{ flexWrap: 'wrap', paddingLeft: '16px', borderLeft: '1px solid #d9d9d9' }}>
+              <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>排序順序:</span>
+              <Space size={[4, 8]} wrap>
+                {params.SortRules.split(',').map((rule: string) => {
+                  const [field, order] = rule.split(':');
+                  const label = getColumnLabel(field, mainTableColumns());
+                  const orderText = order === 'asc' ? '升序 ↗' : '降序 ↘';
+                  return (
+                    <Tag
+                      key={field}
+                      color="blue"
+                      closable
+                      onClose={() => {
+                        const remainingRules = params.SortRules.split(',')
+                          .filter((r: string) => !r.startsWith(`${field}:`))
+                          .join(',');
+                        setParams({ SortRules: remainingRules || undefined, pageNumber: 1 });
+                      }}
+                    >
+                      {label} ({orderText})
+                    </Tag>
+                  );
+                })}
+                <Button 
+                  type="link" 
+                  size="small" 
+                  style={{ padding: 0, height: 'auto', fontSize: '12px' }}
+                  onClick={() => setParams({ SortRules: undefined, pageNumber: 1 })}
+                >
+                  清除排序
+                </Button>
+              </Space>
+            </div>
+          )}
         </div>
         
         <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>

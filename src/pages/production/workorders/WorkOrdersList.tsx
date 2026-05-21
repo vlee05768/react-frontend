@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
 import React, { useMemo } from "react";
-import { App, Card, Space, Button, Table, Modal } from "antd";
+import { App, Card, Space, Button, Table, Modal, Tag } from "antd";
 import { PlusOutlined, ClearOutlined, SearchOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
@@ -12,7 +12,7 @@ import {
 import type { WorkOrderDto } from "@/api/generated/types.gen";
 import DynamicSearchTags from "@/components/Form/DynamicSearchTags";
 import DynamicSearchForm from "@/components/Form/DynamicSearchForm";
-import { buildTableColumns } from "@/utils/tableUtils";
+import { buildTableColumns, formatSorterToRules, getColumnLabel } from "@/utils/tableUtils";
 import { TableActions } from "@/utils/tableActions";
 import { searchConfig, tableColumns } from "./WorkOrderConfig";
 import { useWorkOrderQueryStore } from "./useWorkOrderQueryStore";
@@ -127,7 +127,16 @@ export const WorkOrdersList: React.FC = () => {
     ),
   };
 
-  const columns = useMemo(() => buildTableColumns(tableColumns, actionColumn), []);
+  const handleTableChange = (paginationInfo: any, _filters: any, sorter: any) => {
+    const sortRules = formatSorterToRules(sorter);
+    setSearchParams({
+      ...searchParams,
+      SortRules: sortRules || undefined,
+    });
+    setPagination(paginationInfo.current || 1, paginationInfo.pageSize || 20);
+  };
+
+  const columns = useMemo(() => buildTableColumns(tableColumns, actionColumn, searchParams.SortRules), [searchParams.SortRules]);
 
   return (
     <div className="p-[16px 16px 0px 16px] flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
@@ -153,13 +162,60 @@ export const WorkOrdersList: React.FC = () => {
           </Space>
         }
       >
-        <div className="mb-4 flex items-center p-[12px 16px]" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
-          <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
-          <DynamicSearchTags
-            config={searchConfig}
-            params={searchParams}
-            onClose={(key) => setSearchParams({ ...searchParams, [key]: undefined })}
-          />
+        <div className="mb-4 flex items-center p-[12px 16px]" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0, gap: '16px' }}>
+          <div className="flex items-center" style={{ flexWrap: 'wrap' }}>
+            <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
+            <DynamicSearchTags
+              config={searchConfig}
+              params={searchParams}
+              onClose={(key) => setSearchParams({ ...searchParams, [key]: undefined })}
+            />
+          </div>
+          {searchParams.SortRules && (
+            <div className="flex items-center" style={{ flexWrap: 'wrap', paddingLeft: '16px', borderLeft: '1px solid #d9d9d9' }}>
+              <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>排序順序:</span>
+              <Space size={[4, 8]} wrap>
+                {searchParams.SortRules.split(',').map((rule: string) => {
+                  const [field, order] = rule.split(':');
+                  const label = getColumnLabel(field, tableColumns);
+                  const orderText = order === 'asc' ? '升序 ↗' : '降序 ↘';
+                  return (
+                    <Tag
+                      key={field}
+                      color="blue"
+                      closable
+                      onClose={() => {
+                        const remainingRules = searchParams.SortRules.split(',')
+                          .filter((r: string) => !r.startsWith(`${field}:`))
+                          .join(',');
+                        setSearchParams({
+                          ...searchParams,
+                          SortRules: remainingRules || undefined,
+                        });
+                        setPagination(1, pagination.pageSize);
+                      }}
+                    >
+                      {label} ({orderText})
+                    </Tag>
+                  );
+                })}
+                <Button 
+                  type="link" 
+                  size="small" 
+                  style={{ padding: 0, height: 'auto', fontSize: '12px' }}
+                  onClick={() => {
+                    setSearchParams({
+                      ...searchParams,
+                      SortRules: undefined,
+                    });
+                    setPagination(1, pagination.pageSize);
+                  }}
+                >
+                  清除排序
+                </Button>
+              </Space>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -175,6 +231,7 @@ export const WorkOrdersList: React.FC = () => {
             .ant-table-thead > tr > th { text-align: center !important; }
           `}</style>
           <Table
+            onChange={handleTableChange}
             bordered
             size="small"
             rowKey="workOrderNumber"

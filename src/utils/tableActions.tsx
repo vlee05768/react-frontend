@@ -22,6 +22,7 @@ interface ActionProps {
   isPrinting?: boolean;
   isConfirming?: boolean;
   isCanceling?: boolean;
+  extra?: React.ReactNode; // 支援自訂額外操作按鈕
 }
 
 // 統一操作按鈕樣式與行為
@@ -36,7 +37,8 @@ export const TableActions: React.FC<ActionProps> = ({
   deleteConfirmType = 'popconfirm',
   isPrinting = false,
   isConfirming = false,
-  isCanceling = false
+  isCanceling = false,
+  extra
 }) => {
   const { token } = theme.useToken();
 
@@ -172,6 +174,7 @@ export const TableActions: React.FC<ActionProps> = ({
           </Tooltip>
         )
       )}
+      {extra}
     </Space>
   );
 };

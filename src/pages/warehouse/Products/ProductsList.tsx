@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import {
-  Spin, Table, Button, Modal, Form, Space, Card, Tooltip, Popconfirm, Drawer, Divider, App
+  Spin, Table, Button, Modal, Form, Space, Card, Tooltip, Popconfirm, Drawer, Divider, App, Tag
 } from 'antd';
 import {
   SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ClearOutlined, SaveOutlined, EyeOutlined
@@ -25,7 +25,7 @@ import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { mainFormConfig, mainTableColumns, productSearchFormConfig } from './ProductConfig';
-import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
+import { buildTableColumns, formatSorterToRules, getColumnLabel } from '@/utils/tableUtils';
 import { TableActions } from '@/utils/tableActions';
 import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, DRAWER_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 
@@ -290,9 +290,46 @@ export default function ProductsList() {
           </Space>
         }
       >
-        <div className="mb-4 flex items-center p-[12px 16px]" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
-          <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
-          {renderSearchTags()}
+        <div className="mb-4 flex items-center p-[12px 16px]" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0, gap: '16px' }}>
+          <div className="flex items-center" style={{ flexWrap: 'wrap' }}>
+            <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
+            {renderSearchTags()}
+          </div>
+          {params.SortRules && (
+            <div className="flex items-center" style={{ flexWrap: 'wrap', paddingLeft: '16px', borderLeft: '1px solid #d9d9d9' }}>
+              <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>排序順序:</span>
+              <Space size={[4, 8]} wrap>
+                {params.SortRules.split(',').map((rule: string) => {
+                  const [field, order] = rule.split(':');
+                  const label = getColumnLabel(field, mainTableColumns());
+                  const orderText = order === 'asc' ? '升序 ↗' : '降序 ↘';
+                  return (
+                    <Tag
+                      key={field}
+                      color="blue"
+                      closable
+                      onClose={() => {
+                        const remainingRules = params.SortRules.split(',')
+                          .filter((r: string) => !r.startsWith(`${field}:`))
+                          .join(',');
+                        setParams({ SortRules: remainingRules || undefined, pageNumber: 1 });
+                      }}
+                    >
+                      {label} ({orderText})
+                    </Tag>
+                  );
+                })}
+                <Button 
+                  type="link" 
+                  size="small" 
+                  style={{ padding: 0, height: 'auto', fontSize: '12px' }}
+                  onClick={() => setParams({ SortRules: undefined, pageNumber: 1 })}
+                >
+                  清除排序
+                </Button>
+              </Space>
+            </div>
+          )}
         </div>
         <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <style>{`

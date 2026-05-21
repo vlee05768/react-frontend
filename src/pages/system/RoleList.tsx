@@ -30,18 +30,17 @@ import {
   SearchOutlined,
   PlusOutlined,
   EditOutlined,
-  DeleteOutlined,
   ArrowsAltOutlined,
   ShrinkOutlined,
   PlusSquareOutlined,
   MinusSquareOutlined,
   ClearOutlined,
   SaveOutlined,
-  EyeOutlined,
   AppstoreOutlined,
   CheckOutlined,
   CloseOutlined
 } from '@ant-design/icons';
+import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   getApiV1Role,
@@ -284,38 +283,12 @@ export default function RoleList() {
     fixed: 'right' as const,
     width: 120,
     render: (_: any, record: any) => (
-      <Space>
-        {hasPermission('System.Roles.View') && (
-          <Tooltip title="檢視">
-            <Button 
-              type="text" 
-              icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-              style={{ color: '#1890ff' }} 
-              onClick={() => openViewDrawer(record)}
-            />
-          </Tooltip>
-        )}
-        {hasPermission('System.Roles.Delete') && (
-          <Tooltip title="刪除">
-            <Popconfirm
-            title="刪除確認"
-            description="確定要刪除此筆資料嗎？此操作無法還原。"
-            onConfirm={() => deleteMutation.mutate(record.id)}
-            onOpenChange={(open) => {
-              const r = record as any;
-              const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              if (typeof setDeletingRecordId !== 'undefined') setDeletingRecordId(open ? String(recordId) : null);
-            }}
-            okButtonProps={{ danger: true }}
-            okText="刪除"
-            cancelText="取消"
-            placement="topLeft"
-          >
-            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-          </Popconfirm>
-          </Tooltip>
-        )}
-      </Space>
+      <TableActions
+        onView={hasPermission('System.Roles.View') ? () => openViewDrawer(record) : undefined}
+        onDelete={hasPermission('System.Roles.Delete') ? () => deleteMutation.mutate(record.id) : undefined}
+        recordName={record.name}
+        deleteConfirmType="popconfirm"
+      />
     ),
   };
 

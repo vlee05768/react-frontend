@@ -23,16 +23,15 @@ import {
   Drawer,
   Descriptions,
   Switch,
-  Divider
+  Divider,
+  theme
 } from 'antd';
 import {
   SearchOutlined,
   PlusOutlined,
   EditOutlined,
-  DeleteOutlined,
   ClearOutlined,
   SaveOutlined,
-  EyeOutlined,
   AppstoreOutlined,
   CheckOutlined,
   CloseOutlined,
@@ -40,6 +39,7 @@ import {
   StopOutlined,
   CheckCircleOutlined
 } from '@ant-design/icons';
+import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   getApiV1User, 
@@ -58,7 +58,7 @@ import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useLoadingStore } from '@/stores/useLoadingStore';
 import { mainDictionary, mainFormConfig, mainTableColumns , userSearchFormConfig} from './UserConfig';
-import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
+import { buildTableColumns, formatSorterToRules, getColumnLabel } from '@/utils/tableUtils';
 import { App } from 'antd';
 import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';;
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
@@ -80,6 +80,7 @@ export default function UserList() {
     setQuery: (q) => setParams({ ...q, [params.pageNumber !== undefined ? 'pageNumber' : 'page']: 1 })
   });
   const { hasPermission } = useAuthStore();
+  const { token } = theme.useToken();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
@@ -299,68 +300,58 @@ export default function UserList() {
     title: '操作',
     key: 'actions',
     fixed: 'right' as const,
-    width: 160,
+    width: 180,
     render: (_: any, record: any) => (
-      <Space>
-        {hasPermission('System.Users.View') && (
-          <Tooltip title="檢視">
-            <Button 
-              type="text" 
-              icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-              style={{ color: '#1890ff' }} 
-              onClick={() => openViewDrawer(record)}
-            />
-          </Tooltip>
-        )}
-        {hasPermission('System.Users.Delete') && (
-          <Tooltip title="刪除">
-          <Popconfirm
-            title="刪除確認"
-            description="確定要刪除此筆資料嗎？此操作無法還原。"
-            onConfirm={() => deleteMutation.mutate(record.id)}
-            onOpenChange={(open) => {
-              const r = record as any;
-              const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              setDeletingRecordId(open ? String(recordId) : null);
-            }}
-            okButtonProps={{ danger: true }}
-            okText="刪除"
-            cancelText="取消"
-            placement="topLeft"
-          >
-            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-          </Popconfirm>
-        </Tooltip>
-        )}
-        {hasPermission('System.Users.Update') && record.email && (
-          <Tooltip title={`重新發送啟用信件給 ${record.userName}`}>
-            <Popconfirm
-              title={`確定要重新發送啟用信件給 ${record.userName} 嗎？`}
-              onConfirm={() => resendActivationMutation.mutate(record.email)}
-              okText="確定"
-              cancelText="取消"
-            >
-              <Button type="text" icon={<MailOutlined />} style={{ color: '#1890ff' }} />
-            </Popconfirm>
-          </Tooltip>
-        )}
-        {hasPermission('System.Users.Update') && (
-          <Tooltip title={record.isActive ? "停用帳號" : "啟用帳號"}>
-            <Popconfirm
-              title={`確定要${record.isActive ? '停用' : '啟用'}此帳號嗎？`}
-              onConfirm={() => toggleStatusMutation.mutate(record)}
-              okText="確定"
-              cancelText="取消"
-            >
-              <Button 
-                type="text" 
-                icon={record.isActive ? <StopOutlined /> : <CheckCircleOutlined />} 
-                style={{ color: record.isActive ? '#ff4d4f' : '#52c41a' }} 
-              />
-            </Popconfirm>
-          </Tooltip>
-        )}
-      </Space>
+      <TableActions
+        onView={hasPermission('System.Users.View') ? () => openViewDrawer(record) : undefined}
+        onDelete={hasPermission('System.Users.Delete') ? () => deleteMutation.mutate(record.id) : undefined}
+        recordName={record.userName}
+        deleteConfirmType="popconfirm"
+        extra={
+          <>
+            {hasPermission('System.Users.Update') && record.email && (
+              <Tooltip title={`重新發送啟用信件給 ${record.userName}`}>
+                <Popconfirm
+                  title={`確定要重新發送啟用信件給 ${record.userName} 嗎？`}
+                  onConfirm={(e) => { e?.stopPropagation(); resendActivationMutation.mutate(record.email); }}
+                  onCancel={(e) => e?.stopPropagation()}
+                  okText="確定"
+                  cancelText="取消"
+                >
+                  <Button 
+                    type="text" 
+                    icon={<MailOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
+                    style={{ color: token.colorPrimary }} 
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center justify-center hover:opacity-80"
+                    size="small"
+                  />
+                </Popconfirm>
+              </Tooltip>
+            )}
+            {hasPermission('System.Users.Update') && (
+              <Tooltip title={record.isActive ? "停用帳號" : "啟用帳號"}>
+                <Popconfirm
+                  title={`確定要${record.isActive ? '停用' : '啟用'}此帳號嗎？`}
+                  onConfirm={(e) => { e?.stopPropagation(); toggleStatusMutation.mutate(record); }}
+                  onCancel={(e) => e?.stopPropagation()}
+                  okText="確定"
+                  cancelText="取消"
+                >
+                  <Button 
+                    type="text" 
+                    icon={record.isActive ? <StopOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} /> : <CheckCircleOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
+                    style={{ color: record.isActive ? token.colorError : token.colorSuccess }} 
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center justify-center hover:opacity-80"
+                    size="small"
+                  />
+                </Popconfirm>
+              </Tooltip>
+            )}
+          </>
+        }
+      />
     ),
   };
 
@@ -493,7 +484,7 @@ export default function UserList() {
             </span>
             {(params as any).SortRules.split(',').map((rule: string, idx: number) => {
               const [field, order] = rule.split(':');
-              const label = mainTableColumns().find(col => col.name === field)?.label || field;
+              const label = getColumnLabel(field, mainTableColumns());
               return (
                 <Tag
                   key={idx}

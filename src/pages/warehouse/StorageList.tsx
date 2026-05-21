@@ -30,14 +30,13 @@ import {
   SearchOutlined,
   PlusOutlined,
   EditOutlined,
-  DeleteOutlined,
   ClearOutlined,
   SaveOutlined,
-  EyeOutlined,
   AppstoreOutlined,
   CheckOutlined,
   CloseOutlined
 } from '@ant-design/icons';
+import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   getApiV1Storage, 
@@ -54,7 +53,7 @@ import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { mainDictionary, mainFormConfig, mainTableColumns , storageSearchFormConfig} from './StorageConfig';
-import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
+import { buildTableColumns, formatSorterToRules, getColumnLabel } from '@/utils/tableUtils';
 import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';;
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 import { ActionBar } from '@/components/common/ActionBar';
@@ -227,38 +226,9 @@ export default function StorageList() {
     fixed: 'right' as const,
     width: 120,
     render: (_: any, record: any) => (
-      <Space>
-        {hasPermission('Warehouse.Storages.View') && (
-          <Tooltip title="檢視">
-            <Button 
-              type="text" 
-              icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-              style={{ color: '#1890ff' }} 
-              onClick={() => openViewDrawer(record)}
-            />
-          </Tooltip>
-        )}
-        {false && (
-          <Tooltip title="刪除">
-            <Popconfirm
-            title="刪除確認"
-            description="確定要刪除此筆資料嗎？此操作無法還原。"
-            onConfirm={() => deleteMutation.mutate(record.code)}
-            onOpenChange={(open) => {
-              const r = record as any;
-              const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              if (typeof setDeletingRecordId !== 'undefined') setDeletingRecordId(open ? String(recordId) : null);
-            }}
-            okButtonProps={{ danger: true }}
-            okText="刪除"
-            cancelText="取消"
-            placement="topLeft"
-          >
-            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-          </Popconfirm>
-          </Tooltip>
-        )}
-      </Space>
+      <TableActions
+        onView={hasPermission('Warehouse.Storages.View') ? () => openViewDrawer(record) : undefined}
+      />
     ),
   };
 
@@ -377,7 +347,7 @@ export default function StorageList() {
             </span>
             {(params as any).SortRules.split(',').map((rule: string, idx: number) => {
               const [field, order] = rule.split(':');
-              const label = mainTableColumns().find(col => col.name === field)?.label || field;
+              const label = getColumnLabel(field, mainTableColumns());
               return (
                 <Tag
                   key={idx}

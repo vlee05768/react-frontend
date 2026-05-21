@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { employeeFormConfig, employeeTableColumns, employeeSearchConfig } from './EmployeeConfig';
-import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
+import { buildTableColumns, formatSorterToRules, getColumnLabel } from '@/utils/tableUtils';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 
@@ -37,14 +37,13 @@ import {
   SearchOutlined,
   PlusOutlined,
   EditOutlined,
-  DeleteOutlined,
   ClearOutlined,
   SaveOutlined,
-  EyeOutlined,
   AppstoreOutlined,
   CheckOutlined,
   CloseOutlined
 } from '@ant-design/icons';
+import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   getApiV1Employee, 
@@ -219,38 +218,12 @@ export default function EmployeeList() {
       fixed: 'right' as const,
       width: 120,
       render: (_: any, record: any) => (
-        <Space>
-          {hasPermission('BasicData.Employees.View') && (
-            <Tooltip title="檢視">
-              <Button 
-                type="text" 
-                icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-                style={{ color: '#1890ff' }} 
-                onClick={() => openViewDrawer(record)}
-              />
-            </Tooltip>
-          )}
-          {hasPermission('BasicData.Employees.Delete') && (
-            <Tooltip title="刪除">
-              <Popconfirm
-            title="刪除確認"
-            description="確定要刪除此筆資料嗎？此操作無法還原。"
-            onConfirm={() => deleteMutation.mutate(record.id)}
-            onOpenChange={(open) => {
-              const r = record as any;
-              const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              if (typeof setDeletingRecordId !== 'undefined') setDeletingRecordId(open ? String(recordId) : null);
-            }}
-            okButtonProps={{ danger: true }}
-            okText="刪除"
-            cancelText="取消"
-            placement="topLeft"
-          >
-            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-          </Popconfirm>
-            </Tooltip>
-          )}
-        </Space>
+        <TableActions
+          onView={hasPermission('BasicData.Employees.View') ? () => openViewDrawer(record) : undefined}
+          onDelete={hasPermission('BasicData.Employees.Delete') ? () => deleteMutation.mutate(record.id) : undefined}
+          recordName={record.name || record.employeeCode}
+          deleteConfirmType="popconfirm"
+        />
       ),
     };
 
@@ -366,9 +339,46 @@ export default function EmployeeList() {
           </Space>
         }
       >
-        <div className="mb-4 flex items-center p-[12px 16px]" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
-          <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)'}}>目前的查詢條件:</span>
-          {renderSearchTags()}
+        <div className="mb-4 flex items-center p-[12px 16px]" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', borderRadius: '6px', flexShrink: 0, gap: '16px' }}>
+          <div className="flex items-center" style={{ flexWrap: 'wrap' }}>
+            <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)'}}>目前的查詢條件:</span>
+            {renderSearchTags()}
+          </div>
+          {params.SortRules && (
+            <div className="flex items-center" style={{ flexWrap: 'wrap', paddingLeft: '16px', borderLeft: '1px solid #d9d9d9' }}>
+              <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)'}}>排序順序:</span>
+              <Space size={[4, 8]} wrap>
+                {params.SortRules.split(',').map((rule: string) => {
+                  const [field, order] = rule.split(':');
+                  const label = getColumnLabel(field, employeeTableColumns);
+                  const orderText = order === 'asc' ? '升序 ↗' : '降序 ↘';
+                  return (
+                    <Tag
+                      key={field}
+                      color="blue"
+                      closable
+                      onClose={() => {
+                        const remainingRules = params.SortRules.split(',')
+                          .filter((r: string) => !r.startsWith(`${field}:`))
+                          .join(',');
+                        setParams({ SortRules: remainingRules || undefined, pageNumber: 1 });
+                      }}
+                    >
+                      {label} ({orderText})
+                    </Tag>
+                  );
+                })}
+                <Button 
+                  type="link" 
+                  size="small" 
+                  style={{ padding: 0, height: 'auto', fontSize: '12px' }}
+                  onClick={() => setParams({ SortRules: undefined, pageNumber: 1 })}
+                >
+                  清除排序
+                </Button>
+              </Space>
+            </div>
+          )}
         </div>
         <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                     <style>{`
