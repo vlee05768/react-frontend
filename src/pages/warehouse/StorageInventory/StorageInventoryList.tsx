@@ -95,6 +95,7 @@ export default function StorageInventoryList() {
           inventoryCode: key,
           inventoryName: item.inventoryName || '',
           type: item.type || '',
+          customerName: item.customerName || '',
           totalQuantity: 0,
           storageCount: 0,
           items: [],
@@ -166,6 +167,7 @@ export default function StorageInventoryList() {
 
   const subColumnsForStorage = [
     { title: '庫存類型', dataIndex: 'type', align: 'center', width: 100, render: (val: string) => inventoryTypeOptions.find(o => o.value === val)?.label || '-' },
+    { title: '客戶', dataIndex: 'customerName', width: 240, render: (val: string) => val || <span className="text-gray-400">-</span> },
     { title: '物料編號', dataIndex: 'inventoryCode', width: 150 },
     { title: '物料名稱', dataIndex: 'inventoryName', render: (val: string) => <EllipsisText text={val} /> },
     { title: '庫存量', dataIndex: 'quantity', align: 'right', width: 120, render: renderQuantity },
@@ -175,6 +177,7 @@ export default function StorageInventoryList() {
   // Master Columns
   const inventoryMasterColumns = [
     { title: '庫存類型', dataIndex: 'type', align: 'center', width: 100, render: (val: string) => inventoryTypeOptions.find(o => o.value === val)?.label || '-' },
+    { title: '客戶', dataIndex: 'customerName', width: 240, render: (val: string) => val || <span className="text-gray-400">-</span> },
     { title: '物料編號', dataIndex: 'inventoryCode', width: 250 },
     { title: '物料名稱', dataIndex: 'inventoryName', render: (val: string) => <EllipsisText text={val} /> },
     { title: '總庫存量', dataIndex: 'totalQuantity', align: 'right', width: 120, render: (val: number) => val.toLocaleString('zh-TW') },

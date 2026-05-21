@@ -5565,6 +5565,10 @@ export type StorageInventoryDto = {
      * 目前數量/長度
      */
     quantity?: number;
+    /**
+     * 客戶名稱
+     */
+    customerName?: string | null;
 };
 
 export type StorageInventoryDtoIEnumerableApiResponse = {
