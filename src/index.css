@@ -226,3 +226,27 @@ body {
   border-color: var(--ant-color-primary) !important;
   box-shadow: 0 0 0 3px rgba(22, 104, 220, 0.4) !important;
 }
+
+/* === 方案 C：表單欄位名稱 (Label) 粗體字與色彩優化 === */
+.ant-form-item-label > label {
+  font-weight: 500 !important;
+}
+
+/* === 方案 C 延伸：全域調整啟用中輸入框、下拉選單、日期選擇器、數字輸入框之內容字體顏色稍淡，建立清晰的視覺層級 === */
+.ant-input:not(.ant-input-disabled),
+.ant-select:not(.ant-select-disabled) .ant-select-selection-item,
+.ant-input-number:not(.ant-input-number-disabled) .ant-input-number-input,
+.ant-picker:not(.ant-picker-disabled) .ant-picker-input > input,
+.ant-checkbox-wrapper:not(.ant-checkbox-wrapper-disabled),
+.ant-radio-wrapper:not(.ant-radio-wrapper-disabled) {
+  color: rgba(0, 0, 0, 0.65) !important;
+}
+
+:where(.dark, .dark *) .ant-input:not(.ant-input-disabled),
+:where(.dark, .dark *) .ant-select:not(.ant-select-disabled) .ant-select-selection-item,
+:where(.dark, .dark *) .ant-input-number:not(.ant-input-number-disabled) .ant-input-number-input,
+:where(.dark, .dark *) .ant-picker:not(.ant-picker-disabled) .ant-picker-input > input,
+:where(.dark, .dark *) .ant-checkbox-wrapper:not(.ant-checkbox-wrapper-disabled),
+:where(.dark, .dark *) .ant-radio-wrapper:not(.ant-radio-wrapper-disabled) {
+  color: rgba(255, 255, 255, 0.65) !important;
+}

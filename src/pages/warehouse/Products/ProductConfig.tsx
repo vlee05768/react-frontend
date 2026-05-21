@@ -136,7 +136,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   {
     label: "客戶",
     name: "businessPartnerName",
-    width: 200,
+    width: 220,
     render: (val: string, record: any) =>
       val || record.businessPartnerCode || "-",
   },
@@ -236,11 +236,11 @@ export const mainFormConfig = (): FormFieldConfig[] => [
   },
   {
     name: "type",
-    label: "產品類別",
+    label: "類別",
     componentType: "DictSelect",
-    componentProps: { dictKey: "PRODUCT_TYPE" },
+    componentProps: { dictKey: "FP_TYPE" },
     editable: "always",
-    validation: z.string().min(1, "請選擇產品類別"),
+    validation: z.string().min(1, "請選擇類別"),
     colSpan: 6,
   },
   {
@@ -302,6 +302,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     label: "單位",
     componentType: "Input",
     editable: "always",
+    validation: z.string().min(1, "請輸入單位"),
     colSpan: 4,
   },
   {
@@ -414,10 +415,10 @@ export const productSearchFormConfig = (): SearchFieldConfig[] => [
   },
   {
     name: "Types",
-    label: "產品類別",
+    label: "類別",
     componentType: "DictSelect",
     componentProps: {
-      dictKey: "PRODUCT_TYPE",
+      dictKey: "FP_TYPE",
       mode: "multiple",
     },
     colSpan: 2,
