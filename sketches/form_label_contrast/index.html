@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP 表單欄位名稱與內容顏色層級優化 Prototype</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        antdDarkBg: '#141414',
+                        antdDarkContainer: '#1f1f1f',
+                        antdLightBg: '#f5f5f5',
+                        antdLightContainer: '#ffffff',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 模擬 Ant Design 的輸入框樣式 */
+        .antd-input-standard {
+            width: 100%;
+            height: 32px;
+            padding: 4px 11px;
+            font-size: 14px;
+            line-height: 1.5715;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .light .antd-input-standard {
+            background-color: #ffffff;
+            border: 1px solid #d9d9d9;
+            color: rgba(0, 0, 0, 0.88); /* 標準深色 */
+        }
+        .dark .antd-input-standard {
+            background-color: #1f1f1f;
+            border: 1px solid #424242;
+            color: rgba(255, 255, 255, 0.88); /* 標準白色 */
+        }
+
+        .antd-input-lighter {
+            width: 100%;
+            height: 32px;
+            padding: 4px 11px;
+            font-size: 14px;
+            line-height: 1.5715;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .light .antd-input-lighter {
+            background-color: #ffffff;
+            border: 1px solid #d9d9d9;
+            color: rgba(0, 0, 0, 0.65); /* 優化後：內容文字稍淡 */
+        }
+        .dark .antd-input-lighter {
+            background-color: #1f1f1f;
+            border: 1px solid #424242;
+            color: rgba(255, 255, 255, 0.65); /* 優化後：內容文字稍淡 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-zinc-900 transition-colors duration-200 min-h-screen font-sans p-6 text-slate-800 dark:text-slate-200">
+
+    <div class="max-w-5xl mx-auto">
+        <!-- 頂部控制面板 -->
+        <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-6 mb-8 border border-gray-200 dark:border-zinc-700">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h1 class="text-xl font-bold mb-1 text-slate-900 dark:text-white">📝 表單「名稱與內容」視覺層級對比優化</h1>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">
+                        當欄位名稱（Label）設為方案 C 粗體高對比時，透過將「內容文字」微調稍淡（0.65 不透明度），能創造出極佳的視覺呼吸感與層級感，避免兩者顏色擠在一起。
+                    </p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="themeToggle" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
+                        <span id="themeIcon">🌙</span> <span id="themeText">切換至深色模式</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 方案展示區：對比效果 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+            <!-- 調整前：名稱與內容顏色一致 (同為 0.85/0.88 高飽和度) -->
+            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-md border border-gray-200 dark:border-zinc-700 overflow-hidden flex flex-col">
+                <div class="p-5 border-b border-gray-100 dark:border-zinc-700 bg-red-500/5 flex justify-between items-center">
+                    <div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">調整前</span>
+                        <h2 class="text-lg font-bold text-slate-800 dark:text-zinc-100 mt-2">顏色高度一致（缺乏層級）</h2>
+                    </div>
+                </div>
+                
+                <div class="p-6 flex-1 flex flex-col justify-between">
+                    <!-- 模擬表單 -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1.5 text-black/85 dark:text-white/85">
+                                產品編號 <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" class="antd-input-standard" value="PRD-2026-001" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1.5 text-black/85 dark:text-white/85">
+                                產品名稱 <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" class="antd-input-standard" value="0.05mm 雙面 PET 膠帶">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1.5 text-black/85 dark:text-white/85">
+                                產品類別 <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" class="antd-input-standard" value="量產">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1.5 text-black/85 dark:text-white/85">
+                                單位 <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" class="antd-input-standard" value="捲">
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-4 border-t border-gray-100 dark:border-zinc-700">
+                        <h3 class="text-xs font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-2">視覺反饋</h3>
+                        <ul class="text-xs space-y-1 text-slate-500 dark:text-zinc-400 list-disc list-inside">
+                            <li>名稱（Label）和內容（Value）的色彩飽和度都非常高。</li>
+                            <li>當整張表單有很多欄位時，所有字體擠在一起，使用者很難在 0.1 秒內迅速區分「哪個是欄位名、哪個是資料內容」。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 調整後：內容文字稍淡 (0.65 不透明度) -->
+            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-md border-2 border-emerald-500 dark:border-emerald-500/50 overflow-hidden flex flex-col relative">
+                <div class="absolute top-3 right-3 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    極佳層級 (推薦)
+                </div>
+                <div class="p-5 border-b border-gray-100 dark:border-zinc-700 bg-emerald-500/5 flex justify-between items-center">
+                    <div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">調整後</span>
+                        <h2 class="text-lg font-bold text-slate-800 dark:text-zinc-100 mt-2">內容文字稍淡（層級分明）</h2>
+                    </div>
+                </div>
+                
+                <div class="p-6 flex-1 flex flex-col justify-between">
+                    <!-- 模擬表單 -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1.5 text-black/85 dark:text-white/85">
+                                產品編號 <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" class="antd-input-lighter font-medium" value="PRD-2026-001" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1.5 text-black/85 dark:text-white/85">
+                                產品名稱 <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" class="antd-input-lighter" value="0.05mm 雙面 PET 膠帶">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1.5 text-black/85 dark:text-white/85">
+                                產品類別 <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" class="antd-input-lighter" value="量產">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1.5 text-black/85 dark:text-white/85">
+                                單位 <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" class="antd-input-lighter" value="捲">
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-4 border-t border-gray-100 dark:border-zinc-700">
+                        <h3 class="text-xs font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-2">視覺優勢</h3>
+                        <ul class="text-xs space-y-1 text-slate-500 dark:text-zinc-400 list-disc list-inside font-medium text-slate-700 dark:text-slate-300">
+                            <li class="text-emerald-600 dark:text-emerald-400">欄位名稱：深黑色粗體，依然極為明顯。</li>
+                            <li class="text-emerald-600 dark:text-emerald-400">內容文字：調整為稍淡的 `rgba(0,0,0,0.65)` / `rgba(255,255,255,0.65)`。</li>
+                            <li class="text-emerald-600 dark:text-emerald-400">當欄位名和內容粗細、深淺分明時，表單可讀性顯著提升！</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 程式碼實作 -->
+        <div class="mt-8 bg-white dark:bg-zinc-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-zinc-700">
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">🛠️ ERP 系統中的全域實作方式 (AntD & CSS)</h3>
+            <p class="text-sm text-slate-600 dark:text-slate-300 mb-4">
+                我們可以透過在 <code class="bg-gray-100 dark:bg-zinc-700 px-1 py-0.5 rounded text-rose-500 font-mono">src/App.tsx</code> 中修改全域輸入框文字顏色（即 `colorText`），或者在 <code class="bg-gray-100 dark:bg-zinc-700 px-1 py-0.5 rounded text-rose-500 font-mono">src/index.css</code> 中套用 Input / Select 等輸入框的預設字體顏色。為了維持最穩定的系統架構，我們直接透過 `ConfigProvider` 覆蓋 `colorText` 元件級樣式：
+            </p>
+            
+            <div class="bg-slate-950 rounded-lg p-4 font-mono text-xs text-slate-200 overflow-x-auto border border-zinc-800">
+<span class="text-emerald-500">// 於 src/App.tsx 的 ConfigProvider > theme > components 增加 Input / Select 的色值控制</span>
+&lt;<span class="text-blue-400">ConfigProvider</span>
+  <span class="text-purple-400">theme</span>=<span class="text-yellow-400">{{</span>
+    <span class="text-orange-400">token:</span> <span class="text-purple-400">{</span>
+      <span class="text-emerald-500">// 全域共通 Token</span>
+    <span class="text-purple-400}</span>,
+    <span class="text-orange-400">components:</span> <span class="text-purple-400">{</span>
+      <span class="text-blue-400">Form:</span> <span class="text-yellow-400">{</span>
+        <span class="text-orange-400">marginLG:</span> <span class="text-cyan-400">16</span>,
+        <span class="text-orange-400">labelColor:</span> <span class="text-cyan-400">mode === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)'</span>
+      <span class="text-yellow-400">}</span>,
+      <span class="text-emerald-500">// 🔥 調整輸入框內容文字顏色稍淡 (0.65 不透明度)</span>
+      <span class="text-blue-400">Input:</span> <span class="text-yellow-400">{</span>
+        <span class="text-orange-400">colorText:</span> <span class="text-cyan-400">mode === 'dark' ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)'</span>
+      <span class="text-yellow-400">}</span>,
+      <span class="text-emerald-500">// 🔥 調整 Select 下拉選單選中文字顏色稍淡 (0.65 不透明度)</span>
+      <span class="text-blue-400">Select:</span> <span class="text-yellow-400">{</span>
+        <span class="text-orange-400">colorText:</span> <span class="text-cyan-400">mode === 'dark' ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)'</span>
+      <span class="text-yellow-400">}</span>
+    <span class="text-purple-400">}</span>
+  <span class="text-yellow-400">}}</span>
+&gt;
+            </div>
+        </div>
+    </div>
+
+    <!-- 頁面邏輯 JS -->
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+        const html = document.documentElement;
+
+        // 預設為 light 模式
+        html.classList.add('light');
+
+        themeToggle.addEventListener('click', () => {
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                html.classList.add('light');
+                themeIcon.textContent = '🌙';
+                themeText.textContent = '切換至深色模式';
+            } else {
+                html.classList.remove('light');
+                html.classList.add('dark');
+                themeIcon.textContent = '☀️';
+                themeText.textContent = '切換至淺色模式';
+            }
+        });
+    </script>
+</body>
+</html>

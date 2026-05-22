@@ -111,16 +111,7 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
       promisedDeliveryDate: values.promisedDeliveryDate ? dayjs(values.promisedDeliveryDate).format('YYYY-MM-DD') : undefined,
     };
 
-    const isDuplicate = listData.some(
-      (item) => 
-        item.goodsCode === formattedValues.goodsCode && 
-        item.lineNumber !== editingItem?.lineNumber
-    );
-
-    if (isDuplicate) {
-      message.error(`此商品代碼 (${formattedValues.goodsCode}) 已存在於明細中，同張單據不可重複新增`);
-      return;
-    }
+    // 移除了重複商品代碼的限制，允許同商品多筆不同交期明細
 
     try {
       if (isCreating) {
@@ -137,36 +128,100 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
     if (!orderData.orderNumber) return;
     setIsBatchSubmitting(true);
     try {
-      const itemsToCreate = selectedProducts.map(p => ({
-        goodsType: 'P',
-        goodsCode: p.code || '',
-        goodsName: p.name || '',
-        customerProductId: p.customerProductId || undefined,
-        unitPrice: p.orderUnitPrice || 0,
-        quantity: p.orderQuantity || 1,
-        spareQuantity: 0,
-        requestedDeliveryDate: orderData.requestedDeliveryDate && dayjs(orderData.requestedDeliveryDate).isValid() ? dayjs(orderData.requestedDeliveryDate).format('YYYY-MM-DD') : undefined,
-        promisedDeliveryDate: orderData.promisedDeliveryDate && dayjs(orderData.promisedDeliveryDate).isValid() ? dayjs(orderData.promisedDeliveryDate).format('YYYY-MM-DD') : undefined,
-        isOutsource: false,
-        priority: '0001',
-      }));
+      // 1. 找出被刪除的項目：原本 listData 中有，但現在確認選擇的結果中沒有對應 lineNumber 的項目
+      const confirmedLineNumbers = new Set(selectedProducts.map(p => p.lineNumber).filter(Boolean));
+      const deletedItems = listData.filter(item => item.lineNumber && !confirmedLineNumbers.has(item.lineNumber));
 
-      // In React Query, we can use Promise.all to map over mutations or just call the API directly
-      await Promise.all(
-        itemsToCreate.map(item => 
-          postApiV1OrdersByOrderNumberDetails({
-            path: { orderNumber: orderData.orderNumber! },
-            body: item
-          })
-        )
-      );
+      // 2. 找出被修改的項目：在結果中有 lineNumber，且單價、數量或交期與原本不一致的
+      const modifiedItems = selectedProducts.filter(p => {
+        if (!p.lineNumber) return false;
+        const original = listData.find(item => item.lineNumber === p.lineNumber);
+        if (!original) return false;
 
-      message.success(`已成功新增 ${itemsToCreate.length} 項明細`);
+        const priceDiff = p.orderUnitPrice !== original.unitPrice;
+        const qtyDiff = p.orderQuantity !== original.quantity;
+
+        const origDate = original.requestedDeliveryDate ? dayjs(original.requestedDeliveryDate).format('YYYY-MM-DD') : '';
+        const newDate = p.requestedDeliveryDate ? dayjs(p.requestedDeliveryDate).format('YYYY-MM-DD') : '';
+        const dateDiff = origDate !== newDate;
+
+        return priceDiff || qtyDiff || dateDiff;
+      });
+
+      // 3. 找出新增的項目：沒有 lineNumber 的項目
+      const addedItems = selectedProducts.filter(p => !p.lineNumber);
+
+      // --- 開始並行執行批次異動 ---
+      
+      // 3.1 執行刪除
+      if (deletedItems.length > 0) {
+        await Promise.all(
+          deletedItems.map(item =>
+            deleteApiV1OrdersByOrderNumberDetailsByLineNumber({
+              path: { orderNumber: orderData.orderNumber!, lineNumber: item.lineNumber! }
+            })
+          )
+        );
+      }
+
+      // 3.2 執行更新
+      if (modifiedItems.length > 0) {
+        await Promise.all(
+          modifiedItems.map(p =>
+            putApiV1OrdersByOrderNumberDetailsByLineNumber({
+              path: { orderNumber: orderData.orderNumber!, lineNumber: p.lineNumber! },
+              body: {
+                goodsType: 'P',
+                goodsCode: p.code || '',
+                goodsName: p.name || '',
+                customerProductId: p.customerProductId || undefined,
+                unitPrice: p.orderUnitPrice || 0,
+                quantity: p.orderQuantity || 1,
+                spareQuantity: 0,
+                requestedDeliveryDate: p.requestedDeliveryDate 
+                  ? dayjs(p.requestedDeliveryDate).format('YYYY-MM-DD')
+                  : (orderData.requestedDeliveryDate && dayjs(orderData.requestedDeliveryDate).isValid() ? dayjs(orderData.requestedDeliveryDate).format('YYYY-MM-DD') : undefined),
+                promisedDeliveryDate: orderData.promisedDeliveryDate && dayjs(orderData.promisedDeliveryDate).isValid() ? dayjs(orderData.promisedDeliveryDate).format('YYYY-MM-DD') : undefined,
+                isOutsource: false,
+                priority: '0001',
+              }
+            })
+          )
+        );
+      }
+
+      // 3.3 執行新增
+      if (addedItems.length > 0) {
+        await Promise.all(
+          addedItems.map(p =>
+            postApiV1OrdersByOrderNumberDetails({
+              path: { orderNumber: orderData.orderNumber! },
+              body: {
+                goodsType: 'P',
+                goodsCode: p.code || '',
+                goodsName: p.name || '',
+                customerProductId: p.customerProductId || undefined,
+                unitPrice: p.orderUnitPrice || 0,
+                quantity: p.orderQuantity || 1,
+                spareQuantity: 0,
+                requestedDeliveryDate: p.requestedDeliveryDate 
+                  ? dayjs(p.requestedDeliveryDate).format('YYYY-MM-DD')
+                  : (orderData.requestedDeliveryDate && dayjs(orderData.requestedDeliveryDate).isValid() ? dayjs(orderData.requestedDeliveryDate).format('YYYY-MM-DD') : undefined),
+                promisedDeliveryDate: orderData.promisedDeliveryDate && dayjs(orderData.promisedDeliveryDate).isValid() ? dayjs(orderData.promisedDeliveryDate).format('YYYY-MM-DD') : undefined,
+                isOutsource: false,
+                priority: '0001',
+              }
+            })
+          )
+        );
+      }
+
+      message.success(`產品清單同步成功！(新增 ${addedItems.length} 筆，更新 ${modifiedItems.length} 筆，刪除 ${deletedItems.length} 筆)`);
       setIsPickerOpen(false);
       await queryClient.invalidateQueries({ queryKey: ['order', orderData.orderNumber] });
       await queryClient.invalidateQueries({ queryKey: ['orders'] });
     } catch (error: any) {
-      modal.error({ centered: true, title: '錯誤提示', content: `批次新增明細失敗: ${getApiErrorMessage(error)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: `批次同步明細失敗: ${getApiErrorMessage(error)}` });
     } finally {
       setIsBatchSubmitting(false);
     }
@@ -241,7 +296,9 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
         <CustomerProductPickerModal
           open={isPickerOpen}
           customerCode={orderData.businessPartnerCode}
-          excludeProductCodes={listData.map(item => item.goodsCode).filter(Boolean) as string[]}
+          excludeProductCodes={[]}
+          defaultDeliveryDate={orderData.requestedDeliveryDate || undefined}
+          initialItems={listData}
           onCancel={() => setIsPickerOpen(false)}
           onConfirm={handlePickerConfirm}
           loading={isBatchSubmitting}
