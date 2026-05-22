@@ -22,15 +22,15 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
   // 靜態查詢所有員工（因為員工數不多，一次性載入提升極致效能與操作手感）
   const { data: employeeData, isLoading: isEmployeesLoading } = useQuery({
     queryKey: ['all-employees'],
-    queryFn: () => getApiV1Employee({ query: { pageSize: 1000 } }),
+    queryFn: () => getApiV1Employee({ query: { pageSize: -1 } as any }),
     enabled: isOpen, // 僅在 Modal 開啟時進行查詢
   });
 
   const employeeOptions = useMemo(() => {
-    const rawList = employeeData?.data?.data?.data || [];
-    return rawList.map((emp) => ({
-      label: `${emp.employeeNo} - ${emp.name}`,
-      value: emp.employeeNo || '',
+    const rawList = (employeeData?.data as any)?.data?.data || (employeeData?.data as any)?.data || [];
+    return rawList.map((emp: any) => ({
+      label: `${emp.name || ''} (${emp.employeeNo || emp.employeeCode || ''})`,
+      value: emp.employeeNo || emp.employeeCode || '',
     }));
   }, [employeeData]);
 
@@ -113,7 +113,7 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
 
         // Note: AntD Select inside Table
         const filteredOptions = employeeOptions.filter(
-          (opt) => !excludeValues.includes(opt.value)
+          (opt: any) => !excludeValues.includes(opt.value)
         );
 
         return (
@@ -126,7 +126,7 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
             placeholder="請選擇員工"
             className="w-full"
             filterOption={(input, option) =>
-              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
             }
             options={filteredOptions}
             onChange={(newVal) => {
