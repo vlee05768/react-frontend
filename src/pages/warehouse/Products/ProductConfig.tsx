@@ -5,6 +5,7 @@ import type {
   TableColumnConfig,
 } from "@/components/Form/types";
 import { Tag } from "antd";
+import { Link } from "react-router-dom";
 import { EllipsisText } from "@/components/Table/EllipsisText";
 import { AsyncSelect } from "@/components/Form/AsyncSelect";
 
@@ -137,8 +138,23 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     label: "客戶",
     name: "businessPartnerName",
     width: 240,
-    render: (val: string, record: any) =>
-      val || record.businessPartnerCode || "-",
+    render: (val: string, record: any) => {
+      const code = record.businessPartnerCode;
+      const name = val || code || "-";
+      if (!code) return "-";
+      return (
+        <Link 
+          to={`/business-partners/${code}`} 
+          style={{ 
+            color: '#1677ff', 
+            textDecoration: 'underline',
+            cursor: 'pointer'
+          }}
+        >
+          <EllipsisText text={name} maxWidth={220} />
+        </Link>
+      );
+    },
   },
   { label: "客戶產品代碼", name: "customerProductId", width: 150 },
   { label: "終端產品代碼", name: "terminalProductId", width: 150 },
