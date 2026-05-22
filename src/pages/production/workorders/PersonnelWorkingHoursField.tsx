@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Modal, Input, Button, Table, Space, InputNumber, message } from 'antd';
+import React, { useState, useMemo } from 'react';
+import { Modal, Input, Button, Table, Space, InputNumber, message, Select } from 'antd';
 import { EditOutlined, EyeOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useQuery } from '@tanstack/react-query';
+import { getApiV1Employee } from '@/api/generated/sdk.gen';
 import type { WorkOrderPersonnelHourDto } from '@/api/generated/types.gen';
-import { AsyncSelect } from '@/components/Form/AsyncSelect';
 
 interface PersonnelWorkingHoursFieldProps {
   value?: WorkOrderPersonnelHourDto[];
@@ -18,6 +19,21 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
   const [isOpen, setIsOpen] = useState(false);
   const [tempList, setTempList] = useState<WorkOrderPersonnelHourDto[]>([]);
   
+  // 靜態查詢所有員工（因為員工數不多，一次性載入提升極致效能與操作手感）
+  const { data: employeeData, isLoading: isEmployeesLoading } = useQuery({
+    queryKey: ['all-employees'],
+    queryFn: () => getApiV1Employee({ query: { pageSize: 1000 } }),
+    enabled: isOpen, // 僅在 Modal 開啟時進行查詢
+  });
+
+  const employeeOptions = useMemo(() => {
+    const rawList = employeeData?.data?.data?.data || [];
+    return rawList.map((emp) => ({
+      label: `${emp.employeeNo} - ${emp.name}`,
+      value: emp.employeeNo || '',
+    }));
+  }, [employeeData]);
+
   const handleOpen = () => {
     setTempList(JSON.parse(JSON.stringify(value || [])));
     setIsOpen(true);
@@ -96,13 +112,23 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
           .filter(Boolean) as string[];
 
         // Note: AntD Select inside Table
+        const filteredOptions = employeeOptions.filter(
+          (opt) => !excludeValues.includes(opt.value)
+        );
+
         return (
-          <AsyncSelect
+          <Select
             id={`employee-select-${index}`}
-            configKey="EMPLOYEE"
-            value={val}
+            showSearch
+            loading={isEmployeesLoading}
+            value={val || undefined}
             disabled={disabled}
-            excludeValues={excludeValues}
+            placeholder="請選擇員工"
+            className="w-full"
+            filterOption={(input, option) =>
+              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            options={filteredOptions}
             onChange={(newVal) => {
               handleUpdate(index, 'employeeNumber', newVal);
               if (newVal) {
@@ -117,8 +143,6 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
                 }, 100);
               }
             }}
-            placeholder="請選擇員工"
-            className="w-full"
           />
         );
       }
