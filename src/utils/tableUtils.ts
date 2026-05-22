@@ -33,13 +33,29 @@ export function generateTableColumns<TValues>(
         defaultAlign = 'right';
       }
 
+      // 預設 render 函數
+      let render = tableProps.render;
+      if (config.name === 'serialNumber' && !render) {
+        render = (value: any, record: any, index: number) => {
+          const serial = record?.serialNumber || record?.SerialNumber || value;
+          if (serial !== undefined && serial !== null && serial !== '') {
+            return serial;
+          }
+          const line = record?.lineNumber || record?.LineNumber;
+          if (line !== undefined && line !== null && line !== '') {
+            return line;
+          }
+          return index + 1;
+        };
+      }
+
       return {
         title,
         dataIndex: config.name,
         key: config.name,
         width: tableProps.width,
         align: tableProps.align || defaultAlign,
-        render: tableProps.render,
+        render: render,
         sorter: tableProps.sortable === true ? true : (tableProps.sortable ? tableProps.sortable : undefined),
         fixed: tableProps.fixed,
       };
@@ -132,10 +148,25 @@ export function buildTableColumns<TValues>(
     // 預設 render 函數
     let render = config.render;
 
+    // 自動為 serialNumber 欄位注入備用渲染器
+    if (config.name === 'serialNumber' && !render) {
+      render = (value: any, record: any, index: number) => {
+        const serial = record?.serialNumber || record?.SerialNumber || value;
+        if (serial !== undefined && serial !== null && serial !== '') {
+          return serial;
+        }
+        const line = record?.lineNumber || record?.LineNumber;
+        if (line !== undefined && line !== null && line !== '') {
+          return line;
+        }
+        return index + 1;
+      };
+    }
+
     // 若設定了 ellipsis 且沒有提供自訂 render，或是在 custom render 之外想套用 tooltip
     // 在這裡我們可以覆寫 render，讓它自動包裝 EllipsisText
     if (config.ellipsis) {
-      const originalRender = config.render;
+      const originalRender = render;
       render = (value: any, record: TValues, index: number) => {
         // 如果原本就有提供 render，先取得它的結果，否則直接使用 value
         const content = originalRender ? originalRender(value, record, index) : value;

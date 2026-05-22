@@ -259,6 +259,13 @@ export const getItemColumns = (
     width: 100,
     align: "left",
     ellipsis: true,
+    render: (val: any, record: any, index: number) => {
+      const serial = record?.serialNumber || record?.SerialNumber || val;
+      if (serial !== undefined && serial !== null && serial !== '') return serial;
+      const line = record?.lineNumber || record?.LineNumber;
+      if (line !== undefined && line !== null && line !== '') return line;
+      return index + 1;
+    }
   },
   {
     title: "來源單號",

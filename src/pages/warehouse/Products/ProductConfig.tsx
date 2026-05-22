@@ -136,7 +136,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   {
     label: "客戶",
     name: "businessPartnerName",
-    width: 220,
+    width: 240,
     render: (val: string, record: any) =>
       val || record.businessPartnerCode || "-",
   },

@@ -53,7 +53,7 @@ export const getStatusTag = (
 };
 
 export const mainTableColumns = (): TableColumnConfig[] => [
-  { label: "單據號碼", name: "documentNumber", sortable: { multiple: 1 }, width: 100 },
+  { label: "單據號碼", name: "documentNumber", sortable: { multiple: 1 }, width: 140 },
   {
     label: "狀態",
     name: "status",
@@ -79,7 +79,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   {
     label: "確認日期",
     name: "confirmDate",
-    width: 100,
+    width: 180,
     render: (val: string) => (val ? dayjs(val).format("YYYY-MM-DD HH:mm:ss") : "-"),
   },
   {
@@ -139,7 +139,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
 export const itemTableColumns = (): TableColumnConfig[] => [
   {
     label: "序號",
-    name: "lineNumber",
+    name: "serialNumber",
     width: 80,
     align: "center",
   },
@@ -150,9 +150,9 @@ export const itemTableColumns = (): TableColumnConfig[] => [
     align: "center",
     render: (val: string) => {
       const map: Record<string, { label: string; color: string }> = {
-        Material: { label: "原料", color: "default" },
-        Product: { label: "產品", color: "success" },
-        SemiFinished: { label: "半成品", color: "warning" },
+        M: { label: "原料", color: "default" },
+        P: { label: "產品", color: "success" },
+        O: { label: "半成品", color: "warning" },
       };
       const config = map[val];
       return config ? <Tag color={config.color} className="m-0">{config.label}</Tag> : (val || "-");
@@ -161,7 +161,7 @@ export const itemTableColumns = (): TableColumnConfig[] => [
   {
     label: "製令單號",
     name: "referenceNumber",
-    width: 130,
+    width: 150,
   },
   {
     label: "料號",
@@ -171,6 +171,7 @@ export const itemTableColumns = (): TableColumnConfig[] => [
   {
     label: "品名",
     name: "inventoryName",
+    width: 220,
     ellipsis: true,
   },
   {
