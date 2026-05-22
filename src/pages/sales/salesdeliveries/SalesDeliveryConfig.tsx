@@ -1,4 +1,4 @@
-import { Space, Button } from "antd";
+import { Space, Button, Tooltip } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { z } from "zod";
 import { Tag } from "antd";
@@ -266,6 +266,66 @@ export const getItemColumns = (
     width: 160,
     align: "left",
     ellipsis: true,
+    render: (val, record: any) => {
+      let tooltipContent: React.ReactNode = null;
+      let displayText = val || "-";
+      let isMerged = false;
+
+      if (record.extraData) {
+        try {
+          const allocations = Array.isArray(record.extraData) 
+            ? record.extraData 
+            : (typeof record.extraData === 'object' && record.extraData !== null)
+              ? (record.extraData as any).rootElement 
+                ? JSON.parse(JSON.stringify(record.extraData)) 
+                : record.extraData
+              : JSON.parse(typeof record.extraData === 'string' ? record.extraData : '{}');
+          
+          const list = Array.isArray(allocations) ? allocations : (allocations?.data || []);
+          if (Array.isArray(list) && list.length > 0) {
+            const sourceItems = list.map((a, idx) => {
+              const num = a.OrderItemLineNumber || a.orderItemLineNumber || '未知';
+              const q = a.Quantity ?? a.quantity ?? 0;
+              return (
+                <div key={idx} style={{ whiteSpace: 'nowrap', lineHeight: '1.6' }}>
+                  {num} ({Number(q).toLocaleString()})
+                </div>
+              );
+            });
+            tooltipContent = <div style={{ padding: '2px 0' }}>{sourceItems}</div>;
+
+            if (list.length > 1) {
+              isMerged = true;
+              displayText = `[合併 ${list.length} 筆訂單]`;
+            } else {
+              displayText = list[0].OrderItemLineNumber || list[0].orderItemLineNumber || val || "-";
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      if (!tooltipContent && val) {
+        tooltipContent = <div style={{ padding: '2px 0' }}>{val}</div>;
+      }
+
+      if (!tooltipContent) {
+        return <span>-</span>;
+      }
+
+      return (
+        <Tooltip title={tooltipContent} placement="topLeft">
+          {isMerged ? (
+            <span style={{ color: 'var(--ant-color-primary)', fontWeight: '500', textDecoration: 'underline decoration-dotted', cursor: 'pointer' }}>
+              {displayText}
+            </span>
+          ) : (
+            <span style={{ cursor: 'pointer' }}>{displayText}</span>
+          )}
+        </Tooltip>
+      );
+    }
   },
   {
     title: "料號",

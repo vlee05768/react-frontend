@@ -121,9 +121,14 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
     selectedRows.forEach(item => {
       const key = item.lineNumber || '';
       if (newQuantities[key] === undefined) {
-        const remainingQty = item.quantityRemaining || 0;
+        // 計算常規剩餘可用額度，作為預設出貨數量（不含備品，因為備品僅為參考用途）
+        const regularQty = Number(item.quantity) || 0;
+        const shippedQty = Number(item.quantityShipped) || 0;
+        const cancelledQty = Number(item.quantityCancelled) || 0;
+        const remainingRegularQty = Math.max(0, regularQty - shippedQty - cancelledQty);
+
         const stockQty = item.stockQuantity || 0;
-        const maxQty = Math.min(remainingQty, stockQty);
+        const maxQty = Math.min(remainingRegularQty, stockQty);
         newQuantities[key] = maxQty > 0 ? maxQty : 0;
       }
       if (newPrices[key] === undefined) {
@@ -154,28 +159,148 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
       return;
     }
 
-    const salesDeliveryItems: CreateSalesDeliveryItemDto[] = selectedItems.map(item => {
+    // 1. 建立扁平的「分攤單元」列表
+    interface AllocationUnit {
+      orderItemLineNumber: string;
+      goodsCode: string;
+      goodsName: string;
+      goodsType: string;
+      customerPoNumber: string;
+      customerProductId: string;
+      transactionType: 'INV' | 'SP';
+      unitPrice: number;
+      quantity: number;
+    }
+
+    const allocationUnits: AllocationUnit[] = [];
+
+    selectedItems.forEach(item => {
       const key = item.lineNumber || '';
       const deliveryQty = Number(deliveryQuantities[key]) || 0;
       const unitPrice = deliveryPrices[key] !== undefined ? Number(deliveryPrices[key]) : (Number(item.unitPrice) || 0);
 
-      return {
-        lineNumber: '', // Let parent or backend assign
-        referenceNumber: item.lineNumber || '',
-        inventoryType: item.goodsType || '',
-        inventoryCode: item.goodsCode || '',
-        inventoryName: item.goodsName || '',
+      // 計算常規可出貨餘額：常規數量 - 已出貨 - 已取消
+      const regularQty = Number(item.quantity) || 0;
+      const shippedQty = Number(item.quantityShipped) || 0;
+      const cancelledQty = Number(item.quantityCancelled) || 0;
+      const remainingRegularQty = Math.max(0, regularQty - shippedQty - cancelledQty);
+
+      if (deliveryQty > remainingRegularQty) {
+        // 部分常規，部分備品
+        if (remainingRegularQty > 0) {
+          allocationUnits.push({
+            orderItemLineNumber: item.lineNumber || '',
+            goodsCode: item.goodsCode || '',
+            goodsName: item.goodsName || '',
+            goodsType: item.goodsType || '',
+            customerPoNumber: item.customerPoNumber || '',
+            customerProductId: item.customerProductId || '',
+            transactionType: 'INV',
+            unitPrice: unitPrice,
+            quantity: remainingRegularQty,
+          });
+        }
+
+        const spareQtyToShip = deliveryQty - remainingRegularQty;
+        if (spareQtyToShip > 0) {
+          allocationUnits.push({
+            orderItemLineNumber: item.lineNumber || '',
+            goodsCode: item.goodsCode || '',
+            goodsName: item.goodsName || '',
+            goodsType: item.goodsType || '',
+            customerPoNumber: item.customerPoNumber || '',
+            customerProductId: item.customerProductId || '',
+            transactionType: 'SP',
+            unitPrice: 0, // 備品單價強製為 0
+            quantity: spareQtyToShip,
+          });
+        }
+      } else {
+        // 全部常規
+        if (deliveryQty > 0) {
+          allocationUnits.push({
+            orderItemLineNumber: item.lineNumber || '',
+            goodsCode: item.goodsCode || '',
+            goodsName: item.goodsName || '',
+            goodsType: item.goodsType || '',
+            customerPoNumber: item.customerPoNumber || '',
+            customerProductId: item.customerProductId || '',
+            transactionType: 'INV',
+            unitPrice: unitPrice,
+            quantity: deliveryQty,
+          });
+        }
+      }
+    });
+
+    // 2. 將分攤單元依據「商品編碼 + 單價 + 出貨類型 (INV/SP)」進行合併 (Group By)
+    const groups: Record<string, {
+      units: AllocationUnit[];
+      goodsCode: string;
+      goodsName: string;
+      goodsType: string;
+      unitPrice: number;
+      transactionType: 'INV' | 'SP';
+      totalQuantity: number;
+    }> = {};
+
+    allocationUnits.forEach(unit => {
+      // 合併 Key：編碼 + 單價 + 交易類型
+      const groupKey = `${unit.goodsCode}_${unit.unitPrice}_${unit.transactionType}`;
+      if (!groups[groupKey]) {
+        groups[groupKey] = {
+          units: [],
+          goodsCode: unit.goodsCode,
+          goodsName: unit.goodsName,
+          goodsType: unit.goodsType,
+          unitPrice: unit.unitPrice,
+          transactionType: unit.transactionType,
+          totalQuantity: 0,
+        };
+      }
+      groups[groupKey].units.push(unit);
+      groups[groupKey].totalQuantity += unit.quantity;
+    });
+
+    // 3. 轉換為後端接收的 CreateSalesDeliveryItemDto[]
+    const salesDeliveryItems: CreateSalesDeliveryItemDto[] = Object.values(groups).map(g => {
+      // 用於外鍵約束：ReferenceNumber 必須是指向其中一筆參與合併的合法 OrderItemLineNumber 
+      const primaryLineNumber = g.units[0].orderItemLineNumber;
+
+      // 建立分攤明細 ExtraData (物件陣列)
+      const extraDataList = g.units.map(u => ({
+        OrderItemLineNumber: u.orderItemLineNumber,
+        Quantity: u.quantity,
+      }));
+
+      // 客戶訂單號 (多筆合併時，將多張 PO 串接去重，方便畫面識別)
+      const poNumbers = Array.from(new Set(g.units.map(u => u.customerPoNumber).filter(Boolean)));
+      const partnerDocNum = poNumbers.join(',') || g.units[0].customerPoNumber || '';
+
+      // 客戶產品編碼
+      const prodIds = Array.from(new Set(g.units.map(u => u.customerProductId).filter(Boolean)));
+      const partnerProdId = prodIds.join(',') || g.units[0].customerProductId || '';
+
+      // 建構出貨明細
+      const itemDto: any = {
+        referenceNumber: primaryLineNumber, // 滿足資料庫的外鍵約束 (FK Constraint)
+        inventoryType: g.goodsType,
+        inventoryCode: g.goodsCode,
+        inventoryName: g.goodsName,
         subType: 'OD',
-        transactionType: 'SA',
-        partnerDocumentNumber: item.customerPoNumber || '',
-        partnerProductId: item.customerProductId || '',
-        unitPrice: unitPrice,
-        quantity: deliveryQty,
-        amount: unitPrice * deliveryQty,
-        quantityShipped: 0,
+        transactionType: g.transactionType,
+        partnerDocumentNumber: partnerDocNum,
+        partnerProductId: partnerProdId,
+        unitPrice: g.unitPrice,
+        quantity: g.totalQuantity,
         sourceStorageCode: 'TW-GEN-INV',
-        notes: `由訂單 ${item.orderNumber} 行號 ${item.lineNumber} 轉入`,
+        notes: g.transactionType === 'SP' 
+          ? `合併備品出貨，分攤來源：${g.units.map(u => `${u.orderItemLineNumber}(${u.quantity})`).join(', ')}`
+          : `合併常規出貨，分攤來源：${g.units.map(u => `${u.orderItemLineNumber}(${u.quantity})`).join(', ')}`,
+        extraData: extraDataList, // 後端認可的 JSON 格式 (在 ASP.NET Core 端會自動被對應為 JsonDocument)
       };
+
+      return itemDto as CreateSalesDeliveryItemDto;
     });
 
     onConfirm(salesDeliveryItems);
@@ -183,7 +308,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
 
   const columns = useMemo(() => {
     const configs: TableColumnConfig<UndeliveredOrderItemsDto>[] = [
-      { label: '訂單單號', name: 'lineNumber', width: 180 },
+      { label: '訂單單號', name: 'lineNumber', width: 180, fixed: 'left' },
       { label: '商品編碼', name: 'goodsCode', width: 140 },
       { label: '商品名稱', name: 'goodsName', width: 200, ellipsis: true },
 
@@ -380,7 +505,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
               }
             }}
             rowSelection={{
-              fixed: true,
+              fixed: 'left',
               selectedRowKeys: checkedRowKeys,
               onChange: onRowSelectionChange,
               onSelect: (record, selected) => {

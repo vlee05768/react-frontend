@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Table, Button, App, Space, Typography } from 'antd';
 import type { SalesDeliveryItemDto, CreateSalesDeliveryItemDto } from '@/api/generated/types.gen';
 import { 
@@ -28,6 +28,39 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
   const { modal, message } = App.useApp();
   const [showPicker, setShowPicker] = useState(false);
   const [editingItem, setEditingItem] = useState<SalesDeliveryItemDto | null>(null);
+
+  const originalOrderItems = useMemo(() => {
+    const keys = new Set<string>();
+    items.forEach((i: any) => {
+      if (i.referenceNumber) {
+        keys.add(i.referenceNumber);
+      }
+      if (i.extraData) {
+        try {
+          const allocations = Array.isArray(i.extraData) 
+            ? i.extraData 
+            : (typeof i.extraData === 'object' && i.extraData !== null)
+              ? (i.extraData as any).rootElement 
+                ? JSON.parse(JSON.stringify(i.extraData)) 
+                : i.extraData
+              : JSON.parse(typeof i.extraData === 'string' ? i.extraData : '{}');
+          
+          const list = Array.isArray(allocations) ? allocations : (allocations?.data || []);
+          if (Array.isArray(list)) {
+            list.forEach((alloc: any) => {
+              const lineNum = alloc.OrderItemLineNumber || alloc.orderItemLineNumber || alloc.lineNumber || alloc.LineNumber;
+              if (lineNum) {
+                keys.add(lineNum);
+              }
+            });
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    });
+    return Array.from(keys);
+  }, [items]);
 
   const canModifyItems = !isEditing && !isConfirmed;
   const isViewMode = !canModifyItems;
@@ -167,7 +200,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
       <UndeliveredOrderItemPicker
         open={showPicker}
         customerCode={customerCode}
-        originalOrderItems={items.map(i => i.referenceNumber).filter(Boolean) as string[]}
+        originalOrderItems={originalOrderItems}
         onClose={() => setShowPicker(false)}
         onConfirm={handlePickerConfirm}
       />
