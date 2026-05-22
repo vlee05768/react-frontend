@@ -473,8 +473,7 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
         status: !record.productionCompleteDate ? 'wait' : (record.warehousingCompleteDate ? 'finish' : 'process'),
         date: record.productionCompleteDate,
         user: record.productionCompleteUser 
-          ? `生產: ${record.productionCompleteUser}${workerNames ? ` (工時: ${workerNames})` : ''}`
-          : (workerNames ? `工時人員: ${workerNames}` : null),
+          ? `生產: ${record.productionCompleteUser}` : null,
       },
       {
         title: '完工入庫',
