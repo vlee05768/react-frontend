@@ -443,12 +443,6 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
 
   let steps: LifecycleStep[] = [];
   if (record) {
-    const hoursList = record.personnelWorkingHours || [];
-    const workerNames = hoursList
-      .map((h: any) => h.employeeName || h.employeeNumber)
-      .filter(Boolean)
-      .join(', ');
-
     steps = [
       {
         title: '準備中',

@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import type { UndeliveredOrderItemsDto, CreateSalesDeliveryItemDto } from '@/api/generated/types.gen';
 import { getApiV1OrdersCustomerByCustomerCodeUndeliveredItems } from '@/api/generated/sdk.gen';
+import type { TableColumnConfig } from '@/components/Form/types';
+import { buildTableColumns } from '@/utils/tableUtils';
 
 interface Props {
   open: boolean;
@@ -179,118 +181,132 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
     onConfirm(salesDeliveryItems);
   };
 
-  const columns: any[] = [
-    { title: '訂單單號', dataIndex: 'lineNumber', width: 180 },
-    { title: '商品編碼', dataIndex: 'goodsCode', width: 140 },
-    { title: '商品名稱', dataIndex: 'goodsName', width: 200, ellipsis: true },
+  const columns = useMemo(() => {
+    const configs: TableColumnConfig<UndeliveredOrderItemsDto>[] = [
+      { label: '訂單單號', name: 'lineNumber', width: 180 },
+      { label: '商品編碼', name: 'goodsCode', width: 140 },
+      { label: '商品名稱', name: 'goodsName', width: 200, ellipsis: true },
 
-    { 
-      title: '訂購數量', 
-      width: 100, 
-      align: 'right', 
-      render: (_: any, row: UndeliveredOrderItemsDto) => {
-        const qty = (row.quantity || 0) + (row.spareQuantity || 0);
-        return qty.toLocaleString();
-      } 
-    },
-    { title: '已出貨數量', dataIndex: 'quantityShipped', width: 100, align: 'right', render: (val: any) => val != null ? Number(val).toLocaleString() : '0' },
-    { 
-      title: '剩餘數量', 
-      dataIndex: 'quantityRemaining', 
-      width: 100, 
-      align: 'right', 
-      render: (val: any) => <span style={{ fontWeight: 'bold', color: '#18a058' }}>{val != null ? Number(val).toLocaleString() : '0'}</span> 
-    },
-    { 
-      title: '單價', 
-      width: 140, 
-      align: 'right', 
-      render: (_: any, row: UndeliveredOrderItemsDto) => {
-        const key = row.lineNumber || '';
-        const isChecked = checkedRowKeys.includes(key);
-        const price = deliveryPrices[key] !== undefined ? deliveryPrices[key] : (Number(row.unitPrice) || 0);
+      { 
+        label: '訂單數量', 
+        name: 'quantity', 
+        width: 100, 
+        align: 'right', 
+        render: (_: any, row: UndeliveredOrderItemsDto) => {
+          const qty = (row.quantity || 0) + (row.spareQuantity || 0);
+          return qty.toLocaleString();
+        } 
+      },
+      { label: '已出貨數量', name: 'quantityShipped', width: 100, align: 'right', render: (val: any) => val != null ? Number(val).toLocaleString() : '0' },
+      { 
+        label: '剩餘數量', 
+        name: 'quantityRemaining', 
+        width: 100, 
+        align: 'right', 
+        render: (val: any) => <span style={{ fontWeight: 'bold', color: '#18a058' }}>{val != null ? Number(val).toLocaleString() : '0'}</span> 
+      },
+      { 
+        label: '現有庫存量', 
+        name: 'stockQuantity', 
+        width: 100, 
+        align: 'right', 
+        render: (val: any) => <span style={{ fontWeight: 'bold', color: '#faad14' }}>{val != null ? Number(val).toLocaleString() : '0'}</span> 
+      },
+      { label: '要求交期', name: 'requestedDeliveryDate', width: 100, render: (val: any) => val ? dayjs(val).format('YYYY-MM-DD') : '' },
+      { 
+        label: '單價', 
+        name: 'unitPrice', 
+        width: 110, 
+        align: 'right', 
+        render: (_: any, row: UndeliveredOrderItemsDto) => {
+          const key = row.lineNumber || '';
+          const isChecked = checkedRowKeys.includes(key);
+          const price = deliveryPrices[key] !== undefined ? deliveryPrices[key] : (Number(row.unitPrice) || 0);
 
-        return (
-          <Tooltip title={!isChecked ? "請先勾選此項目" : ""} placement="top">
-            <InputNumber
-              value={isChecked ? price : undefined}
-              disabled={!isChecked}
-              controls={false}
-              min={0}
-              size="small"
-              onFocus={(e) => e.target.select()}
-              onChange={(val) => {
-                if (val !== null) {
-                  setDeliveryPrices(prev => ({ ...prev, [key]: Number(val) }));
-                }
-              }}
-              style={{ width: '100px' }}
-            />
-          </Tooltip>
-        );
-      }
-    },
-  
-    {
-      title: '批量出貨數量',
-      width: 140,
-      align: 'right',
-      render: (_: any, row: UndeliveredOrderItemsDto) => {
-        const key = row.lineNumber || '';
-        const isChecked = checkedRowKeys.includes(key);
-        const qty = deliveryQuantities[key] || 0;
-        const remainingQty = Number(row.quantityRemaining) || 0;
-        const stockQty = Number(row.stockQuantity) || 0;
-        const maxLimit = Math.min(remainingQty, stockQty);
-        
-        let status: "" | "error" | "warning" = "";
-        if (isChecked) {
-          if (qty > remainingQty) status = "error";
-          else if (qty <= 0) status = "warning";
+          return (
+            <Tooltip title={!isChecked ? "請先勾選此項目" : ""} placement="top">
+              <InputNumber
+                value={isChecked ? price : undefined}
+                disabled={!isChecked}
+                controls={false}
+                min={0}
+                size="small"
+                onFocus={(e) => e.target.select()}
+                onChange={(val) => {
+                  if (val !== null) {
+                    setDeliveryPrices(prev => ({ ...prev, [key]: Number(val) }));
+                  }
+                }}
+                style={{ width: '100px' }}
+              />
+            </Tooltip>
+          );
         }
+      },
+    
+      {
+        label: '本次出貨量',
+        name: 'deliveryQuantity' as any,
+        width: 120,
+        align: 'right',
+        render: (_: any, row: UndeliveredOrderItemsDto) => {
+          const key = row.lineNumber || '';
+          const isChecked = checkedRowKeys.includes(key);
+          const qty = deliveryQuantities[key] || 0;
+          const remainingQty = Number(row.quantityRemaining) || 0;
+          const stockQty = Number(row.stockQuantity) || 0;
+          const maxLimit = Math.min(remainingQty, stockQty);
+          
+          let status: "" | "error" | "warning" = "";
+          if (isChecked) {
+            if (qty > remainingQty) status = "error";
+            else if (qty <= 0) status = "warning";
+          }
 
-        return (
-          <Tooltip title={!isChecked ? "請先勾選此項目" : ""} placement="top">
-            <InputNumber
-              id={`qty-input-${key}`}
-              value={isChecked ? qty : undefined}
-              disabled={!isChecked}
-              controls={false}
-              min={0}
-              max={maxLimit}
-              size="small"
-              status={status}
-              placeholder="0.00"
-              onFocus={(e) => e.target.select()}
-              onChange={(value) => {
-                setDeliveryQuantities(prev => ({ ...prev, [key]: value || 0 }));
-              }}
-              style={{ width: 100 }}
-            />
-          </Tooltip>
-        );
-      }
-    },
-    {
-      title: '小計',
-      width: 120,
-      align: 'right',
-      render: (_: any, row: UndeliveredOrderItemsDto) => {
-        const key = row.lineNumber || '';
-        const isChecked = checkedRowKeys.includes(key);
-        if (!isChecked) return '0';
-        
-        const price = deliveryPrices[key] !== undefined ? deliveryPrices[key] : (Number(row.unitPrice) || 0);
-        const qty = deliveryQuantities[key] || 0;
-        return (price * qty).toLocaleString();
-      }
-    },      
-    { title: '備品數量', dataIndex: 'spareQuantity', width: 100, align: 'right', render: (val: any) => val != null ? Number(val).toLocaleString() : '0' },
-    { title: '現有庫存量', dataIndex: 'stockQuantity', width: 100, align: 'right', render: (val: any) => val != null ? Number(val).toLocaleString() : '0' },
-    { title: '要求交期', dataIndex: 'requestedDeliveryDate', width: 120, render: (val: any) => val ? dayjs(val).format('YYYY-MM-DD') : '' },
-    { title: '製令單號', dataIndex: 'workOrderNumber', width: 120, ellipsis: true, render: (val: any) => val || '-' },
-    { title: '備註', dataIndex: 'notes', width: 150, ellipsis: true },
-  ];
+          return (
+            <Tooltip title={!isChecked ? "請先勾選此項目" : ""} placement="top">
+              <InputNumber
+                id={`qty-input-${key}`}
+                value={isChecked ? qty : undefined}
+                disabled={!isChecked}
+                controls={false}
+                min={0}
+                max={maxLimit}
+                size="small"
+                status={status}
+                placeholder="0.00"
+                onFocus={(e) => e.target.select()}
+                onChange={(value) => {
+                  setDeliveryQuantities(prev => ({ ...prev, [key]: value || 0 }));
+                }}
+                style={{ width: 100 }}
+              />
+            </Tooltip>
+          );
+        }
+      },
+      {
+        label: '小計',
+        name: 'subTotal' as any,
+        width: 120,
+        align: 'right',
+        render: (_: any, row: UndeliveredOrderItemsDto) => {
+          const key = row.lineNumber || '';
+          const isChecked = checkedRowKeys.includes(key);
+          if (!isChecked) return '0';
+          
+          const price = deliveryPrices[key] !== undefined ? deliveryPrices[key] : (Number(row.unitPrice) || 0);
+          const qty = deliveryQuantities[key] || 0;
+          return (price * qty).toLocaleString();
+        }
+      },      
+      { label: '備品數量', name: 'spareQuantity', width: 100, align: 'right', render: (val: any) => val != null ? Number(val).toLocaleString() : '0' },
+      { label: '製令單號', name: 'workOrderNumber', width: 120, ellipsis: true, render: (val: any) => val || '-' },
+      { label: '備註', name: 'notes', width: 150, ellipsis: true },
+    ];
+
+    return buildTableColumns(configs, undefined, undefined, { showAudit: false });
+  }, [checkedRowKeys, deliveryPrices, deliveryQuantities, tableData]);
 
   return (
     <Modal
