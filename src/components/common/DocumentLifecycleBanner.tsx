@@ -36,6 +36,12 @@ export const DocumentLifecycleBanner: React.FC<DocumentLifecycleBannerProps> = (
             title: step.isManualClose ? <span className="text-gray-600 dark:text-gray-400">{step.title}</span> : step.title,
             status: step.status,
             icon,
+            description: (step.date || step.user) ? (
+              <div className="text-center text-xs mt-1 text-gray-500 dark:text-gray-400">
+                {step.date && <div className="whitespace-nowrap">{dayjs(step.date).format('YYYY-MM-DD HH:mm')}</div>}
+                {step.user && <div className="whitespace-nowrap">{step.user}</div>}
+              </div>
+            ) : undefined,
             content: (step.date || step.user) ? (
               <div className="text-center text-xs mt-1 text-gray-500 dark:text-gray-400">
                 {step.date && <div className="whitespace-nowrap">{dayjs(step.date).format('YYYY-MM-DD HH:mm')}</div>}

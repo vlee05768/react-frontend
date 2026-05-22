@@ -443,36 +443,44 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
 
   let steps: LifecycleStep[] = [];
   if (record) {
+    const hoursList = record.personnelWorkingHours || [];
+    const workerNames = hoursList
+      .map((h: any) => h.employeeName || h.employeeNumber)
+      .filter(Boolean)
+      .join(', ');
+
     steps = [
       {
         title: '準備中',
         status: record.preparationConfirmDate ? 'finish' : 'process',
         date: record.createdAt,
-        user: record.createdBy,
+        user: record.createdBy ? `建立: ${record.createdBy}` : null,
       },
       {
         title: '備料確認',
         status: !record.preparationConfirmDate ? 'wait' : (record.laminationConfirmDate ? 'finish' : 'process'),
         date: record.preparationConfirmDate,
-        user: record.preparationConfirmUser,
+        user: record.preparationConfirmUser ? `備料: ${record.preparationConfirmUser}` : null,
       },
       {
         title: '貼合確認',
         status: !record.laminationConfirmDate ? 'wait' : (record.productionCompleteDate ? 'finish' : 'process'),
         date: record.laminationConfirmDate,
-        user: record.laminationConfirmUser,
+        user: record.laminationConfirmUser ? `貼合: ${record.laminationConfirmUser}` : null,
       },
       {
         title: '生產完工',
         status: !record.productionCompleteDate ? 'wait' : (record.warehousingCompleteDate ? 'finish' : 'process'),
         date: record.productionCompleteDate,
-        user: record.productionCompleteUser,
+        user: record.productionCompleteUser 
+          ? `生產: ${record.productionCompleteUser}${workerNames ? ` (工時: ${workerNames})` : ''}`
+          : (workerNames ? `工時人員: ${workerNames}` : null),
       },
       {
         title: '完工入庫',
         status: !record.warehousingCompleteDate ? 'wait' : 'finish',
         date: record.warehousingCompleteDate,
-        user: record.warehousingCompleteUser,
+        user: record.warehousingCompleteUser ? `入庫: ${record.warehousingCompleteUser}` : null,
       }
     ];
   }
