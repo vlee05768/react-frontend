@@ -380,6 +380,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
               }
             }}
             rowSelection={{
+              fixed: true,
               selectedRowKeys: checkedRowKeys,
               onChange: onRowSelectionChange,
               onSelect: (record, selected) => {
