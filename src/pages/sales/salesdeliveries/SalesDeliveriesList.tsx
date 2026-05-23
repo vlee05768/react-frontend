@@ -8,8 +8,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   getApiV1SalesDelivery, 
   deleteApiV1SalesDeliveryByMovementNumber,
-  postApiV1SalesDeliveryByMovementNumberConfirm,
-  postApiV1SalesDeliveryByMovementNumberCancelConfirm,
   getApiV1SalesDeliveryByMovementNumberSalesDeliveryReport
 } from '@/api/generated/sdk.gen';
 import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
@@ -77,25 +75,12 @@ export default function SalesDeliveriesList() {
 
   const { downloadFile, isDownloading } = useFileDownload();
 
-  const handleAction = async (action: string, row: SalesDeliveryDto) => {
-    try {
-      if (action === 'confirm') await postApiV1SalesDeliveryByMovementNumberConfirm({ path: { movementNumber: row.documentNumber! } });
-      if (action === 'cancelConfirm') await postApiV1SalesDeliveryByMovementNumberCancelConfirm({ path: { movementNumber: row.documentNumber! } });
-      message.success('操作成功');
-      queryClient.invalidateQueries({ queryKey: ['salesdeliveries'] });
-    } catch (error) {
-      modal.error({ title: '錯誤', content: getApiErrorMessage(error) });
-    }
-  };
-
-
-
   const columns = useMemo(() => {
-    const baseColumns = getColumns((row) => navigate(`/sales/salesdeliveries/${row.documentNumber}`));
+    const baseColumns = getColumns();
     const actionColumn = {
       title: '操作',
       key: 'action',
-      width: 220, // 檢視 + 確認/取消 + 列印 + 刪除最多4個按鈕，設為 220
+      width: 120, // 檢視/列印/刪除，任一狀態下最多 2 個按鈕，設為 120
       fixed: 'right' as const,
       render: (_: any, record: SalesDeliveryDto) => {
         const canView = hasPermission('Sales.Deliveries.View');
@@ -106,17 +91,6 @@ export default function SalesDeliveriesList() {
         return (
           <TableActions
             onView={(canView || canUpdate) ? () => navigate(`/sales/salesdeliveries/${record.documentNumber}`) : undefined}
-            onConfirm={(!record.confirmDate && canConfirm) ? () => modal.confirm({
-              title: '確認銷貨單',
-              content: '確定要確認此銷貨單嗎？確認後將扣減庫存並產生庫存過帳憑證。',
-              onOk: () => handleAction('confirm', record)
-            }) : undefined}
-            onCancelConfirm={(record.confirmDate && canConfirm) ? () => modal.confirm({
-              title: '取消確認銷貨單',
-              content: '警告：確定要取消確認此銷貨單嗎？取消後將恢復庫存，並可能影響已產生的帳款對帳。',
-              okButtonProps: { danger: true },
-              onOk: () => handleAction('cancelConfirm', record)
-            }) : undefined}
             onPrint={(record.confirmDate && canConfirm) ? () => {
               downloadFile({
                 apiFunction: () => getApiV1SalesDeliveryByMovementNumberSalesDeliveryReport({ 
@@ -195,7 +169,7 @@ export default function SalesDeliveriesList() {
                   {params.SortRules.split(',').map((rule: string) => {
                     const [field, order] = rule.split(':');
                     if (!field) return null;
-                    const col = getColumns(() => {}).find(c => c.name === field);
+                    const col = getColumns().find(c => c.name === field);
                     const label = col ? col.label : field;
                     return (
                       <Tag
@@ -242,10 +216,6 @@ export default function SalesDeliveriesList() {
             onChange={handleTableChange}
             scroll={{ x: 'max-content', y: 300 }}
             size="middle"
-            onRow={(record) => ({
-              onClick: () => navigate(`/sales/salesdeliveries/${record.documentNumber}`),
-              className: 'cursor-pointer'
-            })}
           />
         </div>
       </Card>

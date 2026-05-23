@@ -43,20 +43,13 @@ export const searchConfig: SearchFieldConfig[] = [
   { name: "others", label: "備註/地址", componentType: "Input", colSpan: 2 },
 ];
 
-export const getColumns = (
-  onEdit: (row: SalesDeliveryDto) => void,
-): TableColumnConfig<SalesDeliveryDto>[] => [
+export const getColumns = (): TableColumnConfig<SalesDeliveryDto>[] => [
   {
     label: "單據號碼",
     name: "documentNumber",
     width: 150,
     fixed: "left",
     sortable: { multiple: 1 },
-    render: (val, row) => (
-      <a onClick={(e) => { e.preventDefault(); onEdit(row); }} className="text-blue-500 hover:underline">
-        {val}
-      </a>
-    ),
   },
   { label: "單據日期", name: "documentDate", width: 120, sortable: { multiple: 2 }, render: (val) => (val ? dayjs(val).format("YYYY-MM-DD") : "-") },
   { label: "客戶代碼", name: "businessPartnerCode", width: 100 },
