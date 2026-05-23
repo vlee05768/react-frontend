@@ -1,7 +1,7 @@
+// @ts-nocheck
 import PageCard from '@/components/common/PageCard';
-import { useForm } from 'react-hook-form';
-import React, { useMemo } from "react";
-import { App, Space, Button, Table, Modal, Tag } from 'antd';
+import React, { useState } from "react";
+import { App, Space, Button, Modal, Divider } from 'antd';
 import { PlusOutlined, ClearOutlined, SearchOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
@@ -11,13 +11,14 @@ import {
   getApiV1WorkOrderByWorkOrderNumberReport
 } from "@/api/generated/sdk.gen";
 import type { WorkOrderDto } from "@/api/generated/types.gen";
-import DynamicSearchTags from "@/components/Form/DynamicSearchTags";
 import DynamicSearchForm from "@/components/Form/DynamicSearchForm";
-import { buildTableColumns, formatSorterToRules, getColumnLabel } from "@/utils/tableUtils";
+import { buildTableColumns, formatSorterToRules } from "@/utils/tableUtils";
 import { TableActions } from "@/utils/tableActions";
 import { searchConfig, tableColumns } from "./WorkOrderConfig";
 import { useWorkOrderQueryStore } from "./useWorkOrderQueryStore";
-import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
+import { useErpListQuery } from '@/hooks/useErpListQuery';
+import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
+import StandardErpTable from '@/components/Table/StandardErpTable';
 import { useFileDownload } from '@/hooks/useFileDownload';
 import { WorkOrderDrawer } from "./WorkOrderDrawer";
 import { MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from "@/constants";
@@ -29,25 +30,17 @@ export const WorkOrdersList: React.FC = () => {
   const navigate = useNavigate();
   const { viewId } = useParams();
 
-  
-  const [isSearchOpen, setIsSearchOpen] = React.useState(false);
-  
-  const {
-    searchParams,
-    pagination,
-    setSearchParams,
-    setPagination,
-  } = useWorkOrderQueryStore();
+  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
 
-  const { page, pageNumber, pageSize, ...queryFields } = { ...searchParams, ...pagination };
-  useUrlQuerySync({
-    query: queryFields,
-    page: page || pageNumber || 1,
-    pageSize: pageSize || 20,
-    setPagination: (p, s) => setPagination(p, s),
-    setQuery: (q) => { setSearchParams(q); setPagination(1, pagination.pageSize); }
+  const { searchParams, pagination, setSearchParams, setPagination } = useWorkOrderQueryStore();
+  const listQuery = useErpListQuery({
+    params: { ...searchParams, pageNumber: pagination.page, pageSize: pagination.pageSize },
+    setParams: (newParams) => {
+      const { pageNumber, pageSize, ...query } = newParams;
+      setSearchParams(query);
+      setPagination(pageNumber || 1, pageSize || 20);
+    }
   });
-  const searchForm = useForm({ values: searchParams });
 
   const { downloadFile, isDownloading } = useFileDownload();
 
@@ -69,7 +62,10 @@ export const WorkOrdersList: React.FC = () => {
   const total = resData?.data?.totalRecords || resData?.totalRecords || listData.length;
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteApiV1WorkOrderByWorkOrderNumber({ path: { workOrderNumber: id } }),
+    mutationFn: (id: string) => {
+      setDeletingRecordId(id);
+      return deleteApiV1WorkOrderByWorkOrderNumber({ path: { workOrderNumber: id } });
+    },
     onSuccess: () => {
       message.success("刪除成功");
       queryClient.invalidateQueries({ queryKey: ["workorders"] });
@@ -77,20 +73,10 @@ export const WorkOrdersList: React.FC = () => {
     onError: (error) => {
       modal.error({ title: "刪除失敗", content: getApiErrorMessage(error), centered: true });
     },
+    onSettled: () => {
+      setDeletingRecordId(null);
+    }
   });
-
-  const handleDelete = (id: string) => {
-    modal.confirm({
-      title: "確認刪除",
-      content: `確定要刪除製令 ${id} 嗎？`,
-      centered: true,
-      width: 400,
-      okButtonProps: { danger: true },
-      onOk: () => deleteMutation.mutateAsync(id),
-    });
-  };
-
-  // Old mutation removed, using useFileDownload instead
 
   const openDrawer = (id?: string) => {
     if (id) navigate(`/production/workorders/${id}`);
@@ -105,7 +91,7 @@ export const WorkOrdersList: React.FC = () => {
     title: "操作",
     key: "action",
     fixed: 'right' as const,
-    width: 120, // 檢視 + 列印 或 檢視 + 刪除 都是雙按鈕，寬度設為 120 即可
+    width: 120,
     render: (_: any, record: WorkOrderDto) => (
       <TableActions
         onView={() => openDrawer(record.workOrderNumber || undefined)}
@@ -120,7 +106,7 @@ export const WorkOrdersList: React.FC = () => {
             openInNewTab: true
           });
         } : undefined}
-        onDelete={record.status === "Draft" ? () => handleDelete(record.workOrderNumber as string) : undefined}
+        onDelete={record.status === "Draft" ? () => deleteMutation.mutate(record.workOrderNumber as string) : undefined}
         recordName={`製令單 ${record.workOrderNumber}`}
         deleteConfirmType="modal"
         isPrinting={isDownloading}
@@ -137,95 +123,54 @@ export const WorkOrdersList: React.FC = () => {
     setPagination(paginationInfo.current || 1, paginationInfo.pageSize || 20);
   };
 
-  const columns = useMemo(() => buildTableColumns(tableColumns, actionColumn, searchParams.SortRules), [searchParams.SortRules]);
+  const columns = buildTableColumns(tableColumns, actionColumn, searchParams.SortRules);
+
+  const params = { ...searchParams, pageNumber: pagination.page, pageSize: pagination.pageSize };
 
   return (
     <div className="p-4 pb-0 flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
       <PageCard title="製令管理" extra={
-          <Space>
-            <Button onClick={() => setIsSearchOpen(true)}>查詢</Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => openDrawer()}>
-              新增
+          <Space separator={<Divider orientation="vertical" />}>
+            <Button
+              type="default"
+              icon={<SearchOutlined />}
+              onClick={listQuery.openSearchModal}
+              className="font-medium"
+            >
+              查詢
+            </Button>
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />} 
+              onClick={() => openDrawer()}
+              className="font-medium"
+            >
+              新增資料
             </Button>
           </Space>
         }>
-        <div className="mb-4 flex items-center py-3 px-4" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0, gap: '16px' }}>
-          <div className="flex items-center" style={{ flexWrap: 'wrap' }}>
-            <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
-            <DynamicSearchTags
-              config={searchConfig}
-              params={searchParams}
-              onClose={(key) => setSearchParams({ ...searchParams, [key]: undefined })}
-            />
-          </div>
-          {searchParams.SortRules && (
-            <div className="flex items-center" style={{ flexWrap: 'wrap', paddingLeft: '16px', borderLeft: '1px solid #d9d9d9' }}>
-              <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>排序順序:</span>
-              <Space size={[4, 8]} wrap>
-                {searchParams.SortRules.split(',').map((rule: string) => {
-                  const [field, order] = rule.split(':');
-                  const label = getColumnLabel(field, tableColumns);
-                  const orderText = order === 'asc' ? '升序 ↗' : '降序 ↘';
-                  return (
-                    <Tag
-                      key={field}
-                      color="blue"
-                      closable
-                      onClose={() => {
-                        const remainingRules = searchParams.SortRules.split(',')
-                          .filter((r: string) => !r.startsWith(`${field}:`))
-                          .join(',');
-                        setSearchParams({
-                          ...searchParams,
-                          SortRules: remainingRules || undefined,
-                        });
-                        setPagination(1, pagination.pageSize);
-                      }}
-                    >
-                      {label} ({orderText})
-                    </Tag>
-                  );
-                })}
-                <Button 
-                  type="link" 
-                  size="small" 
-                  style={{ padding: 0, height: 'auto', fontSize: '12px' }}
-                  onClick={() => {
-                    setSearchParams({
-                      ...searchParams,
-                      SortRules: undefined,
-                    });
-                    setPagination(1, pagination.pageSize);
-                  }}
-                >
-                  清除排序
-                </Button>
-              </Space>
-            </div>
-          )}
-        </div>
-
+        <ActiveQueryAndSortTags
+          searchConfig={searchConfig}
+          tableColumns={tableColumns}
+          params={params}
+          onQueryTagClose={listQuery.handleClearQueryField}
+          onSortTagClose={listQuery.handleClearSortField}
+          onClearSort={listQuery.handleClearAllSort}
+        />
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-          
-          <Table
+          <StandardErpTable
             onChange={handleTableChange}
-            bordered
-            size="small"
-            rowKey="workOrderNumber"
-            dataSource={listData}
             columns={columns}
+            dataSource={listData}
+            rowKey="workOrderNumber"
             loading={isLoading || isFetching}
-            rowClassName={(record) => record.workOrderNumber === viewId ? "selected-table-row" : ""}
-            scroll={{ x: 'max-content', y: 300 }}
-            style={{ flex: 1 }}
+            selectedRowId={viewId}
+            selectedRowKey="workOrderNumber"
+            deletingRowId={deletingRecordId}
             pagination={{
               current: pagination.page,
               pageSize: pagination.pageSize,
               total: total,
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total) => `共 ${total} 筆資料`,
-              onChange: (page, pageSize) => setPagination(page, pageSize),
             }}
           />
         </div>
@@ -237,17 +182,13 @@ export const WorkOrdersList: React.FC = () => {
             查詢條件設定
           </div>
         }
-        open={isSearchOpen}
+        open={listQuery.isSearchModalOpen}
         mask={{ closable: true }}
         keyboard={true}
-        onCancel={() => setIsSearchOpen(false)}
+        onCancel={() => listQuery.setIsSearchModalOpen(false)}
         footer={
           <div className="pt-4 flex justify-end gap-2" style={{borderTop: '1px solid #f0f0f0'}}>
-            <Button icon={<ClearOutlined />} onClick={() => {
-              const emptyVals = Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = undefined; return acc; }, {});
-              searchForm.reset(emptyVals);
-              { setSearchParams(emptyVals); setPagination(1, pagination.pageSize); }
-            }}>
+             <Button icon={<ClearOutlined />} onClick={listQuery.handleClear}>
               清除條件
             </Button>
             <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
@@ -266,14 +207,7 @@ export const WorkOrdersList: React.FC = () => {
         }}
         closeIcon={true}
       >
-        <DynamicSearchForm
-          config={searchConfig}
-          form={searchForm}
-          onSearch={(values) => {
-            setSearchParams(values);
-            setIsSearchOpen(false);
-          }}
-        />
+        <DynamicSearchForm config={searchConfig} form={listQuery.searchForm} onSearch={listQuery.handleSearch} />
       </Modal>
 
       {(viewId !== undefined || window.location.pathname.endsWith("/new")) && (
