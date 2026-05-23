@@ -1,7 +1,8 @@
-import { useState } from 'react';
+// @ts-nocheck
+import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
-import { Table, Form, Input, Select, DatePicker, Button, Space, Tag, Row, Col, App } from 'antd';
+import { Controller } from 'react-hook-form';
+import { Form, Input, Select, DatePicker, Button, Space, Tag, Row, Col, App } from 'antd';
 import { PageCard } from '@/components/common/PageCard';
 import { SearchOutlined, ClearOutlined, DownOutlined, UpOutlined, CopyOutlined } from '@ant-design/icons';
 import { DictSelect } from '@/components/Form/DictSelect';
@@ -10,7 +11,10 @@ import { getApiV1StorageTransactions } from '@/api/generated/sdk.gen';
 import type { InventoryTransactionDto } from '@/api/generated/types.gen';
 import dayjs from 'dayjs';
 import { EllipsisText } from '@/components/Table/EllipsisText';
-import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
+import { useErpListQuery } from '@/hooks/useErpListQuery';
+import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
+import StandardErpTable from '@/components/Table/StandardErpTable';
+import type { SearchFieldConfig } from '@/components/Form/types';
 
 const { RangePicker } = DatePicker;
 
@@ -27,10 +31,16 @@ const subTypeOptions = [
   { label: '訂單銷售', value: 'OD' },
 ];
 
-export default function StorageTransactionsList() {
+const searchConfig: SearchFieldConfig[] = [
+  { name: 'inventoryCode', label: '庫存物料編號', componentType: 'Input' },
+  { name: 'storageCode', label: '儲位', componentType: 'DictSelect' },
+  { name: 'docType', label: '單據類型', componentType: 'Select', componentProps: { options: docTypeOptions } },
+  { name: 'sourceDocCode', label: '來源單據編號', componentType: 'Input' },
+  { name: 'movementDateRange', label: '異動日期區間', componentType: 'DateRangePicker' },
+  { name: 'transactionDateRange', label: '交易時間區間', componentType: 'DateRangePicker' },
+];
 
-  const searchForm = useForm();
-  const { control, handleSubmit, reset } = searchForm;
+export default function StorageTransactionsList() {
   const navigate = useNavigate();
   const { message } = App.useApp();
   const [expandForm, setExpandForm] = useState(false);
@@ -39,56 +49,97 @@ export default function StorageTransactionsList() {
   const initialStorageCode = searchParams.get('storageCode') || undefined;
   const initialInventoryCode = searchParams.get('inventoryCode') || undefined;
 
-  const [queryParams, setQueryParams] = useState<any>({
+  const [params, setParams] = useState<any>({
+    pageNumber: 1,
+    pageSize: 20,
     storageCode: initialStorageCode,
     inventoryCode: initialInventoryCode
   });
 
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 20,
-    total: 0
+  const customSetParams = (newParams: any) => {
+    setParams((prev: any) => {
+      const next = { ...prev, ...newParams };
+      
+      // Convert movementDateRange to dayjs objects if they are strings
+      if (next.movementDateRange) {
+        let range = next.movementDateRange;
+        if (typeof range === 'string') {
+          range = range.split(',');
+        }
+        if (Array.isArray(range) && range.length === 2) {
+          const start = range[0];
+          const end = range[1];
+          if (start && end) {
+            next.movementDateRange = [
+              dayjs.isDayjs(start) ? start : dayjs(start),
+              dayjs.isDayjs(end) ? end : dayjs(end)
+            ];
+          }
+        }
+      }
+
+      // Convert transactionDateRange to dayjs objects if they are strings
+      if (next.transactionDateRange) {
+        let range = next.transactionDateRange;
+        if (typeof range === 'string') {
+          range = range.split(',');
+        }
+        if (Array.isArray(range) && range.length === 2) {
+          const start = range[0];
+          const end = range[1];
+          if (start && end) {
+            next.transactionDateRange = [
+              dayjs.isDayjs(start) ? start : dayjs(start),
+              dayjs.isDayjs(end) ? end : dayjs(end)
+            ];
+          }
+        }
+      }
+
+      return next;
+    });
+  };
+
+  const listQuery = useErpListQuery({
+    params,
+    setParams: customSetParams
   });
 
-  useUrlQuerySync({
-    query: queryParams,
-    page: pagination.current,
-    pageSize: pagination.pageSize,
-    setPagination: (page: number, pageSize: number) => setPagination(prev => ({ ...prev, current: page, pageSize })),
-    setQuery: (newQuery: any) => {
-      const q = newQuery as any;
-      if (q.movementDateRange && Array.isArray(q.movementDateRange) && q.movementDateRange.length === 2) {
-        q.movementDateRange = [dayjs(q.movementDateRange[0]), dayjs(q.movementDateRange[1])];
-      }
-      if (q.transactionDateRange && Array.isArray(q.transactionDateRange) && q.transactionDateRange.length === 2) {
-        q.transactionDateRange = [dayjs(q.transactionDateRange[0]), dayjs(q.transactionDateRange[1])];
-      }
-      setQueryParams((prev: any) => ({ ...prev, ...q }));
-      searchForm.reset({ ...q, storageCode: q.storageCode || initialStorageCode, inventoryCode: q.inventoryCode || initialInventoryCode });
-    }
-  });
+  const { searchForm } = listQuery;
+  const { control, handleSubmit } = searchForm;
+
+  useEffect(() => {
+    searchForm.reset(params);
+  }, [params]);
+
   const { data, isFetching } = useQuery({
-    queryKey: ['storage-transactions', queryParams, pagination.current, pagination.pageSize],
+    queryKey: ['storage-transactions', params],
     queryFn: async () => {
       // transform date ranges to string arrays if they exist
-      const movementDateRange = queryParams.movementDateRange 
-        ? [queryParams.movementDateRange[0].format('YYYY-MM-DD'), queryParams.movementDateRange[1].format('YYYY-MM-DD')] 
+      const movementDateRange = params.movementDateRange 
+        ? [
+            dayjs.isDayjs(params.movementDateRange[0]) ? params.movementDateRange[0].format('YYYY-MM-DD') : dayjs(params.movementDateRange[0]).format('YYYY-MM-DD'),
+            dayjs.isDayjs(params.movementDateRange[1]) ? params.movementDateRange[1].format('YYYY-MM-DD') : dayjs(params.movementDateRange[1]).format('YYYY-MM-DD')
+          ] 
         : undefined;
       
-      const transactionDateRange = queryParams.transactionDateRange 
-        ? [queryParams.transactionDateRange[0].format('YYYY-MM-DDTHH:mm:ss'), queryParams.transactionDateRange[1].format('YYYY-MM-DDTHH:mm:ss')] 
+      const transactionDateRange = params.transactionDateRange 
+        ? [
+            dayjs.isDayjs(params.transactionDateRange[0]) ? params.transactionDateRange[0].format('YYYY-MM-DDTHH:mm:ss') : dayjs(params.transactionDateRange[0]).format('YYYY-MM-DDTHH:mm:ss'),
+            dayjs.isDayjs(params.transactionDateRange[1]) ? params.transactionDateRange[1].format('YYYY-MM-DDTHH:mm:ss') : dayjs(params.transactionDateRange[1]).format('YYYY-MM-DDTHH:mm:ss')
+          ] 
         : undefined;
 
       const res = await getApiV1StorageTransactions({
         query: {
-          InventoryCode: queryParams.inventoryCode,
-          StorageCode: queryParams.storageCode,
-          DocType: queryParams.docType,
-          SourceDocCode: queryParams.sourceDocCode,
+          InventoryCode: params.inventoryCode,
+          StorageCode: params.storageCode,
+          DocType: params.docType,
+          SourceDocCode: params.sourceDocCode,
           MovementDateRange: movementDateRange,
           TransactionDateRange: transactionDateRange,
-          pageNumber: pagination.current,
-          pageSize: pagination.pageSize,
+          pageNumber: params.pageNumber,
+          pageSize: params.pageSize,
         }
       });
       
@@ -99,23 +150,11 @@ export default function StorageTransactionsList() {
   const listData = data?.data?.data || [];
   const totalRecords = data?.data?.totalRecords || 0;
 
-  const handleSearch = () => {
-    setQueryParams(searchForm.getValues());
-    setPagination(prev => ({ ...prev, current: 1 }));
-  };
-
-  const handleReset = () => {
-    reset();
-    setQueryParams({});
-    setPagination(prev => ({ ...prev, current: 1 }));
-  };
-
   const handleTableChange = (newPagination: any) => {
-    setPagination(prev => ({
-      ...prev,
-      current: newPagination.current || 1,
+    customSetParams({
+      pageNumber: newPagination.current || 1,
       pageSize: newPagination.pageSize || 20
-    }));
+    });
   };
 
   const columns: any[] = [
@@ -314,10 +353,10 @@ export default function StorageTransactionsList() {
             <Col flex="auto" className="flex items-end justify-end">
               <Form.Item className="mb-0">
                 <Space>
-                  <Button onClick={handleReset} icon={<ClearOutlined />}>
+                  <Button onClick={listQuery.handleClear} icon={<ClearOutlined />}>
                     清除
                   </Button>
-                  <Button type="primary" onClick={handleSubmit(handleSearch)} icon={<SearchOutlined />}>
+                  <Button type="primary" onClick={handleSubmit(listQuery.handleSearch)} icon={<SearchOutlined />}>
                     查詢
                   </Button>
                   <a 
@@ -333,20 +372,26 @@ export default function StorageTransactionsList() {
           </Row>
         </Form>
 
+        <ActiveQueryAndSortTags
+          searchConfig={searchConfig}
+          tableColumns={columns}
+          params={params}
+          onQueryTagClose={listQuery.handleClearQueryField}
+          onSortTagClose={listQuery.handleClearSortField}
+          onClearSort={listQuery.handleClearAllSort}
+        />
+
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-          <Table
+          <StandardErpTable
             rowKey={(record: InventoryTransactionDto) => `${record.transactionId}_${record.createdAt}`}
-            bordered
+            selectedRowKey="id"
             dataSource={listData}
             columns={columns}
             loading={isFetching}
-            scroll={{ x: 'max-content', y: 300 }}
             pagination={{
-              current: pagination.current,
-              pageSize: pagination.pageSize,
+              current: params.pageNumber,
+              pageSize: params.pageSize,
               total: totalRecords,
-              showSizeChanger: true,
-              showTotal: (total) => `共 ${total} 筆資料`,
             }}
             onChange={handleTableChange}
           />

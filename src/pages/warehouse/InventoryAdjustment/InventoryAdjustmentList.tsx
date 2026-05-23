@@ -398,12 +398,12 @@ export default function InventoryAdjustmentList() {
           </Space>
         }>
         <ActiveQueryAndSortTags
-          searchFormConfig={mainSearchFormConfig()}
-          columns={mainTableColumns()}
+          searchConfig={mainSearchFormConfig()}
+          tableColumns={mainTableColumns()}
           params={params}
-          onClearQueryField={listQuery.handleClearQueryField}
-          onClearSortField={listQuery.handleClearSortField}
-          onClearAllSort={listQuery.handleClearAllSort}
+          onQueryTagClose={listQuery.handleClearQueryField}
+          onSortTagClose={listQuery.handleClearSortField}
+          onClearSort={listQuery.handleClearAllSort}
         />
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
           <StandardErpTable
