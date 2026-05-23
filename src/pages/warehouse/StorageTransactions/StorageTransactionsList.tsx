@@ -333,7 +333,7 @@ export default function StorageTransactionsList() {
           </Row>
         </Form>
 
-        <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
           <Table
             rowKey={(record: InventoryTransactionDto) => `${record.transactionId}_${record.createdAt}`}
             bordered

@@ -342,44 +342,8 @@ export default function RoleList() {
           </Space>
         }
       >
-        <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <style>{`
-            .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
-            .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-spin-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
-            .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
-            .ant-table-thead > tr > th { text-align: center !important; }
-
-            .view-mode-form .ant-input-disabled,
-            .view-mode-form .ant-input[disabled],
-            .view-mode-form .ant-select-disabled,
-            .view-mode-form .ant-select-disabled .ant-select-selection-item,
-            .view-mode-form .ant-select-disabled .ant-select-selector,
-            .view-mode-form .ant-input-number-disabled,
-            .view-mode-form .ant-picker-disabled {
-                color: var(--ant-color-text, rgba(0, 0, 0, 0.88)) !important;
-                -webkit-text-fill-color: var(--ant-color-text, rgba(0, 0, 0, 0.88)) !important;
-                background-color: var(--ant-color-bg-container-disabled, rgba(0, 0, 0, 0.04)) !important;
-                border-color: var(--ant-color-border, #d9d9d9) !important;
-                opacity: 1 !important;
-                cursor: default !important;
-            }
-            .view-mode-form .ant-switch-disabled {
-                opacity: 1 !important;
-                cursor: default !important;
-            }
-            .view-mode-form .ant-select-arrow {
-                display: none !important;
-            }
-            
-            .permissions-tree-card .ant-card-body {
-                padding: 16px;
-            }
-          `}</style>
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          
           <Table
             onChange={handleTableChange}
             bordered
