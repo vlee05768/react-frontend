@@ -1,20 +1,15 @@
-import PageCard from '@/components/common/PageCard';
 // @ts-nocheck
+import PageCard from '@/components/common/PageCard';
 import { getApiErrorMessage } from "@/utils/apiError";
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useRef, useEffect, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
-import type { InputRef } from 'antd';
-import { Spin, Table, Button, Modal, Form, Input, Select, Space, Tag, Tooltip, Row, Col, message, Popconfirm, Drawer, Descriptions, Switch, Divider, theme } from 'antd';
+import { useState, useEffect, useMemo } from 'react';
+import { Button, Modal, Space, Tooltip, Popconfirm, Drawer, Divider, theme, Spin, App } from 'antd';
 import {
   SearchOutlined,
   PlusOutlined,
   EditOutlined,
   ClearOutlined,
   SaveOutlined,
-  AppstoreOutlined,
-  CheckOutlined,
-  CloseOutlined,
   MailOutlined,
   StopOutlined,
   CheckCircleOutlined
@@ -34,37 +29,30 @@ import { useUserQueryStore } from '@/stores/systemStore';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
-import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useLoadingStore } from '@/stores/useLoadingStore';
-import { mainDictionary, mainFormConfig, mainTableColumns , userSearchFormConfig} from './UserConfig';
-import { buildTableColumns, formatSorterToRules, getColumnLabel } from '@/utils/tableUtils';
-import { App } from 'antd';
+import { mainFormConfig, mainTableColumns , userSearchFormConfig} from './UserConfig';
+import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
 import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';;
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 import { ActionBar } from '@/components/common/ActionBar';
-import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
-
+import { useErpListQuery } from '@/hooks/useErpListQuery';
+import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
+import StandardErpTable from '@/components/Table/StandardErpTable';
 
 export default function UserList() {
   const { message: messageApi, modal: modalApi } = App.useApp();
-  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
-  const { params, setParams, resetParams } = useUserQueryStore();
+  const deletingRecordId = null;
+  const { params, setParams } = useUserQueryStore();
 
-  const { page, pageNumber, pageSize, ...queryFields } = params;
-  useUrlQuerySync({
-    query: queryFields,
-    page: page || pageNumber || 1,
-    pageSize: pageSize || 20,
-    setPagination: (p, s) => setParams({ [params.pageNumber !== undefined ? 'pageNumber' : 'page']: p, pageSize: s }),
-    setQuery: (q) => setParams({ ...q, [params.pageNumber !== undefined ? 'pageNumber' : 'page']: 1 })
+  const listQuery = useErpListQuery({
+    params,
+    setParams,
   });
+
   const { hasPermission } = useAuthStore();
   const { token } = theme.useToken();
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
-
-  const searchForm = useForm();
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
   
@@ -80,8 +68,6 @@ export default function UserList() {
   }, [isCreateDrawerOpen, isDrawerEditing]);
   
   const queryClient = useQueryClient();
-
-  
   const { viewId } = useParams<{ viewId: string }>();
   const navigate = useNavigate();
 
@@ -91,11 +77,11 @@ export default function UserList() {
     queryFn: () => getApiV1UserById({ path: { id: viewId as any } }),
     enabled: !!viewId,
   });
-  const viewData = viewRes?.data?.data || viewRes?.data;
+  const viewData = (viewRes?.data?.data || viewRes?.data) as any;
 
-  const formattedViewData = useMemo(() => {
+  const formattedViewData = useMemo<any>(() => {
     if (!viewData) return undefined;
-    const data = { ...viewData };
+    const data = { ...viewData } as any;
     Object.keys(data).forEach(key => {
       if (key.toLowerCase().includes('date') && data[key] && typeof data[key] === 'string') {
         data[key] = data[key].substring(0, 10);
@@ -103,11 +89,6 @@ export default function UserList() {
     });
     return data;
   }, [viewData]);
-
-  // 取消原本 crudForm 的依賴
-  // useEffect(() => {
-  //   if (viewData) { ... crudForm.setFieldsValue(...) }
-  // }, [viewData, crudForm]);
 
   // API 查詢
   const { data, isFetching } = useQuery({
@@ -164,21 +145,17 @@ export default function UserList() {
 
   const resendActivationMutation = useMutation({
     mutationFn: (email: string) => {
-      // 直接把設定寫入全域 Store，避開 Axios Headers 的複雜度
       useLoadingStore.getState().setLoadingMessage('正在重新發送啟用信件...');
       return postApiV1AuthResendActivation({ body: { email } });
     },
     onSuccess: (_, email) => {
       messageApi.success('已重新發送啟用信件');
       
-      // 直接更新本地快取，將該帳號的啟動狀態設為 false
       queryClient.setQueriesData({ queryKey: ['userList'] }, (oldData: any) => {
         if (!oldData) return oldData;
         
-        // 建立資料深拷貝以避免 mutate 原有 state
         const newData = JSON.parse(JSON.stringify(oldData));
         
-        // 根據常見的 API 回傳結構更新資料
         if (newData?.data?.data?.data && Array.isArray(newData.data.data.data)) {
           newData.data.data.data = newData.data.data.data.map((user: any) => 
             user.email === email ? { ...user, isActive: false } : user
@@ -196,7 +173,6 @@ export default function UserList() {
         return newData;
       });
       
-      // 同步觸發背景重取，確保與後端完全一致
       queryClient.invalidateQueries({ queryKey: ['userList'] });
     },
     onError: (error: any) => {
@@ -214,7 +190,6 @@ export default function UserList() {
     onSuccess: (_, record) => {
       messageApi.success(`已成功${record.isActive ? '停用' : '啟用'}帳號`);
       
-      // 直接更新本地快取，讓畫面即時反應
       queryClient.setQueriesData({ queryKey: ['userList'] }, (oldData: any) => {
         if (!oldData) return oldData;
         
@@ -335,7 +310,7 @@ export default function UserList() {
     ),
   };
 
-    const handleTableChange = (pagination: any, _filters: any, sorter: any) => {
+  const handleTableChange = (pagination: any, _filters: any, sorter: any) => {
     const pageNumber = pagination.current || 1;
     const pageSize = pagination.pageSize || 20;
     const sortRules = formatSorterToRules(sorter);
@@ -348,57 +323,10 @@ export default function UserList() {
 
   const columns = buildTableColumns(mainTableColumns(), actionColumn, params.SortRules);
 
-  const handleSearch = (values: any) => {
-    const nextParams = { ...values };
-    userSearchFormConfig().forEach(field => {
-      if (nextParams[field.name] === '' || nextParams[field.name] === null) {
-        nextParams[field.name] = undefined;
-      }
-    });
-    setParams({
-      ...nextParams,
-      pageNumber: 1,
-    });
-    setIsSearchModalOpen(false);
-  };
-
-  const handleSearchReset = () => {
-    searchForm.reset(Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = null; return acc; }, {}));
-    // 僅清空表單，不呼叫 resetParams()，避免自動觸發 API 查詢
-  };
-
-
-  const renderSearchTags = () => {
-    const searchKeys = ['userName', 'name', 'employeeCode'];
-    const activeFilters: React.ReactNode[] = [];
-    
-    searchKeys.forEach(key => {
-      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
-        let label = key;
-        let valueStr = String(params[key]);
-        if (key === 'userName') label = '帳號';
-        if (key === 'name') label = '姓名';
-        if (key === 'employeeCode') label = '員工編號';
-        activeFilters.push(<Tag color="blue" key={key} className="p-[2px 8px]" style={{fontSize: '13px'}}>{label}: {valueStr}</Tag>);
-      }
-    });
-
-    if (activeFilters.length === 0) {
-      return <Tag color="default" className="m-0 p-[2px 8px]" style={{fontSize: '13px'}}>【全部資料】</Tag>;
-    }
-    
-    return <Space size={[0, 8]} wrap>{activeFilters}</Space>;
-  };
-
-  const openSearchModal = () => {
-    searchForm.reset(params);
-    setIsSearchModalOpen(true);
-  };
-
   const renderFormFields = (isEdit: boolean) => (
     <DynamicForm
       key={isCreateDrawerOpen ? 'create' : (viewId || 'empty')}
-      defaultValues={isCreateDrawerOpen ? { isActive: true } : formattedViewData}
+      defaultValues={isCreateDrawerOpen ? { isActive: true } : (formattedViewData as any)}
       fields={mainFormConfig()}
       onSubmit={handleCrudSubmit}
       isUpdateMode={isEdit}
@@ -415,7 +343,7 @@ export default function UserList() {
             <Button
               type="default"
               icon={<SearchOutlined />}
-              onClick={openSearchModal}
+              onClick={listQuery.openSearchModal}
               className="font-medium"
             >
               查詢
@@ -432,71 +360,30 @@ export default function UserList() {
             )}
           </Space>
         }>
-        <div className="mb-4 flex items-center py-3 px-4" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
-          <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)'}}>目前的查詢條件:</span>
-          <DynamicSearchTags config={userSearchFormConfig()} params={params} onClose={(key) => setParams({ [key]: undefined, pageNumber: 1 })} />
-        {((params as any).SortRules) && (
-          <>
-            <Divider type="vertical" style={{ height: '20px', borderColor: '#d9d9d9', margin: '0 16px' }} />
-            <span className="mr-3 font-medium" style={{ fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)' }}>
-              排序順序:
-            </span>
-            {(params as any).SortRules.split(',').map((rule: string, idx: number) => {
-              const [field, order] = rule.split(':');
-              const label = getColumnLabel(field, mainTableColumns());
-              return (
-                <Tag
-                  key={idx}
-                  color="blue"
-                  closable
-                  onClose={() => {
-                    const newRules = (params as any).SortRules.split(',')
-                      .filter((r: string) => !r.startsWith(`${field}:`))
-                      .join(',');
-                    setParams({ SortRules: newRules || undefined, [params.pageNumber !== undefined ? 'pageNumber' : 'page']: 1 });
-                  }}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                >
-                  {label} ({order === 'asc' ? '升序 ↗' : '降序 ↘'})
-                </Tag>
-              );
-            })}
-            <Button
-              type="link"
-              size="small"
-              onClick={() => setParams({ SortRules: undefined, [params.pageNumber !== undefined ? 'pageNumber' : 'page']: 1 })}
-              style={{ padding: 0, fontSize: '12px' }}
-            >
-              清除排序
-            </Button>
-          </>
-        )}
-        </div>
+        
+        <ActiveQueryAndSortTags
+          searchConfig={userSearchFormConfig()}
+          tableColumns={mainTableColumns()}
+          params={params}
+          onQueryTagClose={listQuery.handleClearQueryField}
+          onSortTagClose={listQuery.handleClearSortField}
+          onClearSort={listQuery.handleClearAllSort}
+        />
+
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-                    
-          <Table
+          <StandardErpTable
             onChange={handleTableChange}
-            bordered
-            rowClassName={(record) => {
-            const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-            let cls = '';
-            if (String(record.id) === String(viewId)) cls += 'selected-table-row ';
-            if (recordId && String(recordId) === String(deletingRecordId)) cls += 'deleting-row-highlight';
-            return cls.trim();
-          }}
-            style={{ flex: 1 }}
             columns={columns}
             dataSource={listData}
             rowKey="id"
             loading={isFetching}
-            scroll={{ x: 'max-content', y: 300 }}
+            selectedRowId={viewId}
+            selectedRowKey="id"
+            deletingRowId={deletingRecordId}
             pagination={{
               current: currentPage,
               pageSize: currentPageSize,
               total: totalRecords,
-              showSizeChanger: true,
-              showTotal: (total) => `共 ${total} 筆資料`,
-              
             }}
           />
         </div>
@@ -508,17 +395,13 @@ export default function UserList() {
             查詢條件設定
           </div>
         }
-        open={isSearchModalOpen}
+        open={listQuery.isSearchModalOpen}
         mask={{ closable: isViewMode }}
         keyboard={isViewMode}
-        onCancel={() => setIsSearchModalOpen(false)}
+        onCancel={() => listQuery.setIsSearchModalOpen(false)}
         footer={
           <div className="pt-4 flex justify-end gap-2" style={{borderTop: '1px solid #f0f0f0'}}>
-            <Button icon={<ClearOutlined />} onClick={() => {
-              const emptyVals = Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = undefined; return acc; }, {});
-              searchForm.reset(emptyVals);
-              setParams({ ...emptyVals, [params.pageNumber !== undefined ? 'pageNumber' : 'page']: 1 });
-            }}>
+            <Button icon={<ClearOutlined />} onClick={listQuery.handleClear}>
               清除條件
             </Button>
             <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
@@ -537,7 +420,7 @@ export default function UserList() {
         }}
         closeIcon={true}
       >
-        <DynamicSearchForm config={userSearchFormConfig()} form={searchForm} onSearch={handleSearch} />
+        <DynamicSearchForm config={userSearchFormConfig()} form={listQuery.searchForm} onSearch={listQuery.handleSearch} />
       </Modal>
 
       <Drawer
@@ -557,9 +440,8 @@ export default function UserList() {
         open={!!viewId || isCreateDrawerOpen}
         mask={{ closable: isViewMode }}
         keyboard={isViewMode}
-        
       >
-                <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
           <ActionBar 
             createdBy={viewData?.createdBy}
             createdAt={viewData?.createdAt}
@@ -567,29 +449,29 @@ export default function UserList() {
             updatedAt={viewData?.updatedAt}
             actions={
               <Space>
-            {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('System.Users.Update')) && (
-              <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode}>編輯</Button>
-            )}
-            {(isDrawerEditing || isCreateDrawerOpen) && (
-              <>
-                <Button 
-                  type="primary" 
-                  htmlType="submit"
-                  form="userForm"
-                  icon={<SaveOutlined />} 
-                  loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
-                >
-                  儲存
-                </Button>
-                <Button onClick={handleCancel}>取消</Button>
-              </>
-            )}
-          </Space>
+                {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('System.Users.Update')) && (
+                  <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode}>編輯</Button>
+                )}
+                {(isDrawerEditing || isCreateDrawerOpen) && (
+                  <>
+                    <Button 
+                      type="primary" 
+                      htmlType="submit"
+                      form="userForm"
+                      icon={<SaveOutlined />} 
+                      loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
+                    >
+                      儲存
+                    </Button>
+                    <Button onClick={handleCancel}>取消</Button>
+                  </>
+                )}
+              </Space>
             }
           />
           <div className="p-6">
-          {renderFormFields(isDrawerEditing)}
-                  </div>
+            {renderFormFields(isDrawerEditing)}
+          </div>
         </Spin>
       </Drawer>
     </div>

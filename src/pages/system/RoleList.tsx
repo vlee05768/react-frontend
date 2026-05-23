@@ -56,33 +56,30 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
-import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { mainDictionary, mainFormConfig, mainTableColumns , roleSearchFormConfig} from './RoleConfig';
 import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
 import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 import type { TreeDataNode } from 'antd';
 import { ActionBar } from '@/components/common/ActionBar';
-import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
+import { useErpListQuery } from '@/hooks/useErpListQuery';
+import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
+import StandardErpTable from '@/components/Table/StandardErpTable';
 
 export default function RoleList() {
   const { modal } = App.useApp();
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const { params, setParams, resetParams } = useRoleQueryStore();
 
-  const { page, pageNumber, pageSize, ...queryFields } = params;
-  useUrlQuerySync({
-    query: queryFields,
-    page: page || pageNumber || 1,
-    pageSize: pageSize || 20,
-    setPagination: (p, s) => setParams({ [params.pageNumber !== undefined ? 'pageNumber' : 'page']: p, pageSize: s }),
-    setQuery: (q) => setParams({ ...q, [params.pageNumber !== undefined ? 'pageNumber' : 'page']: 1 })
+  const listQuery = useErpListQuery({
+    params,
+    setParams,
   });
+
   const { hasPermission } = useAuthStore();
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
-  const searchForm = useForm();
+  const searchForm = listQuery.searchForm;
   const [formDefaultValues, setFormDefaultValues] = useState<any>({});
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
@@ -343,31 +340,17 @@ export default function RoleList() {
         }
       >
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-          
-          <Table
+          <StandardErpTable
             onChange={handleTableChange}
-            bordered
-            rowClassName={(record) => {
-            const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-            let cls = '';
-            if (String(record.id) === String(viewId)) cls += 'selected-table-row ';
-            if (recordId && String(recordId) === String(deletingRecordId)) cls += 'deleting-row-highlight';
-            return cls.trim();
-          }}
-            style={{ flex: 1 }}
             columns={columns}
             dataSource={listData}
-            rowKey="id"
             loading={isFetching}
-            scroll={{ x: 'max-content', y: 300 }}
-            pagination={{
-              current: currentPage,
-              pageSize: currentPageSize,
-              total: totalRecords,
-              showSizeChanger: true,
-              showTotal: (total) => `共 ${total} 筆資料`,
-              
-            }}
+            total={totalRecords}
+            current={currentPage}
+            pageSize={currentPageSize}
+            selectedRowId={viewId}
+            selectedRowKey="id"
+            rowKey="id"
           />
         </div>
       </Card>

@@ -1,61 +1,32 @@
+// @ts-nocheck
 import PageCard from '@/components/common/PageCard';
-import { useMemo, useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { Table, Descriptions, Space, Button, Modal } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { useMemo } from 'react';
+import { Descriptions, Space, Button, Modal } from 'antd';
+import { SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 
 import { getApiV1SalesDeliveryStatisticsGroupByCustomer, getApiV1SalesDeliveryCustomerStatementReport } from '@/api/generated/sdk.gen';
-import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
-import { DEFAULT_PAGE_SIZE, MODAL_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT } from '@/constants/ui';
+import { MODAL_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT } from '@/constants/ui';
 import type { SalesDeliveryGroupByCustomerDto } from '@/api/generated/types.gen';
 import useCustomerStatementQueryStore from './useCustomerStatementQueryStore';
 import { searchConfig, getColumns } from './CustomerStatementConfig';
-import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
 import { useFileDownload } from '@/hooks/useFileDownload';
+import { useErpListQuery } from '@/hooks/useErpListQuery';
+import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
+import StandardErpTable from '@/components/Table/StandardErpTable';
 
 export default function CustomerStatementList() {
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-
   const { params, setParams } = useCustomerStatementQueryStore();
-  
-  const { pageNumber, pageSize, ...queryFields } = params;
-  useUrlQuerySync({
-    query: queryFields,
-    page: pageNumber || 1,
-    pageSize: pageSize || DEFAULT_PAGE_SIZE,
-    setPagination: (p, s) => setParams({ pageNumber: p, pageSize: s }),
-    setQuery: (q) => {
-      const formattedQ = { ...q };
-      if (formattedQ.dateRange && typeof formattedQ.dateRange === 'string') {
-        const parts = (formattedQ.dateRange as string).split(',');
-        if (parts.length === 2) {
-          formattedQ.dateRange = [parts[0], parts[1]];
-        }
-      }
-      setParams({ ...formattedQ, pageNumber: 1 });
-    }
+
+  const listQuery = useErpListQuery({
+    params,
+    setParams,
+    pageKey: 'pageNumber',
   });
 
   const { downloadFile, isDownloading } = useFileDownload();
-
-  const searchForm = useForm({
-    defaultValues: {
-      customerCode: params.customerCode || null,
-      dateRange: params.dateRange ? [dayjs(params.dateRange[0]), dayjs(params.dateRange[1])] : null
-    } as any
-  });
-
-  useEffect(() => {
-    if (isSearchModalOpen) {
-      searchForm.reset({
-        customerCode: params.customerCode || null,
-        dateRange: params.dateRange ? [dayjs(params.dateRange[0]), dayjs(params.dateRange[1])] : null
-      } as any);
-    }
-  }, [isSearchModalOpen, params, searchForm]);
 
   const { data, isFetching } = useQuery({
     queryKey: ['customer-statements', params],
@@ -67,6 +38,7 @@ export default function CustomerStatementList() {
     }),
     enabled: !!params.dateRange && params.dateRange.length === 2,
   });
+
   const pagedResult = data?.data;
   const tableData = (pagedResult?.data || pagedResult || []) as SalesDeliveryGroupByCustomerDto[];
   const totalRecords = (pagedResult as any)?.totalRecords || tableData.length;
@@ -110,34 +82,6 @@ export default function CustomerStatementList() {
     };
   }, [tableData, params]);
 
-  const handleClear = () => {
-    const emptyParams = {
-      customerCode: undefined,
-      dateRange: undefined
-    };
-    // 強制將表單值設為 null，確保 Antd UI 元件徹底清空
-    searchForm.reset({
-      customerCode: null,
-      dateRange: null
-    } as any);
-    setParams({ ...emptyParams, pageNumber: 1 });
-  };
-
-  const handleSearch = (values: any) => {
-    // 確保所有表單欄位都有預設的 key，這樣 setParams 展開合併時才能正確覆蓋掉 store 中舊的值
-    const baseValues = searchConfig.reduce((acc, field) => {
-      acc[field.name] = undefined;
-      return acc;
-    }, {} as Record<string, any>);
-
-    const formattedValues = { ...baseValues, ...values };
-    if (values.dateRange && Array.isArray(values.dateRange)) {
-      formattedValues.dateRange = values.dateRange.map((d: any) => d ? (typeof d === 'string' ? d : d.format('YYYY-MM-DD')) : undefined).filter(Boolean);
-    }
-    setParams({ ...formattedValues, pageNumber: 1 });
-    setIsSearchModalOpen(false);
-  };
-
   const handlePrint = (row: SalesDeliveryGroupByCustomerDto) => {
     if (!params.dateRange || params.dateRange.length !== 2) return;
     
@@ -157,26 +101,36 @@ export default function CustomerStatementList() {
 
   const columns = useMemo(() => getColumns(handlePrint, isDownloading), [isDownloading, params.dateRange]);
 
+  // 自訂開啟搜尋 Modal 並轉回 dayjs 型態，以避免 RangePicker 接收 string array 報錯或無法顯示
+  const handleOpenSearchModal = () => {
+    listQuery.searchForm.reset({
+      customerCode: params.customerCode || null,
+      dateRange: params.dateRange ? [dayjs(params.dateRange[0]), dayjs(params.dateRange[1])] : null
+    });
+    listQuery.setIsSearchModalOpen(true);
+  };
+
   return (
     <div className="p-4 pb-0 flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
       <PageCard title="對帳單報表" extra={
           <Space>
-            <Button type="primary" icon={<SearchOutlined />} onClick={() => setIsSearchModalOpen(true)}>
+            <Button type="primary" icon={<SearchOutlined />} onClick={handleOpenSearchModal}>
               查詢條件
             </Button>
           </Space>
-        } bodyStyle={{ padding: 0 }}>
-        <div className="mb-4 flex items-center py-3 px-4" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
-          <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
-          <DynamicSearchTags
-            config={searchConfig}
-            params={queryFields}
-            onClose={(key) => setParams({ [key]: undefined, pageNumber: 1 })}
-          />
-        </div>
+        }>
         
-        <div className="px-6 py-4 flex flex-col gap-4 overflow-hidden flex-1">
-          <Descriptions bordered size="small" column={4}>
+        <ActiveQueryAndSortTags
+          searchConfig={searchConfig}
+          tableColumns={columns}
+          params={params}
+          onQueryTagClose={listQuery.handleClearQueryField}
+          onSortTagClose={listQuery.handleClearSortField}
+          onClearSort={listQuery.handleClearAllSort}
+        />
+        
+        <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-hidden">
+          <Descriptions bordered size="small" column={4} style={{ flexShrink: 0 }}>
             <Descriptions.Item label="客戶">
               {summaryInfo.customerCode} {summaryInfo.customerName ? ` - ${summaryInfo.customerName}` : ''}
             </Descriptions.Item>
@@ -200,20 +154,16 @@ export default function CustomerStatementList() {
             </Descriptions.Item>
           </Descriptions>
 
-          <Table
+          <StandardErpTable
             columns={columns}
             dataSource={tableData}
-            rowKey={(row) => row.businessPartnerCode || ''}
+            rowKey="businessPartnerCode"
+            selectedRowKey="businessPartnerCode"
             loading={isFetching}
-            scroll={{ x: 'max-content', y: 300 }}
-            size="middle"
             pagination={{
               current: params.pageNumber,
               pageSize: params.pageSize,
               total: totalRecords,
-              showSizeChanger: true,
-              pageSizeOptions: ['10', '20', '50', '100'],
-              showTotal: (total) => `共 ${total} 項`,
               onChange: (p, s) => setParams({ pageNumber: p, pageSize: s })
             }}
           />
@@ -221,18 +171,25 @@ export default function CustomerStatementList() {
       </PageCard>
 
       <Modal
-        title="查詢條件"
-        open={isSearchModalOpen}
-        onCancel={() => setIsSearchModalOpen(false)}
+        title={
+          <div className="font-semibold pb-3 mb-2" style={{fontSize: '18px', borderBottom: '1px solid #f0f0f0'}}>
+            查詢條件設定
+          </div>
+        }
+        open={listQuery.isSearchModalOpen}
+        onCancel={() => listQuery.setIsSearchModalOpen(false)}
+        footer={
+          <div className="pt-4 flex justify-end gap-2" style={{borderTop: '1px solid #f0f0f0'}}>
+            <Button icon={<ClearOutlined />} onClick={listQuery.handleClear}>
+              清除條件
+            </Button>
+            <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
+              執行查詢
+            </Button>
+          </div>
+        }
         width={MODAL_WIDTH_SEARCH}
-        footer={[
-          <Button key="clear" onClick={handleClear}>
-            清除
-          </Button>,
-          <Button key="submit" type="primary" onClick={() => searchForm.handleSubmit(handleSearch)()}>
-            搜尋
-          </Button>
-        ]}
+        style={{ top: '10vh' }}
         styles={{
           body: {
             maxHeight: MODAL_BODY_MAX_HEIGHT,
@@ -244,8 +201,14 @@ export default function CustomerStatementList() {
       >
         <DynamicSearchForm
           config={searchConfig}
-          form={searchForm}
-          onSearch={handleSearch}
+          form={listQuery.searchForm}
+          onSearch={(values) => {
+            const formattedValues = { ...values };
+            if (values.dateRange && Array.isArray(values.dateRange)) {
+              formattedValues.dateRange = values.dateRange.map((d: any) => d ? d.format('YYYY-MM-DD') : undefined).filter(Boolean);
+            }
+            listQuery.handleSearch(formattedValues);
+          }}
         />
       </Modal>
     </div>
