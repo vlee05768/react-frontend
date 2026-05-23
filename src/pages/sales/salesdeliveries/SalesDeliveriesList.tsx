@@ -3,7 +3,7 @@ import PageCard from '@/components/common/PageCard';
 import { useMemo } from 'react';
 import { Button, Space, App, Modal, Divider } from 'antd';
 import { PlusOutlined, SearchOutlined, ClearOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { 
@@ -27,6 +27,7 @@ import StandardErpTable from '@/components/Table/StandardErpTable';
 
 export default function SalesDeliveriesList() {
   const navigate = useNavigate();
+  const { id: viewId } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   const { modal, message } = App.useApp();
   const { hasPermission } = useAuthStore();
@@ -144,6 +145,7 @@ export default function SalesDeliveriesList() {
             columns={columns}
             dataSource={listData}
             rowKey="documentNumber"
+            selectedRowId={viewId}
             selectedRowKey="documentNumber"
             loading={isLoading}
             pagination={{ 

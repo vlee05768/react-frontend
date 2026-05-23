@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Drawer, Space, Button, App, Spin, Empty } from 'antd';
+import { Drawer, Space, Button, App, Spin, Empty, Tooltip } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircleOutlined, SyncOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
 import { ActionButton } from '@/components/common/ActionButton';
@@ -210,6 +210,9 @@ export default function OrderDrawer() {
     const isFinished = orderData?.status === 'Finished';
     const canUpdate = hasPermission('Sales.Orders.Update');
     const hasItems = orderData?.orderItems && orderData.orderItems.length > 0;
+    const hasCancelledQty = orderData?.orderItems?.some(
+      item => (item.quantityCancelled ?? 0) > 0
+    ) ?? false;
 
     if (isCreating || isEditing) return null;
     if (!orderData) return null;
@@ -287,25 +290,29 @@ export default function OrderDrawer() {
         )}
 
         {canUpdate && isFinished && (
-          <ActionButton 
-            key="cancel-close"
-            intent="warning" 
-            icon={<UnlockOutlined />} 
-            disabled={isDetailEditing}
-            loading={cancelCloseMutation.isPending}
-            onClick={(e) => {
-              e.preventDefault();
-              modal.confirm({
-                title: '取消結案',
-                content: '確定要取消結案此單據嗎？',
-                centered: true,
-                width: 400,
-                onOk: () => { cancelCloseMutation.mutate(); },
-              })
-            }}
-          >
-            取消結案
-          </ActionButton>
+          <Tooltip title={!hasCancelledQty ? "訂單明細沒有任何取消量，不可取消結案" : undefined}>
+            <span>
+              <ActionButton 
+                key="cancel-close"
+                intent="warning" 
+                icon={<UnlockOutlined />} 
+                disabled={isDetailEditing || !hasCancelledQty}
+                loading={cancelCloseMutation.isPending}
+                onClick={(e) => {
+                  e.preventDefault();
+                  modal.confirm({
+                    title: '取消結案',
+                    content: '確定要取消結案此單據嗎？',
+                    centered: true,
+                    width: 400,
+                    onOk: () => { cancelCloseMutation.mutate(); },
+                  })
+                }}
+              >
+                取消結案
+              </ActionButton>
+            </span>
+          </Tooltip>
         )}
       </Space>
     );

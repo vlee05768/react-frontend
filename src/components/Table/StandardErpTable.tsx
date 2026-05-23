@@ -1,4 +1,4 @@
-import { Table } from 'antd';
+import { Table, theme } from 'antd';
 import type { TableProps } from 'antd';
 
 export interface StandardErpTableProps<RecordType> extends Omit<TableProps<RecordType>, 'columns'> {
@@ -20,6 +20,7 @@ export default function StandardErpTable<RecordType extends object>({
   rowClassName,
   ...restProps
 }: StandardErpTableProps<RecordType>) {
+  const { token } = theme.useToken();
   
   // 統一封裝分頁行為，自動帶入 showSizeChanger 與 showTotal 格式，維持全系統一致性
   const unifiedPagination = restProps.pagination !== false && restProps.pagination !== undefined ? {
@@ -44,8 +45,8 @@ export default function StandardErpTable<RecordType extends object>({
         .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
         .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
         .ant-table-thead > tr > th { text-align: center !important; }
-        .selected-table-row > td { background-color: #e6f4ff !important; }
-        .deleting-row-highlight > td { background-color: #fff1f0 !important; opacity: 0.6; }
+        .selected-table-row > td { background-color: ${token.controlItemBgActive} !important; }
+        .deleting-row-highlight > td { background-color: ${token.colorErrorBg} !important; opacity: 0.6; }
       `}</style>
       
       <Table<RecordType>
