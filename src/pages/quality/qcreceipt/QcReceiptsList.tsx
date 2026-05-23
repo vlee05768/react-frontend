@@ -1,6 +1,7 @@
+import PageCard from '@/components/common/PageCard';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Button, Modal, Table, message, Card, Tag  } from 'antd';
+import { Button, Modal, Table, message, Tag } from 'antd';
 import { SearchOutlined, PlusOutlined, ClearOutlined } from '@ant-design/icons';
 import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -120,22 +121,7 @@ export default function QcReceiptsList() {
 
   return (
     <div className="p-4 pb-0 flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
-      <Card
-        variant="borderless"
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-        styles={{ 
-          header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
-          body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
-        }}
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
-            <div style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>
-              QC 檢驗單管理
-            </div>
-          </div>
-        }
-        extra={
+      <PageCard title="QC 檢驗單管理" extra={
           <Space separator={<Divider orientation="vertical" />}>
             <Button type="default" icon={<SearchOutlined />} onClick={() => setIsSearchModalOpen(true)}>
               查詢
@@ -144,8 +130,7 @@ export default function QcReceiptsList() {
               新增單據
             </Button>
           </Space>
-        }
-      >
+        }>
         <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0, gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
@@ -193,17 +178,7 @@ export default function QcReceiptsList() {
         </div>
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <style>{`
-            .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
-            .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-spin-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
-            .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
-            .ant-table-thead > tr > th { text-align: center !important; }
-          `}</style>
+          
           <Table
             onChange={handleTableChange}
             bordered
@@ -226,7 +201,7 @@ export default function QcReceiptsList() {
             }}
           />
         </div>
-      </Card>
+      </PageCard>
 
       <Modal
         title={

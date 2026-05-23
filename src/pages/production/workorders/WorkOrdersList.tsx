@@ -1,6 +1,7 @@
+import PageCard from '@/components/common/PageCard';
 import { useForm } from 'react-hook-form';
 import React, { useMemo } from "react";
-import { App, Card, Space, Button, Table, Modal, Tag } from "antd";
+import { App, Space, Button, Table, Modal, Tag } from 'antd';
 import { PlusOutlined, ClearOutlined, SearchOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
@@ -140,28 +141,14 @@ export const WorkOrdersList: React.FC = () => {
 
   return (
     <div className="p-4 pb-0 flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
-      <Card
-        variant="borderless"
-        styles={{ 
-          header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
-          body: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '16px 16px 4px 16px' }
-        }}
-        className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', borderRadius: 0 }}
-        title={
-          <Space>
-            <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
-            <span className="font-semibold" style={{fontSize: '18px'}}>製令管理</span>
-          </Space>
-        }
-        extra={
+      <PageCard title="製令管理" extra={
           <Space>
             <Button onClick={() => setIsSearchOpen(true)}>查詢</Button>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => openDrawer()}>
               新增
             </Button>
           </Space>
-        }
-      >
+        }>
         <div className="mb-4 flex items-center py-3 px-4" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0, gap: '16px' }}>
           <div className="flex items-center" style={{ flexWrap: 'wrap' }}>
             <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
@@ -219,17 +206,7 @@ export const WorkOrdersList: React.FC = () => {
         </div>
 
         <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <style>{`
-            .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
-            .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-spin-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
-            .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
-            .ant-table-thead > tr > th { text-align: center !important; }
-          `}</style>
+          
           <Table
             onChange={handleTableChange}
             bordered
@@ -252,7 +229,7 @@ export const WorkOrdersList: React.FC = () => {
             }}
           />
         </div>
-      </Card>
+      </PageCard>
 
       <Modal
         title={

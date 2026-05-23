@@ -1,3 +1,4 @@
+import PageCard from '@/components/common/PageCard';
 import { Tag } from 'antd';
 import { ActionButton } from "@/components/common/ActionButton";
 import { useParams, useNavigate } from 'react-router-dom';
@@ -6,9 +7,7 @@ import { useForm } from 'react-hook-form';
 import { ActionBar } from '@/components/common/ActionBar';
 import { DocumentLifecycleBanner } from '@/components/common/DocumentLifecycleBanner';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
-import {
-  Spin, Table, Button, Space, Card, Drawer, App, Divider, Modal
-} from 'antd';
+import { Spin, Table, Button, Space, Drawer, App, Divider, Modal } from 'antd';
 import {
   SearchOutlined, PlusOutlined, EditOutlined, SaveOutlined, CheckCircleOutlined, SyncOutlined
 , ClearOutlined } from '@ant-design/icons';
@@ -391,22 +390,7 @@ export default function InventoryAdjustmentList() {
 
   return (
     <div className="p-4 pb-0 flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
-      <Card
-        variant="borderless"
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-        styles={{ 
-          header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
-          body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
-        }}
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
-            <div style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>
-              庫存調整單
-            </div>
-          </div>
-        }
-        extra={
+      <PageCard title="庫存調整單管理" extra={
           <Space separator={<Divider orientation="vertical" />}>
             <Button type="default" icon={<SearchOutlined />} onClick={() => setIsSearchModalOpen(true)}>
               查詢
@@ -415,8 +399,7 @@ export default function InventoryAdjustmentList() {
               新增單據
             </Button>
           </Space>
-        }
-      >
+        }>
         <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', padding: '12px 16px', borderRadius: '6px', flexShrink: 0 }}>
           <span style={{ fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)', marginRight: '12px', fontWeight: 500 }}>目前的查詢條件:</span>
           <DynamicSearchTags
@@ -462,17 +445,7 @@ export default function InventoryAdjustmentList() {
         )}
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <style>{`
-            .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
-            .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-spin-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
-            .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
-            .ant-table-thead > tr > th { text-align: center !important; }
-          `}</style>
+          
           <Table
             onChange={handleTableChange}
             bordered
@@ -497,7 +470,7 @@ export default function InventoryAdjustmentList() {
             }}
           />
         </div>
-      </Card>
+      </PageCard>
 
       <Modal
         title={

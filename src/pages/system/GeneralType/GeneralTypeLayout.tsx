@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card } from 'antd';
+import PageCard from '@/components/common/PageCard';
 import CategoryList from './CategoryList';
 import CategoryItemList from './CategoryItemList';
 
@@ -7,27 +7,21 @@ export default function GeneralTypeLayout() {
   const [selectedCategoryCode, setSelectedCategoryCode] = useState<string | null>(null);
 
   return (
-    <div className="p-4 flex gap-4" style={{height: 'calc(100vh - 64px)'}}>
-      {/* 左側：類別清單 */}
-      <Card 
-        className="flex flex-col" style={{width: '450px'}}
-        styles={{ body: { padding: 0, flex: 1, overflow: 'hidden' } }}
-        variant="borderless"
-      >
-        <CategoryList 
-          selectedCode={selectedCategoryCode} 
-          onSelect={setSelectedCategoryCode} 
-        />
-      </Card>
+    <PageCard title="通用代碼管理">
+      <div className="flex gap-4 h-full w-full overflow-hidden">
+        {/* 左側：類別清單 */}
+        <div className="flex flex-col border-r border-gray-100 dark:border-gray-800 pr-4" style={{ width: '450px', height: '100%', overflow: 'hidden' }}>
+          <CategoryList 
+            selectedCode={selectedCategoryCode} 
+            onSelect={setSelectedCategoryCode} 
+          />
+        </div>
 
-      {/* 右側：項目清單 */}
-      <Card 
-        className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-        styles={{ body: { padding: 0, flex: 1, overflow: 'hidden' } }}
-        variant="borderless"
-      >
-        <CategoryItemList selectedCode={selectedCategoryCode} />
-      </Card>
-    </div>
+        {/* 右側：項目清單 */}
+        <div className="flex-1 flex flex-col" style={{ height: '100%', overflow: 'hidden' }}>
+          <CategoryItemList selectedCode={selectedCategoryCode} />
+        </div>
+      </div>
+    </PageCard>
   );
 }

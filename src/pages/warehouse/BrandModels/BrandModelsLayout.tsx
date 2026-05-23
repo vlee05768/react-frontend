@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Input, Modal, Form, message, Tag, Space, Typography, Tooltip } from 'antd';
+import { Table, Button, Input, Modal, Form, message, Tag, Space, Typography, Tooltip } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, SearchOutlined } from '@ant-design/icons';
+import PageCard from '@/components/common/PageCard';
 import { 
   getApiV1GeneralTypes, 
   deleteApiV1GeneralTypesById, 
@@ -55,12 +56,11 @@ export default function BrandModelsLayout() {
         query: {
           Type: ['MaterialBrand'],
           Code: brandSearch || undefined,
-          pageSize: -1, // 不可超過 100，否則後端報錯
+          pageSize: -1, 
         }
       });
       if ((res.data as any)?.success) {
         setBrands((res.data?.data as any)?.data || []);
-        // 若當前選取的 brand 已經不在清單中，清空選取
         if (selectedBrand && !(res.data?.data as any)?.data?.find((b: any) => b.code === selectedBrand.code)) {
           setSelectedBrand(null);
         }
@@ -80,7 +80,7 @@ export default function BrandModelsLayout() {
       const res = await getApiV1GeneralTypes({
         query: {
           Type: ['MaterialModel'],
-          Code2: brandCode, // 以廠牌過濾
+          Code2: brandCode, 
           Code: modelSearch || undefined,
           pageSize: -1,
         }
@@ -105,7 +105,7 @@ export default function BrandModelsLayout() {
   };
 
   const handleEditBrand = (e: React.MouseEvent, record: any) => {
-    e.stopPropagation(); // 避免觸發 row click
+    e.stopPropagation(); 
     setEditingBrand(record);
     brandForm.setFieldsValue({
       code: record.code,
@@ -116,7 +116,6 @@ export default function BrandModelsLayout() {
 
   const handleDeleteBrand = (e: React.MouseEvent, record: any) => {
     e.stopPropagation();
-    // 檢查是否有型號綁定 (可以透過呼叫 API 確認，或簡單一點看右側 models 如果當前選中，不過為了安全我們發 API 檢查)
     Modal.confirm({
       title: '確定要刪除廠牌嗎？',
       icon: <ExclamationCircleOutlined />,
@@ -126,7 +125,6 @@ export default function BrandModelsLayout() {
       cancelText: '取消',
       async onOk() {
         try {
-          // 先查該廠牌下有沒有型號
           const checkRes = await getApiV1GeneralTypes({
              query: {
                Type: ['MaterialModel'],
@@ -250,7 +248,7 @@ export default function BrandModelsLayout() {
         type: 'MaterialModel',
         code: values.code?.toUpperCase(),
         desc: values.desc,
-        code2: selectedBrand.code // 強制寫入廠牌 Code
+        code2: selectedBrand.code 
       };
 
       if (editingModel) {
@@ -360,90 +358,96 @@ export default function BrandModelsLayout() {
   ];
 
   return (
-    <div className="p-4 h-full flex gap-4">
-      {/* 左側：廠牌清單 */}
-      <Card 
-        title="廠牌清單 (Brand)" 
-        className="w-[450px] flex flex-col shadow-sm"
-        bodyStyle={{ padding: 0, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-        headStyle={{ borderBottom: '1px solid #f0f0f0' }}
-        extra={
-          canCreate && <Button type="primary" icon={<PlusOutlined />} onClick={handleAddBrand}>新增</Button>
-        }
-      >
-        <div className="p-3 border-b border-gray-100 dark:border-gray-800">
-          <Input 
-            placeholder="搜尋廠牌代碼或名稱..." 
-            prefix={<SearchOutlined />} 
-            value={brandSearch}
-            onChange={(e) => setBrandSearch(e.target.value)}
-            onPressEnter={fetchBrands}
-            allowClear
-          />
-        </div>
-        <div className="flex-1 overflow-auto">
-          <Table
-            dataSource={brands}
-            columns={brandColumns}
-            rowKey="id"
-            pagination={false}
-            loading={loadingBrands}
-            onRow={(record) => ({
-              onClick: () => setSelectedBrand(record),
-              className: `cursor-pointer transition-colors ${selectedBrand?.id === record.id ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'}`
-            })}
-            size="small"
-          />
-        </div>
-      </Card>
-
-      {/* 右側：型號清單 */}
-      <Card 
-        title={
-          <span>
-            型號清單 (Model) 
-            {selectedBrand && <span className="text-blue-500 ml-2 font-normal text-sm">- 當前選擇：{selectedBrand.code}</span>}
-          </span>
-        }
-        className="flex-1 flex flex-col shadow-sm"
-        bodyStyle={{ padding: 0, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-        headStyle={{ borderBottom: '1px solid #f0f0f0' }}
-        extra={
-          canCreate && selectedBrand && (
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAddModel}>
-              新增 {selectedBrand.code} 型號
-            </Button>
-          )
-        }
-      >
-        <div className="p-3 border-b border-gray-100 dark:border-gray-800">
-          <Input 
-            placeholder="搜尋型號代碼或說明..." 
-            prefix={<SearchOutlined />} 
-            value={modelSearch}
-            onChange={(e) => setModelSearch(e.target.value)}
-            onPressEnter={() => selectedBrand && fetchModels(selectedBrand.code)}
-            disabled={!selectedBrand}
-            allowClear
-          />
-        </div>
-        <div className="flex-1 overflow-auto">
-          {selectedBrand ? (
-            <Table
-              dataSource={models}
-              columns={modelColumns}
-              rowKey="id"
-              pagination={false}
-              loading={loadingModels}
+    <PageCard title="品牌型號管理">
+      <div className="flex gap-4 h-full w-full overflow-hidden">
+        {/* 左側：廠牌清單 */}
+        <div className="flex flex-col border-r border-gray-100 dark:border-gray-800 pr-4" style={{ width: '450px', height: '100%', overflow: 'hidden' }}>
+          <div className="flex justify-between items-center pb-3 mb-2" style={{ borderBottom: '1px solid var(--ant-color-border-secondary, #f0f0f0)' }}>
+            <span className="font-semibold" style={{ fontSize: '16px', color: 'var(--ant-color-text)' }}>廠牌清單 (Brand)</span>
+            {canCreate && (
+              <Button type="primary" size="small" icon={<PlusOutlined />} onClick={handleAddBrand}>
+                新增廠牌
+              </Button>
+            )}
+          </div>
+          
+          <div className="p-2 border-b border-gray-100 dark:border-gray-800 mb-2">
+            <Input 
+              placeholder="搜尋廠牌代碼或名稱..." 
+              prefix={<SearchOutlined />} 
+              value={brandSearch}
+              onChange={(e) => setBrandSearch(e.target.value)}
+              onPressEnter={fetchBrands}
+              allowClear
               size="small"
             />
-          ) : (
-            <div className="h-full flex items-center justify-center text-gray-400">
-              <Text type="secondary">請先從左側選擇一個廠牌</Text>
-            </div>
-          )}
+          </div>
+          
+          <div className="flex-1 overflow-auto">
+            <Table
+              dataSource={brands}
+              columns={brandColumns}
+              rowKey="id"
+              pagination={false}
+              loading={loadingBrands}
+              onRow={(record) => ({
+                onClick: () => setSelectedBrand(record),
+                className: `cursor-pointer transition-colors ${selectedBrand?.id === record.id ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'}`
+              })}
+              size="small"
+            />
+          </div>
         </div>
-      </Card>
+
+        {/* 右側：型號清單 */}
+        <div className="flex-1 flex flex-col" style={{ height: '100%', overflow: 'hidden' }}>
+          <div className="flex justify-between items-center pb-3 mb-2" style={{ borderBottom: '1px solid var(--ant-color-border-secondary, #f0f0f0)' }}>
+            <span className="font-semibold" style={{ fontSize: '16px', color: 'var(--ant-color-text)' }}>
+              型號清單 (Model)
+              {selectedBrand && (
+                <span className="text-blue-500 ml-2 font-normal text-sm">
+                  - 當前選擇：{selectedBrand.code}
+                </span>
+              )}
+            </span>
+            {canCreate && selectedBrand && (
+              <Button type="primary" size="small" icon={<PlusOutlined />} onClick={handleAddModel}>
+                新增型號
+              </Button>
+            )}
+          </div>
+
+          <div className="p-2 border-b border-gray-100 dark:border-gray-800 mb-2">
+            <Input 
+              placeholder="搜尋型號代碼或說明..." 
+              prefix={<SearchOutlined />} 
+              value={modelSearch}
+              onChange={(e) => setModelSearch(e.target.value)}
+              onPressEnter={() => selectedBrand && fetchModels(selectedBrand.code)}
+              disabled={!selectedBrand}
+              allowClear
+              size="small"
+            />
+          </div>
+
+          <div className="flex-1 overflow-auto">
+            {selectedBrand ? (
+              <Table
+                dataSource={models}
+                columns={modelColumns}
+                rowKey="id"
+                pagination={false}
+                loading={loadingModels}
+                size="small"
+              />
+            ) : (
+              <div className="h-full flex items-center justify-center text-gray-400">
+                <Text type="secondary">請先從左側選擇一個廠牌</Text>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* 廠牌 Modal */}
       <Modal
@@ -466,9 +470,8 @@ export default function BrandModelsLayout() {
           >
             <Input 
               placeholder="例如：3M, NITTO" 
-              disabled={!!editingBrand} // 編輯時代碼不給改
+              disabled={!!editingBrand} 
               onChange={(e) => {
-                // 自動過濾非英文字母與數字，並轉大寫
                 const val = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
                 brandForm.setFieldValue('code', val);
               }}
@@ -506,7 +509,6 @@ export default function BrandModelsLayout() {
               placeholder="例如：467MP, 9448A" 
               disabled={!!editingModel}
               onChange={(e) => {
-                 // 排除中文 (簡單正則排除)
                  const val = e.target.value.replace(/[\u4e00-\u9fa5]/g, '').toUpperCase();
                  modelForm.setFieldValue('code', val);
               }}
@@ -520,6 +522,6 @@ export default function BrandModelsLayout() {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </PageCard>
   );
 }

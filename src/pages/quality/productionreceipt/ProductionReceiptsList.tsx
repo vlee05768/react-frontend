@@ -1,6 +1,7 @@
+import PageCard from '@/components/common/PageCard';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Button, Modal, Table, Card, Tag } from 'antd';
+import { Button, Modal, Table, Tag } from 'antd';
 import { SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import { TableActions } from '@/utils/tableActions';
 import { useQuery } from '@tanstack/react-query';
@@ -100,29 +101,13 @@ export default function ProductionReceiptsList() {
 
   return (
     <div className="p-4 pb-0 flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
-      <Card
-        variant="borderless"
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-        styles={{ 
-          header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
-          body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
-        }}
-        title={
-          <div className="flex items-center gap-3">
-            <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
-            <div className="m-0 font-semibold" style={{fontSize: '20px'}}>
-              生產入庫單管理
-            </div>
-          </div>
-        }
-        extra={
+      <PageCard title="生產入庫單管理" extra={
           <Space separator={<Divider orientation="vertical" />}>
             <Button type="default" icon={<SearchOutlined />} onClick={() => setIsSearchModalOpen(true)}>
               查詢
             </Button>
           </Space>
-        }
-      >
+        }>
         <div className="mb-4 flex items-center py-3 px-4" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0, gap: '16px' }}>
           <div className="flex items-center" style={{ flexWrap: 'wrap' }}>
             <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
@@ -170,17 +155,7 @@ export default function ProductionReceiptsList() {
         </div>
         
         <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <style>{`
-            .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
-            .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-spin-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table-body { flex: 1; overflow-x: auto !important; overflow-y: auto !important; max-height: none !important; }
-            .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
-            .ant-table-thead > tr > th { text-align: center !important; }
-          `}</style>
+          
           <Table
             onChange={handleTableChange}
             bordered
@@ -201,7 +176,7 @@ export default function ProductionReceiptsList() {
             }}
           />
         </div>
-      </Card>
+      </PageCard>
 
       <Modal
         title={

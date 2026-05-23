@@ -1,3 +1,4 @@
+import PageCard from '@/components/common/PageCard';
 // @ts-nocheck
 import { getApiErrorMessage } from "@/utils/apiError";
 import { useParams, useNavigate } from 'react-router-dom';
@@ -5,27 +6,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import type { InputRef } from 'antd';
 import { App , Popconfirm} from 'antd';
-import {
-  Spin,
-  Table,
-  Button,
-  Modal,
-  Form,
-  Input,
-  Select,
-  Space,
-  Card,
-  Tag,
-  Tooltip,
-  Row,
-  Col,
-  message,
-  
-  Drawer,
-  Descriptions,
-  Switch,
-  Divider
-} from 'antd';
+import { Spin, Table, Button, Modal, Form, Input, Select, Space, Tag, Tooltip, Row, Col, message, Drawer, Descriptions, Switch, Divider } from 'antd';
 import {
   SearchOutlined,
   PlusOutlined,
@@ -297,27 +278,7 @@ export default function MoldList() {
 
   return (
     <div className="p-4 pb-0 flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
-      <Card
-        variant="borderless"
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-        styles={{ 
-          header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
-          body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
-        }}
-        title={
-          <div className="flex items-center gap-3">
-            <div style={{
-              width: '4px',
-              height: '24px',
-              backgroundColor: '#1677ff',
-              borderRadius: '2px'
-            }} />
-            <div className="m-0 font-semibold" style={{fontSize: '20px', color: 'var(--ant-color-text, inherit)', lineHeight: '24px' }}>
-              模具管理
-            </div>
-          </div>
-        }
-        extra={
+      <PageCard title="模具管理" extra={
           <Space separator={<Divider orientation="vertical" />}>
             <Button
               type="default"
@@ -338,8 +299,7 @@ export default function MoldList() {
               </Button>
             )}
           </Space>
-        }
-      >
+        }>
         <div className="mb-4 flex items-center py-3 px-4" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
           <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)'}}>目前的查詢條件:</span>
           <DynamicSearchTags config={moldSearchFormConfig()} params={params} onClose={(key) => setParams({ [key]: undefined, pageNumber: 1 })} />
@@ -381,18 +341,7 @@ export default function MoldList() {
         )}
         </div>
         <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                    <style>{`
-            .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
-            .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-spin-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
-            .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
-            .ant-table-thead > tr > th { text-align: center !important; }
-
-            /* View-Mode Styling for Single Form */
+                    <style>{`/* View-Mode Styling for Single Form */
             .view-mode-form .ant-input-disabled,
             .view-mode-form .ant-input[disabled],
             .view-mode-form .ant-select-disabled,
@@ -413,8 +362,7 @@ export default function MoldList() {
             }
             .view-mode-form .ant-select-arrow {
                 display: none !important;
-            }
-          `}</style>
+            }`}</style>
           <Table
             onChange={handleTableChange}
             bordered
@@ -441,7 +389,7 @@ export default function MoldList() {
             }}
           />
         </div>
-      </Card>
+      </PageCard>
 
       <Modal
         title={

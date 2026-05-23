@@ -1,28 +1,11 @@
+import PageCard from '@/components/common/PageCard';
 // @ts-nocheck
 import { getApiErrorMessage } from "@/utils/apiError";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
-import {
-  Spin,
-  Table,
-  Button,
-  Modal,
-  Form,
-  Input,
-  Space,
-  Card,
-  Tag,
-  Tooltip,
-  Row,
-  Col,
-  
-  Drawer,
-  Divider,
-  Tabs,
-  Select
-, Popconfirm} from 'antd';
+import { Spin, Table, Button, Modal, Form, Input, Space, Tag, Tooltip, Row, Col, Drawer, Divider, Tabs, Select, Popconfirm } from 'antd';
 import {
   SearchOutlined,
   PlusOutlined,
@@ -264,22 +247,7 @@ export default function BusinessPartnerList() {
   
   return (
     <div className="p-4 pb-0 flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
-      <Card
-        variant="borderless"
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-        styles={{ 
-          header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
-          body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
-        }}
-        title={
-          <div className="flex items-center gap-3">
-            <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
-            <div className="m-0 font-semibold" style={{fontSize: '20px'}}>
-              廠商客戶管理
-            </div>
-          </div>
-        }
-        extra={
+      <PageCard title="廠商客戶管理" extra={
           <Space separator={<Divider orientation="vertical" />}>
             <Button
               type="default"
@@ -296,8 +264,7 @@ export default function BusinessPartnerList() {
               新增資料
             </Button>
           </Space>
-        }
-      >
+        }>
         <div className="mb-4 flex items-center py-3 px-4" style={{ flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0, gap: '16px' }}>
           <div className="flex items-center" style={{ flexWrap: 'wrap' }}>
             <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
@@ -342,17 +309,7 @@ export default function BusinessPartnerList() {
           )}
         </div>
         <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <style>{`
-            .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
-            .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-spin-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
-            .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
-            .ant-table-thead > tr > th { text-align: center !important; }
-            /* View-Mode Styling for Single Form */
+          <style>{`/* View-Mode Styling for Single Form */
             .view-mode-form .ant-input-disabled,
             .view-mode-form .ant-input[disabled],
             .view-mode-form .ant-select-disabled,
@@ -370,8 +327,7 @@ export default function BusinessPartnerList() {
             .view-mode-form .ant-switch-disabled {
                opacity: 1 !important;
                cursor: default !important;
-            }
-          `}</style>
+            }`}</style>
           <Table
             bordered
             rowClassName={(record) => {
@@ -404,7 +360,7 @@ export default function BusinessPartnerList() {
             }}
           />
         </div>
-      </Card>
+      </PageCard>
 
       <Modal
         title={

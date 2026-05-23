@@ -1,6 +1,7 @@
+import PageCard from '@/components/common/PageCard';
 import { useMemo, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Card, Table, Descriptions, Space, Button, Modal } from 'antd';
+import { Table, Descriptions, Space, Button, Modal } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -158,18 +159,13 @@ export default function CustomerStatementList() {
 
   return (
     <div className="p-4 pb-0 flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
-      <Card
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-        styles={{ body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: 0 } }}
-        title="對帳單報表"
-        extra={
+      <PageCard title="對帳單報表" extra={
           <Space>
             <Button type="primary" icon={<SearchOutlined />} onClick={() => setIsSearchModalOpen(true)}>
               查詢條件
             </Button>
           </Space>
-        }
-      >
+        } bodyStyle={{ padding: 0 }}>
         <div className="mb-4 flex items-center py-3 px-4" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
           <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
           <DynamicSearchTags
@@ -222,7 +218,7 @@ export default function CustomerStatementList() {
             }}
           />
         </div>
-      </Card>
+      </PageCard>
 
       <Modal
         title="查詢條件"
