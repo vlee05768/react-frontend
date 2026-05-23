@@ -52,7 +52,7 @@ export const MasterDetailTabs: React.FC<MasterDetailTabsProps> = ({
       forceRender: true,
       disabled: disableTabSwitching,
       children: (
-        <div style={{ height: `calc(100vh - ${heightOffset}px)`, overflowY: "auto", overflowX: "hidden", paddingRight: "8px", margin: "0 -8px 0 0" }}>
+        <div className="overflow-y-auto overflow-x-hidden pr-2 mr-[-8px]" style={{ height: `calc(100vh - ${heightOffset}px)` }}>
           {masterContent}
         </div>
       ),
@@ -65,7 +65,7 @@ export const MasterDetailTabs: React.FC<MasterDetailTabsProps> = ({
       label: '附件管理',
       disabled: disableTabSwitching || !isViewMode || !viewId,
       children: (
-        <div style={{ height: `calc(100vh - ${heightOffset}px)`, overflowY: "auto", overflowX: "hidden", padding: '16px 8px 16px 0', margin: "0 -8px 0 0" }}>
+        <div className="overflow-y-auto overflow-x-hidden py-4 pr-2 pl-0 mr-[-8px]" style={{ height: `calc(100vh - ${heightOffset}px)` }}>
           {viewId && (
             <FileAttachmentZone 
               referenceType={entityType} 
@@ -85,7 +85,7 @@ export const MasterDetailTabs: React.FC<MasterDetailTabsProps> = ({
         label: tab.label,
         disabled: disableTabSwitching || tab.disabled || !isViewMode || !viewId,
         children: (
-          <div style={{ height: `calc(100vh - ${heightOffset}px)`, overflowY: "auto", overflowX: "hidden", paddingRight: "8px", margin: "0 -8px 0 0" }}>
+          <div className="overflow-y-auto overflow-x-hidden pr-2 mr-[-8px]" style={{ height: `calc(100vh - ${heightOffset}px)` }}>
             {tab.children}
           </div>
         ),

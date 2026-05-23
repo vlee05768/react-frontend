@@ -32,8 +32,8 @@ export function PageCard({
   // Auto-wrap string titles with standard ERP accent blue bar
   const renderedTitle = typeof title === 'string' ? (
     <div className="flex items-center gap-3">
-      <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
-      <div className="m-0 font-semibold" style={{ fontSize: '20px' }}>
+      <div className="w-1 h-6 bg-[var(--ant-color-primary)] rounded-[2px]" />
+      <div className="m-0 font-semibold text-[20px] text-[var(--ant-color-text)]">
         {title}
       </div>
     </div>
@@ -42,10 +42,14 @@ export function PageCard({
   return (
     <Card
       variant="borderless"
-      style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', ...style }}
+      className="flex-1 flex flex-col overflow-hidden"
+      style={style}
+      classNames={{
+        header: 'border-b border-[var(--ant-color-border-secondary)] px-6 py-4',
+        body: 'flex-1 overflow-hidden flex flex-col p-4 pb-1'
+      }}
       styles={{
-        header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
-        body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px', ...bodyStyle }
+        body: bodyStyle
       }}
       title={renderedTitle}
       extra={extra}
