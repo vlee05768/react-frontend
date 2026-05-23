@@ -1,7 +1,7 @@
-import { Popconfirm } from 'antd';
 import React, { useState } from 'react';
-import { Table, Button, Space, App, Tooltip } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { Table, Button, Space, App } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   getApiV1InventoryAdjustmentByMovementNumberItems,
@@ -104,34 +104,13 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
       key: 'actions',
       width: 100,
       render: (_: any, record: any) => (
-        <Space>
-          <Tooltip title="檢視 / 編輯">
-            <Button 
-              size="small" 
-              type="text" 
-              icon={canEdit ? <EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} /> : <EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-              onClick={() => setEditingItem(record)} 
-            />
-          </Tooltip>
-          {canEdit && (
-            <Popconfirm
-            title="刪除確認"
-            description="確定要刪除此筆資料嗎？此操作無法還原。"
-            onConfirm={() => deleteMutation.mutate(record.lineNumber)}
-            onOpenChange={() => {
-              // const r...
-              // const recordId...
-              // no deleting record id
-            }}
-            okButtonProps={{ danger: true }}
-            okText="刪除"
-            cancelText="取消"
-            placement="topLeft"
-          >
-            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-          </Popconfirm>
-          )}
-        </Space>
+        <TableActions
+          onView={!canEdit ? () => setEditingItem(record) : undefined}
+          onEdit={canEdit ? () => setEditingItem(record) : undefined}
+          onDelete={canEdit ? () => deleteMutation.mutate(record.lineNumber) : undefined}
+          recordName={`第 ${record.lineNumber} 行明細`}
+          deleteConfirmType="popconfirm"
+        />
       ),
     },
     ...buildTableColumns(itemTableColumns())

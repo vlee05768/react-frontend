@@ -1,7 +1,8 @@
 import { getApiErrorMessage } from "@/utils/apiError";
 import { useState, useMemo } from 'react';
-import { Table, Button, Space,  Drawer, Popconfirm } from 'antd';
-import { PlusOutlined, DeleteOutlined, EyeOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
+import { Table, Button, Space,  Drawer } from 'antd';
+import { PlusOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
+import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getApiV1BusinessPartnersByBusinessPartnerCodeContacts,
@@ -21,7 +22,6 @@ import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
 
 export default function ContactList({ businessPartnerCode, isViewMode: isMasterViewMode }: { businessPartnerCode: string; isViewMode: boolean }) {
   const { message: messageApi, modal: modalApi } = App.useApp();
-  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -139,32 +139,12 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
     fixed: 'right' as const,
     width: 120,
     render: (_: any, record: any) => (
-      <Space>
-        <Button 
-          type="text" 
-          icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-          style={{ color: '#1890ff' }} 
-          onClick={() => openViewDrawer(record)}
-        />
-        {isMasterViewMode && (
-          <Popconfirm
-            title="刪除確認"
-            description="確定要刪除此筆聯絡人嗎？此操作無法還原。"
-            onConfirm={() => deleteMutation.mutate(record.id)}
-            onOpenChange={(open) => {
-              const r = record as any;
-              const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              setDeletingRecordId(open ? String(recordId) : null);
-            }}
-            okButtonProps={{ danger: true }}
-            okText="刪除"
-            cancelText="取消"
-            placement="topLeft"
-          >
-            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-          </Popconfirm>
-        )}
-      </Space>
+      <TableActions
+        onView={() => openViewDrawer(record)}
+        onDelete={isMasterViewMode ? () => deleteMutation.mutate(record.id) : undefined}
+        recordName={record.name}
+        deleteConfirmType="popconfirm"
+      />
     ),
   };
 
@@ -193,10 +173,6 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
       {/* 資料表格區 */}
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <Table
-            rowClassName={(record) => {
-              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              return recordId && String(recordId) === String(deletingRecordId) ? 'deleting-row-highlight' : '';
-            }}
           virtual
           scroll={{ x: 1000, y: 400 }}
           dataSource={listData}

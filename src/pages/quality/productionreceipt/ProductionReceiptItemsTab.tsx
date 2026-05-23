@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { Table, Button, Tooltip } from 'antd';
-import { EyeOutlined } from '@ant-design/icons';
+import { Table, Button } from 'antd';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { itemTableColumns, itemFormConfig } from './ProductionReceiptConfig';
-import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
+import { TableActions } from '@/utils/tableActions';
 
 interface ProductionReceiptItem {
   lineNumber: number;
@@ -33,14 +32,9 @@ export default function ProductionReceiptItemsTab({ items }: Props) {
     align: 'center' as const,
     fixed: 'right' as const,
     render: (_: any, record: any) => (
-      <Tooltip title="檢視明細">
-        <Button 
-          size="small" 
-          type="text" 
-          icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-          onClick={() => setEditingItem(record)} 
-        />
-      </Tooltip>
+      <TableActions
+        onView={() => setEditingItem(record)}
+      />
     ),
   };
 

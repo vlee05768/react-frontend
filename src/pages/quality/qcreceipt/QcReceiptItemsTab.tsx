@@ -1,7 +1,7 @@
-import { Popconfirm } from 'antd';
 import { useState } from 'react';
-import { Button, Table, message, Tooltip  } from 'antd';
-import { PlusOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { Button, Table, message } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getApiV1QcReceiptByMovementNumberItems, deleteApiV1QcReceiptByMovementNumberItemsByReferenceNumber, postApiV1QcReceiptByMovementNumberItems } from '@/api/generated';
 import { getApiErrorMessage } from '@/utils/apiError';
@@ -9,7 +9,6 @@ import QcProductionReceiptSelector from './QcProductionReceiptSelector';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { itemTableColumns, itemFormConfig } from './QcReceiptConfig';
-import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 
 interface QcReceiptItemsTabProps {
   documentNumber: string;
@@ -19,7 +18,6 @@ interface QcReceiptItemsTabProps {
 
 export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceiptItemsTabProps) {
   // const { modal } = App.useApp();
-  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -85,34 +83,12 @@ export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceip
       align: 'center' as const,
       fixed: 'left' as const,
       render: (_: any, record: any) => (
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-          <Tooltip title="檢視明細">
-            <Button 
-              size="small" 
-              type="text" 
-              icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-              onClick={() => setEditingItem(record)} 
-            />
-          </Tooltip>
-          {!isLocked && (
-            <Popconfirm
-            title="刪除確認"
-            description="確定要刪除此筆資料嗎？此操作無法還原。"
-            onConfirm={() => deleteMutation.mutate(record.referenceNumber)}
-            onOpenChange={(open) => {
-              const r = record as any;
-              const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              if (typeof setDeletingRecordId !== 'undefined') setDeletingRecordId(open ? String(recordId) : null);
-            }}
-            okButtonProps={{ danger: true }}
-            okText="刪除"
-            cancelText="取消"
-            placement="topLeft"
-          >
-            <Button type="text" danger icon={<DeleteOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} />
-          </Popconfirm>
-          )}
-        </div>
+        <TableActions
+          onView={() => setEditingItem(record)}
+          onDelete={!isLocked ? () => deleteMutation.mutate(record.referenceNumber) : undefined}
+          recordName={record.referenceNumber}
+          deleteConfirmType="popconfirm"
+        />
       )
     },
     ...buildTableColumns(itemTableColumns())
@@ -164,10 +140,6 @@ export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceip
       </div>
 
       <Table
-            rowClassName={(record) => {
-              const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-              return recordId && String(recordId) === String(deletingRecordId) ? 'deleting-row-highlight' : '';
-            }}
         columns={columns as any}
         dataSource={list}
         rowKey="referenceNumber"

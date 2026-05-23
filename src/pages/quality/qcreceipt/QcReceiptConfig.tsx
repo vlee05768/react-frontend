@@ -48,7 +48,7 @@ export const getStatusTag = (
 };
 
 export const mainTableColumns = (): TableColumnConfig[] => [
-  { label: '單據號碼', name: 'documentNumber', sortable: { multiple: 1 }, width: 100 },
+  { label: '單據號碼', name: 'documentNumber', sortable: { multiple: 1 }, width: 120 },
   { 
     label: '檢驗日期', 
     name: 'documentDate', 
