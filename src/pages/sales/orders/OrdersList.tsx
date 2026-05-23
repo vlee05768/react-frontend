@@ -92,7 +92,7 @@ export default function OrdersList() {
   }, [hasPermission, navigate, modal, deleteMutation, params.SortRules]);
 
   return (
-    <div className="p-4 pb-0 flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
+    <div className="p-4 pb-0 flex flex-col h-[calc(100vh-64px)]">
       <PageCard title="訂單管理" extra={
           <Space separator={<Divider orientation="vertical" />}>
             <Button
@@ -143,14 +143,14 @@ export default function OrdersList() {
 
       <Modal
         title={
-          <div className="font-semibold pb-3 mb-2" style={{fontSize: '18px', borderBottom: '1px solid #f0f0f0'}}>
+          <div className="font-semibold pb-3 mb-2 text-[18px] border-b border-[var(--ant-color-border-secondary)]">
             查詢條件設定
           </div>
         }
         open={listQuery.isSearchModalOpen}
         onCancel={() => listQuery.setIsSearchModalOpen(false)}
         footer={
-          <div className="pt-4 flex justify-end gap-2" style={{borderTop: '1px solid #f0f0f0'}}>
+          <div className="pt-4 flex justify-end gap-2 border-t border-[var(--ant-color-border-secondary)]">
             <Button icon={<ClearOutlined />} onClick={listQuery.handleClear}>
               清除條件
             </Button>
@@ -160,7 +160,7 @@ export default function OrdersList() {
           </div>
         }
         width={MODAL_WIDTH_SEARCH}
-        style={{ top: '10vh' }}
+        className="top-[10vh]"
         styles={{
           body: {
             maxHeight: MODAL_BODY_MAX_HEIGHT,
