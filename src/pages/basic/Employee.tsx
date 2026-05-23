@@ -295,7 +295,7 @@ export default function EmployeeList() {
   };
 
     return (
-    <div className="p-[16px 16px 0px 16px] flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
+    <div className="p-4 pb-0 flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
       <Card
         variant="borderless"
         style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
@@ -339,7 +339,7 @@ export default function EmployeeList() {
           </Space>
         }
       >
-        <div className="mb-4 flex items-center p-[12px 16px]" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', borderRadius: '6px', flexShrink: 0, gap: '16px' }}>
+        <div className="mb-4 flex items-center py-3 px-4" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', borderRadius: '6px', flexShrink: 0, gap: '16px' }}>
           <div className="flex items-center" style={{ flexWrap: 'wrap' }}>
             <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)'}}>目前的查詢條件:</span>
             {renderSearchTags()}

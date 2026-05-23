@@ -26,26 +26,25 @@ interface Props {
 export default function ProductionReceiptItemsTab({ items }: Props) {
   const [editingItem, setEditingItem] = useState<any>(null);
 
-  const columns = [
-    {
-      title: '操作',
-      key: 'actions',
-      width: 60,
-      align: 'center' as const,
-      fixed: 'right' as const,
-      render: (_: any, record: any) => (
-        <Tooltip title="檢視明細">
-          <Button 
-            size="small" 
-            type="text" 
-            icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
-            onClick={() => setEditingItem(record)} 
-          />
-        </Tooltip>
-      ),
-    },
-    ...buildTableColumns(itemTableColumns())
-  ];
+  const actionColumn = {
+    title: '操作',
+    key: 'actions',
+    width: 60,
+    align: 'center' as const,
+    fixed: 'right' as const,
+    render: (_: any, record: any) => (
+      <Tooltip title="檢視明細">
+        <Button 
+          size="small" 
+          type="text" 
+          icon={<EyeOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
+          onClick={() => setEditingItem(record)} 
+        />
+      </Tooltip>
+    ),
+  };
+
+  const columns = buildTableColumns(itemTableColumns(), actionColumn);
 
   if (editingItem) {
     return (
@@ -69,7 +68,7 @@ export default function ProductionReceiptItemsTab({ items }: Props) {
 
   return (
     <div className="p-4">
-      <div className="flex justify-between items-center mb-4 p-[8px_12px]" style={{backgroundColor: 'var(--ant-color-fill-alter)', borderRadius: '6px'
+      <div className="flex justify-between items-center mb-4 py-2 px-3" style={{backgroundColor: 'var(--ant-color-fill-alter)', borderRadius: '6px'
       }}>
         <div style={{ color: 'var(--ant-color-text-secondary)' }}>
           目前共有 <span className="font-medium">{items.length}</span> 筆明細
@@ -82,7 +81,7 @@ export default function ProductionReceiptItemsTab({ items }: Props) {
         rowKey={(record) => record.lineNumber?.toString() || Math.random().toString()}
         pagination={false}
         size="small"
-        scroll={{ x: 'max-content' }}
+        scroll={{ x: 1100 }}
         bordered
       />
     </div>

@@ -101,7 +101,7 @@ export default function OrdersList() {
   }, [hasPermission, navigate, modal, deleteMutation, params.SortRules]);
 
   return (
-    <div className="p-[16px_16px_0px_16px] flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
+    <div className="p-4 pb-0 flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
       <Card
         style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
         styles={{ 
@@ -138,7 +138,7 @@ export default function OrdersList() {
           </Space>
         }
       >
-        <div className="mb-4 flex items-center p-[12px_16px]" style={{flexWrap: 'wrap', gap: '8px 12px', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
+        <div className="mb-4 flex items-center py-3 px-4" style={{flexWrap: 'wrap', gap: '8px 12px', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0 }}>
           <div className="flex items-center" style={{ flexWrap: 'wrap' }}>
             <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
             <DynamicSearchTags

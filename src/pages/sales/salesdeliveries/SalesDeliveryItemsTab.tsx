@@ -171,7 +171,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
         </div>
       ) : (
         <div>
-          <div className="flex justify-between items-center mb-4 p-[8px_12px]" style={{backgroundColor: 'var(--ant-color-fill-alter)', borderRadius: '6px'}}>
+          <div className="flex justify-between items-center mb-4 py-2 px-3" style={{backgroundColor: 'var(--ant-color-fill-alter)', borderRadius: '6px'}}>
             <div style={{ color: 'var(--ant-color-text-secondary)' }}>
               目前共有 <span>{items.length}</span> 筆明細
             </div>

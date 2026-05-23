@@ -173,7 +173,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
   return (
     <div className="detail-container flex flex-col h-full" >
       {/* 頂部操作列與客製化訊息區 */}
-      <div className="flex justify-between items-center mb-4 p-[8px 12px]" style={{backgroundColor: 'var(--ant-color-fill-alter, #f5f5f5)', borderRadius: '6px'
+      <div className="flex justify-between items-center mb-4 py-2 px-3" style={{backgroundColor: 'var(--ant-color-fill-alter, #f5f5f5)', borderRadius: '6px'
       }}>
         {/* 左側：訊息 */}
         <div style={{ color: 'var(--ant-color-text-secondary, #8c8c8c)' }}>

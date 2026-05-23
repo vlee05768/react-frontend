@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Card, Table, Tabs, Button, Space, Form, Input, Select, ConfigProvider } from 'antd';
+import { Table, Tabs, Button, Space, Form, Input, Select, ConfigProvider } from 'antd';
+import { PageCard } from '@/components/common/PageCard';
 import { useForm, Controller } from 'react-hook-form';
 import { SearchOutlined, ClearOutlined, SyncOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
@@ -193,23 +194,21 @@ export default function StorageInventoryList() {
   ];
 
   return (
-    <div className="p-[16px 16px 0px 16px] flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
-      <Card
-        title={
-          <div className="flex items-center gap-3">
-            <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
-            <div className="m-0 font-semibold" style={{fontSize: '20px'}}>
-              產品儲位庫存
-            </div>
-          </div>
-        }
+    <div className="p-4 pb-0 flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
+      <PageCard
+        title="產品儲位庫存"
         extra={
           <Button icon={<SyncOutlined />} onClick={() => refetch()} loading={isFetching}>
             更新資料
           </Button>
         }
       >
-        <Form layout="inline" className="mb-4" onFinish={handleSubmit(handleSearch)}>
+        <Form 
+          layout="inline" 
+          className="mb-4 pb-4 border-b border-[#f0f0f0]" 
+          onFinish={handleSubmit(handleSearch)}
+          style={{ flexShrink: 0 }}
+        >
           <Form.Item label="儲位">
             <Controller name="StorageCode" control={control} render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" placeholder="請選擇儲位" style={{ width: 220 }} allowClear />} />
           </Form.Item>
@@ -227,93 +226,103 @@ export default function StorageInventoryList() {
           </Form.Item>
         </Form>
 
-        <Tabs activeKey={activeTab} onChange={(key) => setActiveTab(key)}>
-          <TabPane tab="依物料分組" key="1">
-            <Table
-              rowKey="inventoryCode"
-              loading={isFetching}
-              dataSource={inventoryGroups}
-              columns={inventoryMasterColumns as any}
-              expandable={{
-                expandedRowKeys: expandedInventoryKeys,
-                onExpandedRowsChange: setExpandedInventoryKeys,
-                expandedRowRender: (record) => (
-                  <ConfigProvider
-                    theme={{
-                      components: {
-                        Table: {
-                          colorBgContainer: mode === 'dark' ? '#1a1a1a' : '#f8fafc',
-                          headerBg: mode === 'dark' ? '#262626' : '#e2e8f0',
-                          headerColor: mode === 'dark' ? '#d4d4d4' : '#475569',
-                          borderColor: mode === 'dark' ? '#303030' : '#cbd5e1',
+        <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <style>{`
+            .ant-card-body { display: flex; flex-direction: column; }
+            .ant-tabs { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-tabs-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-tabs-tabpane { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+          `}</style>
+          <Tabs activeKey={activeTab} onChange={(key) => setActiveTab(key)} style={{ flex: 1 }}>
+            <TabPane tab="依物料分組" key="1">
+              <Table
+                rowKey="inventoryCode"
+                loading={isFetching}
+                dataSource={inventoryGroups}
+                columns={inventoryMasterColumns as any}
+                bordered
+                expandable={{
+                  expandedRowKeys: expandedInventoryKeys,
+                  onExpandedRowsChange: setExpandedInventoryKeys,
+                  expandedRowRender: (record) => (
+                    <ConfigProvider
+                      theme={{
+                        components: {
+                          Table: {
+                            colorBgContainer: mode === 'dark' ? '#1a1a1a' : '#f8fafc',
+                            headerBg: mode === 'dark' ? '#262626' : '#e2e8f0',
+                            headerColor: mode === 'dark' ? '#d4d4d4' : '#475569',
+                            borderColor: mode === 'dark' ? '#303030' : '#cbd5e1',
+                          },
                         },
-                      },
-                    }}
-                  >
-                    <div className={`mx-4 my-2 p-4 rounded-lg border-l-4 ${mode === 'dark' ? 'bg-[#1a1a1a] border-blue-600 shadow-inner' : 'bg-slate-50 border-blue-500 shadow-sm'}`}>
-                      <div className="mb-3 text-sm font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block"></span>
-                        物料 ({record.inventoryCode}) 於各儲位分布明細
+                      }}
+                    >
+                      <div className={`mx-4 my-2 p-4 rounded-lg border-l-4 ${mode === 'dark' ? 'bg-[#1a1a1a] border-blue-600 shadow-inner' : 'bg-slate-50 border-blue-500 shadow-sm'}`}>
+                        <div className="mb-3 text-sm font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block"></span>
+                          物料 ({record.inventoryCode}) 於各儲位分布明細
+                        </div>
+                        <Table
+                          rowKey={(r) => r.storageCode + r.updatedAt}
+                          columns={subColumnsForInventory as any}
+                          dataSource={record.items}
+                          pagination={false}
+                          size="small"
+                          bordered
+                          scroll={{ x: 'max-content' }} />
                       </div>
-                      <Table
-                        rowKey={(r) => r.storageCode + r.updatedAt}
-                        columns={subColumnsForInventory as any}
-                        dataSource={record.items}
-                        pagination={false}
-                        size="small"
-                        bordered
-                       scroll={{ x: 'max-content' }} />
-                    </div>
-                  </ConfigProvider>
-                ),
-              }}
-              pagination={false}
-             scroll={{ x: 'max-content' }} />
-          </TabPane>
-          <TabPane tab="依儲位分組" key="2">
-            <Table
-              rowKey="storageCode"
-              loading={isFetching}
-              dataSource={storageGroups}
-              columns={storageMasterColumns as any}
-              expandable={{
-                expandedRowKeys: expandedStorageKeys,
-                onExpandedRowsChange: setExpandedStorageKeys,
-                expandedRowRender: (record) => (
-                  <ConfigProvider
-                    theme={{
-                      components: {
-                        Table: {
-                          colorBgContainer: mode === 'dark' ? '#1a1a1a' : '#f0fdf4',
-                          headerBg: mode === 'dark' ? '#262626' : '#dcfce7',
-                          headerColor: mode === 'dark' ? '#d4d4d4' : '#166534',
-                          borderColor: mode === 'dark' ? '#303030' : '#bbf7d0',
+                    </ConfigProvider>
+                  ),
+                }}
+                pagination={false}
+                scroll={{ x: 'max-content', y: 300 }} />
+            </TabPane>
+            <TabPane tab="依儲位分組" key="2">
+              <Table
+                rowKey="storageCode"
+                loading={isFetching}
+                dataSource={storageGroups}
+                columns={storageMasterColumns as any}
+                bordered
+                expandable={{
+                  expandedRowKeys: expandedStorageKeys,
+                  onExpandedRowsChange: setExpandedStorageKeys,
+                  expandedRowRender: (record) => (
+                    <ConfigProvider
+                      theme={{
+                        components: {
+                          Table: {
+                            colorBgContainer: mode === 'dark' ? '#1a1a1a' : '#f0fdf4',
+                            headerBg: mode === 'dark' ? '#262626' : '#dcfce7',
+                            headerColor: mode === 'dark' ? '#166534' : '#166534',
+                            borderColor: mode === 'dark' ? '#303030' : '#bbf7d0',
+                          },
                         },
-                      },
-                    }}
-                  >
-                    <div className={`mx-4 my-2 p-4 rounded-lg border-l-4 ${mode === 'dark' ? 'bg-[#1a1a1a] border-green-600 shadow-inner' : 'bg-green-50 border-green-500 shadow-sm'}`}>
-                      <div className="mb-3 text-sm font-bold text-green-700 dark:text-green-400 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
-                        儲位 ({record.storageCode}) 之物料庫存明細
+                      }}
+                    >
+                      <div className={`mx-4 my-2 p-4 rounded-lg border-l-4 ${mode === 'dark' ? 'bg-[#1a1a1a] border-green-600 shadow-inner' : 'bg-green-50 border-green-500 shadow-sm'}`}>
+                        <div className="mb-3 text-sm font-bold text-green-700 dark:text-green-400 flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
+                          儲位 ({record.storageCode}) 之物料庫存明細
+                        </div>
+                        <Table
+                          rowKey={(r) => r.inventoryCode + r.updatedAt}
+                          columns={subColumnsForStorage as any}
+                          dataSource={record.items}
+                          pagination={false}
+                          size="small"
+                          bordered
+                          scroll={{ x: 'max-content' }} />
                       </div>
-                      <Table
-                        rowKey={(r) => r.inventoryCode + r.updatedAt}
-                        columns={subColumnsForStorage as any}
-                        dataSource={record.items}
-                        pagination={false}
-                        size="small"
-                        bordered
-                       scroll={{ x: 'max-content' }} />
-                    </div>
-                  </ConfigProvider>
-                ),
-              }}
-              pagination={false}
-             scroll={{ x: 'max-content' }} />
-          </TabPane>
-        </Tabs>
-      </Card>
+                    </ConfigProvider>
+                  ),
+                }}
+                pagination={false}
+                scroll={{ x: 'max-content', y: 300 }} />
+            </TabPane>
+          </Tabs>
+        </div>
+      </PageCard>
     </div>
   );
 }

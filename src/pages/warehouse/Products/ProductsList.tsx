@@ -6,6 +6,7 @@ import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import {
   Spin, Table, Button, Modal, Form, Space, Card, Tooltip, Popconfirm, Drawer, Divider, App, Tag
 } from 'antd';
+import { PageCard } from '@/components/common/PageCard';
 import {
   SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ClearOutlined, SaveOutlined, EyeOutlined
 } from '@ant-design/icons';
@@ -255,22 +256,9 @@ export default function ProductsList() {
   };
 
   return (
-    <div className="p-[16px 16px 0px 16px] flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
-      <Card
-        variant="borderless"
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-        styles={{ 
-          header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
-          body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
-        }}
-        title={
-          <div className="flex items-center gap-3">
-            <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
-            <div className="m-0 font-semibold" style={{fontSize: '20px'}}>
-              產品管理
-            </div>
-          </div>
-        }
+    <div className="p-4 pb-0 flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
+      <PageCard
+        title="產品管理"
         extra={
           <Space separator={<Divider orientation="vertical" />}>
             <Button
@@ -290,7 +278,7 @@ export default function ProductsList() {
           </Space>
         }
       >
-        <div className="mb-4 flex items-center p-[12px 16px]" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0, gap: '16px' }}>
+        <div className="mb-4 flex items-center py-3 px-4" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0, gap: '16px' }}>
           <div className="flex items-center" style={{ flexWrap: 'wrap' }}>
             <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
             {renderSearchTags()}
@@ -333,15 +321,6 @@ export default function ProductsList() {
         </div>
         <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <style>{`
-            .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
-            .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-spin-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-            .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
-            .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
-            .ant-table-thead > tr > th { text-align: center !important; }
             /* View-Mode Styling for Single Form */
             .view-mode-form .ant-input-disabled,
             .view-mode-form .ant-input[disabled],
@@ -388,7 +367,7 @@ export default function ProductsList() {
             }}
           />
         </div>
-      </Card>
+      </PageCard>
 
       <Modal
         title={

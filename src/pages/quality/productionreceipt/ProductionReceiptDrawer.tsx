@@ -299,7 +299,7 @@ export default function ProductionReceiptDrawer() {
             actions={getActionBarActions()}
           />
         )}
-        <div className="p-[8px_24px]">
+        <div className="py-2 px-6">
           {(!isCreating && formData) && <DocumentLifecycleBanner steps={steps} />}
           <MasterDetailTabs
             heightOffset={(!isCreating && formData) ? 320 : 160}

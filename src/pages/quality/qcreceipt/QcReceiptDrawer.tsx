@@ -293,7 +293,7 @@ export default function QcReceiptDrawer() {
             updatedAt={receiptData?.updatedAt || undefined}
             actions={getActionBarActions()}
           />
-        <div className="p-[8px_24px]">
+        <div className="py-2 px-6">
           {!isCreating && receiptData && <DocumentLifecycleBanner steps={steps} />}
           <MasterDetailTabs
             heightOffset={!isCreating && receiptData ? 320 : 160}

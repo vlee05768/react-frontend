@@ -283,7 +283,7 @@ export default function SalesDeliveryDrawer() {
           updatedAt={deliveryData?.updatedAt || undefined}
           actions={getActionBarActions()}
         />
-        <div className="p-[8px_24px]">
+        <div className="py-2 px-6">
           {!isCreating && deliveryData && <DocumentLifecycleBanner steps={steps} />}
           <MasterDetailTabs
             heightOffset={!isCreating && deliveryData ? 320 : 160}

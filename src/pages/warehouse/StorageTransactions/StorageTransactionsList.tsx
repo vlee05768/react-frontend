@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
-import { Card, Table, Form, Input, Select, DatePicker, Button, Space, Tag, Row, Col, App } from 'antd';
+import { Table, Form, Input, Select, DatePicker, Button, Space, Tag, Row, Col, App } from 'antd';
+import { PageCard } from '@/components/common/PageCard';
 import { SearchOutlined, ClearOutlined, DownOutlined, UpOutlined, CopyOutlined } from '@ant-design/icons';
 import { DictSelect } from '@/components/Form/DictSelect';
 import { useQuery } from '@tanstack/react-query';
@@ -266,20 +267,14 @@ export default function StorageTransactionsList() {
   ];
 
   return (
-    <div  style={{ padding: '16px 16px 0px 16px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
-      <Card variant="borderless" className="shadow-sm" style={{ flexShrink: 0 }}
-        title={
-          <div className="flex items-center gap-3">
-            <div style={{ width: '4px', height: '24px', backgroundColor: '#1677ff', borderRadius: '2px' }} />
-            <div className="m-0 font-semibold" style={{fontSize: '20px'}}>
-              庫存異動明細
-            </div>
-          </div>
-        }>
+    <div className="p-4 pb-0 flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
+      <PageCard 
+        title="庫存異動明細"
+      >
         <Form 
-          
           layout="vertical"
-          className="ant-advanced-search-form"
+          className="ant-advanced-search-form mb-4 pb-4 border-b border-[#f0f0f0]"
+          style={{ flexShrink: 0 }}
         >
           <Row gutter={16}>
             <Col xs={24} sm={12} md={8} lg={6}>
@@ -337,44 +332,26 @@ export default function StorageTransactionsList() {
             </Col>
           </Row>
         </Form>
-      </Card>
 
-      <Card 
-        variant="borderless" 
-        className="shadow-sm flex flex-col" 
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-        styles={{ 
-          body: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 0 } 
-        }}
-      >
-        <style>{`
-          .ant-table-wrapper { height: 100%; display: flex; flex-direction: column; }
-          .ant-spin-nested-loading { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-          .ant-spin { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-          .ant-spin-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-          .ant-table { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-          .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-          .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
-          .ant-table-pagination { margin-top: auto !important; margin-bottom: 16px !important; padding-right: 16px !important; padding-left: 16px !important; }
-        `}</style>
-        <Table
-          rowKey={(record: InventoryTransactionDto) => `${record.transactionId}_${record.createdAt}`}
-          dataSource={listData}
-          columns={columns}
-          loading={isFetching}
-          scroll={{ x: 'max-content', y: 300 }}
-          size="middle"
-          pagination={{
-            current: pagination.current,
-            pageSize: pagination.pageSize,
-            total: totalRecords,
-            showSizeChanger: true,
-            showTotal: (total) => `共 ${total} 筆`,
-            pageSizeOptions: ['10', '20', '50', '100']
-          }}
-          onChange={handleTableChange}
-        />
-      </Card>
+        <div className="flex flex-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <Table
+            rowKey={(record: InventoryTransactionDto) => `${record.transactionId}_${record.createdAt}`}
+            bordered
+            dataSource={listData}
+            columns={columns}
+            loading={isFetching}
+            scroll={{ x: 'max-content', y: 300 }}
+            pagination={{
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+              total: totalRecords,
+              showSizeChanger: true,
+              showTotal: (total) => `共 ${total} 筆資料`,
+            }}
+            onChange={handleTableChange}
+          />
+        </div>
+      </PageCard>
     </div>
   );
 }
