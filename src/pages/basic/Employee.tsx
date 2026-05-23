@@ -1,5 +1,5 @@
-import PageCard from '@/components/common/PageCard';
 // @ts-nocheck
+import PageCard from '@/components/common/PageCard';
 import { getApiErrorMessage } from "@/utils/apiError";
 import { useParams, useNavigate } from 'react-router-dom';
 import { DynamicForm } from '@/components/Form/DynamicForm';
@@ -7,7 +7,9 @@ import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { employeeFormConfig, employeeTableColumns, employeeSearchConfig } from './EmployeeConfig';
 import { buildTableColumns, formatSorterToRules, getColumnLabel } from '@/utils/tableUtils';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
-import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
+import { useErpListQuery } from '@/hooks/useErpListQuery';
+import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
+import StandardErpTable from '@/components/Table/StandardErpTable';
 
 import { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -46,10 +48,12 @@ export default function EmployeeList() {
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const { params, setParams, resetParams } = useEmployeeQueryStore();
   const { hasPermission } = useAuthStore();
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
-  const searchForm = useForm();
+  const listQuery = useErpListQuery({
+    params,
+    setParams,
+  });
   const [formDefaultValues, setFormDefaultValues] = useState<any>({});
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
@@ -75,7 +79,7 @@ export default function EmployeeList() {
     queryFn: () => getApiV1EmployeeById({ path: { id: viewId as any } }),
     enabled: !!viewId,
   });
-  const viewData = viewRes?.data?.data || viewRes?.data;
+  const viewData = (viewRes?.data?.data || viewRes?.data) as any;
 
   // 當獲取到單筆資料時，更新表單內容 (為了 View Mode 能看到資料)
   useEffect(() => {
@@ -221,60 +225,6 @@ export default function EmployeeList() {
 
   const columns = buildTableColumns(employeeTableColumns, actionColumn, params.SortRules);
 
-  const handleSearch = (values: any) => {
-    // 確保清空的欄位能覆蓋 Zustand store 中的舊值
-    const searchKeys = employeeSearchConfig.map(c => c.name);
-    const nextParams = { ...values };
-    
-    searchKeys.forEach(key => {
-      if (nextParams[key] === '' || nextParams[key] === null) {
-        nextParams[key] = undefined;
-      }
-    });
-
-    setParams({
-      ...nextParams,
-      pageNumber: 1,
-    });
-    setIsSearchModalOpen(false);
-  };
-
-  const handleSearchReset = () => {
-    searchForm.reset(Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = null; return acc; }, {}));
-    // 僅清空表單，不呼叫 resetParams()，避免自動觸發 API 查詢
-  };
-
-
-  const renderSearchTags = () => {
-    const searchKeys = ['employeeNo', 'name', 'status', 'departmentCode'];
-    const activeFilters: React.ReactNode[] = [];
-    
-    searchKeys.forEach(key => {
-      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
-        let label = key;
-        let valueStr = String(params[key]);
-        if (key === 'employeeNo') label = '員工編號';
-        if (key === 'name') label = '姓名';
-        if (key === 'status') valueStr = params[key] === 1 ? '在職' : (params[key] === 2 ? '離職' : String(params[key]));
-        if (key === 'status') label = '狀態';
-        if (key === 'departmentCode') valueStr = String(params[key]); // TODO: 可以考慮用 useDictionary 翻譯
-        if (key === 'departmentCode') label = '部門代碼';
-        activeFilters.push(<Tag color="blue" key={key} className="p-[2px 8px]" style={{fontSize: '13px'}}>{label}: {valueStr}</Tag>);
-      }
-    });
-
-    if (activeFilters.length === 0) {
-      return <Tag color="default" className="m-0 p-[2px 8px]" style={{fontSize: '13px'}}>【全部資料】</Tag>;
-    }
-    
-    return <Space size={[0, 8]} wrap>{activeFilters}</Space>;
-  };
-
-  const openSearchModal = () => {
-    searchForm.reset(params);
-    setIsSearchModalOpen(true);
-  };
-
     return (
     <div className="p-4 pb-0 flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
       <PageCard title="員工基本檔" extra={
@@ -282,7 +232,7 @@ export default function EmployeeList() {
             <Button
               type="default"
               icon={<SearchOutlined />}
-              onClick={openSearchModal}
+              onClick={listQuery.openSearchModal}
               className="font-medium"
             >
               查詢
@@ -299,72 +249,28 @@ export default function EmployeeList() {
             )}
           </Space>
         }>
-        <div className="mb-4 flex items-center py-3 px-4" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', borderRadius: '6px', flexShrink: 0, gap: '16px' }}>
-          <div className="flex items-center" style={{ flexWrap: 'wrap' }}>
-            <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)'}}>目前的查詢條件:</span>
-            {renderSearchTags()}
-          </div>
-          {params.SortRules && (
-            <div className="flex items-center" style={{ flexWrap: 'wrap', paddingLeft: '16px', borderLeft: '1px solid #d9d9d9' }}>
-              <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-secondary, #8c8c8c)'}}>排序順序:</span>
-              <Space size={[4, 8]} wrap>
-                {params.SortRules.split(',').map((rule: string) => {
-                  const [field, order] = rule.split(':');
-                  const label = getColumnLabel(field, employeeTableColumns);
-                  const orderText = order === 'asc' ? '升序 ↗' : '降序 ↘';
-                  return (
-                    <Tag
-                      key={field}
-                      color="blue"
-                      closable
-                      onClose={() => {
-                        const remainingRules = params.SortRules.split(',')
-                          .filter((r: string) => !r.startsWith(`${field}:`))
-                          .join(',');
-                        setParams({ SortRules: remainingRules || undefined, pageNumber: 1 });
-                      }}
-                    >
-                      {label} ({orderText})
-                    </Tag>
-                  );
-                })}
-                <Button 
-                  type="link" 
-                  size="small" 
-                  style={{ padding: 0, height: 'auto', fontSize: '12px' }}
-                  onClick={() => setParams({ SortRules: undefined, pageNumber: 1 })}
-                >
-                  清除排序
-                </Button>
-              </Space>
-            </div>
-          )}
-        </div>
+        <ActiveQueryAndSortTags
+          searchConfig={employeeSearchConfig}
+          tableColumns={employeeTableColumns}
+          params={params}
+          onQueryTagClose={listQuery.handleClearQueryField}
+          onSortTagClose={listQuery.handleClearSortField}
+          onClearSort={listQuery.handleClearAllSort}
+        />
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-                    
-          <Table
+          <StandardErpTable
             onChange={handleTableChange}
-            bordered
-            rowClassName={(record) => {
-            const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-            let cls = '';
-            if (String(record.id) === String(viewId)) cls += 'selected-table-row ';
-            if (recordId && String(recordId) === String(deletingRecordId)) cls += 'deleting-row-highlight';
-            return cls.trim();
-          }}
-            style={{ flex: 1 }}
             columns={columns}
             dataSource={listData}
             rowKey="id"
             loading={isFetching}
-            scroll={{ x: 'max-content', y: 300 }}
+            selectedRowId={viewId}
+            selectedRowKey="id"
+            deletingRowId={deletingRecordId}
             pagination={{
               current: currentPage,
               pageSize: currentPageSize,
               total: totalRecords,
-              showSizeChanger: true,
-              showTotal: (total) => `共 ${total} 筆資料`,
-              
             }}
           />
         </div>
@@ -376,13 +282,13 @@ export default function EmployeeList() {
             查詢條件設定
           </div>
         }
-        open={isSearchModalOpen}
+        open={listQuery.isSearchModalOpen}
         mask={{ closable: isViewMode }}
         keyboard={isViewMode}
-        onCancel={() => setIsSearchModalOpen(false)}
+        onCancel={() => listQuery.setIsSearchModalOpen(false)}
         footer={
           <div className="pt-4 flex justify-end gap-2" style={{borderTop: '1px solid #f0f0f0'}}>
-            <Button icon={<ClearOutlined />} onClick={handleSearchReset}>
+            <Button icon={<ClearOutlined />} onClick={listQuery.handleClear}>
               清除條件
             </Button>
             <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
@@ -403,8 +309,8 @@ export default function EmployeeList() {
       >
         <DynamicSearchForm
           config={employeeSearchConfig}
-          form={searchForm}
-          onSearch={handleSearch}
+          form={listQuery.searchForm}
+          onSearch={listQuery.handleSearch}
         />
       </Modal>
 

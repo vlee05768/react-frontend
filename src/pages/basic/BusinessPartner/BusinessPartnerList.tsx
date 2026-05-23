@@ -94,7 +94,7 @@ export default function BusinessPartnerList() {
     enabled: !!viewId,
     refetchInterval: 30000, // Background polling
   });
-  const viewData = viewRes?.data?.data || viewRes?.data;
+  const viewData = (viewRes?.data?.data || viewRes?.data) as any;
 
   // List query
   const { data, isFetching } = useQuery({
