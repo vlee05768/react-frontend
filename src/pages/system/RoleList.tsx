@@ -62,6 +62,7 @@ import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WID
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 import type { TreeDataNode } from 'antd';
 import { ActionBar } from '@/components/common/ActionBar';
+import PageCard from '@/components/common/PageCard';
 import { useErpListQuery } from '@/hooks/useErpListQuery';
 import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
 import StandardErpTable from '@/components/Table/StandardErpTable';
@@ -303,27 +304,9 @@ export default function RoleList() {
   const columns = buildTableColumns(mainTableColumns(), actionColumn, params.SortRules);
 
   return (
-    <div className="p-4 pb-0 flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
-      <Card
-        variant="borderless"
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-        styles={{ 
-          header: { borderBottom: '1px solid #f0f0f0', padding: '16px 24px' },
-          body: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 16px 4px 16px' }
-        }}
-        title={
-          <div className="flex items-center gap-3">
-            <div style={{
-              width: '4px',
-              height: '24px',
-              backgroundColor: '#1677ff',
-              borderRadius: '2px'
-            }} />
-            <div className="m-0 font-semibold" style={{fontSize: '20px', color: 'var(--ant-color-text, inherit)', lineHeight: '24px' }}>
-              角色管理
-            </div>
-          </div>
-        }
+    <div className="p-4 pb-0 flex flex-col h-[calc(100vh-64px)]">
+      <PageCard 
+        title="角色管理"
         extra={
           <Space separator={<Divider orientation="vertical" />}>
             {hasPermission('System.Roles.Create') && (
@@ -337,8 +320,7 @@ export default function RoleList() {
               </Button>
             )}
           </Space>
-        }
-      >
+        }>
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
           <StandardErpTable
             onChange={handleTableChange}
@@ -353,7 +335,7 @@ export default function RoleList() {
             rowKey="id"
           />
         </div>
-      </Card>
+      </PageCard>
 
       <Drawer
         styles={{ body: { padding: 0 } }}
