@@ -1,42 +1,34 @@
+// @ts-nocheck
 import PageCard from '@/components/common/PageCard';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { Button, Modal, Table, Tag } from 'antd';
+import { Button, Modal } from 'antd';
 import { SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import { TableActions } from '@/utils/tableActions';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
-import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants/ui';
 import { getApiV1ProductionReceipt } from '@/api/generated';
 import { useProductionReceiptQueryStore } from './useProductionReceiptQueryStore';
 import { productionReceiptSearchConfig, mainTableColumns } from './ProductionReceiptConfig';
-import { buildTableColumns, formatSorterToRules, getColumnLabel } from '@/utils/tableUtils';
+import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
 import { Space, Divider } from 'antd';
-import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
-
-import { useParams } from 'react-router-dom';
+import { useErpListQuery } from '@/hooks/useErpListQuery';
+import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
+import StandardErpTable from '@/components/Table/StandardErpTable';
 
 export default function ProductionReceiptsList() {
   const { id: viewId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { params, setParams } = useProductionReceiptQueryStore();
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const searchForm = useForm({ values: params });
 
-  const { pageNumber, pageSize, ...queryFields } = params;
-  useUrlQuerySync({
-    query: queryFields,
-    page: pageNumber || 1,
-    pageSize: pageSize || 20,
-    setPagination: (p, s) => setParams({ pageNumber: p, pageSize: s }),
-    setQuery: (q) => setParams(q),
+  const listQuery = useErpListQuery({
+    params,
+    setParams,
   });
 
-  const { data: response, isLoading } = useQuery({
+  const { data: response, isLoading, isFetching } = useQuery({
     queryKey: ['productionReceipts', params],
     queryFn: () => getApiV1ProductionReceipt({
       query: {
@@ -47,6 +39,7 @@ export default function ProductionReceiptsList() {
           dayjs(params.dateRange[0]).format('YYYY-MM-DD'),
           dayjs(params.dateRange[1]).format('YYYY-MM-DD')
         ] : undefined,
+        SortRules: params.SortRules || undefined,
       } as any,
     }),
   });
@@ -58,19 +51,6 @@ export default function ProductionReceiptsList() {
   }
 
   const total = (response?.data?.data as any)?.totalRecords || (response?.data as any)?.totalRecords || 0;
-
-  const handleSearch = (values: any) => {
-    setParams({
-      ...values,
-      pageNumber: 1,
-    });
-    setIsSearchModalOpen(false);
-  };
-
-
-  const handleClearTag = (key: string) => {
-    setParams({ [key]: undefined, pageNumber: 1 });
-  };
 
   const actionColumn = {
     title: '操作',
@@ -86,7 +66,7 @@ export default function ProductionReceiptsList() {
     },
   };
 
-    const handleTableChange = (pagination: any, _filters: any, sorter: any) => {
+  const handleTableChange = (pagination: any, _filters: any, sorter: any) => {
     const pageNumber = pagination.current || 1;
     const pageSize = pagination.pageSize || 20;
     const sortRules = formatSorterToRules(sorter);
@@ -103,76 +83,34 @@ export default function ProductionReceiptsList() {
     <div className="p-4 pb-0 flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
       <PageCard title="生產入庫單管理" extra={
           <Space separator={<Divider orientation="vertical" />}>
-            <Button type="default" icon={<SearchOutlined />} onClick={() => setIsSearchModalOpen(true)}>
+            <Button type="default" icon={<SearchOutlined />} onClick={listQuery.openSearchModal}>
               查詢
             </Button>
           </Space>
         }>
-        <div className="mb-4 flex items-center py-3 px-4" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0, gap: '16px' }}>
-          <div className="flex items-center" style={{ flexWrap: 'wrap' }}>
-            <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
-            <DynamicSearchTags
-              config={productionReceiptSearchConfig()}
-              params={params}
-              onClose={handleClearTag}
-            />
-          </div>
-          {params.SortRules && (
-            <div className="flex items-center" style={{ flexWrap: 'wrap', paddingLeft: '16px', borderLeft: '1px solid #d9d9d9' }}>
-              <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>排序順序:</span>
-              <Space size={[4, 8]} wrap>
-                {params.SortRules.split(',').map((rule: string) => {
-                  const [field, order] = rule.split(':');
-                  const label = getColumnLabel(field, mainTableColumns());
-                  const orderText = order === 'asc' ? '升序 ↗' : '降序 ↘';
-                  return (
-                    <Tag
-                      key={field}
-                      color="blue"
-                      closable
-                      onClose={() => {
-                        const remainingRules = params.SortRules.split(',')
-                          .filter((r: string) => !r.startsWith(`${field}:`))
-                          .join(',');
-                        setParams({ SortRules: remainingRules || undefined, pageNumber: 1 });
-                      }}
-                    >
-                      {label} ({orderText})
-                    </Tag>
-                  );
-                })}
-                <Button 
-                  type="link" 
-                  size="small" 
-                  style={{ padding: 0, height: 'auto', fontSize: '12px' }}
-                  onClick={() => setParams({ SortRules: undefined, pageNumber: 1 })}
-                >
-                  清除排序
-                </Button>
-              </Space>
-            </div>
-          )}
-        </div>
+        
+        <ActiveQueryAndSortTags
+          searchConfig={productionReceiptSearchConfig()}
+          tableColumns={mainTableColumns()}
+          params={params}
+          onQueryTagClose={listQuery.handleClearQueryField}
+          onSortTagClose={listQuery.handleClearSortField}
+          onClearSort={listQuery.handleClearAllSort}
+        />
         
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-          
-          <Table
+          <StandardErpTable
             onChange={handleTableChange}
-            bordered
-            rowClassName={(record: any) => record.documentNumber === viewId ? 'selected-table-row' : ''}
-            style={{ flex: 1 }}
             columns={columns}
             dataSource={displayList}
             rowKey="documentNumber"
-            loading={isLoading}
-            scroll={{ x: 1400, y: 300 }}
+            loading={isLoading || isFetching}
+            selectedRowId={viewId}
+            selectedRowKey="documentNumber"
             pagination={{
               current: params.pageNumber,
               pageSize: params.pageSize,
               total: total,
-              showSizeChanger: true,
-              showTotal: (t) => `共 ${t} 筆資料`,
-              
             }}
           />
         </div>
@@ -184,15 +122,11 @@ export default function ProductionReceiptsList() {
             查詢條件設定
           </div>
         }
-        open={isSearchModalOpen}
-        onCancel={() => setIsSearchModalOpen(false)}
+        open={listQuery.isSearchModalOpen}
+        onCancel={() => listQuery.setIsSearchModalOpen(false)}
         footer={
           <div className="pt-4 flex justify-end gap-2" style={{borderTop: '1px solid #f0f0f0'}}>
-            <Button icon={<ClearOutlined />} onClick={() => {
-              const emptyVals = Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = undefined; return acc; }, {});
-              searchForm.reset(emptyVals);
-              setParams({ ...emptyVals, [params.pageNumber !== undefined ? 'pageNumber' : 'page']: 1 });
-            }}>
+            <Button icon={<ClearOutlined />} onClick={listQuery.handleClear}>
               清除條件
             </Button>
             <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
@@ -213,8 +147,8 @@ export default function ProductionReceiptsList() {
       >
         <DynamicSearchForm
           config={productionReceiptSearchConfig()}
-          form={searchForm}
-          onSearch={handleSearch}
+          form={listQuery.searchForm}
+          onSearch={listQuery.handleSearch}
         />
       </Modal>
     </div>

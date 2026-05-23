@@ -4,30 +4,33 @@ import { useUrlQuerySync } from './useUrlQuerySync';
 import { DEFAULT_PAGE_SIZE } from '@/constants';
 
 interface UseErpListQueryOptions<Q> {
-  params: Q & { pageNumber?: number; pageSize?: number; SortRules?: string };
+  params: Q & { pageNumber?: number; page?: number; pageSize?: number; SortRules?: string };
   setParams: (newParams: any) => void;
+  pageKey?: 'page' | 'pageNumber';
 }
 
 /**
- * ERP 專用的統一查詢行為 Hook，接管 React Hook Form 狀態、URL 參數同步與各種重設清除行為。
+ * ERP 專專用的統一查詢行為 Hook，接管 React Hook Form 狀態、URL 參數同步與各種重設清除行為。
  */
 export function useErpListQuery<Q extends Record<string, any>>({
   params,
   setParams,
+  pageKey = 'pageNumber',
 }: UseErpListQueryOptions<Q>) {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const searchForm = useForm();
 
   // 1. 解構分頁與查詢條件
-  const { pageNumber, pageSize, ...queryFields } = params;
+  const { pageNumber, page, pageSize, ...queryFields } = params;
+  const currentPage = pageKey === 'page' ? (page || 1) : (pageNumber || 1);
 
   // 2. 進行 URL 參數雙向同步
   useUrlQuerySync({
     query: queryFields,
-    page: pageNumber || 1,
+    page: currentPage,
     pageSize: pageSize || DEFAULT_PAGE_SIZE,
-    setPagination: (p, s) => setParams({ pageNumber: p, pageSize: s }),
-    setQuery: (q) => setParams({ ...q, pageNumber: 1 }),
+    setPagination: (p, s) => setParams({ [pageKey]: p, pageSize: s }),
+    setQuery: (q) => setParams({ ...q, [pageKey]: 1 }),
   });
 
   // 3. 開啟查詢彈窗，並重置表單值
@@ -57,7 +60,7 @@ export function useErpListQuery<Q extends Record<string, any>>({
 
     setParams({
       ...cleanParams,
-      pageNumber: 1, // 重置頁碼回到第一頁
+      [pageKey]: 1, // 重置頁碼回到第一頁
     });
     setIsSearchModalOpen(false);
   };
@@ -82,13 +85,13 @@ export function useErpListQuery<Q extends Record<string, any>>({
 
     setParams({
       ...storeReset,
-      pageNumber: 1,
+      [pageKey]: 1,
     });
   };
 
   // 6. 清除單個查詢條件 Tag
   const handleClearQueryField = (key: string) => {
-    setParams({ [key]: undefined, pageNumber: 1 });
+    setParams({ [key]: undefined, [pageKey]: 1 });
   };
 
   // 7. 清除單個排序欄位 Tag
@@ -97,12 +100,12 @@ export function useErpListQuery<Q extends Record<string, any>>({
     const remainingRules = params.SortRules.split(',')
       .filter((r: string) => !r.startsWith(`${field}:`))
       .join(',');
-    setParams({ SortRules: remainingRules || undefined, pageNumber: 1 });
+    setParams({ SortRules: remainingRules || undefined, [pageKey]: 1 });
   };
 
   // 8. 清除所有排序條件
   const handleClearAllSort = () => {
-    setParams({ SortRules: undefined, pageNumber: 1 });
+    setParams({ SortRules: undefined, [pageKey]: 1 });
   };
 
   return {

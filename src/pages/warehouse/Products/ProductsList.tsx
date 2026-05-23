@@ -1,14 +1,13 @@
 // @ts-nocheck
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import {
-  Spin, Table, Button, Modal, Form, Space, Card, Tooltip, Popconfirm, Drawer, Divider, App, Tag
+  Spin, Button, Modal, Space, Drawer, Divider, App
 } from 'antd';
 import { PageCard } from '@/components/common/PageCard';
 import {
-  SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ClearOutlined, SaveOutlined, EyeOutlined
+  SearchOutlined, PlusOutlined, EditOutlined, ClearOutlined, SaveOutlined
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -23,12 +22,11 @@ import { getApiErrorMessage } from '@/utils/apiError';
 import { create } from 'zustand';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
-import DynamicSearchTags from '@/components/Form/DynamicSearchTags';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { mainFormConfig, mainTableColumns, productSearchFormConfig } from './ProductConfig';
-import { buildTableColumns, formatSorterToRules, getColumnLabel } from '@/utils/tableUtils';
+import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
 import { TableActions } from '@/utils/tableActions';
-import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, DRAWER_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
+import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 
 // Detail Tabs
 import ProductMolds from './Tabs/ProductMolds';
@@ -38,8 +36,12 @@ import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 
 
 // Local store for query params
-import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
 import { ActionBar } from '@/components/common/ActionBar';
+
+// Shared Components / Hooks
+import { useErpListQuery } from '@/hooks/useErpListQuery';
+import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
+import StandardErpTable from '@/components/Table/StandardErpTable';
 
 export const useProductQueryStore = create((set) => ({
   params: {
@@ -60,23 +62,16 @@ export default function ProductsList() {
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const params = useProductQueryStore((state: any) => state.params);
   const setParams = useProductQueryStore((state: any) => state.setParams);
+  const listQuery = useErpListQuery({
+    params,
+    setParams,
+  });
   const navigate = useNavigate();
   const { viewId } = useParams<{ viewId: string }>(); // viewId represents "code" here
-
-  const { pageNumber, pageSize, ...queryFields } = params;
-  useUrlQuerySync({
-    query: queryFields,
-    page: pageNumber || 1,
-    pageSize: pageSize || DEFAULT_PAGE_SIZE,
-    setPagination: (p, s) => setParams({ pageNumber: p, pageSize: s }),
-    setQuery: (q) => setParams({ ...q, pageNumber: 1 })
-  });
   
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('master_info');
 
-  const searchForm = useForm();
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const [isBomEditing, setIsBomEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
@@ -219,41 +214,7 @@ export default function ProductsList() {
 
   const columns = buildTableColumns(mainTableColumns(), actionColumn, params.SortRules);
 
-  const handleSearch = (values: any) => {
-    const nextParams = { ...values };
-    if (!nextParams.CodeOrName) nextParams.CodeOrName = undefined;
-    if (nextParams.Types && nextParams.Types.length === 0) nextParams.Types = undefined;
-    if (!nextParams.Customer) nextParams.Customer = undefined;
-    if (!nextParams.CustomerProductId) nextParams.CustomerProductId = undefined;
-    if (!nextParams.Others) nextParams.Others = undefined;
 
-    setParams({
-      ...nextParams,
-      pageNumber: 1,
-    });
-    setIsSearchModalOpen(false);
-  };
-
-  const handleSearchReset = () => {
-    searchForm.reset(Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = null; return acc; }, {}));
-  };
-
-  const renderSearchTags = () => {
-    return (
-      <DynamicSearchTags 
-        config={productSearchFormConfig()} 
-        params={params} 
-        onClose={(key) => {
-          setParams({ [key]: undefined, pageNumber: 1 });
-        }} 
-      />
-    );
-  };
-
-  const openSearchModal = () => {
-    searchForm.reset(params);
-    setIsSearchModalOpen(true);
-  };
 
   return (
     <div className="p-4 pb-0 flex flex-col" style={{height: 'calc(100vh - 64px)'}}>
@@ -264,7 +225,7 @@ export default function ProductsList() {
             <Button
               type="default"
               icon={<SearchOutlined />}
-              onClick={openSearchModal}
+              onClick={listQuery.openSearchModal}
             >
               查詢
             </Button>
@@ -278,71 +239,28 @@ export default function ProductsList() {
           </Space>
         }
       >
-        <div className="mb-4 flex items-center py-3 px-4" style={{flexWrap: 'wrap', backgroundColor: 'var(--ant-color-fill-tertiary, #fafafa)', borderRadius: '6px', flexShrink: 0, gap: '16px' }}>
-          <div className="flex items-center" style={{ flexWrap: 'wrap' }}>
-            <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>目前的查詢條件:</span>
-            {renderSearchTags()}
-          </div>
-          {params.SortRules && (
-            <div className="flex items-center" style={{ flexWrap: 'wrap', paddingLeft: '16px', borderLeft: '1px solid #d9d9d9' }}>
-              <span className="mr-3 font-medium" style={{fontSize: '14px', color: 'var(--ant-color-text-description, #8c8c8c)'}}>排序順序:</span>
-              <Space size={[4, 8]} wrap>
-                {params.SortRules.split(',').map((rule: string) => {
-                  const [field, order] = rule.split(':');
-                  const label = getColumnLabel(field, mainTableColumns());
-                  const orderText = order === 'asc' ? '升序 ↗' : '降序 ↘';
-                  return (
-                    <Tag
-                      key={field}
-                      color="blue"
-                      closable
-                      onClose={() => {
-                        const remainingRules = params.SortRules.split(',')
-                          .filter((r: string) => !r.startsWith(`${field}:`))
-                          .join(',');
-                        setParams({ SortRules: remainingRules || undefined, pageNumber: 1 });
-                      }}
-                    >
-                      {label} ({orderText})
-                    </Tag>
-                  );
-                })}
-                <Button 
-                  type="link" 
-                  size="small" 
-                  style={{ padding: 0, height: 'auto', fontSize: '12px' }}
-                  onClick={() => setParams({ SortRules: undefined, pageNumber: 1 })}
-                >
-                  清除排序
-                </Button>
-              </Space>
-            </div>
-          )}
-        </div>
+        <ActiveQueryAndSortTags
+          searchConfig={productSearchFormConfig()}
+          tableColumns={mainTableColumns()}
+          params={params}
+          onQueryTagClose={listQuery.handleClearQueryField}
+          onSortTagClose={listQuery.handleClearSortField}
+          onClearSort={listQuery.handleClearAllSort}
+        />
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-          <Table
+          <StandardErpTable
             onChange={handleTableChange}
-            bordered
-            rowClassName={(record) => {
-            const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
-            let cls = '';
-            if (String(record.code) === String(viewId)) cls += 'selected-table-row ';
-            if (recordId && String(recordId) === String(deletingRecordId)) cls += 'deleting-row-highlight';
-            return cls.trim();
-          }}
-            style={{ flex: 1 }}
             columns={columns}
             dataSource={listData}
             rowKey="code"
             loading={isFetching}
-            scroll={{ x: 'max-content', y: 300 }}
+            selectedRowId={viewId}
+            selectedRowKey="code"
+            deletingRowId={deletingRecordId}
             pagination={{
-              current: params.pageNumber,
-              pageSize: params.pageSize,
+              current: currentPage,
+              pageSize: currentPageSize,
               total: totalRecords,
-              showSizeChanger: true,
-              showTotal: (total) => `共 ${total} 筆資料`,
-              
             }}
           />
         </div>
@@ -354,17 +272,13 @@ export default function ProductsList() {
             查詢條件設定
           </div>
         }
-        open={isSearchModalOpen}
+        open={listQuery.isSearchModalOpen}
         mask={{ closable: isViewMode }}
         keyboard={isViewMode}
-        onCancel={() => setIsSearchModalOpen(false)}
+        onCancel={() => listQuery.setIsSearchModalOpen(false)}
         footer={
           <div className="pt-4 flex justify-end gap-2" style={{borderTop: '1px solid #f0f0f0'}}>
-            <Button icon={<ClearOutlined />} onClick={() => {
-              const emptyVals = Object.keys(searchForm.getValues()).reduce((acc: any, key) => { acc[key] = undefined; return acc; }, {});
-              searchForm.reset(emptyVals);
-              setParams({ ...emptyVals, [params.pageNumber !== undefined ? 'pageNumber' : 'page']: 1 });
-            }}>
+            <Button icon={<ClearOutlined />} onClick={listQuery.handleClear}>
               清除條件
             </Button>
             <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
@@ -384,8 +298,8 @@ export default function ProductsList() {
       >
         <DynamicSearchForm 
           config={productSearchFormConfig()} 
-          form={searchForm} 
-          onSearch={handleSearch} 
+          form={listQuery.searchForm} 
+          onSearch={listQuery.handleSearch} 
         />
       </Modal>
 
