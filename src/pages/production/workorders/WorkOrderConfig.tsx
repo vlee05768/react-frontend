@@ -11,6 +11,8 @@ import type {
 } from "@/components/Form/types";
 import dayjs from "dayjs";
 import { DictTag } from "@/components/Form/DictTag";
+import { Link } from "react-router-dom";
+import { EllipsisText } from "@/components/Table/EllipsisText";
 
 export const getStatusTag = (status: string | null | undefined) => {
   const hollowStyle = { background: "transparent", borderColor: "currentColor" };
@@ -122,17 +124,44 @@ export const tableColumns: TableColumnConfig[] = [
     label: "訂單編號",
     width: 150,
     align: "left",
-    ellipsis: true,
     sortable: true,
+    render: (val: string) => {
+      if (!val) return "-";
+      return (
+        <Link
+          to={`/sales/orders/${val}`}
+          style={{
+            color: '#1677ff',
+            textDecoration: 'underline',
+            cursor: 'pointer'
+          }}
+        >
+          <EllipsisText text={val} maxWidth={130} />
+        </Link>
+      );
+    }
   },
   {
     name: "customerCode",
     label: "客戶",
     width: 220,
     align: "left",
-    ellipsis: true,
-    render: (val, record: any) =>
-      record.customerName ? `${val} - ${record.customerName}` : val,
+    render: (val: string, record: any) => {
+      const text = record.customerName ? `${val} - ${record.customerName}` : val;
+      if (!val) return "-";
+      return (
+        <Link
+          to={`/business-partners/${val}`}
+          style={{
+            color: '#1677ff',
+            textDecoration: 'underline',
+            cursor: 'pointer'
+          }}
+        >
+          <EllipsisText text={text} maxWidth={200} />
+        </Link>
+      );
+    }
   },
   {
     name: "workOrderDate",
@@ -167,7 +196,21 @@ export const tableColumns: TableColumnConfig[] = [
     label: "產品編碼",
     width: 160,
     align: "left",
-    ellipsis: true,
+    render: (val: string) => {
+      if (!val) return "-";
+      return (
+        <Link
+          to={`/warehouse/products/${val}`}
+          style={{
+            color: '#1677ff',
+            textDecoration: 'underline',
+            cursor: 'pointer'
+          }}
+        >
+          <EllipsisText text={val} maxWidth={140} />
+        </Link>
+      );
+    }
   },
   {
     name: "productName",
