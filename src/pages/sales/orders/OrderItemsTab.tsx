@@ -28,6 +28,7 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
+  const [isCreatingMaterial, setIsCreatingMaterial] = useState(false);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [isBatchSubmitting, setIsBatchSubmitting] = useState(false);
   const [editingItem, setEditingItem] = useState<OrderItemDto | null>(null);
@@ -40,10 +41,11 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
     onEditingChange(editing);
   };
 
-  // const handleCreateOpen = () => {
-  //   setIsCreating(true);
-  //   notifyEdit(true);
-  // };
+  const handleCreateMaterialOpen = () => {
+    setIsCreatingMaterial(true);
+    setIsCreating(true);
+    notifyEdit(true);
+  };
 
   const handleEditOpen = (record: OrderItemDto) => {
     setEditingItem(record);
@@ -52,6 +54,7 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
 
   const handleCancel = () => {
     setIsCreating(false);
+    setIsCreatingMaterial(false);
     setEditingItem(null);
     notifyEdit(false);
   };
@@ -107,6 +110,7 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
   const handleSubmit = async (values: any) => {
     const formattedValues = {
       ...values,
+      generateWorkOrder: values.goodsType === 'M' ? false : values.generateWorkOrder,
       requestedDeliveryDate: values.requestedDeliveryDate ? dayjs(values.requestedDeliveryDate).format('YYYY-MM-DD') : undefined,
       promisedDeliveryDate: values.promisedDeliveryDate ? dayjs(values.promisedDeliveryDate).format('YYYY-MM-DD') : undefined,
     };
@@ -243,10 +247,18 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
           </div>
           <DynamicForm
             formId="itemForm"
-            fields={getItemFormConfig()}
+            fields={getItemFormConfig(isCreatingMaterial)}
             defaultValues={
               isCreating 
-                ? { goodsType: 'P', quantity: 1, unitPrice: 0 } 
+                ? { 
+                    goodsType: isCreatingMaterial ? 'M' : 'P', 
+                    quantity: 1, 
+                    unitPrice: 0, 
+                    generateWorkOrder: false,
+                    requestedDeliveryDate: orderData.requestedDeliveryDate ? dayjs(orderData.requestedDeliveryDate) : undefined,
+                    promisedDeliveryDate: orderData.promisedDeliveryDate ? dayjs(orderData.promisedDeliveryDate) : undefined,
+                    priority: '0001'
+                  } 
                 : editingItem ? {
                     ...editingItem,
                     requestedDeliveryDate: editingItem.requestedDeliveryDate ? dayjs(editingItem.requestedDeliveryDate) : undefined,
@@ -272,9 +284,9 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
                   <Button type="primary" disabled={!orderData.businessPartnerCode} onClick={() => setIsPickerOpen(true)}>
                     挑選客戶產品
                   </Button>
-                {/* <Button icon={<PlusOutlined />} onClick={handleCreateOpen}>
-                  新增
-                </Button> */}
+                  <Button type="default" disabled={!orderData.businessPartnerCode} onClick={handleCreateMaterialOpen}>
+                    新增原料訂單
+                  </Button>
                 </Space>
               )}
             </div>

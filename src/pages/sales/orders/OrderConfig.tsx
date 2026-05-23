@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Button, Space } from "antd";
+import { Button, Space, Tag } from "antd";
 import { EditOutlined, DeleteOutlined, CheckOutlined, CloseOutlined } from "@ant-design/icons";
 import type { SearchFieldConfig, TableColumnConfig } from "@/components/Form/types";
 import type { ColumnsType } from "antd/es/table";
@@ -360,9 +360,24 @@ export const getItemColumns = (
     width: 160,
     align: "left",
     ellipsis: true,
+    render: (val: string, record: any) => {
+      if (!val) return "-";
+      let color = "default";
+      if (record.goodsType === "P") color = "orange";
+      else if (record.goodsType === "M") color = "cyan";
+      else if (record.goodsType === "S") color = "purple";
+      return <Tag color={color} className="m-0">{val}</Tag>;
+    },
   },
   { title: "商品名稱", dataIndex: "goodsName", width: 220, ellipsis: true },
-    {
+  {
+    title: "單位",
+    dataIndex: "unit",
+    width: 80,
+    align: "center",
+    ellipsis: true,
+  },
+  {
     title: "要求交期",
     dataIndex: "requestedDeliveryDate",
     width: 120,
@@ -461,15 +476,31 @@ export const getItemColumns = (
   { title: "備註", dataIndex: "notes", width: 160, ellipsis: true },
 ];
 
-export const getItemFormConfig = (): any[] => [
+export const getItemFormConfig = (isCreatingMaterial = false): any[] => [
   {
     name: "goodsCode",
     label: "商品編碼",
-    editable: "never",
+    editable: isCreatingMaterial ? "createOnly" : "never",
     componentType: "AsyncSelect",
-    componentProps: { configKey: "PRODUCT" },
+    componentProps: (context: any) => {
+      const isM = context?.values?.goodsType === "M";
+      return { configKey: isM ? "MATERIAL" : "PRODUCT" };
+    },
     colSpan: 4,
-    validation: z.string().optional(),
+    validation: z.string().min(1, "商品編碼為必填"),
+    onChange: (_value: any, context: any, setValue: any, ...args: any[]) => {
+      const option = args[1];
+      if (option && option.originalData) {
+        setValue("goodsName", option.originalData.name);
+        const isM = context?.values?.goodsType === "M";
+        if (isM) {
+          setValue("spareQuantity", 0);
+          setValue("unit", option.originalData.primaryUoM || "");
+        } else {
+          setValue("unit", option.originalData.unit || "");
+        }
+      }
+    }
   },
   {
     name: "goodsName",
@@ -478,6 +509,7 @@ export const getItemFormConfig = (): any[] => [
     colSpan: 4,
     editable: "never",
   },
+
   {
     name: "requestedDeliveryDate",
     label: "要求交期",
@@ -495,7 +527,10 @@ export const getItemFormConfig = (): any[] => [
 
   {
     name: "unitPrice",
-    label: "單價",
+    label: (context: any) => {
+      const isM = context?.values?.goodsType === "M";
+      return isM ? "單價(平方米)" : "單價";
+    },
     componentType: "InputNumber",
     colSpan: 4,
     editable: "editOnly",
@@ -514,7 +549,14 @@ export const getItemFormConfig = (): any[] => [
       style: { width: "100%" },
     },
   },
-
+  {
+    name: "unit",
+    label: "單位",
+    componentType: "Input",
+    colSpan: 4,
+    editable: "never",
+    validation: z.string().optional().nullable(),
+  },
   {
     name: "quantity",
     label: "數量",
@@ -555,8 +597,10 @@ export const getItemFormConfig = (): any[] => [
     label: "備品數量",
     componentType: "InputNumber",
     colSpan: 4,
-    editable: "editOnly",
-    validation: z.number().min(0, "備品數量必須大於或等於0"),
+    editable: (context: any) => {
+      return context?.values?.goodsType !== "M";
+    },
+    validation: z.number().min(0, "備品數量必須大於或等於0").optional().nullable(),
     onChange: (value: any, context: any, setValue: any) => {
       const price = context.values.unitPrice || 0;
       const qty = context.values.quantity || 0;
@@ -577,6 +621,9 @@ export const getItemFormConfig = (): any[] => [
     label: "產生製令",
     componentType: "Switch",
     colSpan: 6,
+    editable: (context: any) => {
+      return context?.values?.goodsType !== "M";
+    },
   },
   {
     name: "priority",
@@ -589,10 +636,16 @@ export const getItemFormConfig = (): any[] => [
     name: "goodsType",
     label: "商品類型",
     editable: "never",
-    componentType: "DictSelect",
-    componentProps: { dictKey: "PRODUCT_TYPE" },
+    componentType: "Custom",
     colSpan: 6,
     validation: z.string().optional(),
+    customRender: (props: any) => {
+      return (
+        <div className="flex items-center h-[32px]">
+          <DictTag dictKey="PRODUCT_TYPE" value={props.value} />
+        </div>
+      );
+    }
   },
 
   {
