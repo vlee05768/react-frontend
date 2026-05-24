@@ -5632,6 +5632,10 @@ export type UndeliveredOrderItemsDto = {
      */
     customerProductId?: string | null;
     /**
+     * 單位
+     */
+    unit?: string | null;
+    /**
      * 單價
      */
     unitPrice?: number;

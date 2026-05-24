@@ -6,6 +6,7 @@ import type { UndeliveredOrderItemsDto, CreateSalesDeliveryItemDto } from '@/api
 import { getApiV1OrdersCustomerByCustomerCodeUndeliveredItems } from '@/api/generated/sdk.gen';
 import type { TableColumnConfig } from '@/components/Form/types';
 import { buildTableColumns } from '@/utils/tableUtils';
+import { DictTag } from '@/components/Form/DictTag';
 
 interface Props {
   open: boolean;
@@ -94,6 +95,9 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
 
   const isRowDisabled = (row: UndeliveredOrderItemsDto) => {
     const remainingQty = Number(row.quantityRemaining) || 0;
+    if (row.goodsType === 'M') {
+      return remainingQty <= 0;
+    }
     const stockQty = Number(row.stockQuantity) || 0;
     return remainingQty <= 0 || stockQty <= 0;
   };
@@ -128,7 +132,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
         const remainingRegularQty = Math.max(0, regularQty - shippedQty - cancelledQty);
 
         const stockQty = item.stockQuantity || 0;
-        const maxQty = Math.min(remainingRegularQty, stockQty);
+        const maxQty = item.goodsType === 'M' ? remainingRegularQty : Math.min(remainingRegularQty, stockQty);
         newQuantities[key] = maxQty > 0 ? maxQty : 0;
       }
       if (newPrices[key] === undefined) {
@@ -170,6 +174,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
       transactionType: 'INV' | 'SP';
       unitPrice: number;
       quantity: number;
+      unit?: string;
     }
 
     const allocationUnits: AllocationUnit[] = [];
@@ -178,6 +183,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
       const key = item.lineNumber || '';
       const deliveryQty = Number(deliveryQuantities[key]) || 0;
       const unitPrice = deliveryPrices[key] !== undefined ? Number(deliveryPrices[key]) : (Number(item.unitPrice) || 0);
+      const unit = item.unit || '';
 
       // 計算常規可出貨餘額：常規數量 - 已出貨 - 已取消
       const regularQty = Number(item.quantity) || 0;
@@ -198,6 +204,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
             transactionType: 'INV',
             unitPrice: unitPrice,
             quantity: remainingRegularQty,
+            unit: unit,
           });
         }
 
@@ -213,6 +220,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
             transactionType: 'SP',
             unitPrice: 0, // 備品單價強製為 0
             quantity: spareQtyToShip,
+            unit: unit,
           });
         }
       } else {
@@ -228,6 +236,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
             transactionType: 'INV',
             unitPrice: unitPrice,
             quantity: deliveryQty,
+            unit: unit,
           });
         }
       }
@@ -242,6 +251,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
       unitPrice: number;
       transactionType: 'INV' | 'SP';
       totalQuantity: number;
+      unit?: string;
     }> = {};
 
     allocationUnits.forEach(unit => {
@@ -256,6 +266,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
           unitPrice: unit.unitPrice,
           transactionType: unit.transactionType,
           totalQuantity: 0,
+          unit: unit.unit,
         };
       }
       groups[groupKey].units.push(unit);
@@ -287,6 +298,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
         inventoryType: g.goodsType,
         inventoryCode: g.goodsCode,
         inventoryName: g.goodsName,
+        unit: g.unit, // 🌟 帶入單位！
         subType: 'OD',
         transactionType: g.transactionType,
         partnerDocumentNumber: partnerDocNum,
@@ -308,8 +320,11 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
 
   const columns = useMemo(() => {
     const configs: TableColumnConfig<UndeliveredOrderItemsDto>[] = [
-      { label: '訂單單號', name: 'lineNumber', width: 180, fixed: 'left' },
-      { label: '商品編碼', name: 'goodsCode', width: 140 },
+      { label: '訂單單號項次', name: 'lineNumber', width: 160, fixed: 'left' },
+      { label: '商品類型', name: 'goodsType', width: 80, render: (val: any) => {
+          return <DictTag dictKey="PRODUCT_TYPE" value={val} />;
+        }
+      },      { label: '商品編碼', name: 'goodsCode', width: 150, ellipsis: true  },
       { label: '商品名稱', name: 'goodsName', width: 200, ellipsis: true },
 
       { 
@@ -335,7 +350,12 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
         name: 'stockQuantity', 
         width: 100, 
         align: 'right', 
-        render: (val: any) => <span style={{ fontWeight: 'bold', color: '#faad14' }}>{val != null ? Number(val).toLocaleString() : '0'}</span> 
+        render: (val: any, row: UndeliveredOrderItemsDto) => {
+          if (row.goodsType === 'M') {
+            return <span style={{ color: 'var(--ant-color-text-secondary)' }}>-</span>;
+          }
+          return <span style={{ fontWeight: 'bold', color: '#faad14' }}>{val != null ? Number(val).toLocaleString() : '0'}</span>;
+        } 
       },
       { label: '要求交期', name: 'requestedDeliveryDate', width: 100, render: (val: any) => val ? dayjs(val).format('YYYY-MM-DD') : '' },
       { 
@@ -351,7 +371,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
           return (
             <Tooltip title={!isChecked ? "請先勾選此項目" : ""} placement="top">
               <InputNumber
-                value={isChecked ? price : undefined}
+                value={price}
                 disabled={!isChecked}
                 controls={false}
                 min={0}
@@ -368,7 +388,6 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
           );
         }
       },
-    
       {
         label: '本次出貨量',
         name: 'deliveryQuantity' as any,
@@ -380,7 +399,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
           const qty = deliveryQuantities[key] || 0;
           const remainingQty = Number(row.quantityRemaining) || 0;
           const stockQty = Number(row.stockQuantity) || 0;
-          const maxLimit = Math.min(remainingQty, stockQty);
+          const maxLimit = row.goodsType === 'M' ? remainingQty : Math.min(remainingQty, stockQty);
           
           let status: "" | "error" | "warning" = "";
           if (isChecked) {
@@ -410,6 +429,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
           );
         }
       },
+      { label: '單位', name: 'unit', width: 80, render: (val: any) => val || '-' },
       {
         label: '小計',
         name: 'subTotal' as any,
