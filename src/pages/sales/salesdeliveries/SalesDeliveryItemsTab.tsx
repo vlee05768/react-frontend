@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Table, Button, App, Space, Typography, Modal, InputNumber, Input, Form, Spin, Descriptions } from 'antd';
+import { Table, Button, App, Space, Typography, Modal, InputNumber, Input, Form, Spin, Descriptions, Select } from 'antd';
 import type { SalesDeliveryItemDto, CreateSalesDeliveryItemDto } from '@/api/generated/types.gen';
 import { 
   deleteApiV1SalesDeliveryByMovementNumberItemsByLineNumber,
@@ -36,6 +36,12 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
   const [scrapStock, setScrapStock] = useState<number | null>(null);
   const [loadingStock, setLoadingStock] = useState(false);
   const [spareForm] = Form.useForm();
+
+  // 模具費用 Modal 相關狀態
+  const [showMoldFeeModal, setShowMoldFeeModal] = useState(false);
+  const [isEditingMoldFee, setIsEditingMoldFee] = useState(false);
+  const [moldFeeItem, setMoldFeeItem] = useState<SalesDeliveryItemDto | null>(null);
+  const [moldFeeForm] = Form.useForm();
 
   const handleAddSpareOpen = async (record: SalesDeliveryItemDto) => {
     setIsEditingSpare(false);
@@ -152,9 +158,75 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
     return Array.from(keys);
   }, [items]);
 
+  const productOptions = useMemo(() => {
+    const seen = new Set<string>();
+    const options: { label: string; value: string }[] = [];
+    items.forEach(item => {
+      if (item.inventoryType === 'P' && item.inventoryCode) {
+        if (!seen.has(item.inventoryCode)) {
+          seen.add(item.inventoryCode);
+          options.push({
+            label: `${item.inventoryName || ''} (${item.inventoryCode})`,
+            value: item.inventoryCode
+          });
+        }
+      }
+    });
+    return options;
+  }, [items]);
+
+  const handleMoldFeeConfirm = async () => {
+    try {
+      const values = await moldFeeForm.validateFields();
+      if (isEditingMoldFee) {
+        if (!moldFeeItem) return;
+        const updatePayload = {
+          inventoryType: 'O',
+          inventoryCode: 'MOLD-FEE',
+          inventoryName: '模具費用',
+          transactionType: 'INV',
+          subType: 'OF',
+          partnerProductId: moldFeeItem.partnerProductId,
+          unitPrice: values.amount,
+          quantity: 1,
+          sourceStorageCode: 'TW-GEN-INV',
+          notes: values.notes || undefined,
+          unit: moldFeeItem.unit || '次',
+        };
+        await updateMutation.mutateAsync({
+          lineNumber: moldFeeItem.lineNumber!,
+          values: updatePayload,
+        });
+        setMoldFeeItem(null);
+        setIsEditingMoldFee(false);
+      } else {
+        const newMoldFeeDto: CreateSalesDeliveryItemDto = {
+          inventoryType: 'O',
+          inventoryCode: 'MOLD-FEE',
+          inventoryName: '模具費用',
+          transactionType: 'INV',
+          subType: 'OF',
+          partnerProductId: values.associatedProduct,
+          unitPrice: values.amount,
+          quantity: 1,
+          sourceStorageCode: 'TW-GEN-INV',
+          notes: values.notes || undefined,
+          unit: '式',
+        };
+        await addItemsMutation.mutateAsync([newMoldFeeDto]);
+        setShowMoldFeeModal(false);
+      }
+    } catch (e) {
+      // Form validation or API error
+    }
+  };
+
   const canModifyItems = !isEditing && !isConfirmed;
   const isViewMode = !canModifyItems;
   const isEditingState = !!editingItem;
+  const hasProduct = useMemo(() => {
+    return items.some(item => item.inventoryType === 'P');
+  }, [items]);
 
   const notifyEdit = (editing: boolean) => {
     if (onEditingChange) onEditingChange(editing);
@@ -162,6 +234,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
 
   const handleEditOpen = async (record: SalesDeliveryItemDto) => {
     const isSpare = record.subType === 'SP' || record.transactionType === 'SP';
+    const isMoldFee = record.inventoryCode === 'MOLD-FEE';
     if (isSpare) {
       setIsEditingSpare(true);
       setAddSpareItem(record);
@@ -188,6 +261,15 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
       } finally {
         setLoadingStock(false);
       }
+    } else if (isMoldFee) {
+      setIsEditingMoldFee(true);
+      setMoldFeeItem(record);
+      moldFeeForm.setFieldsValue({
+        associatedProduct: record.partnerProductId || undefined,
+        amount: record.unitPrice || 0,
+        notes: record.notes || undefined,
+      });
+      setShowMoldFeeModal(true);
     } else {
       setEditingItem(record);
       notifyEdit(true);
@@ -297,6 +379,18 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
             <div>
               {canModifyItems && (
                 <Space>
+                  <Button 
+                    type="default" 
+                    disabled={!hasProduct} 
+                    onClick={() => {
+                      setIsEditingMoldFee(false);
+                      setMoldFeeItem(null);
+                      moldFeeForm.resetFields();
+                      setShowMoldFeeModal(true);
+                    }}
+                  >
+                    新增模具費用
+                  </Button>
                   <Button type="primary" disabled={!customerCode} onClick={() => setShowPicker(true)}>
                     挑選未出貨訂單
                   </Button>
@@ -383,6 +477,55 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
             </div>
           )}
         </Spin>
+      </Modal>
+
+      <Modal
+        title={isEditingMoldFee ? "修改模具費用" : "新增模具費用"}
+        open={showMoldFeeModal}
+        onOk={handleMoldFeeConfirm}
+        onCancel={() => {
+          setShowMoldFeeModal(false);
+          setMoldFeeItem(null);
+          setIsEditingMoldFee(false);
+        }}
+        confirmLoading={addItemsMutation.isPending || updateMutation.isPending}
+        centered
+        destroyOnClose
+      >
+        <Form form={moldFeeForm} layout="vertical" className="pt-4">
+          <Form.Item
+            name="associatedProduct"
+            label="關聯產品"
+            rules={[{ required: true, message: '請選擇關聯產品' }]}
+          >
+            <Select
+              disabled={isEditingMoldFee}
+              placeholder="請選擇產品"
+              options={productOptions}
+            />
+          </Form.Item>
+          <Form.Item
+            name="amount"
+            label="模具費用金額"
+            rules={[
+              { required: true, message: '請輸入金額' },
+              { type: 'number', min: 1, message: '金額必須大於 0' }
+            ]}
+          >
+            <InputNumber
+              style={{ width: '100%' }}
+              placeholder="請輸入金額"
+              precision={0}
+              autoFocus={!isEditingMoldFee}
+            />
+          </Form.Item>
+          <Form.Item
+            name="notes"
+            label="備註"
+          >
+            <Input placeholder="可輸入備註" autoFocus={isEditingMoldFee} />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

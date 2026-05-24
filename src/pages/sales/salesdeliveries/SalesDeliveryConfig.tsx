@@ -363,8 +363,8 @@ export const getItemColumns = (
     ellipsis: true,
     render: (val: string) => {
       if (val === 'SP') return <Tag color="success" className="m-0">備品</Tag>;
-      if (val === 'OF') return <Tag color="purple" className="m-0">其他費用</Tag>;
-      return <Tag color="blue" className="m-0">一般銷售</Tag>;
+      if (val === 'OF') return <Tag color="purple" className="m-0">其他</Tag>;
+      return <Tag color="blue" className="m-0">一般</Tag>;
     }
   },
   {
@@ -379,6 +379,7 @@ export const getItemColumns = (
       if (record.inventoryType === "P") color = "orange";
       else if (record.inventoryType === "M") color = "cyan";
       else if (record.inventoryType === "S") color = "purple";
+      else if (record.inventoryCode === "MOLD-FEE") color = "magenta";
       return <Tag color={color} className="m-0">{val}</Tag>;
     },
   },
@@ -387,6 +388,19 @@ export const getItemColumns = (
     dataIndex: "inventoryName",
     width: 220,
     ellipsis: true,
+    render: (val: string, record: any) => {
+      if (record.inventoryCode === 'MOLD-FEE' && record.partnerProductId) {
+        return (
+          <span>
+            {val || "模具費用"}{' '}
+            <span className="text-gray-400 text-xs">
+              (關聯: {record.partnerProductId})
+            </span>
+          </span>
+        );
+      }
+      return val || "-";
+    }
   },
   {
     title: "單位",
@@ -462,9 +476,9 @@ export const getItemFormConfig = (): any[] => [
     componentType: "Select",
     componentProps: {
       options: [
-        { label: "一般銷售", value: "OD" },
+        { label: "一般", value: "OD" },
         { label: "備品", value: "SP" },
-        { label: "其他費用", value: "OF" }
+        { label: "其他", value: "OF" }
       ],
       disabled: true,
       style: { width: "100%" }
