@@ -32,17 +32,19 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
 
   // 新增備品 Modal 相關狀態
   const [addSpareItem, setAddSpareItem] = useState<SalesDeliveryItemDto | null>(null);
+  const [isEditingSpare, setIsEditingSpare] = useState(false);
   const [scrapStock, setScrapStock] = useState<number | null>(null);
   const [loadingStock, setLoadingStock] = useState(false);
   const [spareForm] = Form.useForm();
 
   const handleAddSpareOpen = async (record: SalesDeliveryItemDto) => {
+    setIsEditingSpare(false);
     setAddSpareItem(record);
     setScrapStock(null);
     setLoadingStock(true);
     spareForm.setFieldsValue({
       quantity: undefined,
-      notes: '備品出貨 (來源:報廢倉)',
+      notes: undefined,
     });
 
     try {
@@ -68,24 +70,50 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
       const values = await spareForm.validateFields();
       if (!addSpareItem) return;
 
-      const newSpareDto: CreateSalesDeliveryItemDto = {
-        inventoryType: 'P',
-        inventoryCode: addSpareItem.inventoryCode || '',
-        inventoryName: addSpareItem.inventoryName || '',
-        transactionType: 'SP',
-        subType: 'SP',
-        partnerProductId: addSpareItem.partnerProductId,
-        referenceNumber: addSpareItem.referenceNumber,
-        partnerDocumentNumber: addSpareItem.partnerDocumentNumber,
-        unitPrice: 0,
-        quantity: values.quantity,
-        sourceStorageCode: 'TW-GEN-SCRAP',
-        notes: values.notes,
-        unit: addSpareItem.unit,
-      };
+      if (isEditingSpare) {
+        // 編輯模式：更新備品
+        const updatePayload = {
+          inventoryType: addSpareItem.inventoryType,
+          inventoryCode: addSpareItem.inventoryCode,
+          inventoryName: addSpareItem.inventoryName,
+          transactionType: 'SP',
+          subType: 'SP',
+          partnerProductId: addSpareItem.partnerProductId,
+          referenceNumber: addSpareItem.referenceNumber,
+          partnerDocumentNumber: addSpareItem.partnerDocumentNumber,
+          unitPrice: 0,
+          quantity: values.quantity,
+          sourceStorageCode: 'TW-GEN-SCRAP',
+          notes: values.notes,
+          unit: addSpareItem.unit,
+        };
+        await updateMutation.mutateAsync({
+          lineNumber: addSpareItem.lineNumber!,
+          values: updatePayload,
+        });
+        setAddSpareItem(null);
+        setIsEditingSpare(false);
+      } else {
+        // 新增模式：建立備品
+        const newSpareDto: CreateSalesDeliveryItemDto = {
+          inventoryType: 'P',
+          inventoryCode: addSpareItem.inventoryCode || '',
+          inventoryName: addSpareItem.inventoryName || '',
+          transactionType: 'SP',
+          subType: 'SP',
+          partnerProductId: addSpareItem.partnerProductId,
+          referenceNumber: addSpareItem.referenceNumber,
+          partnerDocumentNumber: addSpareItem.partnerDocumentNumber,
+          unitPrice: 0,
+          quantity: values.quantity,
+          sourceStorageCode: 'TW-GEN-SCRAP',
+          notes: values.notes,
+          unit: addSpareItem.unit,
+        };
 
-      await addItemsMutation.mutateAsync([newSpareDto]);
-      setAddSpareItem(null);
+        await addItemsMutation.mutateAsync([newSpareDto]);
+        setAddSpareItem(null);
+      }
     } catch (e) {
       // Handled or validated
     }
@@ -132,9 +160,38 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
     if (onEditingChange) onEditingChange(editing);
   };
 
-  const handleEditOpen = (record: SalesDeliveryItemDto) => {
-    setEditingItem(record);
-    notifyEdit(true);
+  const handleEditOpen = async (record: SalesDeliveryItemDto) => {
+    const isSpare = record.subType === 'SP' || record.transactionType === 'SP';
+    if (isSpare) {
+      setIsEditingSpare(true);
+      setAddSpareItem(record);
+      setScrapStock(null);
+      setLoadingStock(true);
+      spareForm.setFieldsValue({
+        quantity: record.quantity,
+        notes: record.notes || undefined,
+      });
+
+      try {
+        const res = await getApiV1StorageInventory({
+          query: {
+            StorageCode: 'TW-GEN-SCRAP',
+            InventoryCode: record.inventoryCode || '',
+          }
+        });
+        const stock = res.data?.data?.[0]?.quantity ?? 0;
+        setScrapStock(stock + (record.quantity || 0));
+      } catch (e: any) {
+        console.error(e);
+        message.error('取得報廢倉庫存失敗：' + getApiErrorMessage(e));
+        setScrapStock(record.quantity || 0);
+      } finally {
+        setLoadingStock(false);
+      }
+    } else {
+      setEditingItem(record);
+      notifyEdit(true);
+    }
   };
 
   const handleCancel = () => {
@@ -249,7 +306,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
           </div>
           <Table
             virtual
-            columns={getItemColumns(isViewMode, handleEditOpen, handleDelete, handleAddSpareOpen)}
+            columns={getItemColumns(isViewMode, handleEditOpen, handleDelete, handleAddSpareOpen, items)}
             dataSource={items}
             rowKey="lineNumber"
             pagination={false}
@@ -268,11 +325,14 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
       />
 
       <Modal
-        title="新增產品備品"
+        title={isEditingSpare ? "修改產品備品" : "新增產品備品"}
         open={!!addSpareItem}
         onOk={handleAddSpareConfirm}
-        onCancel={() => setAddSpareItem(null)}
-        confirmLoading={addItemsMutation.isPending}
+        onCancel={() => {
+          setAddSpareItem(null);
+          setIsEditingSpare(false);
+        }}
+        confirmLoading={addItemsMutation.isPending || updateMutation.isPending}
         okButtonProps={{ disabled: loadingStock || scrapStock === null || scrapStock <= 0 }}
         centered
         destroyOnClose

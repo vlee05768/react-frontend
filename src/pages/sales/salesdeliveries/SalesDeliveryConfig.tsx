@@ -222,6 +222,7 @@ export const getItemColumns = (
   onEdit: (record: SalesDeliveryItemDto) => void,
   onDelete: (record: SalesDeliveryItemDto) => void,
   onAddSpare?: (record: SalesDeliveryItemDto) => void,
+  items?: SalesDeliveryItemDto[],
 ): ColumnsType<SalesDeliveryItemDto> => [
   {
     title: "操作",
@@ -232,6 +233,13 @@ export const getItemColumns = (
     render: (_: any, record: SalesDeliveryItemDto) => {
       if (isViewMode) return null;
       const isProduct = record.inventoryType === "P";
+      const isSpare = record.subType === "SP" || record.transactionType === "SP";
+      const hasSpare = Array.isArray(items) && items.some(item => 
+        item.inventoryCode === record.inventoryCode && 
+        item.referenceNumber === record.referenceNumber && 
+        (item.subType === 'SP' || item.transactionType === 'SP')
+      );
+      const showAddSpare = isProduct && !isSpare && !hasSpare && onAddSpare;
       return (
         <Space size="small">
           <Button
@@ -245,7 +253,7 @@ export const getItemColumns = (
             icon={<DeleteOutlined style={{ fontSize: "16px" }} />}
             onClick={() => onDelete(record)}
           />
-          {isProduct && onAddSpare && (
+          {showAddSpare && (
             <Tooltip title="新增備品">
               <Button
                 type="text"

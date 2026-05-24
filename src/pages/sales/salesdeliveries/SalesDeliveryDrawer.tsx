@@ -121,6 +121,7 @@ export default function SalesDeliveryDrawer() {
                     await postApiV1SalesDeliveryByMovementNumberConfirm({ path: { movementNumber: id! } });
                     message.success('確認成功');
                     queryClient.invalidateQueries({ queryKey: ['salesdelivery', id] });
+                    queryClient.invalidateQueries({ queryKey: ['salesdeliveries'] });
                   } catch(e) {
                     modal.error({ title: '錯誤', content: getApiErrorMessage(e) });
                   }
@@ -134,7 +135,7 @@ export default function SalesDeliveryDrawer() {
         
         {isConfirmed && canUpdate && (
           <ActionButton 
-            key="cancelConfirm" intent="default"  icon={<SyncOutlined />} 
+            key="cancelConfirm" intent="warning"  icon={<SyncOutlined />} 
             disabled={isDetailEditing}
             onClick={(e) => {
               e.preventDefault();
@@ -146,6 +147,7 @@ export default function SalesDeliveryDrawer() {
                     await postApiV1SalesDeliveryByMovementNumberCancelConfirm({ path: { movementNumber: id! } });
                     message.success('取消確認成功');
                     queryClient.invalidateQueries({ queryKey: ['salesdelivery', id] });
+                    queryClient.invalidateQueries({ queryKey: ['salesdeliveries'] });
                   } catch(e) {
                     modal.error({ title: '錯誤', content: getApiErrorMessage(e) });
                   }
@@ -190,6 +192,7 @@ export default function SalesDeliveryDrawer() {
       if (isCreating) {
         const res = await postApiV1SalesDelivery({ body: data });
         message.success('建立成功');
+        queryClient.invalidateQueries({ queryKey: ['salesdeliveries'] });
         const newId = (res.data as any)?.data?.documentNumber || (res.data as any)?.documentNumber;
         if (newId) {
           navigate(`/sales/salesdeliveries/${newId}`, { replace: true });
@@ -201,6 +204,7 @@ export default function SalesDeliveryDrawer() {
         message.success('更新成功');
         setIsEditing(false);
         queryClient.invalidateQueries({ queryKey: ['salesdelivery', id] });
+        queryClient.invalidateQueries({ queryKey: ['salesdeliveries'] });
       }
     } catch (error) {
       modal.error({ title: '儲存失敗', content: getApiErrorMessage(error) });
@@ -318,7 +322,10 @@ export default function SalesDeliveryDrawer() {
                     items={items}
                     isEditing={isEditing}
                     isConfirmed={!!deliveryData.confirmDate}
-                    onRefresh={() => queryClient.invalidateQueries({ queryKey: ['salesdelivery', id] })}
+                    onRefresh={() => {
+                      queryClient.invalidateQueries({ queryKey: ['salesdelivery', id] });
+                      queryClient.invalidateQueries({ queryKey: ['salesdeliveries'] });
+                    }}
                   />
                 ) : (
                   <Empty description="請先儲存銷貨單主檔" />
