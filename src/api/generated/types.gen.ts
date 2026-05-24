@@ -1033,6 +1033,10 @@ export type CreateOrderItemDto = {
      */
     goodsName?: string | null;
     /**
+     * 單位
+     */
+    unit?: string | null;
+    /**
      * 客戶產品代碼
      */
     customerProductId?: string | null;
@@ -3408,6 +3412,10 @@ export type OrderDto = {
      */
     closeUserName?: string | null;
     /**
+     * 是否為強制結案
+     */
+    isForcedClosed?: boolean;
+    /**
      * 業務員ID
      */
     salespersonEmployeeCode?: string | null;
@@ -3527,6 +3535,10 @@ export type OrderItemDto = {
      * 自訂項目名稱
      */
     goodsName?: string | null;
+    /**
+     * 單位
+     */
+    unit?: string | null;
     /**
      * 客戶產品代碼
      */
@@ -6232,6 +6244,10 @@ export type UpdateOrderItemDto = {
      */
     goodsName?: string | null;
     /**
+     * 單位
+     */
+    unit?: string | null;
+    /**
      * 客戶產品代碼
      */
     customerProductId?: string | null;
@@ -8113,6 +8129,10 @@ export type OrderDtoWritable = {
      */
     closeUserName?: string | null;
     /**
+     * 是否為強制結案
+     */
+    isForcedClosed?: boolean;
+    /**
      * 業務員ID
      */
     salespersonEmployeeCode?: string | null;
@@ -8228,6 +8248,10 @@ export type OrderItemDtoWritable = {
      * 自訂項目名稱
      */
     goodsName?: string | null;
+    /**
+     * 單位
+     */
+    unit?: string | null;
     /**
      * 客戶產品代碼
      */

@@ -9,7 +9,12 @@ import { ContactSelectWithCreate } from "./components/ContactSelectWithCreate";
 import { DictLabel } from "@/components/Form/DictLabel";
 import { DictTag } from "@/components/Form/DictTag";
 
-export const getStatusTag = (status: string | null | undefined) => {
+export const getStatusTag = (status: string | null | undefined, isForcedClosed?: boolean) => {
+  if (status === 'Finished') {
+    return isForcedClosed 
+      ? <Tag color="error" className="m-0">強制結案</Tag>
+      : <Tag color="success" className="m-0">正常結案</Tag>;
+  }
   return <DictTag dictKey="ORDER_STATUS" value={status || 'Draft'} />;
 };
 
@@ -92,7 +97,7 @@ export const getColumns = (): TableColumnConfig<OrderDto>[] => [
     name: "status",
     width: 100,
     sortable: { multiple: 3 },
-    render: (status: string) => getStatusTag(status),
+    render: (status: string, record: any) => getStatusTag(status, record.isForcedClosed),
   },
 
   {
