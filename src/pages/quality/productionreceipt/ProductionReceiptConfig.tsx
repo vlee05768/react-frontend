@@ -28,7 +28,7 @@ export const getStatusTagProps = (
   confirmDate?: string | null,
   closeDate?: string | null
 ) => {
-  if (closeDate) return { color: "default", text: "已結案" };
+  if (closeDate) return { color: "blue", text: "已結案" };
   if (confirmDate) return { color: "success", text: "已確認" };
 
   if (!status) return { color: "warning", text: "待確認" };
@@ -36,7 +36,7 @@ export const getStatusTagProps = (
     case "CONFIRMED":
       return { color: "success", text: "已確認" };
     case "CLOSED":
-      return { color: "default", text: "已結案" };
+      return { color: "blue", text: "已結案" };
     case "UNCONFIRMED":
     default:
       return { color: "warning", text: "待確認" };
