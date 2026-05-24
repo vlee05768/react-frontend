@@ -9,11 +9,11 @@ import { ContactSelectWithCreate } from "./components/ContactSelectWithCreate";
 import { DictLabel } from "@/components/Form/DictLabel";
 import { DictTag } from "@/components/Form/DictTag";
 
-export const getStatusTag = (status: string | null | undefined, isForcedClosed?: boolean) => {
+export const getStatusTag = (status: string | null | undefined, closeDate?: string | null) => {
   if (status === 'Finished') {
-    return isForcedClosed 
+    return closeDate 
       ? <Tag color="error" className="m-0">強制結案</Tag>
-      : <Tag color="success" className="m-0">正常結案</Tag>;
+      : <Tag color="blue" className="m-0">出貨完畢</Tag>;
   }
   return <DictTag dictKey="ORDER_STATUS" value={status || 'Draft'} />;
 };
@@ -35,8 +35,16 @@ export const searchConfig: SearchFieldConfig[] = [
   {
     name: "status",
     label: "狀態",
-    componentType: "DictSelect",
-    componentProps: { dictKey: "ORDER_STATUS" },
+    componentType: "Select",
+    componentProps: {
+      options: [
+        { label: "新單據", value: "Draft" },
+        { label: "已確認", value: "Confirmed" },
+        { label: "出貨完畢", value: "ShippedCompleted" },
+        { label: "強制結案", value: "ForcedClosed" },
+      ],
+      allowClear: true,
+    },
     colSpan: 2,
   },
   {
@@ -97,7 +105,7 @@ export const getColumns = (): TableColumnConfig<OrderDto>[] => [
     name: "status",
     width: 100,
     sortable: { multiple: 3 },
-    render: (status: string, record: any) => getStatusTag(status, record.isForcedClosed),
+    render: (status: string, record: any) => getStatusTag(status, record.closeDate),
   },
 
   {

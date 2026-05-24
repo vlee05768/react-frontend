@@ -388,7 +388,7 @@ export default function OrderDrawer() {
           isEdit={isEditing}
           record={orderData}
           displayField={(r: OrderDto) => r?.orderNumber ? `${r.orderNumber}` : ''}
-          statusTag={(!isCreating && orderData) ? getStatusTag(orderData.status, orderData.isForcedClosed) : undefined}
+          statusTag={(!isCreating && orderData) ? getStatusTag(orderData.status, orderData.closeDate) : undefined}
         />
       }
       open={true}
