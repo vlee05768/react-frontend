@@ -303,7 +303,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
         inventoryCode: g.goodsCode,
         inventoryName: g.goodsName,
         unit: g.unit, // 🌟 帶入單位！
-        subType: 'OD',
+        subType: g.goodsType === 'O' ? 'OF' : 'OD',
         transactionType: g.transactionType,
         partnerDocumentNumber: partnerDocNum,
         partnerProductId: partnerProdId,

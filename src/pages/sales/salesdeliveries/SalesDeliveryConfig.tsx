@@ -227,22 +227,13 @@ export const getItemColumns = (
     title: "操作",
     key: "action",
     width: 120,
-    align: "center",
+    align: "left",
     fixed: 'right' as const,
     render: (_: any, record: SalesDeliveryItemDto) => {
       if (isViewMode) return null;
       const isProduct = record.inventoryType === "P";
       return (
         <Space size="small">
-          {isProduct && onAddSpare && (
-            <Tooltip title="新增備品">
-              <Button
-                type="text"
-                icon={<PlusCircleOutlined style={{ fontSize: "16px", color: "var(--ant-color-primary)" }} />}
-                onClick={() => onAddSpare(record)}
-              />
-            </Tooltip>
-          )}
           <Button
             type="text"
             icon={<EditOutlined style={{ fontSize: "16px" }} />}
@@ -254,6 +245,15 @@ export const getItemColumns = (
             icon={<DeleteOutlined style={{ fontSize: "16px" }} />}
             onClick={() => onDelete(record)}
           />
+          {isProduct && onAddSpare && (
+            <Tooltip title="新增備品">
+              <Button
+                type="text"
+                icon={<PlusCircleOutlined style={{ fontSize: "16px", color: "var(--ant-color-primary)" }} />}
+                onClick={() => onAddSpare(record)}
+              />
+            </Tooltip>
+          )}
         </Space>
       );
     },
@@ -348,6 +348,18 @@ export const getItemColumns = (
     render: (val: string) => <DictTag dictKey="PRODUCT_TYPE" value={val} />,
   },
   {
+    title: "銷售類別",
+    dataIndex: "subType",
+    width: 100,
+    align: "center",
+    ellipsis: true,
+    render: (val: string) => {
+      if (val === 'SP') return <Tag color="success" className="m-0">備品</Tag>;
+      if (val === 'OF') return <Tag color="purple" className="m-0">其他費用</Tag>;
+      return <Tag color="blue" className="m-0">一般銷售</Tag>;
+    }
+  },
+  {
     title: "料號",
     dataIndex: "inventoryCode",
     width: 140,
@@ -435,6 +447,22 @@ export const getItemFormConfig = (): any[] => [
     componentType: "Input",
     colSpan: 4,
     editable: "never",
+  },
+  {
+    name: "subType",
+    label: "銷售類別",
+    componentType: "Select",
+    componentProps: {
+      options: [
+        { label: "一般銷售", value: "OD" },
+        { label: "備品", value: "SP" },
+        { label: "其他費用", value: "OF" }
+      ],
+      disabled: true,
+      style: { width: "100%" }
+    },
+    colSpan: 4,
+    editable: "never"
   },
   {
     name: "sourceStorageCode",

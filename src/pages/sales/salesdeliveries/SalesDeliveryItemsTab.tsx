@@ -73,6 +73,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
         inventoryCode: addSpareItem.inventoryCode || '',
         inventoryName: addSpareItem.inventoryName || '',
         transactionType: 'SP',
+        subType: 'SP',
         partnerProductId: addSpareItem.partnerProductId,
         referenceNumber: addSpareItem.referenceNumber,
         partnerDocumentNumber: addSpareItem.partnerDocumentNumber,

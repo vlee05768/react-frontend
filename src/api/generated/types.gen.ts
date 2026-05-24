@@ -6750,6 +6750,10 @@ export type UpdateSalesDeliveryItemDto = {
      */
     unit?: string | null;
     /**
+     * 單據次類型
+     */
+    subType?: string | null;
+    /**
      * 萬用自訂資料 (JSON)
      */
     extraData?: unknown;
