@@ -1543,6 +1543,10 @@ export type CreateSalesDeliveryItemDto = {
      */
     notes?: string | null;
     /**
+     * 單位
+     */
+    unit?: string | null;
+    /**
      * 萬用自訂資料 (JSON)
      */
     extraData?: unknown;
@@ -6742,6 +6746,10 @@ export type UpdateSalesDeliveryItemDto = {
      */
     notes?: string | null;
     /**
+     * 單位
+     */
+    unit?: string | null;
+    /**
      * 萬用自訂資料 (JSON)
      */
     extraData?: unknown;
@@ -8950,6 +8958,10 @@ export type UndeliveredOrderItemsDtoWritable = {
      * 客戶產品代碼
      */
     customerProductId?: string | null;
+    /**
+     * 單位
+     */
+    unit?: string | null;
     /**
      * 單價
      */

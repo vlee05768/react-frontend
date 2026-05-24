@@ -175,6 +175,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
       unitPrice: number;
       quantity: number;
       unit?: string;
+      notes?: string;
     }
 
     const allocationUnits: AllocationUnit[] = [];
@@ -205,6 +206,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
             unitPrice: unitPrice,
             quantity: remainingRegularQty,
             unit: unit,
+            notes: item.notes || '',
           });
         }
 
@@ -221,6 +223,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
             unitPrice: 0, // 備品單價強製為 0
             quantity: spareQtyToShip,
             unit: unit,
+            notes: item.notes || '',
           });
         }
       } else {
@@ -237,6 +240,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
             unitPrice: unitPrice,
             quantity: deliveryQty,
             unit: unit,
+            notes: item.notes || '',
           });
         }
       }
@@ -306,9 +310,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
         unitPrice: g.unitPrice,
         quantity: g.totalQuantity,
         sourceStorageCode: 'TW-GEN-INV',
-        notes: g.transactionType === 'SP' 
-          ? `合併備品出貨，分攤來源：${g.units.map(u => `${u.orderItemLineNumber}(${u.quantity})`).join(', ')}`
-          : `合併常規出貨，分攤來源：${g.units.map(u => `${u.orderItemLineNumber}(${u.quantity})`).join(', ')}`,
+        notes: g.units.map(u => u.notes).filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join('; ') || '',
         extraData: extraDataList, // 後端認可的 JSON 格式 (在 ASP.NET Core 端會自動被對應為 JsonDocument)
       };
 

@@ -1,5 +1,5 @@
 import { Space, Button, Tooltip } from "antd";
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined, PlusCircleOutlined } from "@ant-design/icons";
 import { z } from "zod";
 import { Tag } from "antd";
 import { SyncOutlined, CheckCircleOutlined } from "@ant-design/icons";
@@ -8,6 +8,7 @@ import type { ColumnsType } from "antd/es/table";
 import type { SalesDeliveryDto, SalesDeliveryItemDto } from "@/api/generated/types.gen";
 import dayjs from "dayjs";
 import { ContactSelectWithCreate } from "../orders/components/ContactSelectWithCreate";
+import { DictTag } from "@/components/Form/DictTag";
 // import { DictLabel } from "@/components/Form/DictLabel";
 
 export const getStatusTag = (row: SalesDeliveryDto) => {
@@ -220,17 +221,28 @@ export const getItemColumns = (
   isViewMode: boolean,
   onEdit: (record: SalesDeliveryItemDto) => void,
   onDelete: (record: SalesDeliveryItemDto) => void,
+  onAddSpare?: (record: SalesDeliveryItemDto) => void,
 ): ColumnsType<SalesDeliveryItemDto> => [
   {
     title: "操作",
     key: "action",
-    width: 80,
+    width: 120,
     align: "center",
     fixed: 'right' as const,
     render: (_: any, record: SalesDeliveryItemDto) => {
       if (isViewMode) return null;
+      const isProduct = record.inventoryType === "P";
       return (
         <Space size="small">
+          {isProduct && onAddSpare && (
+            <Tooltip title="新增備品">
+              <Button
+                type="text"
+                icon={<PlusCircleOutlined style={{ fontSize: "16px", color: "var(--ant-color-primary)" }} />}
+                onClick={() => onAddSpare(record)}
+              />
+            </Tooltip>
+          )}
           <Button
             type="text"
             icon={<EditOutlined style={{ fontSize: "16px" }} />}
@@ -328,16 +340,39 @@ export const getItemColumns = (
     }
   },
   {
+    title: "類型",
+    dataIndex: "inventoryType",
+    width: 80,
+    align: "center",
+    ellipsis: true,
+    render: (val: string) => <DictTag dictKey="PRODUCT_TYPE" value={val} />,
+  },
+  {
     title: "料號",
     dataIndex: "inventoryCode",
     width: 140,
     align: "left",
     ellipsis: true,
+    render: (val: string, record: any) => {
+      if (!val) return "-";
+      let color = "default";
+      if (record.inventoryType === "P") color = "orange";
+      else if (record.inventoryType === "M") color = "cyan";
+      else if (record.inventoryType === "S") color = "purple";
+      return <Tag color={color} className="m-0">{val}</Tag>;
+    },
   },
   {
     title: "品名",
     dataIndex: "inventoryName",
     width: 220,
+    ellipsis: true,
+  },
+  {
+    title: "單位",
+    dataIndex: "unit",
+    width: 80,
+    align: "center",
     ellipsis: true,
   },
   {

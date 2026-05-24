@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
-import { Table, Button, App, Space, Typography } from 'antd';
+import { Table, Button, App, Space, Typography, Modal, InputNumber, Input, Form, Spin, Descriptions } from 'antd';
 import type { SalesDeliveryItemDto, CreateSalesDeliveryItemDto } from '@/api/generated/types.gen';
 import { 
   deleteApiV1SalesDeliveryByMovementNumberItemsByLineNumber,
   postApiV1SalesDeliveryByMovementNumberItems,
-  putApiV1SalesDeliveryByMovementNumberItemsByLineNumber
+  putApiV1SalesDeliveryByMovementNumberItemsByLineNumber,
+  getApiV1StorageInventory
 } from '@/api/generated/sdk.gen';
 import { useMutation } from '@tanstack/react-query';
 import { getApiErrorMessage } from '@/utils/apiError';
@@ -28,6 +29,66 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
   const { modal, message } = App.useApp();
   const [showPicker, setShowPicker] = useState(false);
   const [editingItem, setEditingItem] = useState<SalesDeliveryItemDto | null>(null);
+
+  // 新增備品 Modal 相關狀態
+  const [addSpareItem, setAddSpareItem] = useState<SalesDeliveryItemDto | null>(null);
+  const [scrapStock, setScrapStock] = useState<number | null>(null);
+  const [loadingStock, setLoadingStock] = useState(false);
+  const [spareForm] = Form.useForm();
+
+  const handleAddSpareOpen = async (record: SalesDeliveryItemDto) => {
+    setAddSpareItem(record);
+    setScrapStock(null);
+    setLoadingStock(true);
+    spareForm.setFieldsValue({
+      quantity: undefined,
+      notes: '備品出貨 (來源:報廢倉)',
+    });
+
+    try {
+      const res = await getApiV1StorageInventory({
+        query: {
+          StorageCode: 'TW-GEN-SCRAP',
+          InventoryCode: record.inventoryCode || '',
+        }
+      });
+      const stock = res.data?.data?.[0]?.quantity ?? 0;
+      setScrapStock(stock);
+    } catch (e: any) {
+      console.error(e);
+      message.error('取得報廢倉庫存失敗：' + getApiErrorMessage(e));
+      setScrapStock(0);
+    } finally {
+      setLoadingStock(false);
+    }
+  };
+
+  const handleAddSpareConfirm = async () => {
+    try {
+      const values = await spareForm.validateFields();
+      if (!addSpareItem) return;
+
+      const newSpareDto: CreateSalesDeliveryItemDto = {
+        inventoryType: 'P',
+        inventoryCode: addSpareItem.inventoryCode || '',
+        inventoryName: addSpareItem.inventoryName || '',
+        transactionType: 'SP',
+        partnerProductId: addSpareItem.partnerProductId,
+        referenceNumber: addSpareItem.referenceNumber,
+        partnerDocumentNumber: addSpareItem.partnerDocumentNumber,
+        unitPrice: 0,
+        quantity: values.quantity,
+        sourceStorageCode: 'TW-GEN-SCRAP',
+        notes: values.notes,
+        unit: addSpareItem.unit,
+      };
+
+      await addItemsMutation.mutateAsync([newSpareDto]);
+      setAddSpareItem(null);
+    } catch (e) {
+      // Handled or validated
+    }
+  };
 
   const originalOrderItems = useMemo(() => {
     const keys = new Set<string>();
@@ -187,7 +248,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
           </div>
           <Table
             virtual
-            columns={getItemColumns(isViewMode, handleEditOpen, handleDelete)}
+            columns={getItemColumns(isViewMode, handleEditOpen, handleDelete, handleAddSpareOpen)}
             dataSource={items}
             rowKey="lineNumber"
             pagination={false}
@@ -204,6 +265,64 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
         onClose={() => setShowPicker(false)}
         onConfirm={handlePickerConfirm}
       />
+
+      <Modal
+        title="新增產品備品"
+        open={!!addSpareItem}
+        onOk={handleAddSpareConfirm}
+        onCancel={() => setAddSpareItem(null)}
+        confirmLoading={addItemsMutation.isPending}
+        okButtonProps={{ disabled: loadingStock || scrapStock === null || scrapStock <= 0 }}
+        centered
+        destroyOnClose
+      >
+        <Spin spinning={loadingStock} tip="正在查詢報廢倉庫存...">
+          {addSpareItem && (
+            <div className="py-4">
+              <Descriptions column={1} size="small" bordered className="mb-4">
+                <Descriptions.Item label="品名">{addSpareItem.inventoryName}</Descriptions.Item>
+                <Descriptions.Item label="料號">{addSpareItem.inventoryCode}</Descriptions.Item>
+                <Descriptions.Item label="來源儲位">報廢倉 (TW-GEN-SCRAP)</Descriptions.Item>
+                <Descriptions.Item label="報廢倉現有庫存">
+                  <span className={scrapStock && scrapStock > 0 ? "text-green-600 font-bold" : "text-red-500 font-bold"}>
+                    {scrapStock !== null ? `${scrapStock.toLocaleString()} ${addSpareItem.unit || ''}` : '-'}
+                  </span>
+                </Descriptions.Item>
+              </Descriptions>
+
+              {scrapStock !== null && scrapStock <= 0 ? (
+                <div className="text-red-500 font-medium text-center py-2 px-3" style={{ backgroundColor: 'var(--ant-color-error-bg-hover)', borderRadius: '4px' }}>
+                  ⚠️ 目前該產品在報廢倉 (TW-GEN-SCRAP) 中無庫存，無法新增備品。
+                </div>
+              ) : (
+                <Form form={spareForm} layout="vertical">
+                  <Form.Item
+                    name="quantity"
+                    label="備品出貨數量"
+                    rules={[
+                      { required: true, message: '請輸入備品數量' },
+                      { type: 'number', min: 1, max: scrapStock || undefined, message: `數量必須介於 1 到 ${scrapStock?.toLocaleString() || ''} 之間` }
+                    ]}
+                  >
+                    <InputNumber
+                      style={{ width: '100%' }}
+                      placeholder="請輸入出貨數量"
+                      precision={0}
+                      autoFocus
+                    />
+                  </Form.Item>
+                  <Form.Item
+                    name="notes"
+                    label="備註"
+                  >
+                    <Input placeholder="可輸入備註" />
+                  </Form.Item>
+                </Form>
+              )}
+            </div>
+          )}
+        </Spin>
+      </Modal>
     </div>
   );
 }
