@@ -62,6 +62,7 @@ export const searchConfig: SearchFieldConfig[] = [
     colSpan: 2,
     componentProps: {
       options: [
+        { label: "已開工未入庫", value: "StartedUnwarehoused" },
         { label: "新單據", value: "Draft" },
         { label: "備料中", value: "InPreparation" },
         { label: "備料確認", value: "PreparationCompleted" },
