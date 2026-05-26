@@ -81,13 +81,14 @@ export default function Dashboard() {
     permissionKey: string;
     path: string;
     label: string;
+    className?: string;
   }) => {
     const hasPerm = hasPermission(params.permissionKey);
 
     if (!hasPerm) {
       return (
         <div 
-          className="sub-btn-disabled" 
+          className={`sub-btn-disabled ${params.className || ''}`.trim()} 
           title="🔒 您無此模組之存取權限"
         >
           {params.label} 🔒
@@ -97,7 +98,7 @@ export default function Dashboard() {
 
     return (
       <div 
-        className="sub-btn" 
+        className={`sub-btn ${params.className || ''}`.trim()} 
         onClick={() => navigate(params.path)}
       >
         {params.label}
@@ -118,7 +119,7 @@ export default function Dashboard() {
 
         {/* KPI Cards Grid */}
         <Spin spinning={isLoading}>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-10 h-32">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-10">
             {renderKpiCard({
               permissionKey: 'Sales.Orders.View',
               path: '/sales/orders?unprocessedOrders=true',
@@ -191,7 +192,7 @@ export default function Dashboard() {
         <div className="bg-white dark:bg-[#191919] p-8 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm dark:shadow-none">
           
           {/* 核心業務流程 Core Flow (Columns) */}
-          <div className="flex items-start justify-between gap-2 overflow-x-auto pb-4 flowchart-container">
+          <div className="flex items-start justify-start lg:justify-center gap-2 overflow-x-auto pb-4 flowchart-container">
             
             {/* 基本資料模組列 (放最左邊) */}
             <div className="flow-col">
@@ -327,14 +328,14 @@ export default function Dashboard() {
             </div>
 
             {/* 庫存模組列 */}
-            <div className="flow-col">
+            <div className="flow-col-wide">
               <div className="flow-node-header border-t-4 border-t-teal-500">
                 <div className="text-teal-500 dark:text-teal-400 mb-1">
                   <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                 </div>
                 <div className="font-bold text-gray-800 dark:text-gray-200">庫存管理</div>
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {renderSubButton({
                   permissionKey: 'Warehouse.Products.View',
                   path: '/warehouse/products',
@@ -368,7 +369,8 @@ export default function Dashboard() {
                 {renderSubButton({
                   permissionKey: 'Warehouse.Inventory.View',
                   path: '/warehouse/inventory',
-                  label: '🏢 庫存查詢'
+                  label: '🏢 庫存查詢',
+                  className: 'md:col-span-2'
                 })}
               </div>
             </div>

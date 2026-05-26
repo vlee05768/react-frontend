@@ -16,6 +16,7 @@
   transition: transform 0.2s, box-shadow 0.2s; 
   cursor: pointer;
   border: 1px solid var(--ant-color-border-secondary, #f0f0f0);
+  height: 112px;
 }
 .dark .dashboard-card {
   background-color: #1f1f1f;
@@ -137,6 +138,7 @@
   cursor: not-allowed;
   opacity: 0.75;
   user-select: none;
+  height: 112px;
 }
 .dark .dashboard-card-disabled {
   background-color: #141414;
@@ -156,6 +158,23 @@
   display: none; /* Chrome, Safari and Opera */
 }
 
-.flow-col { flex: 1; display: flex; flex-direction: column; min-width: 110px; }
+.flow-col {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 160px;
+  min-width: 160px;
+}
+.flow-col-wide {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 160px;
+  min-width: 160px;
+}
+@media (min-width: 768px) {
+  .flow-col-wide {
+    flex: 0 0 380px;
+    min-width: 380px;
+  }
+}
 .flow-arrow { display: flex; justify-content: center; color: var(--ant-color-text-secondary, #666); padding-top: 36px; padding-left: 8px; padding-right: 8px; }
 .dark .flow-arrow { color: #4b5563; }
