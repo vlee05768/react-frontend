@@ -6,6 +6,7 @@ import AuthLayout from '@/layouts/AuthLayout';
 import Login from '@/pages/auth/Login';
 import ForgetPassword from '@/pages/auth/ForgetPassword';
 import ResetPassword from '@/pages/auth/ResetPassword';
+import ActivateAccount from '@/pages/auth/ActivateAccount';
 import NotFound from '@/pages/exception/404';
 import Forbidden from '@/pages/exception/403';
 import Dashboard from '@/pages/Dashboard';
@@ -84,6 +85,7 @@ export const router = createBrowserRouter([
       { path: ROUTES.LOGIN, element: <Login /> },
       { path: ROUTES.FORGET_PASSWORD, element: <ForgetPassword /> },
       { path: ROUTES.RESET_PASSWORD, element: <ResetPassword /> },
+      { path: ROUTES.ACTIVATE_ACCOUNT, element: <ActivateAccount /> },
     ],
   },
   {
