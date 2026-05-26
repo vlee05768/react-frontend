@@ -4,10 +4,12 @@ import { Spin } from 'antd';
 import {
   getApiV1DashboardPendingTasks
 } from '@/api/generated/sdk.gen';
+import { useAuthStore } from '@/stores/useAuthStore';
 import './Dashboard.css';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const hasPermission = useAuthStore((state) => state.hasPermission);
 
   const { data: pendingTasksRes, isLoading } = useQuery({
     queryKey: ['dashboard', 'pending-tasks'],
@@ -25,6 +27,84 @@ export default function Dashboard() {
     scrapInventoryAdjustments: 0
   };
 
+  const renderKpiCard = (params: {
+    permissionKey: string;
+    path: string;
+    borderColorClass: string;
+    title: string;
+    value: number | string;
+    textColorClass: string;
+    isWarning?: boolean;
+    isDev?: boolean;
+    onClickDev?: () => void;
+  }) => {
+    const hasPerm = params.isDev ? true : hasPermission(params.permissionKey);
+
+    if (!hasPerm) {
+      return (
+        <div className="dashboard-card-disabled" title="🔒 您無此模組之存取權限">
+          <div className="card-border bg-gray-300"></div>
+          <div className="text-sm text-gray-400 dark:text-gray-500 font-medium flex items-center gap-1">
+            {params.title} 🔒
+          </div>
+          <div className="text-3xl font-bold text-gray-400 dark:text-gray-500 mt-2">--</div>
+          <div className="text-xs text-gray-400 dark:text-gray-500 mt-auto pt-2 flex items-center">
+            <span>🔒 無權限</span>
+          </div>
+        </div>
+      );
+    }
+
+    const handleClick = () => {
+      if (params.isDev && params.onClickDev) {
+        params.onClickDev();
+      } else {
+        navigate(params.path);
+      }
+    };
+
+    return (
+      <div className="dashboard-card" onClick={handleClick}>
+        <div className={`card-border ${params.borderColorClass}`}></div>
+        <div className={`text-sm font-medium ${params.isWarning ? 'text-rose-500 dark:text-rose-400' : 'text-gray-500 dark:text-gray-400'}`}>
+          {params.title}
+        </div>
+        <div className={`text-3xl font-bold mt-2 ${params.textColorClass}`}>{params.value}</div>
+        <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
+          <span>{params.isWarning ? '檢視明細' : '前往列表'}</span> <span className="ml-1">→</span>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSubButton = (params: {
+    permissionKey: string;
+    path: string;
+    label: string;
+  }) => {
+    const hasPerm = hasPermission(params.permissionKey);
+
+    if (!hasPerm) {
+      return (
+        <div 
+          className="sub-btn-disabled" 
+          title="🔒 您無此模組之存取權限"
+        >
+          {params.label} 🔒
+        </div>
+      );
+    }
+
+    return (
+      <div 
+        className="sub-btn" 
+        onClick={() => navigate(params.path)}
+      >
+        {params.label}
+      </div>
+    );
+  };
+
   return (
     <div className="p-6 md:p-10 min-h-screen relative">
       <div className="dashboard-container">
@@ -38,73 +118,68 @@ export default function Dashboard() {
 
         {/* KPI Cards Grid */}
         <Spin spinning={isLoading}>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-10 h-32">
-            <div className="dashboard-card" onClick={() => navigate('/sales/orders?unprocessedOrders=true')}>
-              <div className="card-border bg-orange-500"></div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">未完成訂單</div>
-              <div className="text-3xl font-bold text-orange-500 mt-2">{pendingTasks.unprocessedOrders}</div>
-              <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
-                <span>前往列表</span> <span className="ml-1">→</span>
-              </div>
-            </div>
-            <div className="dashboard-card" onClick={() => navigate('/production/workorders?status=Draft')}>
-              <div className="card-border bg-red-500"></div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">未開工製令</div>
-              <div className="text-3xl font-bold text-red-500 mt-2">{pendingTasks.draftWorkOrders}</div>
-              <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
-                <span>前往列表</span> <span className="ml-1">→</span>
-              </div>
-            </div>
-            <div className="dashboard-card" onClick={() => navigate('/production/workorders?status=InPreparation')}>
-              <div className="card-border bg-blue-500"></div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">待發/領料提示</div>
-              <div className="text-3xl font-bold text-blue-500 mt-2">{pendingTasks.inPrepWorkOrders}</div>
-              <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
-                <span>前往列表</span> <span className="ml-1">→</span>
-              </div>
-            </div>
-            <div className="dashboard-card" onClick={() => navigate('/production-quality/production-receipts?notQcFinished=true')}>
-              <div className="card-border bg-purple-500"></div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">待 QC 檢驗 (PR)</div>
-              <div className="text-3xl font-bold text-purple-500 mt-2">{pendingTasks.notQcProductionReceipts}</div>
-              <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
-                <span>前往列表</span> <span className="ml-1">→</span>
-              </div>
-            </div>
-            <div className="dashboard-card" onClick={() => navigate('/production-quality/qc-receipts')}>
-              <div className="card-border bg-teal-500"></div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">待 QC 入庫</div>
-              <div className="text-3xl font-bold text-teal-500 mt-2">{pendingTasks.pendingQcReceipts}</div>
-              <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
-                <span>前往列表</span> <span className="ml-1">→</span>
-              </div>
-            </div>
-            <div className="dashboard-card" onClick={() => navigate('/sales/salesdeliveries?shippedConfirmed=false')}>
-              <div className="card-border bg-yellow-500"></div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">待銷貨出庫 (SD)</div>
-              <div className="text-3xl font-bold text-yellow-500 mt-2">{pendingTasks.notShippedSalesDeliveries}</div>
-              <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
-                <span>前往列表</span> <span className="ml-1">→</span>
-              </div>
-            </div>
-            <div className="dashboard-card" onClick={() => { alert('採購單模組開發中'); }}>
-              <div className="card-border bg-indigo-500"></div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">採購待核准</div>
-              <div className="text-3xl font-bold text-indigo-500 mt-2">{pendingTasks.draftPurchaseOrders}</div>
-              <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
-                <span>前往列表</span> <span className="ml-1">→</span>
-              </div>
-            </div>
-            <div className="dashboard-card" onClick={() => navigate('/warehouse/inventory-adjustments?Others=報廢')}>
-              <div className="card-border bg-rose-500"></div>
-              <div className="text-sm font-medium text-rose-500 dark:text-rose-400">⚠️ 異常報廢警示</div>
-              <div className="text-3xl font-bold text-rose-500 mt-2">{pendingTasks.scrapInventoryAdjustments}</div>
-              <div className="text-xs text-blue-500 dark:text-blue-400 mt-auto pt-2 flex items-center hover:text-blue-400 dark:hover:text-blue-300">
-                <span>檢視明細</span> <span className="ml-1">→</span>
-              </div>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-10 h-32">
+            {renderKpiCard({
+              permissionKey: 'Sales.Orders.View',
+              path: '/sales/orders?unprocessedOrders=true',
+              borderColorClass: 'bg-orange-500',
+              title: '未完成訂單',
+              value: pendingTasks.unprocessedOrders ?? 0,
+              textColorClass: 'text-orange-500'
+            })}
+            {renderKpiCard({
+              permissionKey: 'ProductionQuality.WorkOrders.View',
+              path: '/production/workorders?status=Draft',
+              borderColorClass: 'bg-red-500',
+              title: '未開工製令',
+              value: pendingTasks.draftWorkOrders ?? 0,
+              textColorClass: 'text-red-500'
+            })}
+            {renderKpiCard({
+              permissionKey: 'ProductionQuality.WorkOrders.View',
+              path: '/production/workorders?status=InPreparation',
+              borderColorClass: 'bg-blue-500',
+              title: '待發/領料提示',
+              value: pendingTasks.inPrepWorkOrders ?? 0,
+              textColorClass: 'text-blue-500'
+            })}
+            {renderKpiCard({
+              permissionKey: 'ProductionQuality.ProductionReceipts.View',
+              path: '/production-quality/production-receipts?notQcFinished=true',
+              borderColorClass: 'bg-purple-500',
+              title: '待 QC 檢驗 (PR)',
+              value: pendingTasks.notQcProductionReceipts ?? 0,
+              textColorClass: 'text-purple-500'
+            })}
+            {renderKpiCard({
+              permissionKey: 'ProductionQuality.QcReceipts.View',
+              path: '/production-quality/qc-receipts',
+              borderColorClass: 'bg-teal-500',
+              title: '待 QC 入庫',
+              value: pendingTasks.pendingQcReceipts ?? 0,
+              textColorClass: 'text-teal-500'
+            })}
+            {renderKpiCard({
+              permissionKey: 'Sales.Deliveries.View',
+              path: '/sales/salesdeliveries?shippedConfirmed=false',
+              borderColorClass: 'bg-yellow-500',
+              title: '待銷貨出庫 (SD)',
+              value: pendingTasks.notShippedSalesDeliveries ?? 0,
+              textColorClass: 'text-yellow-500'
+            })}
+            {renderKpiCard({
+              permissionKey: '',
+              path: '',
+              borderColorClass: 'bg-indigo-500',
+              title: '採購待核准',
+              value: pendingTasks.draftPurchaseOrders ?? 0,
+              textColorClass: 'text-indigo-500',
+              isDev: true,
+              onClickDev: () => { alert('採購單模組開發中'); }
+            })}
           </div>
         </Spin>
+
         {/* Flowchart Section */}
         <div className="flex justify-between items-end mb-4 mt-8">
           <h2 className="text-xl font-bold tracking-wider border-l-4 border-blue-500 pl-3 text-gray-800 dark:text-gray-200">
@@ -127,8 +202,16 @@ export default function Dashboard() {
                 <div className="font-bold text-gray-800 dark:text-gray-200">基本資料</div>
               </div>
               <div className="flex flex-col gap-2">
-                <div className="sub-btn" onClick={() => navigate('/business-partners')}>🤝 廠商客戶</div>
-                <div className="sub-btn" onClick={() => navigate('/employee')}>🧑‍💼 員工資料</div>
+                {renderSubButton({
+                  permissionKey: 'BasicData.BusinessPartners.View',
+                  path: '/business-partners',
+                  label: '🤝 廠商客戶'
+                })}
+                {renderSubButton({
+                  permissionKey: 'BasicData.Employees.View',
+                  path: '/employee',
+                  label: '🧑‍💼 員工資料'
+                })}
               </div>
             </div>
 
@@ -146,9 +229,21 @@ export default function Dashboard() {
                 <div className="font-bold text-gray-800 dark:text-gray-200">銷售管理</div>
               </div>
               <div className="flex flex-col gap-2">
-                <div className="sub-btn" onClick={() => navigate('/sales/orders')}>📄 訂單管理</div>
-                <div className="sub-btn" onClick={() => navigate('/sales/salesdeliveries')}>🚚 銷貨單維護</div>
-                <div className="sub-btn" onClick={() => navigate('/sales/statements')}>🧾 客戶對帳單</div>
+                {renderSubButton({
+                  permissionKey: 'Sales.Orders.View',
+                  path: '/sales/orders',
+                  label: '📄 訂單管理'
+                })}
+                {renderSubButton({
+                  permissionKey: 'Sales.Deliveries.View',
+                  path: '/sales/salesdeliveries',
+                  label: '🚚 銷貨單維護'
+                })}
+                {renderSubButton({
+                  permissionKey: 'Sales.Statements.View',
+                  path: '/sales/statements',
+                  label: '🧾 客戶對帳單'
+                })}
               </div>
             </div>
 
@@ -183,9 +278,21 @@ export default function Dashboard() {
                 <div className="font-bold text-gray-800 dark:text-gray-200">生產管理</div>
               </div>
               <div className="flex flex-col gap-2">
-                <div className="sub-btn" onClick={() => navigate('/production/workorders')}>📋 製令 (WO)</div>
-                <div className="sub-btn" onClick={() => navigate('/production-quality/machines')}>⚙️ 機台維護</div>
-                <div className="sub-btn" onClick={() => navigate('/production-quality/molds')}>🔧 模具維護</div>
+                {renderSubButton({
+                  permissionKey: 'ProductionQuality.WorkOrders.View',
+                  path: '/production/workorders',
+                  label: '📋 製令 (WO)'
+                })}
+                {renderSubButton({
+                  permissionKey: 'ProductionQuality.Machines.View',
+                  path: '/production-quality/machines',
+                  label: '⚙️ 機台維護'
+                })}
+                {renderSubButton({
+                  permissionKey: 'ProductionQuality.Molds.View',
+                  path: '/production-quality/molds',
+                  label: '🔧 模具維護'
+                })}
               </div>
             </div>
 
@@ -202,8 +309,16 @@ export default function Dashboard() {
                 <div className="font-bold text-gray-800 dark:text-gray-200">品檢管理</div>
               </div>
               <div className="flex flex-col gap-2">
-                <div className="sub-btn" onClick={() => navigate('/production-quality/production-receipts')}>📥 生產入庫單 (PR)</div>
-                <div className="sub-btn" onClick={() => navigate('/production-quality/qc-receipts')}>🔍 QC 檢驗單</div>
+                {renderSubButton({
+                  permissionKey: 'ProductionQuality.ProductionReceipts.View',
+                  path: '/production-quality/production-receipts',
+                  label: '📥 生產入庫單 (PR)'
+                })}
+                {renderSubButton({
+                  permissionKey: 'ProductionQuality.QcReceipts.View',
+                  path: '/production-quality/qc-receipts',
+                  label: '🔍 QC 檢驗單'
+                })}
               </div>
             </div>
 
@@ -220,12 +335,41 @@ export default function Dashboard() {
                 <div className="font-bold text-gray-800 dark:text-gray-200">庫存管理</div>
               </div>
               <div className="flex flex-col gap-2">
-                <div className="sub-btn" onClick={() => navigate('/warehouse/products')}>📦 產品資料</div>
-                <div className="sub-btn" onClick={() => navigate('/purchase/materials')}>🧰 原物料管理</div>
-                <div className="sub-btn" onClick={() => navigate('/warehouse/storages')}>📍 儲位管理</div>
-                <div className="sub-btn" onClick={() => navigate('/warehouse/inventory-adjustments')}>📝 庫存調整單</div>
-                <div className="sub-btn" onClick={() => navigate('/warehouse/inventory-movements')}>🔄 庫存異動紀錄</div>
-                <div className="sub-btn" onClick={() => navigate('/warehouse/inventory')}>🏢 庫存查詢</div>
+                {renderSubButton({
+                  permissionKey: 'Warehouse.Products.View',
+                  path: '/warehouse/products',
+                  label: '📦 產品資料'
+                })}
+                {renderSubButton({
+                  permissionKey: 'Warehouse.Materials.View',
+                  path: '/purchase/materials',
+                  label: '🧰 原物料管理'
+                })}
+                {renderSubButton({
+                  permissionKey: 'Warehouse.BrandModels.View',
+                  path: '/warehouse/brand-models',
+                  label: '🏷️ 廠牌型號維護'
+                })}
+                {renderSubButton({
+                  permissionKey: 'Warehouse.Storages.View',
+                  path: '/warehouse/storages',
+                  label: '📍 儲位管理'
+                })}
+                {renderSubButton({
+                  permissionKey: 'Warehouse.InventoryAdjustments.View',
+                  path: '/warehouse/inventory-adjustments',
+                  label: '📝 庫存調整單'
+                })}
+                {renderSubButton({
+                  permissionKey: 'Warehouse.InventoryMovements.View',
+                  path: '/warehouse/inventory-movements',
+                  label: '🔄 庫存異動紀錄'
+                })}
+                {renderSubButton({
+                  permissionKey: 'Warehouse.Inventory.View',
+                  path: '/warehouse/inventory',
+                  label: '🏢 庫存查詢'
+                })}
               </div>
             </div>
 

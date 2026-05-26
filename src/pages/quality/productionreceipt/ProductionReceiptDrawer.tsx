@@ -24,6 +24,7 @@ import {
 
 import ProductionReceiptItemsTab from './ProductionReceiptItemsTab';
 import { getStatusTag, mainFormConfig } from './ProductionReceiptConfig';
+import { DocumentWatchButton } from '@/components/common/DocumentWatchButton';
 
 export default function ProductionReceiptDrawer() {
   const navigate = useNavigate();
@@ -166,6 +167,7 @@ export default function ProductionReceiptDrawer() {
 
     return (
       <Space>
+        <DocumentWatchButton documentType="ProductionReceipt" documentKey={formData?.documentNumber} />
         {currentStatus === 'UNCONFIRMED' && (
           <ActionButton 
             key="confirm"

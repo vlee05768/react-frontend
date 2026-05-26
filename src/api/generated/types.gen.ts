@@ -1775,6 +1775,25 @@ export type DashboardPendingTasksDtoApiResponse = {
 };
 
 /**
+ * 關注資訊 DTO
+ */
+export type DocumentSubscriptionDto = {
+    id?: number;
+    documentType?: string | null;
+    documentTypeName?: string | null;
+    documentKey?: string | null;
+    subscribedAt?: string;
+};
+
+export type DocumentSubscriptionDtoListApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: Array<DocumentSubscriptionDto> | null;
+};
+
+/**
  * 員工新增 DTO
  */
 export type EmployeeCreateDto = {
@@ -5601,6 +5620,14 @@ export type StorageInventoryDtoIEnumerableApiResponse = {
     error?: unknown;
     timestamp?: string;
     data?: Array<StorageInventoryDto> | null;
+};
+
+/**
+ * 關注切換請求模型
+ */
+export type ToggleSubscriptionRequest = {
+    documentType?: string | null;
+    documentKey?: string | null;
 };
 
 /**
@@ -10566,6 +10593,57 @@ export type GetApiV1DashboardPendingTasksResponses = {
 };
 
 export type GetApiV1DashboardPendingTasksResponse = GetApiV1DashboardPendingTasksResponses[keyof GetApiV1DashboardPendingTasksResponses];
+
+export type PostApiV1DocumentSubscriptionToggleData = {
+    body?: ToggleSubscriptionRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/DocumentSubscription/toggle';
+};
+
+export type PostApiV1DocumentSubscriptionToggleResponses = {
+    /**
+     * OK
+     */
+    200: BooleanApiResponse;
+};
+
+export type PostApiV1DocumentSubscriptionToggleResponse = PostApiV1DocumentSubscriptionToggleResponses[keyof PostApiV1DocumentSubscriptionToggleResponses];
+
+export type GetApiV1DocumentSubscriptionStatusData = {
+    body?: never;
+    path?: never;
+    query?: {
+        documentType?: string;
+        documentKey?: string;
+    };
+    url: '/api/v1/DocumentSubscription/status';
+};
+
+export type GetApiV1DocumentSubscriptionStatusResponses = {
+    /**
+     * OK
+     */
+    200: BooleanApiResponse;
+};
+
+export type GetApiV1DocumentSubscriptionStatusResponse = GetApiV1DocumentSubscriptionStatusResponses[keyof GetApiV1DocumentSubscriptionStatusResponses];
+
+export type GetApiV1DocumentSubscriptionMyData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/DocumentSubscription/my';
+};
+
+export type GetApiV1DocumentSubscriptionMyResponses = {
+    /**
+     * OK
+     */
+    200: DocumentSubscriptionDtoListApiResponse;
+};
+
+export type GetApiV1DocumentSubscriptionMyResponse = GetApiV1DocumentSubscriptionMyResponses[keyof GetApiV1DocumentSubscriptionMyResponses];
 
 export type GetApiV1EmployeeData = {
     body?: never;

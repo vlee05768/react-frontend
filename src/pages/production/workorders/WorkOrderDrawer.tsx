@@ -28,6 +28,7 @@ import { DocumentLifecycleBanner } from "@/components/common/DocumentLifecycleBa
 import type { LifecycleStep } from "@/components/common/DocumentLifecycleBanner";
 import { ActionBar } from "@/components/common/ActionBar";
 import { WorkOrderItemsTab } from "./WorkOrderItemsTab";
+import { DocumentWatchButton } from '@/components/common/DocumentWatchButton';
 
 interface WorkOrderDrawerProps {
   id?: string;
@@ -254,6 +255,7 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
 
     return (
       <Space>
+        <DocumentWatchButton documentType="WorkOrder" documentKey={record?.workOrderNumber} />
         {isDraft && (
           <ActionButton 
             key="prepare"

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Form, Input, Button, Card, Row, Col, message, Modal, Divider } from 'antd';
-import { EditOutlined, UserOutlined, SaveOutlined, CloseOutlined, LockOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Card, Row, Col, message, Modal, Divider, Table, Popconfirm, Space } from 'antd';
+import { EditOutlined, UserOutlined, SaveOutlined, CloseOutlined, LockOutlined, EyeOutlined, StarFilled } from '@ant-design/icons';
 import { getApiV1AuthProfile, putApiV1AuthProfile, postApiV1AuthChangePassword } from '@/api/generated/sdk.gen';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useThemeStore } from '@/stores/useThemeStore';
+import { useDocumentSubscriptionStore } from '@/stores/useDocumentSubscriptionStore';
 import { useNavigate } from 'react-router-dom';
+import dayjs from 'dayjs';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
@@ -37,6 +39,12 @@ export default function Profile() {
   const { logout, user } = useAuthStore();
   const { mode } = useThemeStore();
   const navigate = useNavigate();
+
+  const { subscriptions, fetchMySubscriptions, toggleSubscription, isLoading: isStoreLoading } = useDocumentSubscriptionStore();
+
+  useEffect(() => {
+    fetchMySubscriptions();
+  }, [fetchMySubscriptions]);
 
   // 1. Fetch Profile
   const { data: profileResponse, isLoading } = useQuery({
@@ -258,6 +266,89 @@ export default function Profile() {
             </Col>
           </Row>
         </Form>
+      </Card>
+
+      {/* 關注單據列表 */}
+      <Card
+        className={`${mode === "dark" ? "bg-[#141414] border-[#303030] text-gray-200" : ""} mt-4`}
+        title={
+          <div className={`flex items-center justify-between ${mode === "dark" ? "text-gray-100" : "text-gray-800"}`}>
+            <span>我關注的單據</span>
+            <StarFilled className="text-amber-500 animate-pulse" />
+          </div>
+        }
+      >
+        <Table
+          dataSource={subscriptions}
+          rowKey="id"
+          loading={isStoreLoading}
+          pagination={{ pageSize: 5 }}
+          columns={[
+            {
+              title: '單據類型',
+              dataIndex: 'documentTypeName',
+              key: 'documentTypeName',
+              render: (text) => <span className="font-medium">{text}</span>,
+            },
+            {
+              title: '單據號碼',
+              dataIndex: 'documentKey',
+              key: 'documentKey',
+              render: (text) => <span className="font-mono text-blue-500">{text}</span>,
+            },
+            {
+              title: '關注時間',
+              dataIndex: 'subscribedAt',
+              key: 'subscribedAt',
+              render: (text) => text ? dayjs(text).format('YYYY-MM-DD HH:mm') : '-',
+            },
+            {
+              title: '操作',
+              key: 'action',
+              align: 'center',
+              render: (_, record) => {
+                const handleNavigate = () => {
+                  if (!record.documentKey || !record.documentType) return;
+                  if (record.documentType === 'SalesOrder' || record.documentType === 'Order') {
+                    navigate(`/sales/orders/${record.documentKey}`);
+                  } else if (record.documentType === 'SalesDelivery') {
+                    navigate(`/sales/salesdeliveries/${record.documentKey}`);
+                  } else if (record.documentType === 'WorkOrder') {
+                    navigate(`/production/workorders/${record.documentKey}`);
+                  } else if (record.documentType === 'ProductionReceipt') {
+                    navigate(`/production-quality/production-receipts/${record.documentKey}`);
+                  }
+                };
+
+                return (
+                  <Space size="middle">
+                    <Button
+                      type="link"
+                      icon={<EyeOutlined />}
+                      onClick={handleNavigate}
+                    >
+                      查看詳情
+                    </Button>
+                    <Popconfirm
+                      title="確定要取消關注此單據嗎？"
+                      onConfirm={() => toggleSubscription(record.documentType || '', record.documentKey || '')}
+                      okText="確定"
+                      cancelText="取消"
+                    >
+                      <Button
+                        type="link"
+                        danger
+                        icon={<StarFilled className="text-red-500" />}
+                      >
+                        取消關注
+                      </Button>
+                    </Popconfirm>
+                  </Space>
+                );
+              },
+            },
+          ]}
+        />
       </Card>
 
       {/* Password Modal */}

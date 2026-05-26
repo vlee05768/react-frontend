@@ -10,6 +10,7 @@ import { getApiV1Orders, deleteApiV1OrdersByOrderNumber } from '@/api/generated/
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
 import { TableActions } from '@/utils/tableActions';
+import { DocumentWatchButton } from '@/components/common/DocumentWatchButton';
 import { DEFAULT_PAGE_SIZE, MODAL_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT } from '@/constants/ui';
 import { useAuthStore } from '@/stores/useAuthStore';
 import type { OrderDto } from '@/api/generated/types.gen';
@@ -70,7 +71,7 @@ export default function OrdersList() {
     const actionColumn = {
       title: '操作',
       key: 'action',
-      width: 120, // 檢視 + 刪除 為雙按鈕，寬度設為 120 即可
+      width: 150, // 檢視 + 刪除 + 關注 三按鈕，寬度設為 150
       fixed: 'right' as const,
       render: (_: any, record: OrderDto) => {
         const canView = hasPermission('Sales.Orders.View');
@@ -84,6 +85,13 @@ export default function OrdersList() {
             onDelete={(canDelete && isDraft) ? () => deleteMutation.mutate(record.orderNumber!) : undefined}
             recordName={`銷售訂單 ${record.orderNumber}`}
             deleteConfirmType="modal"
+            extra={
+              <DocumentWatchButton
+                documentType="Order"
+                documentKey={record.orderNumber}
+                compact={true}
+              />
+            }
           />
         );
       },

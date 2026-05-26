@@ -60,7 +60,8 @@ export function initializeApi() {
           if (window.location.pathname !== '/login') {
             Modal.error({ centered: true, title: '登入逾期', content: '登入狀態已失效，請重新登入' });
             useAuthStore.getState().logout();
-            window.location.href = '/login';
+            const redirectUrl = encodeURIComponent(window.location.pathname + window.location.search);
+            window.location.href = `/login?redirect=${redirectUrl}`;
           }
         }
         

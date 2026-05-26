@@ -199,12 +199,13 @@ body {
   cursor: not-allowed !important;
 }
 
-/* === 輸入框 Focus 狀態辨識度優化 === */
+/* === 輸入框 Focus 狀態辨識度與高質感發光優化 === */
 .ant-input, 
 .ant-select-selector, 
 .ant-input-number, 
 .ant-picker {
-  transition: all 0.3s ease !important;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .ant-input:focus,
@@ -212,9 +213,13 @@ body {
 .ant-select-focused .ant-select-selector,
 .ant-input-number-focused,
 .ant-picker-focused {
-  background-color: var(--ant-color-primary-bg) !important;
-  border-color: var(--ant-color-primary) !important;
-  box-shadow: 0 0 0 3px rgba(22, 104, 220, 0.2) !important;
+  background-color: var(--ant-color-primary-bg, #e6f4ff) !important;
+  border-color: var(--ant-color-primary, #1677ff) !important;
+  box-shadow: 
+    0 0 0 1px var(--ant-color-primary-border, #91caff),
+    0 0 0 4px rgba(22, 119, 255, 0.15),
+    0 4px 12px rgba(22, 119, 255, 0.08) !important;
+  animation: focus-breathe 2s infinite alternate ease-in-out;
 }
 
 :where(.dark, .dark *) .ant-input:focus,
@@ -222,9 +227,25 @@ body {
 :where(.dark, .dark *) .ant-select-focused .ant-select-selector,
 :where(.dark, .dark *) .ant-input-number-focused,
 :where(.dark, .dark *) .ant-picker-focused {
-  background-color: #112a45 !important;
-  border-color: var(--ant-color-primary) !important;
-  box-shadow: 0 0 0 3px rgba(22, 104, 220, 0.4) !important;
+  background-color: #11223f !important;
+  border-color: var(--ant-color-primary, #1677ff) !important;
+  box-shadow: 
+    0 0 0 1px rgba(22, 119, 255, 0.4),
+    0 0 0 4px rgba(22, 119, 255, 0.3),
+    0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+@keyframes focus-breathe {
+  0% {
+    box-shadow: 
+      0 0 0 1px var(--ant-color-primary-border, #91caff),
+      0 0 0 3px rgba(22, 119, 255, 0.12);
+  }
+  100% {
+    box-shadow: 
+      0 0 0 1.5px var(--ant-color-primary, #1677ff),
+      0 0 0 5px rgba(22, 119, 255, 0.22);
+  }
 }
 
 /* === 方案 C：表單欄位名稱 (Label) 粗體字與色彩優化 === */

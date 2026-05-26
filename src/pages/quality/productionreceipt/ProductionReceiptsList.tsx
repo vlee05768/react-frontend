@@ -3,6 +3,7 @@ import PageCard from '@/components/common/PageCard';
 import { Button, Modal } from 'antd';
 import { SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import { TableActions } from '@/utils/tableActions';
+import { DocumentWatchButton } from '@/components/common/DocumentWatchButton';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -56,11 +57,18 @@ export default function ProductionReceiptsList() {
     title: '操作',
     key: 'actions',
     fixed: 'right' as const,
-    width: 120,
+    width: 150, // 檢視 + 關注 雙按鈕，寬度設為 150
     render: (_: any, record: any) => {
       return (
         <TableActions
           onView={() => navigate(`/production-quality/production-receipts/${record.documentNumber}`)}
+          extra={
+            <DocumentWatchButton
+              documentType="ProductionReceipt"
+              documentKey={record.documentNumber}
+              compact={true}
+            />
+          }
         />
       );
     },

@@ -14,6 +14,7 @@ import type { WorkOrderDto } from "@/api/generated/types.gen";
 import DynamicSearchForm from "@/components/Form/DynamicSearchForm";
 import { buildTableColumns, formatSorterToRules } from "@/utils/tableUtils";
 import { TableActions } from "@/utils/tableActions";
+import { DocumentWatchButton } from "@/components/common/DocumentWatchButton";
 import { searchConfig, tableColumns } from "./WorkOrderConfig";
 import { useWorkOrderQueryStore } from "./useWorkOrderQueryStore";
 import { useErpListQuery } from '@/hooks/useErpListQuery';
@@ -91,7 +92,7 @@ export const WorkOrdersList: React.FC = () => {
     title: "操作",
     key: "action",
     fixed: 'right' as const,
-    width: 120,
+    width: 160, // 檢視/列印/刪除/關注 多重按鈕，設為 160
     render: (_: any, record: WorkOrderDto) => (
       <TableActions
         onView={() => openDrawer(record.workOrderNumber || undefined)}
@@ -110,6 +111,13 @@ export const WorkOrdersList: React.FC = () => {
         recordName={`製令單 ${record.workOrderNumber}`}
         deleteConfirmType="modal"
         isPrinting={isDownloading}
+        extra={
+          <DocumentWatchButton
+            documentType="WorkOrder"
+            documentKey={record.workOrderNumber}
+            compact={true}
+          />
+        }
       />
     ),
   };

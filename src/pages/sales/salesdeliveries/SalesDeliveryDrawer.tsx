@@ -23,6 +23,7 @@ import type { SalesDeliveryDto } from '@/api/generated/types.gen';
 import { DRAWER_WIDTH_MAIN } from '@/constants/ui';
 import { getFormConfig, getStatusTag } from './SalesDeliveryConfig';
 import SalesDeliveryItemsTab from './SalesDeliveryItemsTab';
+import { DocumentWatchButton } from '@/components/common/DocumentWatchButton';
 
 import { getApiErrorMessage } from '@/utils/apiError';
 import { useFileDownload } from '@/hooks/useFileDownload';
@@ -107,6 +108,7 @@ export default function SalesDeliveryDrawer() {
 
     return (
       <Space>
+        <DocumentWatchButton documentType="SalesDelivery" documentKey={deliveryData?.documentNumber} />
         {!isConfirmed && canUpdate && (
           <ActionButton 
             key="confirm" intent="success" icon={<CheckCircleOutlined />} 

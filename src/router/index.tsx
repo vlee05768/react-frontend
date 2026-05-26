@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ReactNode, type LazyExoticComponent, type ComponentType } from 'react';
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate, useLocation } from 'react-router-dom';
 import { Spin } from 'antd';
 import { ROUTES } from '@/constants/routes';
 import AuthLayout from '@/layouts/AuthLayout';
@@ -69,8 +69,10 @@ const BusinessPartnerList = withSuspense(lazy(() => import('@/pages/basic/Busine
 // 路由守衛
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const token = useAuthStore((state) => state.token);
+  const location = useLocation();
   if (!token) {
-    return <Navigate to={ROUTES.LOGIN} replace />;
+    const redirectUrl = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`${ROUTES.LOGIN}?redirect=${redirectUrl}`} replace />;
   }
   return children;
 }

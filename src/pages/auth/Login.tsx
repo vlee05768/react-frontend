@@ -1,7 +1,7 @@
 
 import { Button, Form, Input, Checkbox, message , Modal} from "antd";
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -9,6 +9,7 @@ import { postApiV1AuthLogin } from '@/api/generated/sdk.gen';
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const setToken = useAuthStore((state) => state.setToken);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -56,7 +57,14 @@ export default function Login() {
 
         setToken(token);
         message.success('登入成功');
-        navigate(ROUTES.HOME);
+        
+        const redirectParam = searchParams.get('redirect');
+        if (redirectParam) {
+          const targetUrl = decodeURIComponent(redirectParam);
+          navigate(targetUrl, { replace: true });
+        } else {
+          navigate(ROUTES.HOME, { replace: true });
+        }
       } else {
         Modal.error({ 
           centered: true, 

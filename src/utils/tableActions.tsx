@@ -75,6 +75,7 @@ export const TableActions: React.FC<ActionProps> = ({
 
   return (
     <Space size="small" onClick={(e) => e.stopPropagation()} className="flex items-center">
+      {extra}
       {onView && (
         <Tooltip title="檢視 (Alt+V)">
           <Button 
@@ -174,7 +175,6 @@ export const TableActions: React.FC<ActionProps> = ({
           </Tooltip>
         )
       )}
-      {extra}
     </Space>
   );
 };

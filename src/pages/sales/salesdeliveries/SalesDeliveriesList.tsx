@@ -14,6 +14,7 @@ import {
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
 import { TableActions } from '@/utils/tableActions';
+import { DocumentWatchButton } from '@/components/common/DocumentWatchButton';
 import { MODAL_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT } from '@/constants/ui';
 import { useAuthStore } from '@/stores/useAuthStore';
 import type { SalesDeliveryDto } from '@/api/generated/types.gen';
@@ -75,7 +76,7 @@ export default function SalesDeliveriesList() {
     const actionColumn = {
       title: '操作',
       key: 'action',
-      width: 120, // 檢視/列印/刪除，任一狀態下最多 2 個按鈕，設為 120
+      width: 160, // 檢視/列印/刪除/關注 多重按鈕，設為 160
       fixed: 'right' as const,
       render: (_: any, record: SalesDeliveryDto) => {
         const canView = hasPermission('Sales.Deliveries.View');
@@ -101,6 +102,13 @@ export default function SalesDeliveriesList() {
             recordName={`銷貨單 ${record.documentNumber}`}
             deleteConfirmType="modal"
             isPrinting={isDownloading}
+            extra={
+              <DocumentWatchButton
+                documentType="SalesDelivery"
+                documentKey={record.documentNumber}
+                compact={true}
+              />
+            }
           />
         );
       }

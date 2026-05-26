@@ -24,6 +24,7 @@ import type { OrderDto, CreateOrderDto, UpdateOrderDto } from '@/api/generated/t
 import { DRAWER_WIDTH_MAIN } from '@/constants/ui';
 import { getFormConfig, getStatusTag } from './OrderConfig';
 import OrderItemsTab from './OrderItemsTab';
+import { DocumentWatchButton } from '@/components/common/DocumentWatchButton';
 
 import { getApiErrorMessage } from '@/utils/apiError';
 
@@ -219,6 +220,7 @@ export default function OrderDrawer() {
 
     return (
       <Space>
+        <DocumentWatchButton documentType="Order" documentKey={orderData?.orderNumber} />
         {canUpdate && isDraft && (
           <ActionButton 
             key="confirm"

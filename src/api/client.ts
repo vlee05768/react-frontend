@@ -29,7 +29,12 @@ apiClient.interceptors.response.use(
     message.error(errorMsg);
     if (error.response?.status === 401) {
       useAuthStore.getState().logout();
-      window.location.href = '/login';
+      if (window.location.pathname !== '/login') {
+        const redirectUrl = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.href = `/login?redirect=${redirectUrl}`;
+      } else {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
