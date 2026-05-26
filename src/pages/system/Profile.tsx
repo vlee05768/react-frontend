@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Form, Input, Button, Card, Row, Col, message, Modal, Divider, Table, Popconfirm, Space } from 'antd';
-import { EditOutlined, UserOutlined, SaveOutlined, CloseOutlined, LockOutlined, EyeOutlined, StarFilled } from '@ant-design/icons';
+import { Form, Input, Button, Collapse, Row, Col, message, Modal, Divider, Table, Popconfirm } from 'antd';
+import { EditOutlined, UserOutlined, SaveOutlined, CloseOutlined, LockOutlined, StarFilled } from '@ant-design/icons';
 import { getApiV1AuthProfile, putApiV1AuthProfile, postApiV1AuthChangePassword } from '@/api/generated/sdk.gen';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useThemeStore } from '@/stores/useThemeStore';
@@ -34,6 +34,7 @@ type PasswordFormValues = z.infer<typeof passwordSchema>;
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
+  const [activeKeys, setActiveKeys] = useState<string[]>(['profile', 'subscriptions']);
   
   const queryClient = useQueryClient();
   const { logout, user } = useAuthStore();
@@ -98,6 +99,7 @@ export default function Profile() {
       }
       message.success('個人資料更新成功');
       setIsEditing(false);
+      setActiveKeys(['profile', 'subscriptions']);
       queryClient.invalidateQueries({ queryKey: ['profile'] });
     },
     onError: (error: any) => {
@@ -136,13 +138,179 @@ export default function Profile() {
     changePasswordMutation.mutate(data);
   };
 
+  const navigateToDocument = (documentType?: string | null, documentKey?: string | null) => {
+    if (!documentKey || !documentType) return;
+    if (documentType === 'SalesOrder' || documentType === 'Order') {
+      navigate(`/sales/orders/${documentKey}`);
+    } else if (documentType === 'SalesDelivery') {
+      navigate(`/sales/salesdeliveries/${documentKey}`);
+    } else if (documentType === 'WorkOrder') {
+      navigate(`/production/workorders/${documentKey}`);
+    } else if (documentType === 'ProductionReceipt') {
+      navigate(`/production-quality/production-receipts/${documentKey}`);
+    }
+  };
+
   const handleCancelEdit = () => {
     resetProfile({
       phoneNumber: profile?.phoneNumber || '',
       extensionNumber: profile?.extensionNumber || '',
     });
     setIsEditing(false);
+    setActiveKeys(['profile', 'subscriptions']);
   };
+
+  const collapseItems = [
+    {
+      key: 'profile',
+      label: (
+        <div className="flex items-center gap-2 font-medium">
+          <UserOutlined className={mode === 'dark' ? 'text-gray-400' : 'text-gray-500'} />
+          <span>個人資料</span>
+        </div>
+      ),
+      children: (
+        <div className="max-h-[calc(100vh-250px)] overflow-y-auto overflow-x-hidden pr-2">
+          <Form layout="vertical" className="w-full">
+            {/* 基本資訊 */}
+            <div className="text-lg font-medium mb-4">基本資訊</div>
+            <Row gutter={[24, 16]}>
+              <Col xs={24} sm={12}>
+                <Form.Item label="姓名">
+                  <Input value={profile?.name || ''} disabled  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item label="員工編號">
+                  <Input value={profile?.employeeCode || ''} disabled  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item label="職位">
+                  <Input value={profile?.position || ''} disabled  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item label="部門">
+                  <Input value={profile?.department || ''} disabled  />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Divider className={`${mode === "dark" ? "border-[#303030]" : "border-gray-200"}`} />
+
+            {/* 聯絡資訊 */}
+            <div className="text-lg font-medium mb-4">聯絡資訊</div>
+            <Row gutter={[24, 16]}>
+              <Col xs={24} sm={12}>
+                <Form.Item label={<><span className="text-red-500 mr-1">*</span>電子郵件</>}>
+                  <Input value={profile?.email || ''} disabled  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item label="手機號碼">
+                  <Input value={profile?.mobile || ''} disabled  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item label="電話號碼">
+                  <Controller
+                    name="phoneNumber"
+                    control={control}
+                    render={({ field }) => (
+                      <Input {...field} value={field.value || ""} disabled={!isEditing} />
+                    )}
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item label="分機號碼">
+                  <Controller
+                    name="extensionNumber"
+                    control={control}
+                    render={({ field }) => (
+                      <Input {...field} value={field.value || ""} disabled={!isEditing} />
+                    )}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Form>
+        </div>
+      )
+    }
+  ];
+
+  if (isStoreLoading || (subscriptions && subscriptions.length > 0)) {
+    collapseItems.push({
+      key: 'subscriptions',
+      label: (
+        <div className="flex items-center gap-2 font-medium">
+          <StarFilled className="text-amber-500 animate-pulse" />
+          <span>關注單據清單</span>
+        </div>
+      ),
+      children: (
+        <div className="max-h-[calc(100vh-250px)] overflow-y-auto overflow-x-hidden pr-2">
+          <Table
+            dataSource={subscriptions}
+            rowKey="id"
+            loading={isStoreLoading}
+            pagination={{ pageSize: 5 }}
+            columns={[
+              {
+                title: '單據類型',
+                dataIndex: 'documentTypeName',
+                key: 'documentTypeName',
+                render: (text) => <span className="font-medium">{text}</span>,
+              },
+              {
+                title: '單據號碼',
+                dataIndex: 'documentKey',
+                key: 'documentKey',
+                render: (text, record) => (
+                  <Button 
+                    type="link" 
+                    className="p-0 font-mono text-blue-500 hover:text-blue-600 h-auto"
+                    onClick={() => navigateToDocument(record.documentType, record.documentKey)}
+                  >
+                    {text}
+                  </Button>
+                ),
+              },
+              {
+                title: '關注時間',
+                dataIndex: 'subscribedAt',
+                key: 'subscribedAt',
+                render: (text) => text ? dayjs(text).format('YYYY-MM-DD HH:mm') : '-',
+              },
+              {
+                title: '操作',
+                key: 'action',
+                align: 'center',
+                render: (_, record) => (
+                  <Popconfirm
+                    title="確定要取消關注此單據嗎？"
+                    onConfirm={() => toggleSubscription(record.documentType || '', record.documentKey || '')}
+                    okText="確定"
+                    cancelText="取消"
+                  >
+                    <Button
+                      type="link"
+                      danger
+                      icon={<StarFilled className="text-red-500" />}
+                    >
+                      取消關注
+                    </Button>
+                  </Popconfirm>
+                ),
+              },
+            ]}
+          />
+        </div>
+      )
+    });
+  }
 
   if (isLoading) return <div>Loading...</div>;
 
@@ -169,7 +337,10 @@ export default function Profile() {
             <Button 
               type="primary" 
               icon={<EditOutlined />} 
-              onClick={() => setIsEditing(true)}
+              onClick={() => {
+                setIsEditing(true);
+                setActiveKeys(['profile']);
+              }}
             >
               編輯資料
             </Button>
@@ -191,165 +362,12 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Profile Card */}
-      <Card 
-        className={`${mode === "dark" ? "bg-[#141414] border-[#303030] text-gray-200" : ""}`}
-        title={
-          <div className={`flex items-center justify-between ${mode === "dark" ? "text-gray-100" : "text-gray-800"}`}>
-            <span>詳細資料</span>
-            <UserOutlined className={`${mode === "dark" ? "text-gray-400" : "text-gray-500"}`} />
-          </div>
-        }
-      >
-        <Form layout="vertical" className="w-full">
-          {/* 基本資訊 */}
-          <div className="text-lg font-medium mb-4">基本資訊</div>
-          <Row gutter={[24, 16]}>
-            <Col span={12}>
-              <Form.Item label="姓名">
-                <Input value={profile?.name || ''} disabled  />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="員工編號">
-                <Input value={profile?.employeeCode || ''} disabled  />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="職位">
-                <Input value={profile?.position || ''} disabled  />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="部門">
-                <Input value={profile?.department || ''} disabled  />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Divider className={`${mode === "dark" ? "border-[#303030]" : "border-gray-200"}`} />
-
-          {/* 聯絡資訊 */}
-          <div className="text-lg font-medium mb-4">聯絡資訊</div>
-          <Row gutter={[24, 16]}>
-            <Col span={12}>
-              <Form.Item label={<><span className="text-red-500 mr-1">*</span>電子郵件</>}>
-                <Input value={profile?.email || ''} disabled  />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="手機號碼">
-                <Input value={profile?.mobile || ''} disabled  />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="電話號碼">
-                <Controller
-                  name="phoneNumber"
-                  control={control}
-                  render={({ field }) => (
-                    <Input {...field} value={field.value || ""} disabled={!isEditing} />
-                  )}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="分機號碼">
-                <Controller
-                  name="extensionNumber"
-                  control={control}
-                  render={({ field }) => (
-                    <Input {...field} value={field.value || ""} disabled={!isEditing} />
-                  )}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
-      </Card>
-
-      {/* 關注單據列表 */}
-      <Card
-        className={`${mode === "dark" ? "bg-[#141414] border-[#303030] text-gray-200" : ""} mt-4`}
-        title={
-          <div className={`flex items-center justify-between ${mode === "dark" ? "text-gray-100" : "text-gray-800"}`}>
-            <span>我關注的單據</span>
-            <StarFilled className="text-amber-500 animate-pulse" />
-          </div>
-        }
-      >
-        <Table
-          dataSource={subscriptions}
-          rowKey="id"
-          loading={isStoreLoading}
-          pagination={{ pageSize: 5 }}
-          columns={[
-            {
-              title: '單據類型',
-              dataIndex: 'documentTypeName',
-              key: 'documentTypeName',
-              render: (text) => <span className="font-medium">{text}</span>,
-            },
-            {
-              title: '單據號碼',
-              dataIndex: 'documentKey',
-              key: 'documentKey',
-              render: (text) => <span className="font-mono text-blue-500">{text}</span>,
-            },
-            {
-              title: '關注時間',
-              dataIndex: 'subscribedAt',
-              key: 'subscribedAt',
-              render: (text) => text ? dayjs(text).format('YYYY-MM-DD HH:mm') : '-',
-            },
-            {
-              title: '操作',
-              key: 'action',
-              align: 'center',
-              render: (_, record) => {
-                const handleNavigate = () => {
-                  if (!record.documentKey || !record.documentType) return;
-                  if (record.documentType === 'SalesOrder' || record.documentType === 'Order') {
-                    navigate(`/sales/orders/${record.documentKey}`);
-                  } else if (record.documentType === 'SalesDelivery') {
-                    navigate(`/sales/salesdeliveries/${record.documentKey}`);
-                  } else if (record.documentType === 'WorkOrder') {
-                    navigate(`/production/workorders/${record.documentKey}`);
-                  } else if (record.documentType === 'ProductionReceipt') {
-                    navigate(`/production-quality/production-receipts/${record.documentKey}`);
-                  }
-                };
-
-                return (
-                  <Space size="middle">
-                    <Button
-                      type="link"
-                      icon={<EyeOutlined />}
-                      onClick={handleNavigate}
-                    >
-                      查看詳情
-                    </Button>
-                    <Popconfirm
-                      title="確定要取消關注此單據嗎？"
-                      onConfirm={() => toggleSubscription(record.documentType || '', record.documentKey || '')}
-                      okText="確定"
-                      cancelText="取消"
-                    >
-                      <Button
-                        type="link"
-                        danger
-                        icon={<StarFilled className="text-red-500" />}
-                      >
-                        取消關注
-                      </Button>
-                    </Popconfirm>
-                  </Space>
-                );
-              },
-            },
-          ]}
-        />
-      </Card>
+      <Collapse 
+        activeKey={activeKeys}
+        onChange={(keys) => setActiveKeys(typeof keys === 'string' ? [keys] : (keys as string[]))}
+        items={collapseItems} 
+        className={`${mode === 'dark' ? 'bg-[#141414] border-[#303030]' : 'bg-white'}`}
+      />
 
       {/* Password Modal */}
       <Modal

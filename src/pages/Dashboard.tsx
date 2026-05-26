@@ -138,9 +138,9 @@ export default function Dashboard() {
             })}
             {renderKpiCard({
               permissionKey: 'ProductionQuality.WorkOrders.View',
-              path: '/production/workorders?status=InPreparation',
+              path: '/production/workorders?status=StartedUnwarehoused',
               borderColorClass: 'bg-blue-500',
-              title: '待發/領料提示',
+              title: '開工未完工',
               value: pendingTasks.inPrepWorkOrders ?? 0,
               textColorClass: 'text-blue-500'
             })}
@@ -148,7 +148,7 @@ export default function Dashboard() {
               permissionKey: 'ProductionQuality.ProductionReceipts.View',
               path: '/production-quality/production-receipts?notQcFinished=true',
               borderColorClass: 'bg-purple-500',
-              title: '待 QC 檢驗 (PR)',
+              title: '生產未QC',
               value: pendingTasks.notQcProductionReceipts ?? 0,
               textColorClass: 'text-purple-500'
             })}
@@ -156,7 +156,7 @@ export default function Dashboard() {
               permissionKey: 'ProductionQuality.QcReceipts.View',
               path: '/production-quality/qc-receipts?status=Unconfirmed',
               borderColorClass: 'bg-teal-500',
-              title: '待 QC 入庫',
+              title: 'QC未確認',
               value: pendingTasks.pendingQcReceipts ?? 0,
               textColorClass: 'text-teal-500'
             })}
@@ -164,7 +164,7 @@ export default function Dashboard() {
               permissionKey: 'Sales.Deliveries.View',
               path: '/sales/salesdeliveries?shippedConfirmed=false',
               borderColorClass: 'bg-yellow-500',
-              title: '待銷貨出庫 (SD)',
+              title: '銷貨未出庫 (SD)',
               value: pendingTasks.notShippedSalesDeliveries ?? 0,
               textColorClass: 'text-yellow-500'
             })}
