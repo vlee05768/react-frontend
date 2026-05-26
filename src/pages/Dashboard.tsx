@@ -154,7 +154,7 @@ export default function Dashboard() {
             })}
             {renderKpiCard({
               permissionKey: 'ProductionQuality.QcReceipts.View',
-              path: '/production-quality/qc-receipts',
+              path: '/production-quality/qc-receipts?status=Unconfirmed',
               borderColorClass: 'bg-teal-500',
               title: '待 QC 入庫',
               value: pendingTasks.pendingQcReceipts ?? 0,

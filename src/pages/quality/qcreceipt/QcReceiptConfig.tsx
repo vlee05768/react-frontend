@@ -16,6 +16,20 @@ export const qcReceiptSearchConfig = (): any[] => [
     componentType: 'DateRangePicker',
     colSpan: 2,
   },
+  {
+    name: 'status',
+    label: '狀態',
+    componentType: 'Select',
+    componentProps: {
+      options: [
+        { label: '待確認', value: 'Unconfirmed' },
+        { label: '已確認', value: 'Confirmed' },
+        { label: '已結案', value: 'Closed' },
+      ],
+      allowClear: true,
+    },
+    colSpan: 2,
+  },
 ];
 
 export const getStatusTagProps = (

@@ -38,7 +38,9 @@ export const WorkOrdersList: React.FC = () => {
     params: { ...searchParams, pageNumber: pagination.page, pageSize: pagination.pageSize },
     setParams: (newParams) => {
       const { pageNumber, pageSize, ...query } = newParams;
-      setSearchParams(query);
+      // 讀取 Zustand Store 當前最新的實際狀態以合併，避免分頁變更或連續更新時將已存在的查詢條件覆蓋/清除
+      const currentSearchParams = useWorkOrderQueryStore.getState().searchParams;
+      setSearchParams({ ...currentSearchParams, ...query });
       setPagination(pageNumber || 1, pageSize || 20);
     }
   });
@@ -50,10 +52,18 @@ export const WorkOrdersList: React.FC = () => {
     queryFn: () =>
       getApiV1WorkOrder({
         query: {
-          ...searchParams,
+          WorkOrderNumber: searchParams.workOrderNumber || undefined,
+          OrderNumber: searchParams.orderNumber || undefined,
+          ProductCodeOrName: searchParams.productCodeOrName || undefined,
+          MachineCode: searchParams.machineCode || undefined,
+          WorkOrderDate: searchParams.workOrderDate || undefined,
+          ProductionDate: searchParams.productionDate || undefined,
+          Status: searchParams.status || undefined,
+          Others: searchParams.others || undefined,
           pageNumber: pagination.page,
           pageSize: pagination.pageSize,
-        }
+          SortRules: searchParams.SortRules || undefined,
+        } as any
       }),
   });
 

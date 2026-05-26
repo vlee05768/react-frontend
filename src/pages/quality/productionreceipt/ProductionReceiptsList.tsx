@@ -41,6 +41,8 @@ export default function ProductionReceiptsList() {
           dayjs(params.dateRange[1]).format('YYYY-MM-DD')
         ] : undefined,
         SortRules: params.SortRules || undefined,
+        NotQcFinished: params.notQcFinished !== undefined ? params.notQcFinished : undefined,
+        Status: params.status || undefined,
       } as any,
     }),
   });

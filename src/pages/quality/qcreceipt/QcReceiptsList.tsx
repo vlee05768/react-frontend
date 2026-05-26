@@ -44,6 +44,7 @@ export default function QcReceiptsList() {
           dayjs(params.dateRange[1]).format('YYYY-MM-DD')
         ] : undefined,
         SortRules: params.SortRules || undefined,
+        Status: params.status || undefined,
       } as any,
     }),
   });

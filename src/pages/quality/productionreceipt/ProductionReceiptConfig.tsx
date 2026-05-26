@@ -15,6 +15,19 @@ export const productionReceiptSearchConfig = (): any[] => [
     componentType: "DateRangePicker",
     colSpan: 2,
   },
+  {
+    name: "notQcFinished",
+    label: "未檢驗完畢",
+    componentType: "Select",
+    componentProps: {
+      options: [
+        { label: "是", value: true },
+        { label: "否", value: false },
+      ],
+      allowClear: true,
+    },
+    colSpan: 2,
+  },
 ];
 
 import type {
