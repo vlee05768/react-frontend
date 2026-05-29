@@ -8,7 +8,7 @@ interface OrderQueryState {
 }
 
 const defaultParams = {
-  page: 1,
+  pageNumber: 1,
   pageSize: DEFAULT_PAGE_SIZE,
 };
 

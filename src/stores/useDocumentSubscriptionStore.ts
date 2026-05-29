@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import type { DocumentSubscriptionDto } from '@/api/generated/types.gen';
 import {
   postApiV1DocumentSubscriptionToggle,
-  getApiV1DocumentSubscriptionStatus,
   getApiV1DocumentSubscriptionMy,
 } from '@/api/generated/sdk.gen';
 import { message } from 'antd';
@@ -10,7 +9,8 @@ import { message } from 'antd';
 interface DocumentSubscriptionStore {
   subscriptions: DocumentSubscriptionDto[];
   isLoading: boolean;
-  fetchMySubscriptions: () => Promise<void>;
+  hasInitialized: boolean;
+  fetchMySubscriptions: (force?: boolean) => Promise<void>;
   toggleSubscription: (documentType: string, documentKey: string) => Promise<boolean>;
   checkSubscriptionStatus: (documentType: string, documentKey: string) => Promise<boolean>;
 }
@@ -18,13 +18,23 @@ interface DocumentSubscriptionStore {
 export const useDocumentSubscriptionStore = create<DocumentSubscriptionStore>((set, get) => ({
   subscriptions: [],
   isLoading: false,
+  hasInitialized: false,
 
-  fetchMySubscriptions: async () => {
+  fetchMySubscriptions: async (force = false) => {
+    if (get().hasInitialized && !force) {
+      return;
+    }
+
+    // 如果目前已經在載入中，直接返回，避免併發/重複呼叫造成的重複發送網路請求
+    if (get().isLoading) {
+      return;
+    }
+
     set({ isLoading: true });
     try {
       const response = await getApiV1DocumentSubscriptionMy();
       if (response.data?.success) {
-        set({ subscriptions: response.data.data || [] });
+        set({ subscriptions: response.data.data || [], hasInitialized: true });
       } else {
         console.error('Failed to fetch subscriptions:', response.data?.message);
       }
@@ -43,8 +53,32 @@ export const useDocumentSubscriptionStore = create<DocumentSubscriptionStore>((s
       });
       if (response.data?.success) {
         const isSubscribedNow = response.data.data;
-        // 成功切換後，重新整理我的關注清單
-        await get().fetchMySubscriptions();
+        
+        // 1. 立即進行樂觀更新 (Optimistic Update)，確保 UI 能在一瞬間 (0ms 延遲) 反應最新的關注狀態
+        set(state => {
+          let updated = [...state.subscriptions];
+          if (isSubscribedNow) {
+            const exists = updated.some(
+              sub => sub.documentType === documentType && sub.documentKey === documentKey
+            );
+            if (!exists) {
+              updated.push({
+                documentType,
+                documentKey,
+                subscribedAt: new Date().toISOString()
+              });
+            }
+          } else {
+            updated = updated.filter(
+              sub => !(sub.documentType === documentType && sub.documentKey === documentKey)
+            );
+          }
+          return { subscriptions: updated };
+        });
+
+        // 2. 解除自身的 isLoading 鎖，讓 fetchMySubscriptions(true) 能夠順利呼叫 API 與後端進行最終狀態同步
+        set({ isLoading: false });
+        await get().fetchMySubscriptions(true);
         
         if (isSubscribedNow) {
           message.success(`成功關注單據 ${documentKey}！相關異動將會發送郵件通知。`);
@@ -66,17 +100,20 @@ export const useDocumentSubscriptionStore = create<DocumentSubscriptionStore>((s
   },
 
   checkSubscriptionStatus: async (documentType: string, documentKey: string) => {
-    try {
-      const response = await getApiV1DocumentSubscriptionStatus({
-        query: { documentType, documentKey },
-      });
-      if (response.data?.success) {
-        return !!response.data.data;
-      }
-      return false;
-    } catch (error) {
-      console.error('Failed to check subscription status:', error);
-      return false;
+    // 優先從本地記憶體比對，避免重複發送 API 請求
+    const isSubscribed = get().subscriptions.some(
+      sub => sub.documentType === documentType && sub.documentKey === documentKey
+    );
+    if (isSubscribed) return true;
+
+    // 若尚未載入過訂閱清單，則進行第一次載入
+    if (!get().hasInitialized) {
+      await get().fetchMySubscriptions();
+      return get().subscriptions.some(
+        sub => sub.documentType === documentType && sub.documentKey === documentKey
+      );
     }
+
+    return false;
   },
 }));

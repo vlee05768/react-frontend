@@ -7,7 +7,7 @@ import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 interface DocumentWatchButtonProps {
   documentType: string;
   documentKey: string | null | undefined;
-  compact?: boolean; // 新增：緊湊模式（僅顯示圖標，適用於表格操作列）
+  compact?: boolean; // 緊湊模式（僅顯示圖標，適用於表格操作列）
 }
 
 export const DocumentWatchButton: React.FC<DocumentWatchButtonProps> = ({
@@ -15,41 +15,44 @@ export const DocumentWatchButton: React.FC<DocumentWatchButtonProps> = ({
   documentKey,
   compact = false,
 }) => {
-  const { toggleSubscription, checkSubscriptionStatus } = useDocumentSubscriptionStore();
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [checking, setChecking] = useState(false);
+  const subscriptions = useDocumentSubscriptionStore(state => state.subscriptions);
+  const fetchMySubscriptions = useDocumentSubscriptionStore(state => state.fetchMySubscriptions);
+  const toggleSubscription = useDocumentSubscriptionStore(state => state.toggleSubscription);
+  const hasInitialized = useDocumentSubscriptionStore(state => state.hasInitialized);
+  const isStoreLoading = useDocumentSubscriptionStore(state => state.isLoading);
+  
   const [toggling, setToggling] = useState(false);
   const { token } = theme.useToken();
 
-  // 當單據號碼改變時，重新檢查訂閱狀態
+  // 判斷是否為草稿、暫存單據、或自動編碼預留字
+  const isDraftOrPlaceholder = (key: string | null | undefined): boolean => {
+    if (!key) return true;
+    const trimmed = key.trim();
+    return (
+      trimmed === '' ||
+      trimmed === '【系統自動編碼】' ||
+      trimmed.startsWith('【') ||
+      trimmed.endsWith('】') ||
+      trimmed.toLowerCase() === 'new' ||
+      trimmed.toLowerCase() === 'draft' ||
+      trimmed.includes('自動編碼')
+    );
+  };
+
+  // 響應式比對：直接從全域 Store 中的已關注清單比對是否有此單據
+  const isSubscribed = subscriptions.some(
+    sub => sub.documentType === documentType && sub.documentKey === documentKey
+  );
+
+  // 載入時：若尚未初始化載入過全域關注清單，則呼叫 API 取得一次（共享同一次網路請求）
   useEffect(() => {
-    if (!documentKey) return;
-    
-    let isMounted = true;
-    const checkStatus = async () => {
-      setChecking(true);
-      try {
-        const status = await checkSubscriptionStatus(documentType, documentKey);
-        if (isMounted) {
-          setIsSubscribed(status);
-        }
-      } catch (err) {
-        console.error('Error checking watch status:', err);
-      } finally {
-        if (isMounted) {
-          setChecking(false);
-        }
-      }
-    };
+    if (isDraftOrPlaceholder(documentKey)) return;
+    if (!hasInitialized) {
+      fetchMySubscriptions();
+    }
+  }, [documentKey, hasInitialized, fetchMySubscriptions]);
 
-    checkStatus();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [documentType, documentKey, checkSubscriptionStatus]);
-
-  if (!documentKey || documentKey === '【系統自動編碼】') {
+  if (isDraftOrPlaceholder(documentKey)) {
     return null;
   }
 
@@ -60,8 +63,7 @@ export const DocumentWatchButton: React.FC<DocumentWatchButtonProps> = ({
 
     setToggling(true);
     try {
-      const newStatus = await toggleSubscription(documentType, documentKey);
-      setIsSubscribed(newStatus);
+      await toggleSubscription(documentType, documentKey || '');
     } catch (err) {
       console.error('Error toggling watch status:', err);
     } finally {
@@ -82,7 +84,7 @@ export const DocumentWatchButton: React.FC<DocumentWatchButtonProps> = ({
           type="text"
           icon={starIcon}
           onClick={handleToggle}
-          loading={checking || toggling}
+          loading={(!hasInitialized && isStoreLoading) || toggling}
           className="flex items-center justify-center hover:opacity-80 w-8 h-8 p-0"
           size="small"
         />
@@ -105,7 +107,7 @@ export const DocumentWatchButton: React.FC<DocumentWatchButtonProps> = ({
         style={buttonStyle}
         icon={isSubscribed ? <StarFilled className="text-amber-500 animate-pulse" /> : <StarOutlined />}
         onClick={handleToggle}
-        loading={checking || toggling}
+        loading={(!hasInitialized && isStoreLoading) || toggling}
       >
         {isSubscribed ? '已關注' : '關注單據'}
       </Button>

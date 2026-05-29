@@ -33,7 +33,6 @@ export default function OrdersList() {
   const listQuery = useErpListQuery({
     params,
     setParams,
-    pageKey: 'page',
   });
 
   const { data, isLoading } = useQuery({
@@ -58,13 +57,13 @@ export default function OrdersList() {
   });
 
   const handleTableChange = (pagination: any, _: any, sorter: any) => {
-    const rules = formatSorterToRules(sorter);
-    setParams({ 
-      page: pagination.current, 
-      pageSize: pagination.pageSize,
-      SortRules: rules || undefined
-    });
-  };
+     const rules = formatSorterToRules(sorter);
+     setParams({ 
+       pageNumber: pagination.current, 
+       pageSize: pagination.pageSize,
+       SortRules: rules || undefined
+     });
+   };
 
   const columns = useMemo(() => {
     const baseColumns = getColumns();
@@ -141,7 +140,7 @@ export default function OrdersList() {
             selectedRowId={viewId}
             selectedRowKey="orderNumber"
             pagination={{
-              current: params.page || 1,
+              current: params.pageNumber || 1,
               pageSize: params.pageSize || DEFAULT_PAGE_SIZE,
               total,
             }}

@@ -98,7 +98,7 @@ export const DictTag: React.FC<DictTagProps> = ({
     <Tag
       icon={finalIcon}
       color={finalColor}
-      bordered={false} // AntD v5 扁平化無邊框設計更美觀
+      variant="filled" // AntD v5 扁平化無邊框設計更美觀，原 bordered={false} 已廢棄
       className="inline-flex items-center gap-1 font-medium py-0.5 px-2"
       {...tagProps}
     >

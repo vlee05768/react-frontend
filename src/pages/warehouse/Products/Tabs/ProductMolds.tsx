@@ -172,7 +172,7 @@ export default function ProductMolds({ productCode, isViewMode: isMasterViewMode
                   </div>
                   <div className="text-[12px] mt-1 flex flex-wrap gap-2 items-center leading-none opacity-60">
                     {(m.type || m.typeName) && (
-                      <Tag bordered={false} className="m-0 leading-none py-0.5 text-blue-600 bg-blue-50">
+                      <Tag variant="filled" className="m-0 leading-none py-0.5 text-blue-600 bg-blue-50">
                         <DictLabel dictKey="MOLD_TYPE" value={m.type || m.typeName} />
                       </Tag>
                     )}

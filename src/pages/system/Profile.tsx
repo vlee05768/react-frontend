@@ -44,7 +44,8 @@ export default function Profile() {
   const { subscriptions, fetchMySubscriptions, toggleSubscription, isLoading: isStoreLoading } = useDocumentSubscriptionStore();
 
   useEffect(() => {
-    fetchMySubscriptions();
+    // 進入個人資料頁面時，強制重新拉取最新的關注單據清單
+    fetchMySubscriptions(true);
   }, [fetchMySubscriptions]);
 
   // 1. Fetch Profile

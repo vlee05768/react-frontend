@@ -35,7 +35,24 @@ export function useErpListQuery<Q extends Record<string, any>>({
 
   // 3. 開啟查詢彈窗，並重置表單值
   const openSearchModal = () => {
-    searchForm.reset(params);
+    // 取得先前表單中所有已註冊的欄位名稱
+    const fields = Object.keys(searchForm.getValues());
+    
+    // 建立一個將所有已註冊欄位都預設重置為 undefined 的物件
+    const resetValues = fields.reduce((acc: any, key) => {
+      acc[key] = undefined;
+      return acc;
+    }, {});
+
+    // 將當前 Store 中的 params 有效值合併進去
+    Object.keys(params).forEach((key) => {
+      const val = params[key];
+      if (val !== undefined && val !== null) {
+        resetValues[key] = val;
+      }
+    });
+
+    searchForm.reset(resetValues);
     setIsSearchModalOpen(true);
   };
 
@@ -65,14 +82,14 @@ export function useErpListQuery<Q extends Record<string, any>>({
     setIsSearchModalOpen(false);
   };
 
-  // 5. 處理清除條件（重置 RHF 表單為 null 避免 reset() 回彈，並同步清空 Store）
+  // 5. 處理清除條件（重置 RHF 表單為 undefined，確實清空 AntD Select 並同步清空 Store）
   const handleClear = () => {
     const fields = Object.keys(searchForm.getValues());
     
-    // 重置 UI inputs 為 null
+    // 重置 UI inputs 為 undefined
     searchForm.reset(
       fields.reduce((acc: any, key) => {
-        acc[key] = null;
+        acc[key] = undefined;
         return acc;
       }, {})
     );
