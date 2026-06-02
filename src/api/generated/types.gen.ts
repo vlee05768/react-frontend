@@ -1537,7 +1537,7 @@ export type CreateSalesDeliveryItemDto = {
     /**
      * 出庫儲位
      */
-    sourceStorageCode: string;
+    sourceStorageCode?: string | null;
     /**
      * 備註
      */

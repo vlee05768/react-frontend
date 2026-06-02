@@ -167,7 +167,7 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
         <DynamicForm
           formId="inventoryAdjustmentItemForm"
           fields={itemFormConfig(!isCreating)}
-          defaultValues={editingItem || { inventoryType: 'P', quantity: 1, unitPrice: 0, targetStorageCode: 'TW-GEN-INV' }}
+          defaultValues={editingItem || { inventoryType: 'P', quantity: 1, unitPrice: 0, targetStorageCode: 'TW-FG-GEN' }}
           onSubmit={handleSubmit}
           hideDefaultFooter
           isViewMode={readonly}

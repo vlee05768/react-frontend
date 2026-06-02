@@ -63,8 +63,8 @@ export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceip
           goodQuantity: item.goodQuantity,
           scrapQuantity: item.scrapQuantity,
           sourceStorageCode: item.targetStorageCode,
-          goodTargetStorageCode: 'TW-GEN-INV',
-          scrapTargetStorageCode: 'TW-GEN-SCRAP',
+          goodTargetStorageCode: item.goodTargetStorageCode || (item.inventoryType === 'M' ? undefined : 'TW-FG-GEN'),
+          scrapTargetStorageCode: item.scrapTargetStorageCode || 'TW-SCRAP-GEN',
           notes: remainingQuantity !== 0 ? `待檢驗 (${remainingQuantity})` : '全部檢驗完成',
         };
         await addMutation.mutateAsync(payload);

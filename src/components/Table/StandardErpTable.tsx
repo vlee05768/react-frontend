@@ -42,7 +42,7 @@ export default function StandardErpTable<RecordType extends object>({
         .ant-spin-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .ant-table { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .ant-table-body { flex: 1; overflow-y: auto !important; max-height: none !important; }
+        .ant-table-body { flex: 1; overflow-x: auto !important; overflow-y: auto !important; max-height: none !important; }
         .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
         .ant-table-thead > tr > th { text-align: center !important; }
         .selected-table-row > td { background-color: ${token.controlItemBgActive} !important; }

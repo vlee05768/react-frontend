@@ -17,7 +17,8 @@ import {
   getApiV1Storage, 
   getApiV1StorageByCode,
   postApiV1Storage,
-  putApiV1StorageByCode
+  putApiV1StorageByCode,
+  deleteApiV1StorageByCode
 } from '@/api/generated/sdk.gen';
 
 import { useStorageQueryStore } from '@/stores/warehouseStore';
@@ -128,6 +129,21 @@ export default function StorageList() {
     }
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (code: string) => deleteApiV1StorageByCode({ path: { code: code as any } }),
+    onSuccess: () => {
+      message.success('刪除成功');
+      queryClient.invalidateQueries({ queryKey: ['storageList'] });
+      closeViewDrawer();
+    },
+    onError: (error: any) => {
+      Modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
+    }
+  });
+
+  const reservedCodes = ["TW-FG-GEN", "TW-MAT-GEN", "TW-QC-GEN", "TW-SCRAP-GEN"];
+  const isReserved = (code: string) => reservedCodes.includes(code);
+
   const openViewDrawer = (record: any) => {
     navigate(`/warehouse/storages/${record.code}`);
   };
@@ -158,8 +174,14 @@ export default function StorageList() {
   };
 
   const openCreateDrawer = () => {
-    setFormDefaultValues({});
-    setFormDefaultValues({ isActive: true });
+    setFormDefaultValues({ 
+      isActive: true, 
+      location: 'TW', 
+      type: 'MAT',
+      isCalculateInventory: true,
+      code: '【系統自動編碼】',
+      name: '【系統自動產生】'
+    });
     setIsCreateDrawerOpen(true);
   };
 
@@ -168,10 +190,19 @@ export default function StorageList() {
   };
 
   const handleCrudSubmit = (values: any) => {
+    const payload = { ...values };
+    if (payload.code === '【系統自動編碼】') {
+      delete payload.code;
+    }
+    if (payload.name === '【系統自動產生】') {
+      delete payload.name;
+    }
     if (isCreateDrawerOpen) {
-      createMutation.mutate(values);
+      payload.isCalculateInventory = true;
+      createMutation.mutate(payload);
     } else if (viewId) {
-      updateMutation.mutate({ code: viewId as any, values });
+      payload.isCalculateInventory = viewData?.isCalculateInventory ?? true;
+      updateMutation.mutate({ code: viewId as any, values: payload });
     }
   };
 
@@ -180,11 +211,28 @@ export default function StorageList() {
     key: 'actions',
     fixed: 'right' as const,
     width: 120,
-    render: (_: any, record: any) => (
-      <TableActions
-        onView={hasPermission('Warehouse.Storages.View') ? () => openViewDrawer(record) : undefined}
-      />
-    ),
+    render: (_: any, record: any) => {
+      const showEdit = !isReserved(record.code) && hasPermission('Warehouse.Storages.Update');
+      const showDelete = !isReserved(record.code) && hasPermission('Warehouse.Storages.Delete');
+      return (
+        <TableActions
+          onView={hasPermission('Warehouse.Storages.View') ? () => openViewDrawer(record) : undefined}
+          onEdit={showEdit ? () => { openViewDrawer(record); setTimeout(() => startEditMode(), 100); } : undefined}
+          onDelete={showDelete ? () => {
+            Modal.confirm({
+              title: `確定要刪除儲位 ${record.code} 嗎？`,
+              content: '警告：此操作不可逆！刪除儲位可能會影響該儲位的相關庫存記錄。',
+              okText: '確定刪除',
+              cancelText: '取消',
+              okButtonProps: { danger: true },
+              onOk: () => {
+                deleteMutation.mutate(record.code);
+              }
+            });
+          } : undefined}
+        />
+      );
+    },
   };
 
   const handleTableChange = (pagination: any, _filters: any, sorter: any) => {
@@ -212,7 +260,7 @@ export default function StorageList() {
             >
               查詢
             </Button>
-            {false && (
+            {hasPermission('Warehouse.Storages.Create') && (
               <Button 
                 type="primary" 
                 icon={<PlusOutlined />} 
@@ -314,7 +362,7 @@ export default function StorageList() {
             updatedAt={viewData?.updatedAt}
             actions={
               <Space>
-                {(!isDrawerEditing && !isCreateDrawerOpen && false) && (
+                {(!isDrawerEditing && !isCreateDrawerOpen && viewId && !isReserved(viewId) && hasPermission('Warehouse.Storages.Update')) && (
                   <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode}>編輯</Button>
                 )}
                 {(isDrawerEditing || isCreateDrawerOpen) && (

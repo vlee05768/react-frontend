@@ -108,7 +108,7 @@ export const itemTableColumns = (): TableColumnConfig[] => [
     align: 'right',
     render: (val: number) => <span style={{ color: 'var(--ant-color-warning)' }}>{val?.toLocaleString() || '0'}</span>
   },
-  { label: '良品倉', name: 'goodTargetStorageCode', width: 120, render: (v: string) => v || 'TW-GEN-INV' },
+  { label: '良品倉', name: 'goodTargetStorageCode', width: 120, render: (v: string) => v || 'TW-FG-GEN' },
   { 
     label: '良品量', 
     name: 'goodQuantity', 
@@ -116,7 +116,7 @@ export const itemTableColumns = (): TableColumnConfig[] => [
     align: 'right',
     render: (val: number) => <span style={{ color: 'var(--ant-color-success)' }}>{val?.toLocaleString() || '0'}</span>
   },
-  { label: '報廢倉', name: 'scrapTargetStorageCode', width: 130, render: (v: string) => v || 'TW-GEN-SCRAP' },
+  { label: '報廢倉', name: 'scrapTargetStorageCode', width: 130, render: (v: string) => v || 'TW-SCRAP-GEN' },
   { 
     label: '報廢量', 
     name: 'scrapQuantity', 

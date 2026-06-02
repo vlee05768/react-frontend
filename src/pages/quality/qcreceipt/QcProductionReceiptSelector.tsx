@@ -1,9 +1,10 @@
 import { useState, useMemo, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Modal, Table, Button, Form, Input, InputNumber, Tag } from 'antd';
+import { Modal, Table, Button, Form, Input, InputNumber, Tag, message } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { getApiV1QcReceiptUnprocessedProductionReceipts } from '@/api/generated';
 import { MODAL_PICK_BODY_MAX_HEIGHT, MODAL_WIDTH_PICK } from '@/constants/ui';
+import { DictSelect } from '@/components/Form/DictSelect';
 
 interface QcProductionReceiptSelectorProps {
   open: boolean;
@@ -82,8 +83,22 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
 
   const handleConfirm = () => {
     const selectedItems = selectedRowKeys.map(key => {
-      return editableData[key] || list.find((item: any) => item.lineNumber === key);
+      const row = editableData[key] || list.find((item: any) => item.lineNumber === key);
+      return {
+        ...row,
+        goodTargetStorageCode: row.goodTargetStorageCode ?? (row.inventoryType === 'M' ? undefined : 'TW-FG-GEN'),
+        scrapTargetStorageCode: 'TW-SCRAP-GEN'
+      };
     });
+
+    const missingStorage = selectedItems.find(
+      item => item.inventoryType === 'M' && !item.goodTargetStorageCode && (item.goodQuantity ?? item.unQcQuantity) > 0
+    );
+
+    if (missingStorage) {
+      message.error(`原料 [${missingStorage.inventoryCode}] 未選擇良品儲位！`);
+      return;
+    }
     
     onConfirm(selectedItems);
     setSelectedRowKeys([]);
@@ -163,7 +178,26 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
         );
       }
     },
-    { title: '良品倉', dataIndex: 'goodTargetStorageCode', width: 120, align: 'center' as const, render: () => 'TW-GEN-INV' },
+    { 
+      title: '良品倉', 
+      dataIndex: 'goodTargetStorageCode', 
+      width: 180, 
+      align: 'center' as const, 
+      render: (_: any, record: any) => {
+        const isSelected = selectedRowKeys.includes(record.lineNumber);
+        const val = editableData[record.lineNumber]?.goodTargetStorageCode ?? record.goodTargetStorageCode ?? (record.inventoryType === 'M' ? undefined : 'TW-FG-GEN');
+        return (
+          <DictSelect
+            dictKey="STORAGE"
+            placeholder="請選擇儲位"
+            value={val}
+            onChange={(v) => handleRowChange(record.lineNumber, 'goodTargetStorageCode', v)}
+            disabled={!isSelected}
+            style={{ width: '100%' }}
+          />
+        );
+      }
+    },
     { 
       title: '報廢量', 
       dataIndex: 'scrapQuantity', 
@@ -174,7 +208,7 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
         return <span style={{ color: 'var(--ant-color-error)' }}>{Number(val).toLocaleString('zh-TW')}</span>;
       }
     },
-    { title: '報廢倉', dataIndex: 'scrapTargetStorageCode', width: 130, align: 'center' as const, render: () => 'TW-GEN-SCRAP' },
+    { title: '報廢倉', dataIndex: 'scrapTargetStorageCode', width: 130, align: 'center' as const, render: () => 'TW-SCRAP-GEN' },
   ];
 
   return (

@@ -56,7 +56,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
     try {
       const res = await getApiV1StorageInventory({
         query: {
-          StorageCode: 'TW-GEN-SCRAP',
+          StorageCode: 'TW-SCRAP-GEN',
           InventoryCode: record.inventoryCode || '',
         }
       });
@@ -89,7 +89,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
           partnerDocumentNumber: addSpareItem.partnerDocumentNumber,
           unitPrice: 0,
           quantity: values.quantity,
-          sourceStorageCode: 'TW-GEN-SCRAP',
+          sourceStorageCode: 'TW-SCRAP-GEN',
           notes: values.notes,
           unit: addSpareItem.unit,
         };
@@ -112,7 +112,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
           partnerDocumentNumber: addSpareItem.partnerDocumentNumber,
           unitPrice: 0,
           quantity: values.quantity,
-          sourceStorageCode: 'TW-GEN-SCRAP',
+          sourceStorageCode: 'TW-SCRAP-GEN',
           notes: values.notes,
           unit: addSpareItem.unit,
         };
@@ -189,7 +189,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
           partnerProductId: moldFeeItem.partnerProductId,
           unitPrice: values.amount,
           quantity: 1,
-          sourceStorageCode: 'TW-GEN-INV',
+          sourceStorageCode: undefined,
           notes: values.notes || undefined,
           unit: moldFeeItem.unit || '次',
         };
@@ -209,7 +209,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
           partnerProductId: values.associatedProduct,
           unitPrice: values.amount,
           quantity: 1,
-          sourceStorageCode: 'TW-GEN-INV',
+          sourceStorageCode: undefined,
           notes: values.notes || undefined,
           unit: '式',
         };

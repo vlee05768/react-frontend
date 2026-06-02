@@ -309,7 +309,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
         partnerProductId: partnerProdId,
         unitPrice: g.unitPrice,
         quantity: g.totalQuantity,
-        sourceStorageCode: 'TW-GEN-INV',
+        sourceStorageCode: g.goodsType === 'O' ? undefined : 'TW-FG-GEN',
         notes: g.units.map(u => u.notes).filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join('; ') || '',
         extraData: extraDataList, // 後端認可的 JSON 格式 (在 ASP.NET Core 端會自動被對應為 JsonDocument)
       };
