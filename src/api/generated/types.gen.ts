@@ -355,6 +355,10 @@ export type BusinessPartnerDto = {
      */
     code?: string | null;
     /**
+     * 舊編碼（相容舊系統用）
+     */
+    oldCode?: string | null;
+    /**
      * 公司名稱
      */
     name?: string | null;
@@ -430,6 +434,26 @@ export type BusinessPartnerDto = {
      * 主要聯絡人電子郵件
      */
     primaryContactEmail?: string | null;
+    /**
+     * 是否啟用客戶角色
+     */
+    enabledCustomerRole?: boolean;
+    /**
+     * 是否啟用原料供應商角色
+     */
+    enabledMaterialSupplierRole?: boolean;
+    /**
+     * 是否啟用委外加工商角色
+     */
+    enabledOutsourceVendorRole?: boolean;
+    /**
+     * 是否啟用模具供應商角色
+     */
+    enabledToolingSupplierRole?: boolean;
+    customerProfile?: CustomerProfileDto;
+    materialSupplierProfile?: MaterialSupplierProfileDto;
+    outsourceVendorProfile?: OutsourceVendorProfileDto;
+    toolingSupplierProfile?: ToolingSupplierProfileDto;
 };
 
 export type BusinessPartnerDtoApiResponse = {
@@ -565,6 +589,10 @@ export type CreateBusinessPartnerDto = {
      */
     name: string;
     /**
+     * 舊編碼（相容舊系統用）
+     */
+    oldCode?: string | null;
+    /**
      * 夥伴類型
      */
     type?: string | null;
@@ -628,6 +656,26 @@ export type CreateBusinessPartnerDto = {
      * 主要聯絡人電子郵件
      */
     primaryContactEmail?: string | null;
+    /**
+     * 是否啟用客戶角色
+     */
+    enabledCustomerRole?: boolean;
+    /**
+     * 是否啟用原料供應商角色
+     */
+    enabledMaterialSupplierRole?: boolean;
+    /**
+     * 是否啟用委外加工商角色
+     */
+    enabledOutsourceVendorRole?: boolean;
+    /**
+     * 是否啟用模具供應商角色
+     */
+    enabledToolingSupplierRole?: boolean;
+    customerProfile?: CustomerProfileDto;
+    materialSupplierProfile?: MaterialSupplierProfileDto;
+    outsourceVendorProfile?: OutsourceVendorProfileDto;
+    toolingSupplierProfile?: ToolingSupplierProfileDto;
 };
 
 /**
@@ -1122,6 +1170,22 @@ export type CreatePartnerContactDto = {
      * 備註
      */
     notes?: string | null;
+    /**
+     * 是否為銷售/客戶聯絡人
+     */
+    isSalesContact?: boolean;
+    /**
+     * 是否為採購/原料商聯絡人
+     */
+    isPurchasingContact?: boolean;
+    /**
+     * 是否為委外加工聯絡人
+     */
+    isOutsourcingContact?: boolean;
+    /**
+     * 是否為財務對帳聯絡人
+     */
+    isAccountingContact?: boolean;
 };
 
 /**
@@ -1404,6 +1468,8 @@ export type CreateQcGroupedItemDto = {
     goodQuantity?: number;
     scrapQuantity?: number;
     sourceStorageCode?: string | null;
+    goodTargetStorageCode?: string | null;
+    scrapTargetStorageCode?: string | null;
     referenceNumber: string;
     notes?: string | null;
 };
@@ -1726,6 +1792,114 @@ export type CreateWorkOrderMaterialDto = {
      * 儲位編號
      */
     storageCode?: string | null;
+};
+
+/**
+ * 客戶角色展平型 DTO
+ */
+export type CustomerDto = {
+    /**
+     * 建立者ID
+     */
+    createdById?: number | null;
+    /**
+     * 更新者ID
+     */
+    updatedById?: number | null;
+    /**
+     * 建立時間
+     */
+    createdAt?: string;
+    /**
+     * 更新時間
+     */
+    updatedAt?: string;
+    /**
+     * 是否已刪除
+     */
+    isDeleted?: boolean;
+    /**
+     * 建立者名稱
+     */
+    createdBy?: string | null;
+    /**
+     * 更新者名稱
+     */
+    updatedBy?: string | null;
+    customerCode?: string | null;
+    businessPartnerCode?: string | null;
+    salesPersonId?: string | null;
+    paymentTerms?: string | null;
+    creditLimit?: number;
+    isCreditBlocked?: boolean;
+    defaultCurrency?: string | null;
+    isTYCustomer?: boolean;
+    defaultContactId?: number | null;
+    status?: string | null;
+    name?: string | null;
+    taxId?: string | null;
+    address?: string | null;
+    phone?: string | null;
+    faxNumber?: string | null;
+    website?: string | null;
+    notes?: string | null;
+};
+
+export type CustomerDtoApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: CustomerDto;
+};
+
+/**
+ * 分頁結果
+ */
+export type CustomerDtoPagedResult = {
+    /**
+     * 目前頁碼
+     */
+    pageNumber?: number;
+    /**
+     * 每頁數量
+     */
+    pageSize?: number;
+    /**
+     * 總頁數
+     */
+    totalPages?: number;
+    /**
+     * 總數量
+     */
+    totalRecords?: number;
+    /**
+     * 資料
+     */
+    data?: Array<CustomerDto> | null;
+};
+
+export type CustomerDtoPagedResultApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: CustomerDtoPagedResult;
+};
+
+/**
+ * 客戶角色設定 DTO
+ */
+export type CustomerProfileDto = {
+    customerCode?: string | null;
+    salesPersonId?: string | null;
+    paymentTerms?: string | null;
+    creditLimit?: number;
+    isCreditBlocked?: boolean;
+    defaultCurrency?: string | null;
+    isTYCustomer?: boolean;
+    defaultContactId?: number | null;
+    status?: string | null;
 };
 
 /**
@@ -3197,6 +3371,112 @@ export type MaterialDtoPagedResultApiResponse = {
 };
 
 /**
+ * 原料供應商角色展平型 DTO
+ */
+export type MaterialSupplierDto = {
+    /**
+     * 建立者ID
+     */
+    createdById?: number | null;
+    /**
+     * 更新者ID
+     */
+    updatedById?: number | null;
+    /**
+     * 建立時間
+     */
+    createdAt?: string;
+    /**
+     * 更新時間
+     */
+    updatedAt?: string;
+    /**
+     * 是否已刪除
+     */
+    isDeleted?: boolean;
+    /**
+     * 建立者名稱
+     */
+    createdBy?: string | null;
+    /**
+     * 更新者名稱
+     */
+    updatedBy?: string | null;
+    supplierCode?: string | null;
+    businessPartnerCode?: string | null;
+    buyerId?: string | null;
+    paymentTerms?: string | null;
+    leadTimeDays?: number;
+    defaultCurrency?: string | null;
+    isPurchaseBlocked?: boolean;
+    defaultContactId?: number | null;
+    status?: string | null;
+    name?: string | null;
+    taxId?: string | null;
+    address?: string | null;
+    phone?: string | null;
+    faxNumber?: string | null;
+    website?: string | null;
+    notes?: string | null;
+};
+
+export type MaterialSupplierDtoApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: MaterialSupplierDto;
+};
+
+/**
+ * 分頁結果
+ */
+export type MaterialSupplierDtoPagedResult = {
+    /**
+     * 目前頁碼
+     */
+    pageNumber?: number;
+    /**
+     * 每頁數量
+     */
+    pageSize?: number;
+    /**
+     * 總頁數
+     */
+    totalPages?: number;
+    /**
+     * 總數量
+     */
+    totalRecords?: number;
+    /**
+     * 資料
+     */
+    data?: Array<MaterialSupplierDto> | null;
+};
+
+export type MaterialSupplierDtoPagedResultApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: MaterialSupplierDtoPagedResult;
+};
+
+/**
+ * 原料商角色設定 DTO
+ */
+export type MaterialSupplierProfileDto = {
+    supplierCode?: string | null;
+    buyerId?: string | null;
+    paymentTerms?: string | null;
+    leadTimeDays?: number;
+    defaultCurrency?: string | null;
+    isPurchaseBlocked?: boolean;
+    defaultContactId?: number | null;
+    status?: string | null;
+};
+
+/**
  * 刀模治具資料 DTO
  */
 export type MoldDto = {
@@ -3675,6 +3955,108 @@ export type OrderItemDtoPagedResultApiResponse = {
 };
 
 /**
+ * 委外加工商角色展平型 DTO
+ */
+export type OutsourceVendorDto = {
+    /**
+     * 建立者ID
+     */
+    createdById?: number | null;
+    /**
+     * 更新者ID
+     */
+    updatedById?: number | null;
+    /**
+     * 建立時間
+     */
+    createdAt?: string;
+    /**
+     * 更新時間
+     */
+    updatedAt?: string;
+    /**
+     * 是否已刪除
+     */
+    isDeleted?: boolean;
+    /**
+     * 建立者名稱
+     */
+    createdBy?: string | null;
+    /**
+     * 更新者名稱
+     */
+    updatedBy?: string | null;
+    outsourceVendorCode?: string | null;
+    businessPartnerCode?: string | null;
+    paymentTerms?: string | null;
+    leadTimeDays?: number;
+    isApprovedVendor?: boolean;
+    defaultContactId?: number | null;
+    status?: string | null;
+    name?: string | null;
+    taxId?: string | null;
+    address?: string | null;
+    phone?: string | null;
+    faxNumber?: string | null;
+    website?: string | null;
+    notes?: string | null;
+};
+
+export type OutsourceVendorDtoApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: OutsourceVendorDto;
+};
+
+/**
+ * 分頁結果
+ */
+export type OutsourceVendorDtoPagedResult = {
+    /**
+     * 目前頁碼
+     */
+    pageNumber?: number;
+    /**
+     * 每頁數量
+     */
+    pageSize?: number;
+    /**
+     * 總頁數
+     */
+    totalPages?: number;
+    /**
+     * 總數量
+     */
+    totalRecords?: number;
+    /**
+     * 資料
+     */
+    data?: Array<OutsourceVendorDto> | null;
+};
+
+export type OutsourceVendorDtoPagedResultApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: OutsourceVendorDtoPagedResult;
+};
+
+/**
+ * 委外加工商角色設定 DTO
+ */
+export type OutsourceVendorProfileDto = {
+    outsourceVendorCode?: string | null;
+    paymentTerms?: string | null;
+    leadTimeDays?: number;
+    isApprovedVendor?: boolean;
+    defaultContactId?: number | null;
+    status?: string | null;
+};
+
+/**
  * 商業夥伴聯絡人 DTO
  */
 export type PartnerContactDto = {
@@ -3746,6 +4128,22 @@ export type PartnerContactDto = {
      * 備註
      */
     notes?: string | null;
+    /**
+     * 是否為銷售/客戶聯絡人
+     */
+    isSalesContact?: boolean;
+    /**
+     * 是否為採購/原料商聯絡人
+     */
+    isPurchasingContact?: boolean;
+    /**
+     * 是否為委外加工聯絡人
+     */
+    isOutsourcingContact?: boolean;
+    /**
+     * 是否為財務對帳聯絡人
+     */
+    isAccountingContact?: boolean;
 };
 
 export type PartnerContactDtoApiResponse = {
@@ -5631,6 +6029,108 @@ export type ToggleSubscriptionRequest = {
 };
 
 /**
+ * 模具商角色展平型 DTO
+ */
+export type ToolingSupplierDto = {
+    /**
+     * 建立者ID
+     */
+    createdById?: number | null;
+    /**
+     * 更新者ID
+     */
+    updatedById?: number | null;
+    /**
+     * 建立時間
+     */
+    createdAt?: string;
+    /**
+     * 更新時間
+     */
+    updatedAt?: string;
+    /**
+     * 是否已刪除
+     */
+    isDeleted?: boolean;
+    /**
+     * 建立者名稱
+     */
+    createdBy?: string | null;
+    /**
+     * 更新者名稱
+     */
+    updatedBy?: string | null;
+    toolingSupplierCode?: string | null;
+    businessPartnerCode?: string | null;
+    paymentTerms?: string | null;
+    leadTimeDays?: number;
+    canRepairTooling?: boolean;
+    defaultContactId?: number | null;
+    status?: string | null;
+    name?: string | null;
+    taxId?: string | null;
+    address?: string | null;
+    phone?: string | null;
+    faxNumber?: string | null;
+    website?: string | null;
+    notes?: string | null;
+};
+
+export type ToolingSupplierDtoApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: ToolingSupplierDto;
+};
+
+/**
+ * 分頁結果
+ */
+export type ToolingSupplierDtoPagedResult = {
+    /**
+     * 目前頁碼
+     */
+    pageNumber?: number;
+    /**
+     * 每頁數量
+     */
+    pageSize?: number;
+    /**
+     * 總頁數
+     */
+    totalPages?: number;
+    /**
+     * 總數量
+     */
+    totalRecords?: number;
+    /**
+     * 資料
+     */
+    data?: Array<ToolingSupplierDto> | null;
+};
+
+export type ToolingSupplierDtoPagedResultApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: ToolingSupplierDtoPagedResult;
+};
+
+/**
+ * 模具供應商角色設定 DTO
+ */
+export type ToolingSupplierProfileDto = {
+    toolingSupplierCode?: string | null;
+    paymentTerms?: string | null;
+    leadTimeDays?: number;
+    canRepairTooling?: boolean;
+    defaultContactId?: number | null;
+    status?: string | null;
+};
+
+/**
  * 未交貨清單 DTO
  */
 export type UndeliveredOrderItemsDto = {
@@ -5835,6 +6335,10 @@ export type UpdateBusinessPartnerDto = {
      */
     name?: string | null;
     /**
+     * 舊編碼（相容舊系統用）
+     */
+    oldCode?: string | null;
+    /**
      * 夥伴類型
      */
     type?: string | null;
@@ -5898,6 +6402,26 @@ export type UpdateBusinessPartnerDto = {
      * 主要聯絡人電子郵件
      */
     primaryContactEmail?: string | null;
+    /**
+     * 是否啟用客戶角色
+     */
+    enabledCustomerRole?: boolean | null;
+    /**
+     * 是否啟用原料供應商角色
+     */
+    enabledMaterialSupplierRole?: boolean | null;
+    /**
+     * 是否啟用委外加工商角色
+     */
+    enabledOutsourceVendorRole?: boolean | null;
+    /**
+     * 是否啟用模具供應商角色
+     */
+    enabledToolingSupplierRole?: boolean | null;
+    customerProfile?: CustomerProfileDto;
+    materialSupplierProfile?: MaterialSupplierProfileDto;
+    outsourceVendorProfile?: OutsourceVendorProfileDto;
+    toolingSupplierProfile?: ToolingSupplierProfileDto;
 };
 
 /**
@@ -6364,6 +6888,22 @@ export type UpdatePartnerContactDto = {
      * 備註
      */
     notes?: string | null;
+    /**
+     * 是否為銷售/客戶聯絡人
+     */
+    isSalesContact?: boolean;
+    /**
+     * 是否為採購/原料商聯絡人
+     */
+    isPurchasingContact?: boolean;
+    /**
+     * 是否為委外加工聯絡人
+     */
+    isOutsourcingContact?: boolean;
+    /**
+     * 是否為財務對帳聯絡人
+     */
+    isAccountingContact?: boolean;
 };
 
 /**
@@ -6654,6 +7194,8 @@ export type UpdateQcGroupedItemDto = {
     goodQuantity?: number | null;
     scrapQuantity?: number | null;
     sourceStorageCode?: string | null;
+    goodTargetStorageCode?: string | null;
+    scrapTargetStorageCode?: string | null;
     referenceNumber?: string | null;
     notes?: string | null;
 };
@@ -10336,6 +10878,26 @@ export type GetApiV1BusinessPartnersByBusinessPartnerCodeContactsData = {
          */
         Name?: string;
         /**
+         * 職能類型 (Sales / Purchasing / Outsourcing / Accounting)
+         */
+        FunctionType?: string;
+        /**
+         * 是否為銷售/客戶聯絡人
+         */
+        IsSalesContact?: boolean;
+        /**
+         * 是否為採購/原料商聯絡人
+         */
+        IsPurchasingContact?: boolean;
+        /**
+         * 是否為委外加工聯絡人
+         */
+        IsOutsourcingContact?: boolean;
+        /**
+         * 是否為財務對帳聯絡人
+         */
+        IsAccountingContact?: boolean;
+        /**
          * 頁碼
          */
         pageNumber?: number;
@@ -10559,6 +11121,62 @@ export type PostApiV1CommonTestSmtpResponses = {
      */
     200: unknown;
 };
+
+export type GetApiV1CustomersData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * 代碼或名稱關鍵字
+         */
+        CodeOrName?: string;
+        /**
+         * 狀態 (預設 active)
+         */
+        Status?: string;
+        /**
+         * 頁碼
+         */
+        pageNumber?: number;
+        /**
+         * 每頁筆數
+         */
+        pageSize?: number;
+        /**
+         * 多欄位排序規則字串。格式為: "field1:asc,field2:desc"
+         * (例如: "type:asc,code:desc,createdAt:desc")
+         */
+        SortRules?: string;
+    };
+    url: '/api/v1/Customers';
+};
+
+export type GetApiV1CustomersResponses = {
+    /**
+     * OK
+     */
+    200: CustomerDtoPagedResultApiResponse;
+};
+
+export type GetApiV1CustomersResponse = GetApiV1CustomersResponses[keyof GetApiV1CustomersResponses];
+
+export type GetApiV1CustomersByCodeData = {
+    body?: never;
+    path: {
+        code: string;
+    };
+    query?: never;
+    url: '/api/v1/Customers/{code}';
+};
+
+export type GetApiV1CustomersByCodeResponses = {
+    /**
+     * OK
+     */
+    200: CustomerDtoApiResponse;
+};
+
+export type GetApiV1CustomersByCodeResponse = GetApiV1CustomersByCodeResponses[keyof GetApiV1CustomersByCodeResponses];
 
 export type GetApiV1DashboardPendingTasksData = {
     body?: never;
@@ -11178,6 +11796,10 @@ export type GetApiV1InventoryAdjustmentData = {
          */
         Others?: string;
         /**
+         * 單據狀態 (Unconfirmed/Confirmed/Closed)
+         */
+        Status?: string;
+        /**
          * 頁碼
          */
         pageNumber?: number;
@@ -11472,6 +12094,10 @@ export type GetApiV1InventoryTransferData = {
          * 其他查詢條件
          */
         Others?: string;
+        /**
+         * 單據狀態 (Unconfirmed/Confirmed/Closed)
+         */
+        Status?: string;
         /**
          * 頁碼
          */
@@ -12202,6 +12828,62 @@ export type PostApiV1MaterialByCodeUploadFilesResponses = {
 };
 
 export type PostApiV1MaterialByCodeUploadFilesResponse = PostApiV1MaterialByCodeUploadFilesResponses[keyof PostApiV1MaterialByCodeUploadFilesResponses];
+
+export type GetApiV1MaterialSuppliersData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * 代碼或名稱關鍵字
+         */
+        CodeOrName?: string;
+        /**
+         * 狀態 (預設 active)
+         */
+        Status?: string;
+        /**
+         * 頁碼
+         */
+        pageNumber?: number;
+        /**
+         * 每頁筆數
+         */
+        pageSize?: number;
+        /**
+         * 多欄位排序規則字串。格式為: "field1:asc,field2:desc"
+         * (例如: "type:asc,code:desc,createdAt:desc")
+         */
+        SortRules?: string;
+    };
+    url: '/api/v1/MaterialSuppliers';
+};
+
+export type GetApiV1MaterialSuppliersResponses = {
+    /**
+     * OK
+     */
+    200: MaterialSupplierDtoPagedResultApiResponse;
+};
+
+export type GetApiV1MaterialSuppliersResponse = GetApiV1MaterialSuppliersResponses[keyof GetApiV1MaterialSuppliersResponses];
+
+export type GetApiV1MaterialSuppliersByCodeData = {
+    body?: never;
+    path: {
+        code: string;
+    };
+    query?: never;
+    url: '/api/v1/MaterialSuppliers/{code}';
+};
+
+export type GetApiV1MaterialSuppliersByCodeResponses = {
+    /**
+     * OK
+     */
+    200: MaterialSupplierDtoApiResponse;
+};
+
+export type GetApiV1MaterialSuppliersByCodeResponse = GetApiV1MaterialSuppliersByCodeResponses[keyof GetApiV1MaterialSuppliersByCodeResponses];
 
 export type GetApiV1MoldData = {
     body?: never;
@@ -13120,6 +13802,62 @@ export type GetApiV1OrdersCustomerByCustomerCodeUndeliveredItemsResponses = {
 
 export type GetApiV1OrdersCustomerByCustomerCodeUndeliveredItemsResponse = GetApiV1OrdersCustomerByCustomerCodeUndeliveredItemsResponses[keyof GetApiV1OrdersCustomerByCustomerCodeUndeliveredItemsResponses];
 
+export type GetApiV1OutsourceVendorsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * 代碼或名稱關鍵字
+         */
+        CodeOrName?: string;
+        /**
+         * 狀態 (預設 active)
+         */
+        Status?: string;
+        /**
+         * 頁碼
+         */
+        pageNumber?: number;
+        /**
+         * 每頁筆數
+         */
+        pageSize?: number;
+        /**
+         * 多欄位排序規則字串。格式為: "field1:asc,field2:desc"
+         * (例如: "type:asc,code:desc,createdAt:desc")
+         */
+        SortRules?: string;
+    };
+    url: '/api/v1/OutsourceVendors';
+};
+
+export type GetApiV1OutsourceVendorsResponses = {
+    /**
+     * OK
+     */
+    200: OutsourceVendorDtoPagedResultApiResponse;
+};
+
+export type GetApiV1OutsourceVendorsResponse = GetApiV1OutsourceVendorsResponses[keyof GetApiV1OutsourceVendorsResponses];
+
+export type GetApiV1OutsourceVendorsByCodeData = {
+    body?: never;
+    path: {
+        code: string;
+    };
+    query?: never;
+    url: '/api/v1/OutsourceVendors/{code}';
+};
+
+export type GetApiV1OutsourceVendorsByCodeResponses = {
+    /**
+     * OK
+     */
+    200: OutsourceVendorDtoApiResponse;
+};
+
+export type GetApiV1OutsourceVendorsByCodeResponse = GetApiV1OutsourceVendorsByCodeResponses[keyof GetApiV1OutsourceVendorsByCodeResponses];
+
 export type GetApiV1ProductData = {
     body?: never;
     path?: never;
@@ -13753,6 +14491,10 @@ export type GetApiV1ProductionReceiptData = {
          * 其他查詢條件
          */
         Others?: string;
+        /**
+         * 單據狀態 (Unconfirmed/Confirmed/Closed)
+         */
+        Status?: string;
         /**
          * 頁碼
          */
@@ -14511,6 +15253,10 @@ export type GetApiV1QcReceiptData = {
          * 其他查詢條件
          */
         Others?: string;
+        /**
+         * 單據狀態 (Unconfirmed/Confirmed/Closed)
+         */
+        Status?: string;
         /**
          * 頁碼
          */
@@ -16077,6 +16823,62 @@ export type PostApiV1SystemMaintenanceSyncSequenceRulesResponses = {
      */
     200: unknown;
 };
+
+export type GetApiV1ToolingSuppliersData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * 代碼或名稱關鍵字
+         */
+        CodeOrName?: string;
+        /**
+         * 狀態 (預設 active)
+         */
+        Status?: string;
+        /**
+         * 頁碼
+         */
+        pageNumber?: number;
+        /**
+         * 每頁筆數
+         */
+        pageSize?: number;
+        /**
+         * 多欄位排序規則字串。格式為: "field1:asc,field2:desc"
+         * (例如: "type:asc,code:desc,createdAt:desc")
+         */
+        SortRules?: string;
+    };
+    url: '/api/v1/ToolingSuppliers';
+};
+
+export type GetApiV1ToolingSuppliersResponses = {
+    /**
+     * OK
+     */
+    200: ToolingSupplierDtoPagedResultApiResponse;
+};
+
+export type GetApiV1ToolingSuppliersResponse = GetApiV1ToolingSuppliersResponses[keyof GetApiV1ToolingSuppliersResponses];
+
+export type GetApiV1ToolingSuppliersByCodeData = {
+    body?: never;
+    path: {
+        code: string;
+    };
+    query?: never;
+    url: '/api/v1/ToolingSuppliers/{code}';
+};
+
+export type GetApiV1ToolingSuppliersByCodeResponses = {
+    /**
+     * OK
+     */
+    200: ToolingSupplierDtoApiResponse;
+};
+
+export type GetApiV1ToolingSuppliersByCodeResponse = GetApiV1ToolingSuppliersByCodeResponses[keyof GetApiV1ToolingSuppliersByCodeResponses];
 
 export type GetApiV1UserData = {
     body?: never;

@@ -94,7 +94,7 @@ export const contactFormConfig = (): FormFieldConfig[] => [
   },
   {
     name: 'isSalesContact',
-    label: '銷售/客戶聯絡人',
+    label: '銷售/客戶',
     componentType: 'Switch',
     editable: 'always',
     group: '職能設定',
@@ -102,7 +102,7 @@ export const contactFormConfig = (): FormFieldConfig[] => [
   },
   {
     name: 'isPurchasingContact',
-    label: '採購/原料商聯絡人',
+    label: '採購/原料商',
     componentType: 'Switch',
     editable: 'always',
     group: '職能設定',
@@ -110,7 +110,7 @@ export const contactFormConfig = (): FormFieldConfig[] => [
   },
   {
     name: 'isOutsourcingContact',
-    label: '委外加工聯絡人',
+    label: '委外加工',
     componentType: 'Switch',
     editable: 'always',
     group: '職能設定',
@@ -118,7 +118,7 @@ export const contactFormConfig = (): FormFieldConfig[] => [
   },
   {
     name: 'isAccountingContact',
-    label: '財務對帳聯絡人',
+    label: '財務對帳',
     componentType: 'Switch',
     editable: 'always',
     group: '職能設定',
