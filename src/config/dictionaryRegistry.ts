@@ -1,4 +1,4 @@
-import { getApiV1Role, getApiV1GeneralTypesGetTypes, getApiV1BusinessPartners, getApiV1Storage, getApiV1Machine, getApiV1Employee } from '@/api/generated/sdk.gen';
+import { getApiV1Role, getApiV1GeneralTypesGetTypes, getApiV1BusinessPartners, getApiV1Storage, getApiV1Machine, getApiV1Employee, getApiV1MaterialSuppliers } from '@/api/generated';
 import { MAX_PAGE_SIZE } from '@/constants';
 
 export const DICTIONARY_REGISTRY = {
@@ -128,6 +128,19 @@ export const DICTIONARY_REGISTRY = {
       }));
     },
     fieldNames: { label: '_displayName', value: 'code' },
+  },
+
+  // 原料供應商
+  MATERIAL_SUPPLIER: {
+    queryFn: async () => {
+      const res = await getApiV1MaterialSuppliers({ query: { pageSize: MAX_PAGE_SIZE } as any });
+      const rawData = (res.data as any)?.data?.data || (res.data as any)?.data || [];
+      return rawData.map((item: any) => ({
+        ...item,
+        _displayName: `${item.name} (${item.supplierCode})`, 
+      }));
+    },
+    fieldNames: { label: '_displayName', value: 'supplierCode' },
   },
 
   // 員工

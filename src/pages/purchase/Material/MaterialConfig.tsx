@@ -189,7 +189,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     label: "供應商",
     name: "supplierCode",
     width: 210,
-    render: (v) => <DictLabel dictKey="BP_SUPPLIER" value={v} />,
+    render: (v) => <DictLabel dictKey="MATERIAL_SUPPLIER" value={v} />,
   },
   {
     label: "啟用",
@@ -375,13 +375,12 @@ export const mainFormConfig = (): FormFieldConfig[] => [
   {
     name: "supplierCode",
     label: "主要供應商",
-    componentType: "DictSelect",
+    componentType: "AsyncSelect",
     colSpan: 4,
     group: "基本規格",    
     componentProps: {
-      dictKey: "BP_SUPPLIER",
+      configKey: "MATERIAL_SUPPLIER",
       allowClear: true,
-      showSearch: true,
     },
   },
   {
