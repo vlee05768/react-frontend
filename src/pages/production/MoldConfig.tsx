@@ -14,6 +14,8 @@ export const mainDictionary = {
   dimensionWMm: { name: 'dimensionWMm', label: '寬度 (mm)' },
   dimensionHMm: { name: 'dimensionHMm', label: '高度 (mm)' },
   isShareable: { name: 'isShareable', label: '可共用' },
+  availableProductionQuantity: { name: 'availableProductionQuantity', label: '可用生產數量' },
+  totalProductionQuantity: { name: 'totalProductionQuantity', label: '累計生產數量' },
   description: { name: 'description', label: '描述' },
   notes: { name: 'notes', label: '備註' },
 } as const;
@@ -27,6 +29,8 @@ export const mainFormConfig = (): FormFieldConfig[] => [
   { ...mainDictionary.dimensionLMm, componentType: 'InputNumber', validation: z.any().optional().nullable(), editable: 'always' },
   { ...mainDictionary.dimensionWMm, componentType: 'InputNumber', validation: z.any().optional().nullable(), editable: 'always' },
   { ...mainDictionary.dimensionHMm, componentType: 'InputNumber', validation: z.any().optional().nullable(), editable: 'always' },
+  { ...mainDictionary.availableProductionQuantity, componentType: 'InputNumber', validation: z.any().optional().nullable(), editable: 'always', componentProps: { min: 0, style: { width: '100%' } } },
+  { ...mainDictionary.totalProductionQuantity, componentType: 'InputNumber', validation: z.any().optional().nullable(), editable: 'never', componentProps: { min: 0, style: { width: '100%' } } },
   { ...mainDictionary.isShareable, componentType: 'Switch', validation: z.boolean().optional(), editable: 'always' },
   { ...mainDictionary.description, componentType: 'TextArea', validation: z.any().optional().nullable(), editable: 'always' ,colSpan: 1},
   { ...mainDictionary.notes, componentType: 'TextArea', validation: z.any().optional().nullable(), editable: 'always'  ,colSpan: 1},
@@ -42,6 +46,8 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   { ...mainDictionary.dimensionLMm, width: 120, align: 'right' },
   { ...mainDictionary.dimensionWMm, width: 120, align: 'right' },
   { ...mainDictionary.dimensionHMm, width: 120, align: 'right' },
+  { ...mainDictionary.availableProductionQuantity, width: 130, align: 'right' },
+  { ...mainDictionary.totalProductionQuantity, width: 130, align: 'right' },
   { ...mainDictionary.description, width: 200 },
   { ...mainDictionary.notes, width: 200 },
 ];
