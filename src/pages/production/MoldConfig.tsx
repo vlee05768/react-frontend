@@ -22,7 +22,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
   { ...mainDictionary.code, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'createOnly' },
   { ...mainDictionary.name, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
   { ...mainDictionary.type, componentType: 'DictSelect', validation: z.any().optional().nullable(), editable: 'always', componentProps: { dictKey: 'MOLD_TYPE' } },
-  { ...mainDictionary.supplierCode, componentType: 'DictSelect', validation: z.any().optional().nullable(), editable: 'always', componentProps: { dictKey: 'BP_SUPPLIER', showSearch: true, optionFilterProp: '_displayName' } },
+  { ...mainDictionary.supplierCode, componentType: 'AsyncSelect', validation: z.any().optional().nullable(), editable: 'always', componentProps: { configKey: 'TOOLING_SUPPLIER', allowClear: true } },
   { ...mainDictionary.shape, componentType: 'DictSelect', validation: z.any().optional().nullable(), editable: 'always', componentProps: { dictKey: 'MOLD_SHAPE' } },
   { ...mainDictionary.dimensionLMm, componentType: 'InputNumber', validation: z.any().optional().nullable(), editable: 'always' },
   { ...mainDictionary.dimensionWMm, componentType: 'InputNumber', validation: z.any().optional().nullable(), editable: 'always' },
@@ -37,7 +37,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   { ...mainDictionary.name, sortable: { multiple: 2 }, width: 220 },
   { ...mainDictionary.isShareable, width: 100, align: 'center', render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{ color: 'green' }} /> : (v === false ? <CloseOutlined style={{ color: 'red' }} /> : null) },
   { ...mainDictionary.type, sortable: { multiple: 3 }, width: 100, render: (v: any) => <DictLabel dictKey="MOLD_TYPE" value={v} /> },
-  { ...mainDictionary.supplierCode, width: 210, render: (v: any) => <DictLabel dictKey="BP_SUPPLIER" value={v} /> },
+  { ...mainDictionary.supplierCode, width: 210, render: (v: any) => <DictLabel dictKey="TOOLING_SUPPLIER" value={v} /> },
   { ...mainDictionary.shape, width: 100, render: (v: any) => <DictLabel dictKey="MOLD_SHAPE" value={v} /> },
   { ...mainDictionary.dimensionLMm, width: 120, align: 'right' },
   { ...mainDictionary.dimensionWMm, width: 120, align: 'right' },
@@ -54,6 +54,6 @@ export const detailTableColumns = {};
 export const moldSearchFormConfig = (): SearchFieldConfig[] => [
   { name: 'CodeOrName', label: '編號或名稱', componentType: 'Input', colSpan: 2 },
   { name: 'Type', label: '類型', componentType: 'DictSelect', colSpan: 2, componentProps: { dictKey: 'MOLD_TYPE' } },
-  { name: 'SupplierCode', label: '供應商', componentType: 'DictSelect', colSpan: 2, componentProps: { dictKey: 'BP_SUPPLIER', showSearch: true, optionFilterProp: '_displayName' } },
+  { name: 'SupplierCode', label: '供應商', componentType: 'AsyncSelect', colSpan: 2, componentProps: { configKey: 'TOOLING_SUPPLIER', allowClear: true } },
   { name: 'Shape', label: '形狀', componentType: 'DictSelect', colSpan: 2, componentProps: { dictKey: 'MOLD_SHAPE' } },
 ];
