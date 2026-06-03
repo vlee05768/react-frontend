@@ -176,11 +176,92 @@ export default function BusinessPartnerList() {
     setActiveTab('master_info'); // Switch back to basic info when editing
   };
 
-  const handleCrudSubmit = (values: any) => {
+  const getFormDefaultValues = () => {
     if (isCreateDrawerOpen) {
-      createMutation.mutate(values);
+      return {
+        enabledCustomerRole: false,
+        enabledMaterialSupplierRole: false,
+        enabledOutsourceVendorRole: false,
+        enabledToolingSupplierRole: false,
+      };
+    }
+    if (!viewData) return {};
+
+    return {
+      ...viewData,
+      // Map customerProfile
+      customerProfile_customerCode: viewData.customerProfile?.customerCode,
+      customerProfile_salesPersonId: viewData.customerProfile?.salesPersonId,
+      customerProfile_paymentTerms: viewData.customerProfile?.paymentTerms,
+      customerProfile_creditLimit: viewData.customerProfile?.creditLimit ?? 0,
+      customerProfile_isCreditBlocked: viewData.customerProfile?.isCreditBlocked ?? false,
+      customerProfile_defaultCurrency: viewData.customerProfile?.defaultCurrency ?? "TWD",
+      customerProfile_isTYCustomer: viewData.customerProfile?.isTYCustomer ?? false,
+      customerProfile_status: viewData.customerProfile?.status ?? "active",
+
+      // Map materialSupplierProfile
+      materialSupplierProfile_supplierCode: viewData.materialSupplierProfile?.supplierCode,
+      materialSupplierProfile_buyerId: viewData.materialSupplierProfile?.buyerId,
+      materialSupplierProfile_paymentTerms: viewData.materialSupplierProfile?.paymentTerms,
+      materialSupplierProfile_leadTimeDays: viewData.materialSupplierProfile?.leadTimeDays ?? 0,
+      materialSupplierProfile_defaultCurrency: viewData.materialSupplierProfile?.defaultCurrency ?? "TWD",
+      materialSupplierProfile_isPurchaseBlocked: viewData.materialSupplierProfile?.isPurchaseBlocked ?? false,
+      materialSupplierProfile_status: viewData.materialSupplierProfile?.status ?? "active",
+
+      // Map outsourceVendorProfile
+      outsourceVendorProfile_outsourceVendorCode: viewData.outsourceVendorProfile?.outsourceVendorCode,
+      outsourceVendorProfile_paymentTerms: viewData.outsourceVendorProfile?.paymentTerms,
+      outsourceVendorProfile_leadTimeDays: viewData.outsourceVendorProfile?.leadTimeDays ?? 0,
+      outsourceVendorProfile_isApprovedVendor: viewData.outsourceVendorProfile?.isApprovedVendor ?? false,
+      outsourceVendorProfile_status: viewData.outsourceVendorProfile?.status ?? "active",
+
+      // Map toolingSupplierProfile
+      toolingSupplierProfile_toolingSupplierCode: viewData.toolingSupplierProfile?.toolingSupplierCode,
+      toolingSupplierProfile_paymentTerms: viewData.toolingSupplierProfile?.paymentTerms,
+      toolingSupplierProfile_leadTimeDays: viewData.toolingSupplierProfile?.leadTimeDays ?? 0,
+      toolingSupplierProfile_canRepairTooling: viewData.toolingSupplierProfile?.canRepairTooling ?? false,
+      toolingSupplierProfile_status: viewData.toolingSupplierProfile?.status ?? "active",
+    };
+  };
+
+  const handleCrudSubmit = (values: any) => {
+    const payload = {
+      ...values,
+      customerProfile: values.enabledCustomerRole ? {
+        salesPersonId: values.customerProfile_salesPersonId || null,
+        paymentTerms: values.customerProfile_paymentTerms || null,
+        creditLimit: Number(values.customerProfile_creditLimit || 0),
+        isCreditBlocked: !!values.customerProfile_isCreditBlocked,
+        defaultCurrency: values.customerProfile_defaultCurrency || "TWD",
+        isTYCustomer: !!values.customerProfile_isTYCustomer,
+        status: values.customerProfile_status || "active",
+      } : null,
+      materialSupplierProfile: values.enabledMaterialSupplierRole ? {
+        buyerId: values.materialSupplierProfile_buyerId || null,
+        paymentTerms: values.materialSupplierProfile_paymentTerms || null,
+        leadTimeDays: Number(values.materialSupplierProfile_leadTimeDays || 0),
+        defaultCurrency: values.materialSupplierProfile_defaultCurrency || "TWD",
+        isPurchaseBlocked: !!values.materialSupplierProfile_isPurchaseBlocked,
+        status: values.materialSupplierProfile_status || "active",
+      } : null,
+      outsourceVendorProfile: values.enabledOutsourceVendorRole ? {
+        paymentTerms: values.outsourceVendorProfile_paymentTerms || null,
+        leadTimeDays: Number(values.outsourceVendorProfile_leadTimeDays || 0),
+        isApprovedVendor: !!values.outsourceVendorProfile_isApprovedVendor,
+        status: values.outsourceVendorProfile_status || "active",
+      } : null,
+      toolingSupplierProfile: values.enabledToolingSupplierRole ? {
+        paymentTerms: values.toolingSupplierProfile_paymentTerms || null,
+        leadTimeDays: Number(values.toolingSupplierProfile_leadTimeDays || 0),
+        canRepairTooling: !!values.toolingSupplierProfile_canRepairTooling,
+        status: values.toolingSupplierProfile_status || "active",
+      } : null,
+    };
+
+    if (isCreateDrawerOpen) {
+      createMutation.mutate(payload);
     } else if (viewId) {
-      updateMutation.mutate({ code: viewId, values });
+      updateMutation.mutate({ code: viewId, values: payload });
     }
   };
 
@@ -206,7 +287,7 @@ export default function BusinessPartnerList() {
   
   return (
     <div className="p-4 pb-0 flex flex-col h-[calc(100vh-64px)]">
-      <PageCard title="廠商客戶管理" extra={
+      <PageCard title="商業夥伴管理" extra={
           <Space separator={<Divider orientation="vertical" />}>
             <Button
               type="default"
@@ -302,7 +383,7 @@ export default function BusinessPartnerList() {
         styles={{ body: { padding: 0, overflow: 'hidden' } }}
         title={
           <DrawerTitle
-            moduleName="廠商客戶"
+            moduleName="商業夥伴"
             isCreate={isCreateDrawerOpen}
             isEdit={isDrawerEditing}
             record={viewData}
@@ -360,13 +441,14 @@ export default function BusinessPartnerList() {
             masterContent={
               <DynamicForm
                 key={isCreateDrawerOpen ? 'create' : (viewId || 'empty')}
-                defaultValues={isCreateDrawerOpen ? { isTYCustomer: false } : viewData}
+                defaultValues={getFormDefaultValues()}
                 fields={mainFormConfig()}
                 onSubmit={handleCrudSubmit}
                 isUpdateMode={isDrawerEditing}
                 isViewMode={isViewMode}
                 formId="bpForm"
                 hideDefaultFooter={true}
+                layoutType="tabs"
               />
             }
             detailTabs={[

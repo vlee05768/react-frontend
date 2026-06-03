@@ -47,7 +47,7 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
   const componentProps = typeof config.componentProps === 'function' ? config.componentProps(context) : { ...(config.componentProps || {}) };
   
   // 新增模式下，如果是自動產生的文字框，加上 placeholder
-  if (config.autoGenerate && !isUpdateMode && resolvedComponentType === 'Input') {
+  if (config.autoGenerate && !isUpdateMode && !isViewMode && resolvedComponentType === 'Input') {
     if (!componentProps.placeholder) {
       componentProps.placeholder = '系統自動產生';
     }
@@ -165,9 +165,9 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
         let ComponentNode: React.ReactNode = null;
         if (resolvedComponentType === 'Custom') {
           ComponentNode = config.customRender ? config.customRender({ ...commonProps }, context, setValue) : null;
-        } else if (resolvedComponentType === 'Switch') {
-          // Switch 的值是 checked
-          const renderer = FIELD_REGISTRY['Switch'];
+        } else if (resolvedComponentType === 'Switch' || resolvedComponentType === 'Checkbox') {
+          // Switch/Checkbox 的值是 checked
+          const renderer = FIELD_REGISTRY[resolvedComponentType];
           ComponentNode = renderer ? renderer({ checked: field.value, onChange: handleChange, disabled: finalDisabled, ...componentProps }) : null;
         } else {
           const renderer = FIELD_REGISTRY[resolvedComponentType as string] || FIELD_REGISTRY['Input'];
@@ -180,7 +180,7 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
         }
 
         // 處理 boolean 元件的特殊排版 (不用 label 包裝，而是放在右側)
-        if (resolvedComponentType === 'Switch') {
+        if (resolvedComponentType === 'Switch' || resolvedComponentType === 'Checkbox') {
             return (
                 <Form.Item
                   validateStatus={error ? 'error' : ''}
@@ -201,7 +201,7 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
           (config.dynamicValidation && !config.dynamicValidation(context)?.isOptional());
           
         // 系統自動產生的欄位在新增模式下，隱藏必填紅星號
-        if (config.autoGenerate && !isUpdateMode) {
+        if (config.autoGenerate && !isUpdateMode && !isViewMode) {
           showRequiredMark = false;
         }
 

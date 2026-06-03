@@ -10,6 +10,7 @@ export type ComponentType =
   | 'InputNumber' 
   | 'DatePicker' 
   | 'Switch' 
+  | 'Checkbox'
   | 'Custom';
 
 export interface FormContext<TValues> {

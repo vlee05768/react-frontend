@@ -1,5 +1,4 @@
-import React from 'react';
-import { Input, Select, InputNumber, DatePicker, Switch } from 'antd';
+import { Input, Select, InputNumber, DatePicker, Switch, Checkbox } from 'antd';
 import { DictSelect } from './DictSelect';
 import { AsyncSelect } from './AsyncSelect';
 
@@ -12,6 +11,7 @@ export type FieldComponentType =
   | 'InputNumber' 
   | 'DatePicker' 
   | 'Switch' 
+  | 'Checkbox'
   | 'Custom';
 
 export type FieldRenderer = (props: any, options?: any) => React.ReactNode;
@@ -88,4 +88,6 @@ export const FIELD_REGISTRY: Record<string, FieldRenderer> = {
   DatePicker: (props) => <DatePicker {...props} />,
   
   Switch: (props) => <Switch {...props} />,
+
+  Checkbox: (props) => <Checkbox {...props} />,
 };

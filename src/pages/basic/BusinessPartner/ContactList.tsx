@@ -229,7 +229,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
       >
         <DynamicForm
           key={editingId ? `edit-${editingId}` : (viewingData ? `view-${viewingData.id}` : 'create')}
-          defaultValues={editingId ? listData.find((d: any) => d.id === editingId) : viewingData}
+          defaultValues={editingId ? listData.find((d: any) => d.id === editingId) : (viewingData || { isSalesContact: true, isPurchasingContact: false, isOutsourcingContact: false, isAccountingContact: false })}
           fields={contactFormConfig()}
           onSubmit={handleCrudSubmit}
           isUpdateMode={!!editingId}

@@ -3,7 +3,14 @@ import { useForm } from 'react-hook-form';
 import type { DefaultValues, Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Form, Button, Space, Row, Col, Divider } from 'antd';
+import { Form, Button, Space, Row, Col, Divider, Tabs, ConfigProvider } from 'antd';
+import {
+  InfoCircleOutlined,
+  TeamOutlined,
+  DatabaseOutlined,
+  ClusterOutlined,
+  BuildOutlined
+} from '@ant-design/icons';
 import type { FieldConfig, FormContext } from './types';
 import { DynamicField } from './DynamicField';
 import { isEqual } from 'lodash-es';
@@ -20,7 +27,18 @@ interface DynamicFormProps<TValues extends Record<string, any>> {
   formId?: string;
   hideDefaultFooter?: boolean;
   validationMode?: 'onBlur' | 'onChange' | 'onSubmit' | 'onTouched' | 'all';
+  layoutType?: 'grouped' | 'tabs';
 }
+
+const getGroupIcon = (groupName: string) => {
+  const name = groupName.trim();
+  if (name.includes('基本')) return <InfoCircleOutlined />;
+  if (name.includes('客戶')) return <TeamOutlined />;
+  if (name.includes('原料')) return <DatabaseOutlined />;
+  if (name.includes('委外')) return <ClusterOutlined />;
+  if (name.includes('模具')) return <BuildOutlined />;
+  return null;
+};
 
 export function DynamicForm<TValues extends Record<string, any>>({
   fields,
@@ -33,6 +51,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
   hideDefaultFooter = false,
   formId,
   validationMode = 'onBlur',
+  layoutType = 'grouped',
 }: DynamicFormProps<TValues>) {
   
   // 1. 儲存最新的 Schema Reference
@@ -76,7 +95,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
       }
       
       // 2. 處理必填邏輯 (支援靜態或動態 context function)
-      if (field.autoGenerate && !isUpdateMode) {
+      if (field.autoGenerate && !isUpdateMode && !isViewMode) {
         // 系統自動產生的欄位在新增模式下，免除驗證必填
         if (fieldSchema) {
           fieldSchema = (fieldSchema as any).optional();
@@ -249,28 +268,58 @@ export function DynamicForm<TValues extends Record<string, any>>({
       <Form layout="vertical" onFinish={handleSubmit(handleInternalSubmit, handleInternalError)} id={formId} disabled={isViewMode} className={isViewMode ? 'view-mode-form' : ''}>
       {/* 支援 grid 與群組排版 */}
       {hasGroups ? (
-        <div className="dynamic-form-groups">
-          {Object.entries(groupedFields).map(([groupName, groupFields]) => {
-            if (groupFields.length === 0) return null;
-            return (
-              <div 
-                key={groupName} 
-                className="mb-4 p-6 pt-4 pb-2" style={{border: '1px solid var(--ant-color-border)', borderRadius: '8px', backgroundColor: 'var(--ant-color-bg-container)'
-                }}
-              >
-                <Divider 
-                  titlePlacement="center"
-                  plain 
-                  className="mt-0 mb-3 font-semibold" style={{color: 'var(--ant-color-primary)', borderColor: 'var(--ant-color-border-secondary)', fontSize: '15px'
-                  }}
+        layoutType === 'tabs' ? (
+          <ConfigProvider
+            theme={{
+              token: {
+                colorPrimary: '#16a34a', // 使用真實的 Hex 綠色碼，AntD JS 引擎才能正確計算衍生色，避免 CSS 變數解析失敗退回預設藍色
+              }
+            }}
+          >
+            <Tabs
+              type="line"
+              size="small"
+              className="dynamic-form-tabs mt-1"
+              items={Object.entries(groupedFields)
+                .filter(([_, groupFields]) => groupFields.length > 0)
+                .map(([groupName, groupFields]) => ({
+                  key: groupName,
+                  label: (
+                    <span className="flex items-center gap-1.5 font-medium">
+                      {getGroupIcon(groupName)}
+                      {groupName}
+                    </span>
+                  ),
+                  children: (
+                    <div className="pt-5 pb-2">
+                      {renderFieldList(groupFields)}
+                    </div>
+                  ),
+                }))}
+            />
+          </ConfigProvider>
+        ) : (
+          <div className="dynamic-form-groups">
+            {Object.entries(groupedFields).map(([groupName, groupFields]) => {
+              if (groupFields.length === 0) return null;
+              return (
+                <div 
+                  key={groupName} 
+                  className="mb-4 p-6 pt-4 pb-2 border border-solid border-[var(--ant-color-border)] rounded-lg bg-[var(--ant-color-bg-container)]"
                 >
-                  {groupName}
-                </Divider>
-                {renderFieldList(groupFields)}
-              </div>
-            );
-          })}
-        </div>
+                  <Divider 
+                    titlePlacement="center"
+                    plain 
+                    className="mt-0 mb-3 font-semibold text-[15px] text-[var(--ant-color-primary)] !border-[var(--ant-color-border-secondary)]"
+                  >
+                    {groupName}
+                  </Divider>
+                  {renderFieldList(groupFields)}
+                </div>
+              );
+            })}
+          </div>
+        )
       ) : (
         renderFieldList(groupedFields['基本資訊'])
       )}

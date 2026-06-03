@@ -206,7 +206,7 @@ export default function Dashboard() {
                 {renderSubButton({
                   permissionKey: 'BasicData.BusinessPartners.View',
                   path: '/business-partners',
-                  label: '🤝 廠商客戶'
+                  label: '🤝 商業夥伴管理'
                 })}
                 {renderSubButton({
                   permissionKey: 'BasicData.Employees.View',
