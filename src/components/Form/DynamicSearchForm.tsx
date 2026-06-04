@@ -32,12 +32,22 @@ export default function DynamicSearchForm({ config, form, onSearch, layout = 've
         return <DictSelect placeholder={`請選擇${field.label}`} allowClear {...(props as any)} />;
       case 'AsyncSelect':
         return <AsyncSelect placeholder={`請搜尋並選擇${field.label}`} allowClear {...(props as any)} />;
-      case 'InputNumber':
-        return <InputNumber placeholder={`請輸入${field.label}`} className="w-full" {...props} />;
+      case 'InputNumber': {
+        const InputNumberComponent = InputNumber as any;
+        return (
+          <InputNumberComponent 
+            placeholder={`請輸入${field.label}`} 
+            className="w-full" 
+            controls={false} 
+            allowClear={true}
+            {...props} 
+          />
+        );
+      }
       case 'DatePicker':
-        return <DatePicker className="w-full" {...props} />;
+        return <DatePicker className="w-full" allowClear {...props} />;
       case 'DateRangePicker':
-        return <RangePicker className="w-full" {...props} />;
+        return <RangePicker className="w-full" allowClear {...props} />;
       case 'Switch':
         return <Switch checked={value} {...props} />;
       case 'Custom':

@@ -45,13 +45,14 @@ export const useBPQueryStore = create((set) => ({
     pageNumber: 1,
     pageSize: DEFAULT_PAGE_SIZE,
     CodeOrName: undefined,
+    Roles: undefined,
     Types: undefined,
     IsTYCustomer: undefined,
     Others: undefined,
     SortRules: undefined,
   },
   setParams: (newParams: any) => set((state: any) => ({ params: { ...state.params, ...newParams } })),
-  resetParams: () => set({ params: { pageNumber: 1, pageSize: DEFAULT_PAGE_SIZE, CodeOrName: undefined, Types: undefined, IsTYCustomer: undefined, Others: undefined, SortRules: undefined } }),
+  resetParams: () => set({ params: { pageNumber: 1, pageSize: DEFAULT_PAGE_SIZE, CodeOrName: undefined, Roles: undefined, Types: undefined, IsTYCustomer: undefined, Others: undefined, SortRules: undefined } }),
 }));
 
 export default function BusinessPartnerList() {
@@ -225,6 +226,18 @@ export default function BusinessPartnerList() {
   };
 
   const handleCrudSubmit = (values: any) => {
+    if (!values.enabledCustomerRole && 
+        !values.enabledMaterialSupplierRole && 
+        !values.enabledOutsourceVendorRole && 
+        !values.enabledToolingSupplierRole) {
+      modalApi.error({
+        centered: true,
+        title: '欄位驗證錯誤',
+        content: '商業夥伴至少必須啟用一種角色身份（客戶、原料供應商、委外加工商、模具商）！'
+      });
+      return;
+    }
+
     const payload = {
       ...values,
       customerProfile: values.enabledCustomerRole ? {
@@ -440,7 +453,7 @@ export default function BusinessPartnerList() {
             entityType="BusinessPartner"
             masterContent={
               <DynamicForm
-                key={isCreateDrawerOpen ? 'create' : (viewId || 'empty')}
+                key={isCreateDrawerOpen ? 'create' : `${viewId || 'empty'}_${isDrawerEditing ? 'edit' : 'view'}`}
                 defaultValues={getFormDefaultValues()}
                 fields={mainFormConfig()}
                 onSubmit={handleCrudSubmit}
@@ -449,6 +462,7 @@ export default function BusinessPartnerList() {
                 formId="bpForm"
                 hideDefaultFooter={true}
                 layoutType="tabs"
+                disableOtherTabsInEdit={false}
               />
             }
             detailTabs={[

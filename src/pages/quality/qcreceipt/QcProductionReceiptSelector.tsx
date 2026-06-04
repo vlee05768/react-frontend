@@ -111,6 +111,8 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
     onClose();
   };
 
+  const InputNumberComponent: any = InputNumber;
+
   const columns = [
     { title: '對應單據項次', dataIndex: 'lineNumber', width: 180 },
     { title: '料號', dataIndex: 'inventoryCode', width: 130 },
@@ -140,12 +142,14 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
         const unQc = record.unQcQuantity || 0;
         const isSelected = selectedRowKeys.includes(record.lineNumber);
         return (
-          <InputNumber 
+          <InputNumberComponent 
+            controls={false} // 移除上下紐
+            allowClear={isSelected}
             min={1} // 最小為1
             max={unQc} // 最大等於未QC量
             value={val} 
-            onChange={(v) => handleRowChange(record.lineNumber, 'batchQuantity', v)}
-            onFocus={(e) => e.target.select()}
+            onChange={(v: any) => handleRowChange(record.lineNumber, 'batchQuantity', v)}
+            onFocus={(e: any) => e.target.select()}
             className="qc-qty-warning w-full"
             disabled={!isSelected} // 有勾選的才能輸入
           />
@@ -162,16 +166,18 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
         const batch = editableData[record.lineNumber]?.batchQuantity ?? record.batchQuantity;
         const isSelected = selectedRowKeys.includes(record.lineNumber);
         return (
-          <InputNumber 
-            ref={(el) => {
+          <InputNumberComponent 
+            ref={(el: any) => {
               if (el) goodInputRefs.current.set(record.lineNumber, el);
               else goodInputRefs.current.delete(record.lineNumber);
             }}
+            controls={false} // 移除上下紐
+            allowClear={isSelected}
             min={0} 
             max={batch}
             value={val} 
-            onChange={(v) => handleRowChange(record.lineNumber, 'goodQuantity', v)}
-            onFocus={(e) => e.target.select()}
+            onChange={(v: any) => handleRowChange(record.lineNumber, 'goodQuantity', v)}
+            onFocus={(e: any) => e.target.select()}
             className="qc-qty-success w-full"
             disabled={!isSelected} // 有勾選的才能輸入
           />

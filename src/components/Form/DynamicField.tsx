@@ -68,7 +68,15 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
         const handleChange = (...args: any[]) => {
           const val = args[0];
           // Antd 的 Input 等事件帶的是 React.ChangeEvent，或者直接是 value
-          let value = val?.target ? val.target.value : val;
+          // 對於 Checkbox，需要從 target.checked 中取得勾選狀態
+          let value = val;
+          if (val?.target) {
+            if (resolvedComponentType === 'Checkbox' || val.target.type === 'checkbox') {
+              value = val.target.checked;
+            } else {
+              value = val.target.value;
+            }
+          }
           
           // 代碼類 (Code) 欄位處理：轉大寫並過濾非 ASCII 字符 (如中文)
           if (componentProps?.isCode) {

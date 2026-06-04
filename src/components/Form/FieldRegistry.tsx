@@ -26,11 +26,11 @@ export const FIELD_REGISTRY: Record<string, FieldRenderer> = {
       }
       props.onFocus?.(e);
     };
-    return <Input {...props} onFocus={handleFocus} />;
+    return <Input allowClear={true} {...props} onFocus={handleFocus} />;
   },
   
   TextArea: (props) => {
-    const textAreaProps = { ...props };
+    const textAreaProps = { allowClear: true, ...props };
     if (textAreaProps.style) {
       delete textAreaProps.style.textOverflow;
     }
@@ -40,14 +40,30 @@ export const FIELD_REGISTRY: Record<string, FieldRenderer> = {
     return <Input.TextArea {...textAreaProps} />;
   },
   
-  Select: (props) => <Select {...props} />,
+  Select: (props) => <Select allowClear={true} {...props} />,
   
-  DictSelect: (props) => <DictSelect {...props} />,
+  DictSelect: (props) => <DictSelect allowClear={true} {...props} />,
   
-  AsyncSelect: (props) => <AsyncSelect {...props} />,
+  AsyncSelect: (props) => <AsyncSelect allowClear={true} {...props} />,
   
   InputNumber: (props, options) => {
-    const inputNumberProps = { ...props };
+    const { onFocus, ...restProps } = props;
+
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      try {
+        e.target.select();
+      } catch (err) {
+        console.error(err);
+      }
+      onFocus?.(e);
+    };
+
+    const inputNumberProps = { 
+      controls: false, // 預設關閉上下微調按鈕
+      allowClear: true, // 使用元件本身提供的清除功能
+      ...restProps 
+    };
+
     if (options?.isViewMode && !inputNumberProps.formatter) {
       inputNumberProps.formatter = (val: any) => {
         if (val === null || val === undefined || val === '') return '';
@@ -72,15 +88,6 @@ export const FIELD_REGISTRY: Record<string, FieldRenderer> = {
         return val.replace(/\$\s?|(,*)/g, '') as unknown as number;
       };
     }
-
-    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-      try {
-        e.target.select();
-      } catch (err) {
-        console.error(err);
-      }
-      props.onFocus?.(e);
-    };
 
     return <InputNumber {...inputNumberProps} onFocus={handleFocus} />;
   },

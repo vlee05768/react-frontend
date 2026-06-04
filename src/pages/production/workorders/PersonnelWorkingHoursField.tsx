@@ -152,18 +152,23 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
       dataIndex: 'hours',
       key: 'hours',
       width: 150,
-      render: (val: number | undefined, _: any, index: number) => (
-        <InputNumber
-          id={`hours-input-${index}`}
-          min={0}
-          precision={2}
-          value={val}
-          disabled={disabled}
-          onChange={(newVal) => handleUpdate(index, 'hours', newVal)}
-          placeholder="工時"
-          className="w-full"
-        />
-      )
+      render: (val: number | undefined, _: any, index: number) => {
+        const InputNumberComponent: any = InputNumber;
+        return (
+          <InputNumberComponent
+            id={`hours-input-${index}`}
+            min={0}
+            precision={2}
+            controls={false}
+            allowClear={!disabled}
+            value={val}
+            disabled={disabled}
+            onChange={(newVal: any) => handleUpdate(index, 'hours', newVal)}
+            placeholder="工時"
+            className="w-full"
+          />
+        );
+      }
     },
     {
       title: '操作',

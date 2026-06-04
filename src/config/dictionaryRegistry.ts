@@ -1,5 +1,5 @@
 import { getApiV1Role, getApiV1GeneralTypesGetTypes, getApiV1BusinessPartners, getApiV1Storage, getApiV1Machine, getApiV1Employee, getApiV1MaterialSuppliers, getApiV1ToolingSuppliers } from '@/api/generated';
-import { MAX_PAGE_SIZE } from '@/constants';
+import { MAX_PAGE_SIZE, BusinessPartnerRoleTypes } from '@/constants';
 
 export const DICTIONARY_REGISTRY = {
   // 純靜態選項，直接定義原型
@@ -131,7 +131,7 @@ export const DICTIONARY_REGISTRY = {
   },
 
   // 原料供應商
-  MATERIAL_SUPPLIER: {
+  [BusinessPartnerRoleTypes.MATERIAL_SUPPLIER]: {
     queryFn: async () => {
       const res = await getApiV1MaterialSuppliers({ query: { pageSize: MAX_PAGE_SIZE } as any });
       const rawData = (res.data as any)?.data?.data || (res.data as any)?.data || [];
@@ -144,7 +144,7 @@ export const DICTIONARY_REGISTRY = {
   },
 
   // 模具供應商
-  TOOLING_SUPPLIER: {
+  [BusinessPartnerRoleTypes.TOOLING_SUPPLIER]: {
     queryFn: async () => {
       const res = await getApiV1ToolingSuppliers({ query: { pageSize: MAX_PAGE_SIZE } as any });
       const rawData = (res.data as any)?.data?.data || (res.data as any)?.data || [];

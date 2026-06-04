@@ -46,14 +46,26 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   {
     label: "角色身份",
     name: "roles",
-    width: 220,
+    width: 260,
     render: (_, record: any) => {
       const tags = [];
-      if (record.enabledCustomerRole) tags.push(<Tag color="blue" key="cust">客戶</Tag>);
-      if (record.enabledMaterialSupplierRole) tags.push(<Tag color="green" key="mat">原料商</Tag>);
-      if (record.enabledOutsourceVendorRole) tags.push(<Tag color="purple" key="out">委外商</Tag>);
-      if (record.enabledToolingSupplierRole) tags.push(<Tag color="orange" key="tool">模具商</Tag>);
-      return tags.length > 0 ? <div className="flex gap-1">{tags}</div> : <span className="text-gray-400">未設定</span>;
+      if (record.enabledCustomerRole) {
+        const code = record.customerProfile?.customerCode;
+        tags.push(<Tag color="blue" key="cust">客戶{code ? ` (${code})` : ''}</Tag>);
+      }
+      if (record.enabledMaterialSupplierRole) {
+        const code = record.materialSupplierProfile?.supplierCode;
+        tags.push(<Tag color="green" key="mat">原料商{code ? ` (${code})` : ''}</Tag>);
+      }
+      if (record.enabledOutsourceVendorRole) {
+        const code = record.outsourceVendorProfile?.outsourceVendorCode;
+        tags.push(<Tag color="purple" key="out">委外商{code ? ` (${code})` : ''}</Tag>);
+      }
+      if (record.enabledToolingSupplierRole) {
+        const code = record.toolingSupplierProfile?.toolingSupplierCode;
+        tags.push(<Tag color="orange" key="tool">模具商{code ? ` (${code})` : ''}</Tag>);
+      }
+      return tags.length > 0 ? <div className="flex flex-wrap gap-1">{tags}</div> : <span className="text-gray-400">未設定</span>;
     }
   },
   {
@@ -442,6 +454,22 @@ export const bpSearchFormConfig = (): SearchFieldConfig[] => [
     name: "CodeOrName",
     label: "代碼/名稱/統編",
     componentType: "Input",
+    colSpan: 2,
+  },
+  {
+    name: "Roles",
+    label: "角色身份",
+    componentType: "Select",
+    componentProps: {
+      mode: "multiple",
+      options: [
+        { label: "客戶", value: "customer" },
+        { label: "原料商", value: "material_supplier" },
+        { label: "委外商", value: "outsource_vendor" },
+        { label: "模具商", value: "tooling_supplier" },
+      ],
+      allowClear: true,
+    },
     colSpan: 2,
   },
   {

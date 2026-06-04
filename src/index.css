@@ -292,3 +292,9 @@ body {
   opacity: 1 !important;
   cursor: default !important;
 }
+
+/* === 全域隱藏 InputNumber 的上下微調控制按鈕 (controls/handlers) === */
+.ant-input-number-handler-wrap {
+  display: none !important;
+}
+

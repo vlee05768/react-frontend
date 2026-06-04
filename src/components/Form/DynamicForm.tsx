@@ -28,6 +28,7 @@ interface DynamicFormProps<TValues extends Record<string, any>> {
   hideDefaultFooter?: boolean;
   validationMode?: 'onBlur' | 'onChange' | 'onSubmit' | 'onTouched' | 'all';
   layoutType?: 'grouped' | 'tabs';
+  disableOtherTabsInEdit?: boolean; // 新增此屬性，在編輯模式下除了基本資料外其餘 tab 皆 disable
 }
 
 const getGroupIcon = (groupName: string) => {
@@ -52,6 +53,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
   formId,
   validationMode = 'onBlur',
   layoutType = 'grouped',
+  disableOtherTabsInEdit = false,
 }: DynamicFormProps<TValues>) {
   
   // 1. 儲存最新的 Schema Reference
@@ -135,6 +137,13 @@ export function DynamicForm<TValues extends Record<string, any>>({
       prevDefaultValuesRef.current = defaultValues;
     }
   }, [defaultValues, methods]);
+
+  // 當 isViewMode 變為 true (回到檢視模式) 時，重置表單值為原始資料，以確保取消編輯時能完全恢復原始內容
+  useEffect(() => {
+    if (isViewMode && defaultValues) {
+      methods.reset(defaultValues);
+    }
+  }, [isViewMode, defaultValues, methods]);
 
   // 表單群組化處理
   const renderFieldList = (fieldList: FieldConfig<any>[]) => (
@@ -284,14 +293,15 @@ export function DynamicForm<TValues extends Record<string, any>>({
                 .filter(([_, groupFields]) => groupFields.length > 0)
                 .map(([groupName, groupFields]) => ({
                   key: groupName,
+                  disabled: isUpdateMode && disableOtherTabsInEdit && !groupName.includes('基本'),
                   label: (
-                    <span className="flex items-center gap-1.5 font-medium">
+                    <span className="flex items-center gap-1.5 font-medium text-sm">
                       {getGroupIcon(groupName)}
                       {groupName}
                     </span>
                   ),
                   children: (
-                    <div className="pt-5 pb-2">
+                    <div className="p-6 pt-5 bg-zinc-50/50 dark:bg-zinc-900/40 border border-solid border-zinc-200/60 dark:border-zinc-800/80 rounded-xl mt-3 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
                       {renderFieldList(groupFields)}
                     </div>
                   ),

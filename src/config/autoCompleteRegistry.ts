@@ -1,4 +1,5 @@
 import { getApiV1Customers, getApiV1CustomersByCode, getApiV1MaterialSuppliers, getApiV1MaterialSuppliersByCode, getApiV1OutsourceVendors, getApiV1OutsourceVendorsByCode, getApiV1ToolingSuppliers, getApiV1ToolingSuppliersByCode, getApiV1Material, getApiV1MaterialByCode, getApiV1Product, getApiV1ProductByCode, getApiV1BusinessPartnersByBusinessPartnerCodeContacts, getApiV1BusinessPartnersByBusinessPartnerCodeContactsByContactId, getApiV1Mold, getApiV1MoldByCode, getApiV1Storage, getApiV1StorageByCode, getApiV1Employee } from '@/api/generated';
+import { BusinessPartnerRoleTypes } from '@/constants';
 
 export interface AutoCompleteConfig {
   /** 搜尋用的 API 呼叫 (依特性: 會有固定條件、預設 pageSize=100) */
@@ -13,7 +14,7 @@ export interface AutoCompleteConfig {
 
 export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
   // 客戶 (Customer, 改為呼叫新架構獨立 Customers API)
-  CUSTOMER: {
+  [BusinessPartnerRoleTypes.CUSTOMER]: {
     queryFn: async (keyword: string) => {
       const res = await getApiV1Customers({
         query: {
@@ -36,7 +37,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
   },
 
   // 原料供應商 (Material Supplier, 呼叫新架構 MaterialSuppliers API)
-  MATERIAL_SUPPLIER: {
+  [BusinessPartnerRoleTypes.MATERIAL_SUPPLIER]: {
     queryFn: async (keyword: string) => {
       const res = await getApiV1MaterialSuppliers({
         query: {
@@ -59,7 +60,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
   },
 
   // 委外加工商 (Outsource Vendor, 呼叫新架構 OutsourceVendors API)
-  OUTSOURCE_VENDOR: {
+  [BusinessPartnerRoleTypes.OUTSOURCE_VENDOR]: {
     queryFn: async (keyword: string) => {
       const res = await getApiV1OutsourceVendors({
         query: {
@@ -82,7 +83,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
   },
 
   // 模具供應商 (Tooling Supplier, 呼叫新架構 ToolingSuppliers API)
-  TOOLING_SUPPLIER: {
+  [BusinessPartnerRoleTypes.TOOLING_SUPPLIER]: {
     queryFn: async (keyword: string) => {
       const res = await getApiV1ToolingSuppliers({
         query: {

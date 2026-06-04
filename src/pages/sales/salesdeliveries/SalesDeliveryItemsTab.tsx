@@ -27,6 +27,7 @@ interface Props {
 
 export default function SalesDeliveryItemsTab({ documentNumber, customerCode, items, isEditing, isConfirmed, onRefresh, onEditingChange }: Props) {
   const { modal, message } = App.useApp();
+  const InputNumberComponent: any = InputNumber;
   const [showPicker, setShowPicker] = useState(false);
   const [editingItem, setEditingItem] = useState<SalesDeliveryItemDto | null>(null);
 
@@ -459,10 +460,12 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
                       { type: 'number', min: 1, max: scrapStock || undefined, message: `數量必須介於 1 到 ${scrapStock?.toLocaleString() || ''} 之間` }
                     ]}
                   >
-                    <InputNumber
+                    <InputNumberComponent
                       style={{ width: '100%' }}
                       placeholder="請輸入出貨數量"
                       precision={0}
+                      controls={false}
+                      allowClear
                       autoFocus
                     />
                   </Form.Item>
@@ -512,10 +515,12 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
               { type: 'number', min: 1, message: '金額必須大於 0' }
             ]}
           >
-            <InputNumber
+            <InputNumberComponent
               style={{ width: '100%' }}
               placeholder="請輸入金額"
               precision={0}
+              controls={false}
+              allowClear
               autoFocus={!isEditingMoldFee}
             />
           </Form.Item>

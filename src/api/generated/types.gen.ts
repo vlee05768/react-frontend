@@ -10677,6 +10677,10 @@ export type GetApiV1BusinessPartnersData = {
          */
         Types?: Array<string>;
         /**
+         * 角色身分篩選（可複選：customer, material_supplier, outsource_vendor, tooling_supplier）
+         */
+        Roles?: Array<string>;
+        /**
          * 是否為東裕客戶
          */
         IsTYCustomer?: boolean;
