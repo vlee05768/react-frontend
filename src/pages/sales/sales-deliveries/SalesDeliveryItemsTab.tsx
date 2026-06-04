@@ -44,6 +44,10 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
   const [moldFeeItem, setMoldFeeItem] = useState<SalesDeliveryItemDto | null>(null);
   const [moldFeeForm] = Form.useForm();
 
+  // 監看關聯產品欄位值，以動態啟用/停用後續欄位與確認按鈕
+  const associatedProduct = Form.useWatch('associatedProduct', moldFeeForm);
+  const isProductSelected = !!associatedProduct;
+
   const handleAddSpareOpen = async (record: SalesDeliveryItemDto) => {
     setIsEditingSpare(false);
     setAddSpareItem(record);
@@ -430,7 +434,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
         confirmLoading={addItemsMutation.isPending || updateMutation.isPending}
         okButtonProps={{ disabled: loadingStock || scrapStock === null || scrapStock <= 0 }}
         centered
-        destroyOnClose
+        destroyOnHidden
       >
         <Spin spinning={loadingStock} tip="正在查詢報廢倉庫存...">
           {addSpareItem && (
@@ -465,7 +469,6 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
                       placeholder="請輸入出貨數量"
                       precision={0}
                       controls={false}
-                      allowClear
                       autoFocus
                     />
                   </Form.Item>
@@ -492,8 +495,9 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
           setIsEditingMoldFee(false);
         }}
         confirmLoading={addItemsMutation.isPending || updateMutation.isPending}
+        okButtonProps={{ disabled: !isProductSelected }}
         centered
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={moldFeeForm} layout="vertical" className="pt-4">
           <Form.Item
@@ -517,18 +521,22 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
           >
             <InputNumberComponent
               style={{ width: '100%' }}
-              placeholder="請輸入金額"
+              placeholder={isProductSelected ? "請輸入金額" : "請先選擇關聯產品"}
               precision={0}
               controls={false}
-              allowClear
               autoFocus={!isEditingMoldFee}
+              disabled={!isProductSelected}
             />
           </Form.Item>
           <Form.Item
             name="notes"
             label="備註"
           >
-            <Input placeholder="可輸入備註" autoFocus={isEditingMoldFee} />
+            <Input 
+              placeholder={isProductSelected ? "可輸入備註" : "請先選擇關聯產品"} 
+              autoFocus={isEditingMoldFee} 
+              disabled={!isProductSelected}
+            />
           </Form.Item>
         </Form>
       </Modal>

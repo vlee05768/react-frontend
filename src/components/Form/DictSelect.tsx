@@ -10,11 +10,13 @@ import type { DictKey } from '@/config/dictionaryRegistry';
 export interface DictSelectProps extends Omit<SelectProps, 'options' | 'loading' | 'fieldNames'> {
   dictKey: DictKey;
   showRefresh?: boolean;
+  optionsFilter?: (option: any) => boolean;
 }
 
 export const DictSelect: React.FC<DictSelectProps> = ({ 
   dictKey, 
   showRefresh = true, 
+  optionsFilter,
   ...props 
 }) => {
   if (!dictKey) {
@@ -31,10 +33,16 @@ export const DictSelect: React.FC<DictSelectProps> = ({
 
   const { fieldNames } = registryConfig || { fieldNames: { label: 'label', value: 'value' } };
 
+  const filteredOptions = React.useMemo(() => {
+    if (!rawOptions) return [];
+    if (!optionsFilter) return rawOptions;
+    return rawOptions.filter(optionsFilter);
+  }, [rawOptions, optionsFilter]);
+
   return (
     <Select
       {...props}
-      options={rawOptions || []} 
+      options={filteredOptions} 
       fieldNames={fieldNames} 
       loading={isLoading || isFetching}
       popupRender={(menu) => (

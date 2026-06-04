@@ -1,11 +1,21 @@
 import { Space, Button, Tooltip } from "antd";
-import { EditOutlined, DeleteOutlined, PlusCircleOutlined } from "@ant-design/icons";
+import {
+  EditOutlined,
+  DeleteOutlined,
+  PlusCircleOutlined,
+} from "@ant-design/icons";
 import { z } from "zod";
 import { Tag } from "antd";
 import { SyncOutlined, CheckCircleOutlined } from "@ant-design/icons";
-import type { SearchFieldConfig, TableColumnConfig } from "@/components/Form/types";
+import type {
+  SearchFieldConfig,
+  TableColumnConfig,
+} from "@/components/Form/types";
 import type { ColumnsType } from "antd/es/table";
-import type { SalesDeliveryDto, SalesDeliveryItemDto } from "@/api/generated/types.gen";
+import type {
+  SalesDeliveryDto,
+  SalesDeliveryItemDto,
+} from "@/api/generated/types.gen";
 import dayjs from "dayjs";
 import { ContactSelectWithCreate } from "../orders/components/ContactSelectWithCreate";
 import { DictTag } from "@/components/Form/DictTag";
@@ -13,34 +23,57 @@ import { DictTag } from "@/components/Form/DictTag";
 
 export const getStatusTag = (row: SalesDeliveryDto) => {
   if (row.confirmDate) {
-    return <Tag color="success" icon={<CheckCircleOutlined />}>已確認</Tag>;
+    return (
+      <Tag color="success" icon={<CheckCircleOutlined />}>
+        已確認
+      </Tag>
+    );
   }
-  return <Tag color="warning" icon={<SyncOutlined />}>待確認</Tag>;
+  return (
+    <Tag color="warning" icon={<SyncOutlined />}>
+      待確認
+    </Tag>
+  );
 };
 
 export const searchConfig: SearchFieldConfig[] = [
-  { name: "documentNumber", label: "單據號碼", componentType: "Input", colSpan: 2 },
-  { 
-    name: "customerCodeOrName", 
-    label: "客戶", 
-    componentType: "AsyncSelect",
-    componentProps: { configKey: "CUSTOMER" }, 
-    colSpan: 2 
+  {
+    name: "documentNumber",
+    label: "單據號碼",
+    componentType: "Input",
+    colSpan: 2,
   },
-  { name: "invoiceNumber", label: "發票號碼", componentType: "Input", colSpan: 2 },
-  { 
-    name: "shippedConfirmed", 
-    label: "狀態", 
+  {
+    name: "customerCodeOrName",
+    label: "客戶",
+    componentType: "AsyncSelect",
+    componentProps: { configKey: "CUSTOMER" },
+    colSpan: 2,
+  },
+  {
+    name: "invoiceNumber",
+    label: "發票號碼",
+    componentType: "Input",
+    colSpan: 2,
+  },
+  {
+    name: "shippedConfirmed",
+    label: "狀態",
     componentType: "Select",
     componentProps: {
       options: [
-        { label: '已確認', value: true },
-        { label: '未確認', value: false }
-      ]
+        { label: "已確認", value: true },
+        { label: "未確認", value: false },
+      ],
     },
-    colSpan: 2 
+    colSpan: 2,
   },
-  { name: "dateRange", label: "銷貨日期區間", componentType: "DateRangePicker", colSpan: 4 },
+  {
+    name: "dateRange",
+    label: "銷貨日期區間",
+    componentType: "DateRangePicker",
+    colSpan: 4,
+  },
   { name: "others", label: "備註/地址", componentType: "Input", colSpan: 2 },
 ];
 
@@ -52,24 +85,87 @@ export const getColumns = (): TableColumnConfig<SalesDeliveryDto>[] => [
     fixed: "left",
     sortable: { multiple: 1 },
   },
-  { label: "單據日期", name: "documentDate", width: 120, sortable: { multiple: 2 }, render: (val) => (val ? dayjs(val).format("YYYY-MM-DD") : "-") },
+  {
+    label: "單據日期",
+    name: "documentDate",
+    width: 120,
+    sortable: { multiple: 2 },
+    render: (val) => (val ? dayjs(val).format("YYYY-MM-DD") : "-"),
+  },
   { label: "客戶代碼", name: "businessPartnerCode", width: 100 },
-  { label: "客戶名稱", name: "businessPartnerName", width: 180, ellipsis: true },
-  { label: "發票號碼", name: "invoiceNumber", width: 120, sortable: { multiple: 3 } },
+  {
+    label: "客戶名稱",
+    name: "businessPartnerName",
+    width: 180,
+    ellipsis: true,
+  },
+  {
+    label: "發票號碼",
+    name: "invoiceNumber",
+    width: 120,
+    sortable: { multiple: 3 },
+  },
   { label: "業務員", name: "responsibleUserName", width: 100 },
-  { label: "小計", name: "subTotal", width: 100, align: "right", render: (val) => val != null ? Number(val).toLocaleString() : "-" },
-  { label: "稅額", name: "taxAmount", width: 100, align: "right", render: (val) => val != null ? Number(val).toLocaleString() : "-" },
-  { label: "總金額", name: "totalAmount", width: 120, align: "right", render: (val) => <span className="font-semibold">{val != null ? Number(val).toLocaleString() : "-"}</span> },
-  { label: "狀態", name: "status", width: 100, render: (_, row) => getStatusTag(row) },
+  {
+    label: "小計",
+    name: "subTotal",
+    width: 100,
+    align: "right",
+    render: (val) => (val != null ? Number(val).toLocaleString() : "-"),
+  },
+  {
+    label: "稅額",
+    name: "taxAmount",
+    width: 100,
+    align: "right",
+    render: (val) => (val != null ? Number(val).toLocaleString() : "-"),
+  },
+  {
+    label: "總金額",
+    name: "totalAmount",
+    width: 120,
+    align: "right",
+    render: (val) => (
+      <span className="font-semibold">
+        {val != null ? Number(val).toLocaleString() : "-"}
+      </span>
+    ),
+  },
+  {
+    label: "狀態",
+    name: "status",
+    width: 100,
+    render: (_, row) => getStatusTag(row),
+  },
   { label: "確認人員", name: "confirmUserName", width: 100 },
-  { label: "確認日期", name: "confirmDate", width: 120, render: (val) => (val ? dayjs(val).format("YYYY-MM-DD") : "-") },
+  {
+    label: "確認日期",
+    name: "confirmDate",
+    width: 120,
+    render: (val) => (val ? dayjs(val).format("YYYY-MM-DD") : "-"),
+  },
   { label: "備註", name: "notes", ellipsis: true, width: 200 },
 ];
 
-
-
 export const getFormConfig = (): any[] => [
-  // --- 第一排：客戶、客戶名稱、單據日期、業務員 ---
+
+  {
+    name: "documentNumber",
+    label: "單據號碼",
+    componentType: "Input",
+    editable: "never",
+    autoGenerate: true,
+    colSpan: 4,
+  },
+  {
+    name: "documentDate",
+    label: "單據日期",
+    componentType: "DatePicker",
+    colSpan: 4,
+    editable: "createOnly",
+    validation: z.any(),
+  },
+
   {
     name: "businessPartnerCode",
     label: "客戶",
@@ -101,23 +197,8 @@ export const getFormConfig = (): any[] => [
         }
       }
     },
-    colSpan: 4,
+    colSpan: 2,
     validation: z.string().min(1, "請輸入客戶代碼"),
-  },
-  {
-    name: "businessPartnerName",
-    label: "客戶名稱",
-    componentType: "Input",
-    colSpan: 4,
-    editable: "never",
-  },
-  {
-    name: "documentDate",
-    label: "單據日期",
-    componentType: "DatePicker",
-    colSpan: 4,
-    editable: "createOnly",
-    validation: z.any(),
   },
   {
     name: "responsibleEmployeeCode",
@@ -126,8 +207,21 @@ export const getFormConfig = (): any[] => [
     componentProps: { dictKey: "EMPLOYEE" },
     colSpan: 4,
   },
+  {
+    name: "partnerContactId",
+    label: "客戶聯絡人",
+    componentType: "Custom",
+    customRender: (field: any, context: any) => (
+      <ContactSelectWithCreate
+        value={field.value}
+        onChange={field.onChange}
+        disabled={field.disabled}
+        businessPartnerCode={context.values?.businessPartnerCode}
+      />
+    ),
+    colSpan: 4,
+  },
 
-  // --- 第二排：客戶電話、傳真、聯絡人、地址 ---
   {
     name: "businessPartnerPhone",
     label: "客戶電話",
@@ -141,28 +235,14 @@ export const getFormConfig = (): any[] => [
     colSpan: 4,
   },
   {
-    name: "partnerContactId",
-    label: "聯絡人",
-    componentType: "Custom",
-    customRender: (field: any, context: any) => (
-      <ContactSelectWithCreate
-        value={field.value}
-        onChange={field.onChange}
-        disabled={field.disabled}
-        businessPartnerCode={context.values?.businessPartnerCode}
-      />
-    ),
-    colSpan: 4,
-  },
-  {
     name: "address",
     label: "地址",
     componentType: "Input",
-    colSpan: 4,
+    colSpan: 2,
     validation: z.string().min(1, "請輸入地址"),
   },
 
-  // --- 第三排：發票號碼、小計、稅額、總金額 ---
+
   {
     name: "invoiceNumber",
     label: "發票號碼",
@@ -173,40 +253,43 @@ export const getFormConfig = (): any[] => [
     name: "subTotal",
     label: "小計",
     componentType: "InputNumber",
-    colSpan: 4,
+    colSpan: 3,
     editable: "never",
     componentProps: {
-      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
-      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, ''),
+      formatter: (value: any) =>
+        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, ""),
       precision: 2,
-    }
+    },
   },
   {
     name: "taxAmount",
     label: "稅額",
     componentType: "InputNumber",
-    colSpan: 4,
+    colSpan: 3,
     editable: "never",
     componentProps: {
-      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
-      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, ''),
+      formatter: (value: any) =>
+        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, ""),
       precision: 2,
-    }
+    },
   },
   {
     name: "totalAmount",
     label: "總金額",
     componentType: "InputNumber",
-    colSpan: 4,
+    colSpan: 3,
     editable: "never",
     componentProps: {
-      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
-      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, ''),
+      formatter: (value: any) =>
+        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, ""),
       precision: 2,
-    }
+    },
   },
 
-  // --- 第四排：備註 ---
+
   {
     name: "notes",
     label: "備註",
@@ -215,7 +298,6 @@ export const getFormConfig = (): any[] => [
     componentProps: { rows: 3 },
   },
 ];
-
 
 export const getItemColumns = (
   isViewMode: boolean,
@@ -229,16 +311,20 @@ export const getItemColumns = (
     key: "action",
     width: 120,
     align: "left",
-    fixed: 'right' as const,
+    fixed: "left" as const,
     render: (_: any, record: SalesDeliveryItemDto) => {
       if (isViewMode) return null;
       const isProduct = record.inventoryType === "P";
-      const isSpare = record.subType === "SP" || record.transactionType === "SP";
-      const hasSpare = Array.isArray(items) && items.some(item => 
-        item.inventoryCode === record.inventoryCode && 
-        item.referenceNumber === record.referenceNumber && 
-        (item.subType === 'SP' || item.transactionType === 'SP')
-      );
+      const isSpare =
+        record.subType === "SP" || record.transactionType === "SP";
+      const hasSpare =
+        Array.isArray(items) &&
+        items.some(
+          (item) =>
+            item.inventoryCode === record.inventoryCode &&
+            item.referenceNumber === record.referenceNumber &&
+            (item.subType === "SP" || item.transactionType === "SP"),
+        );
       const showAddSpare = isProduct && !isSpare && !hasSpare && onAddSpare;
       return (
         <Space size="small">
@@ -257,7 +343,14 @@ export const getItemColumns = (
             <Tooltip title="新增備品">
               <Button
                 type="text"
-                icon={<PlusCircleOutlined style={{ fontSize: "16px", color: "var(--ant-color-primary)" }} />}
+                icon={
+                  <PlusCircleOutlined
+                    style={{
+                      fontSize: "16px",
+                      color: "var(--ant-color-primary)",
+                    }}
+                  />
+                }
                 onClick={() => onAddSpare(record)}
               />
             </Tooltip>
@@ -274,11 +367,12 @@ export const getItemColumns = (
     ellipsis: true,
     render: (val: any, record: any, index: number) => {
       const serial = record?.serialNumber || record?.SerialNumber || val;
-      if (serial !== undefined && serial !== null && serial !== '') return serial;
+      if (serial !== undefined && serial !== null && serial !== "")
+        return serial;
       const line = record?.lineNumber || record?.LineNumber;
-      if (line !== undefined && line !== null && line !== '') return line;
+      if (line !== undefined && line !== null && line !== "") return line;
       return index + 1;
-    }
+    },
   },
   {
     title: "來源單號",
@@ -293,32 +387,48 @@ export const getItemColumns = (
 
       if (record.extraData) {
         try {
-          const allocations = Array.isArray(record.extraData) 
-            ? record.extraData 
-            : (typeof record.extraData === 'object' && record.extraData !== null)
-              ? (record.extraData as any).rootElement 
-                ? JSON.parse(JSON.stringify(record.extraData)) 
+          const allocations = Array.isArray(record.extraData)
+            ? record.extraData
+            : typeof record.extraData === "object" && record.extraData !== null
+              ? (record.extraData as any).rootElement
+                ? JSON.parse(JSON.stringify(record.extraData))
                 : record.extraData
-              : JSON.parse(typeof record.extraData === 'string' ? record.extraData : '{}');
-          
-          const list = Array.isArray(allocations) ? allocations : (allocations?.data || []);
+              : JSON.parse(
+                  typeof record.extraData === "string"
+                    ? record.extraData
+                    : "{}",
+                );
+
+          const list = Array.isArray(allocations)
+            ? allocations
+            : allocations?.data || [];
           if (Array.isArray(list) && list.length > 0) {
             const sourceItems = list.map((a, idx) => {
-              const num = a.OrderItemLineNumber || a.orderItemLineNumber || '未知';
+              const num =
+                a.OrderItemLineNumber || a.orderItemLineNumber || "未知";
               const q = a.Quantity ?? a.quantity ?? 0;
               return (
-                <div key={idx} style={{ whiteSpace: 'nowrap', lineHeight: '1.6' }}>
+                <div
+                  key={idx}
+                  style={{ whiteSpace: "nowrap", lineHeight: "1.6" }}
+                >
                   {num} ({Number(q).toLocaleString()})
                 </div>
               );
             });
-            tooltipContent = <div style={{ padding: '2px 0' }}>{sourceItems}</div>;
+            tooltipContent = (
+              <div style={{ padding: "2px 0" }}>{sourceItems}</div>
+            );
 
             if (list.length > 1) {
               isMerged = true;
               displayText = `[合併 ${list.length} 筆訂單]`;
             } else {
-              displayText = list[0].OrderItemLineNumber || list[0].orderItemLineNumber || val || "-";
+              displayText =
+                list[0].OrderItemLineNumber ||
+                list[0].orderItemLineNumber ||
+                val ||
+                "-";
             }
           }
         } catch (e) {
@@ -327,7 +437,7 @@ export const getItemColumns = (
       }
 
       if (!tooltipContent && val) {
-        tooltipContent = <div style={{ padding: '2px 0' }}>{val}</div>;
+        tooltipContent = <div style={{ padding: "2px 0" }}>{val}</div>;
       }
 
       if (!tooltipContent) {
@@ -337,15 +447,22 @@ export const getItemColumns = (
       return (
         <Tooltip title={tooltipContent} placement="topLeft">
           {isMerged ? (
-            <span style={{ color: 'var(--ant-color-primary)', fontWeight: '500', textDecoration: 'underline decoration-dotted', cursor: 'pointer' }}>
+            <span
+              style={{
+                color: "var(--ant-color-primary)",
+                fontWeight: "500",
+                textDecoration: "underline decoration-dotted",
+                cursor: "pointer",
+              }}
+            >
               {displayText}
             </span>
           ) : (
-            <span style={{ cursor: 'pointer' }}>{displayText}</span>
+            <span style={{ cursor: "pointer" }}>{displayText}</span>
           )}
         </Tooltip>
       );
-    }
+    },
   },
   {
     title: "類型",
@@ -362,10 +479,24 @@ export const getItemColumns = (
     align: "center",
     ellipsis: true,
     render: (val: string) => {
-      if (val === 'SP') return <Tag color="success" className="m-0">備品</Tag>;
-      if (val === 'OF') return <Tag color="purple" className="m-0">其他</Tag>;
-      return <Tag color="blue" className="m-0">一般</Tag>;
-    }
+      if (val === "SP")
+        return (
+          <Tag color="success" className="m-0">
+            備品
+          </Tag>
+        );
+      if (val === "OF")
+        return (
+          <Tag color="purple" className="m-0">
+            其他
+          </Tag>
+        );
+      return (
+        <Tag color="blue" className="m-0">
+          一般
+        </Tag>
+      );
+    },
   },
   {
     title: "料號",
@@ -380,7 +511,11 @@ export const getItemColumns = (
       else if (record.inventoryType === "M") color = "cyan";
       else if (record.inventoryType === "S") color = "purple";
       else if (record.inventoryCode === "MOLD-FEE") color = "magenta";
-      return <Tag color={color} className="m-0">{val}</Tag>;
+      return (
+        <Tag color={color} className="m-0">
+          {val}
+        </Tag>
+      );
     },
   },
   {
@@ -389,10 +524,10 @@ export const getItemColumns = (
     width: 220,
     ellipsis: true,
     render: (val: string, record: any) => {
-      if (record.inventoryCode === 'MOLD-FEE' && record.partnerProductId) {
+      if (record.inventoryCode === "MOLD-FEE" && record.partnerProductId) {
         return (
           <span>
-            {val || "模具費用"}{' '}
+            {val || "模具費用"}{" "}
             <span className="text-gray-400 text-xs">
               (關聯: {record.partnerProductId})
             </span>
@@ -400,7 +535,7 @@ export const getItemColumns = (
         );
       }
       return val || "-";
-    }
+    },
   },
   {
     title: "單位",
@@ -422,7 +557,8 @@ export const getItemColumns = (
     width: 100,
     align: "right",
     ellipsis: true,
-    render: (val: any) => val != null ? Number(Number(val).toFixed(2)).toLocaleString() : "-",
+    render: (val: any) =>
+      val != null ? Number(Number(val).toFixed(2)).toLocaleString() : "-",
   },
   {
     title: "數量",
@@ -430,7 +566,8 @@ export const getItemColumns = (
     width: 100,
     align: "right",
     ellipsis: true,
-    render: (val: any) => val != null ? Number(Number(val).toFixed(2)).toLocaleString() : "-",
+    render: (val: any) =>
+      val != null ? Number(Number(val).toFixed(2)).toLocaleString() : "-",
   },
   {
     title: "小計",
@@ -438,7 +575,14 @@ export const getItemColumns = (
     width: 120,
     align: "right",
     ellipsis: true,
-    render: (val: any) => val != null ? <span style={{ color: 'var(--ant-color-primary)' }}>{Number(Number(val).toFixed(2)).toLocaleString()}</span> : "-",
+    render: (val: any) =>
+      val != null ? (
+        <span style={{ color: "var(--ant-color-primary)" }}>
+          {Number(Number(val).toFixed(2)).toLocaleString()}
+        </span>
+      ) : (
+        "-"
+      ),
   },
   {
     title: "備註",
@@ -478,13 +622,13 @@ export const getItemFormConfig = (): any[] => [
       options: [
         { label: "一般", value: "OD" },
         { label: "備品", value: "SP" },
-        { label: "其他", value: "OF" }
+        { label: "其他", value: "OF" },
       ],
       disabled: true,
-      style: { width: "100%" }
+      style: { width: "100%" },
     },
     colSpan: 4,
-    editable: "never"
+    editable: "never",
   },
   {
     name: "sourceStorageCode",
@@ -506,8 +650,10 @@ export const getItemFormConfig = (): any[] => [
       setValue("amount", amount);
     },
     componentProps: {
-      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, "") as unknown as number,
+      formatter: (value: any) =>
+        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+      parser: (value: any) =>
+        value!.replace(/\$\s?|(,*)/g, "") as unknown as number,
       style: { width: "100%" },
     },
   },
@@ -524,8 +670,10 @@ export const getItemFormConfig = (): any[] => [
       setValue("amount", amount);
     },
     componentProps: {
-      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, "") as unknown as number,
+      formatter: (value: any) =>
+        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+      parser: (value: any) =>
+        value!.replace(/\$\s?|(,*)/g, "") as unknown as number,
       style: { width: "100%" },
     },
   },
@@ -536,8 +684,10 @@ export const getItemFormConfig = (): any[] => [
     colSpan: 4,
     editable: "never",
     componentProps: {
-      formatter: (value: any) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-      parser: (value: any) => value!.replace(/\$\s?|(,*)/g, "") as unknown as number,
+      formatter: (value: any) =>
+        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+      parser: (value: any) =>
+        value!.replace(/\$\s?|(,*)/g, "") as unknown as number,
       style: { width: "100%" },
     },
   },

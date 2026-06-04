@@ -304,10 +304,10 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
           />
         </div>
       )}
-      {orderData.businessPartnerCode && (
+      {orderData.customerCode && (
         <CustomerProductPickerModal
           open={isPickerOpen}
-          customerCode={orderData.businessPartnerCode}
+          customerCode={orderData.customerCode}
           excludeProductCodes={[]}
           defaultDeliveryDate={orderData.requestedDeliveryDate || undefined}
           initialItems={listData}

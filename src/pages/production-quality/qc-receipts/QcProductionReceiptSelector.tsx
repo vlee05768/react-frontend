@@ -144,7 +144,6 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
         return (
           <InputNumberComponent 
             controls={false} // 移除上下紐
-            allowClear={isSelected}
             min={1} // 最小為1
             max={unQc} // 最大等於未QC量
             value={val} 
@@ -172,7 +171,6 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
               else goodInputRefs.current.delete(record.lineNumber);
             }}
             controls={false} // 移除上下紐
-            allowClear={isSelected}
             min={0} 
             max={batch}
             value={val} 
@@ -198,6 +196,11 @@ export default function QcProductionReceiptSelector({ open, onClose, onConfirm, 
             placeholder="請選擇儲位"
             value={val}
             onChange={(v) => handleRowChange(record.lineNumber, 'goodTargetStorageCode', v)}
+            optionsFilter={(opt) => {
+              const code = String(opt.Code || opt.code || opt.value || '').toUpperCase();
+              const name = String(opt.Name || opt.name || opt.label || opt.displayName || '');
+              return code.includes('TW-FG') || name.includes('成品');
+            }}
             disabled={!isSelected}
             style={{ width: '100%' }}
           />

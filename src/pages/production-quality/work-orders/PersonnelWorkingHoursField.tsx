@@ -160,7 +160,6 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
             min={0}
             precision={2}
             controls={false}
-            allowClear={!disabled}
             value={val}
             disabled={disabled}
             onChange={(newVal: any) => handleUpdate(index, 'hours', newVal)}
@@ -222,7 +221,7 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
           </Space>
         }
         centered
-        destroyOnClose
+        destroyOnHidden
       >
         <div className="mb-4">
           <div>

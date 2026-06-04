@@ -60,7 +60,6 @@ export const FIELD_REGISTRY: Record<string, FieldRenderer> = {
 
     const inputNumberProps = { 
       controls: false, // 預設關閉上下微調按鈕
-      allowClear: true, // 使用元件本身提供的清除功能
       ...restProps 
     };
 

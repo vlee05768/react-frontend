@@ -17,8 +17,6 @@ import { useErpListQuery } from '@/hooks/useErpListQuery';
 import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
 import StandardErpTable from '@/components/Table/StandardErpTable';
 
-const { TabPane } = Tabs;
-
 export default function StorageInventoryList() {
   const { mode } = useThemeStore();
   const [searchParams] = useSearchParams();
@@ -242,90 +240,103 @@ export default function StorageInventoryList() {
             .ant-tabs-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
             .ant-tabs-tabpane { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
           `}</style>
-          <Tabs activeKey={activeTab} onChange={(key) => setActiveTab(key)} style={{ flex: 1 }}>
-            <TabPane tab="依物料分組" key="1">
-              <StandardErpTable
-                rowKey="inventoryCode"
-                loading={isFetching}
-                dataSource={inventoryGroups}
-                columns={inventoryMasterColumns as any}
-                expandable={{
-                  expandedRowKeys: expandedInventoryKeys,
-                  onExpandedRowsChange: setExpandedInventoryKeys,
-                  expandedRowRender: (record) => (
-                    <ConfigProvider
-                      theme={{
-                        components: {
-                          Table: {
-                            colorBgContainer: mode === 'dark' ? '#1a1a1a' : '#f8fafc',
-                            headerBg: mode === 'dark' ? '#262626' : '#e2e8f0',
-                            headerColor: mode === 'dark' ? '#d4d4d4' : '#475569',
-                            borderColor: mode === 'dark' ? '#303030' : '#cbd5e1',
-                          },
-                        },
-                      }}
-                    >
-                      <div className={`mx-4 my-2 p-4 rounded-lg border-l-4 ${mode === 'dark' ? 'bg-[#1a1a1a] border-blue-600 shadow-inner' : 'bg-slate-50 border-blue-500 shadow-sm'}`}>
-                        <div className="mb-3 text-sm font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block"></span>
-                          物料 ({record.inventoryCode}) 於各儲位分布明細
-                        </div>
-                        <StandardErpTable
-                          rowKey={(r) => r.storageCode + r.updatedAt}
-                          columns={subColumnsForInventory as any}
-                          dataSource={record.items}
-                          pagination={false}
-                          size="small"
-                          scroll={{ x: 'max-content' }} />
-                      </div>
-                    </ConfigProvider>
-                  ),
-                }}
-                pagination={false}
-                scroll={{ x: 'max-content', y: 300 }} />
-            </TabPane>
-            <TabPane tab="依儲位分組" key="2">
-              <StandardErpTable
-                rowKey="storageCode"
-                loading={isFetching}
-                dataSource={storageGroups}
-                columns={storageMasterColumns as any}
-                expandable={{
-                  expandedRowKeys: expandedStorageKeys,
-                  onExpandedRowsChange: setExpandedStorageKeys,
-                  expandedRowRender: (record) => (
-                    <ConfigProvider
-                      theme={{
-                        components: {
-                          Table: {
-                            colorBgContainer: mode === 'dark' ? '#1a1a1a' : '#f0fdf4',
-                            headerBg: mode === 'dark' ? '#262626' : '#dcfce7',
-                            headerColor: mode === 'dark' ? '#166534' : '#166534',
-                            borderColor: mode === 'dark' ? '#303030' : '#bbf7d0',
-                          },
-                        },
-                      }}
-                    >
-                      <div className={`mx-4 my-2 p-4 rounded-lg border-l-4 ${mode === 'dark' ? 'bg-[#1a1a1a] border-green-600 shadow-inner' : 'bg-green-50 border-green-500 shadow-sm'}`}>
-                        <div className="mb-3 text-sm font-bold text-green-700 dark:text-green-400 flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
-                          儲位 ({record.storageCode}) 之物料庫存明細
-                        </div>
-                        <StandardErpTable
-                          rowKey={(r) => r.inventoryCode + r.updatedAt}
-                          columns={subColumnsForStorage as any}
-                          dataSource={record.items}
-                          pagination={false}
-                          size="small"
-                          scroll={{ x: 'max-content' }} />
-                      </div>
-                    </ConfigProvider>
-                  ),
-                }}
-                pagination={false}
-                scroll={{ x: 'max-content', y: 300 }} />
-            </TabPane>
-          </Tabs>
+          <Tabs 
+            activeKey={activeTab} 
+            onChange={(key) => setActiveTab(key)} 
+            style={{ flex: 1 }}
+            items={[
+              {
+                key: '1',
+                label: '依物料分組',
+                children: (
+                  <StandardErpTable
+                    rowKey="inventoryCode"
+                    loading={isFetching}
+                    dataSource={inventoryGroups}
+                    columns={inventoryMasterColumns as any}
+                    expandable={{
+                      expandedRowKeys: expandedInventoryKeys,
+                      onExpandedRowsChange: setExpandedInventoryKeys,
+                      expandedRowRender: (record) => (
+                        <ConfigProvider
+                          theme={{
+                            components: {
+                              Table: {
+                                colorBgContainer: mode === 'dark' ? '#1a1a1a' : '#f8fafc',
+                                headerBg: mode === 'dark' ? '#262626' : '#e2e8f0',
+                                headerColor: mode === 'dark' ? '#475569' : '#475569',
+                                borderColor: mode === 'dark' ? '#303030' : '#cbd5e1',
+                              },
+                            },
+                          }}
+                        >
+                          <div className={`mx-4 my-2 p-4 rounded-lg border-l-4 ${mode === 'dark' ? 'bg-[#1a1a1a] border-blue-600 shadow-inner' : 'bg-slate-50 border-blue-500 shadow-sm'}`}>
+                            <div className="mb-3 text-sm font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block"></span>
+                              物料 ({record.inventoryCode}) 於各儲位分布明細
+                            </div>
+                            <StandardErpTable
+                              rowKey={(r) => r.storageCode + r.updatedAt}
+                              columns={subColumnsForInventory as any}
+                              dataSource={record.items}
+                              pagination={false}
+                              size="small"
+                              scroll={{ x: 'max-content' }} />
+                          </div>
+                        </ConfigProvider>
+                      ),
+                    }}
+                    pagination={false}
+                    scroll={{ x: 'max-content', y: 300 }} />
+                )
+              },
+              {
+                key: '2',
+                label: '依儲位分組',
+                children: (
+                  <StandardErpTable
+                    rowKey="storageCode"
+                    loading={isFetching}
+                    dataSource={storageGroups}
+                    columns={storageMasterColumns as any}
+                    expandable={{
+                      expandedRowKeys: expandedStorageKeys,
+                      onExpandedRowsChange: setExpandedStorageKeys,
+                      expandedRowRender: (record) => (
+                        <ConfigProvider
+                          theme={{
+                            components: {
+                              Table: {
+                                colorBgContainer: mode === 'dark' ? '#1a1a1a' : '#f0fdf4',
+                                headerBg: mode === 'dark' ? '#262626' : '#dcfce7',
+                                headerColor: mode === 'dark' ? '#166534' : '#166534',
+                                borderColor: mode === 'dark' ? '#303030' : '#bbf7d0',
+                              },
+                            },
+                          }}
+                        >
+                          <div className={`mx-4 my-2 p-4 rounded-lg border-l-4 ${mode === 'dark' ? 'bg-[#1a1a1a] border-green-600 shadow-inner' : 'bg-green-50 border-green-500 shadow-sm'}`}>
+                            <div className="mb-3 text-sm font-bold text-green-700 dark:text-green-400 flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
+                              儲位 ({record.storageCode}) 之物料庫存明細
+                            </div>
+                            <StandardErpTable
+                              rowKey={(r) => r.inventoryCode + r.updatedAt}
+                              columns={subColumnsForStorage as any}
+                              dataSource={record.items}
+                              pagination={false}
+                              size="small"
+                              scroll={{ x: 'max-content' }} />
+                          </div>
+                        </ConfigProvider>
+                      ),
+                    }}
+                    pagination={false}
+                    scroll={{ x: 'max-content', y: 300 }} />
+                )
+              }
+            ]}
+          />
         </div>
       </PageCard>
     </div>
