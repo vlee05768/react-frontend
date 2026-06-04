@@ -139,12 +139,14 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     name: "businessPartnerName",
     width: 240,
     render: (val: string, record: any) => {
-      const code = record.businessPartnerCode;
-      const name = val || code || "-";
-      if (!code) return "-";
+      const customerCode = record.customerCode; // 客戶編號
+      const bpCode = record.businessPartnerCode; // 夥伴編號
+      const displayCode = customerCode || bpCode;
+      const name = val && displayCode ? `[${displayCode}] ${val}` : (val || displayCode || "-");
+      if (!bpCode) return "-";
       return (
         <Link 
-          to={`/basic/business-partners/${code}`} 
+          to={`/basic/business-partners/${bpCode}`} 
           style={{ 
             color: '#1677ff', 
             textDecoration: 'underline',
@@ -448,19 +450,21 @@ export const productSearchFormConfig = (): SearchFieldConfig[] => [
 ];
 
 export const productMoldTableColumns = (): TableColumnConfig[] => [
-  { name: 'moldCode', label: '模具編號', width: 140 },
-  { name: 'moldName', label: '模具名稱', width: 180 },
+  { name: 'moldCode', label: '模具編號', width: 140, ellipsis: true },
+  { name: 'moldName', label: '模具名稱', width: 180, ellipsis: true },
   { 
     name: 'type', 
     label: '模具類別', 
     width: 100,
-    render: (val: any, record: any) => <DictLabel dictKey="MOLD_TYPE" value={val || record.typeName} />
+    render: (val: any, record: any) => <DictLabel dictKey="MOLD_TYPE" value={val || record.typeName} />,
+    ellipsis: true
   },
   { 
     name: 'shape', 
     label: '形狀', 
     width: 100, 
-    render: (val: any, record: any) => <DictLabel dictKey="MOLD_SHAPE" value={val || record.shapeName} /> 
+    render: (val: any, record: any) => <DictLabel dictKey="MOLD_SHAPE" value={val || record.shapeName} />,
+    ellipsis: true
   },
   { 
     name: 'dimensions', 
@@ -471,9 +475,10 @@ export const productMoldTableColumns = (): TableColumnConfig[] => [
         return `${record.dimensionLMm || 0} x ${record.dimensionWMm || 0} x ${record.dimensionHMm || 0}`;
       }
       return '-';
-    }
+    },
+    ellipsis: true
   },
-  { name: 'supplierName', label: '供應商', width: 150, render: (val: string) => val || '-' },
+  { name: 'supplierName', label: '供應商', width: 150, render: (val: string) => val || '-', ellipsis: true },
   { 
     name: 'isActive', 
     label: '狀態', 

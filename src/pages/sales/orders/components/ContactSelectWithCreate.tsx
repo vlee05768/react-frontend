@@ -127,7 +127,7 @@ export const ContactSelectWithCreate: React.FC<ContactSelectWithCreateProps> = (
           loading={isFetching}
           options={options}
           allowClear
-          placeholder={hasNoContacts ? "沒有任何聯絡人，請新增聯絡人" : "請選擇聯絡人"}
+          placeholder={(disabled && (value === null || value === undefined)) ? "" : (hasNoContacts ? "沒有任何聯絡人，請新增聯絡人" : "請選擇聯絡人")}
           notFoundContent={hasNoContacts ? "沒有任何聯絡人" : undefined}
           showSearch
           filterOption={(input, option) =>

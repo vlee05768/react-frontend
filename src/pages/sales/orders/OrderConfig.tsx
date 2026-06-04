@@ -8,6 +8,8 @@ import dayjs from "dayjs";
 import { ContactSelectWithCreate } from "./components/ContactSelectWithCreate";
 import { DictLabel } from "@/components/Form/DictLabel";
 import { DictTag } from "@/components/Form/DictTag";
+import { Link } from "react-router-dom";
+import { EllipsisText } from "@/components/Table/EllipsisText";
 
 export const getStatusTag = (status: string | null | undefined, closeDate?: string | null) => {
   if (status === 'Finished') {
@@ -109,15 +111,28 @@ export const getColumns = (): TableColumnConfig<OrderDto>[] => [
   },
 
   {
-    label: "客戶代碼",
-    name: "businessPartnerCode",
-    width: 120,
-  },
-  {
-    label: "客戶名稱",
+    label: "客戶",
     name: "businessPartnerName",
-    width: 180,
-    ellipsis: true,
+    width: 240,
+    render: (val: string, record: any) => {
+      const customerCode = record.customerCode || record.businessPartnerCode;
+      const bpCode = record.businessPartnerCode;
+      const displayCode = customerCode || bpCode;
+      const name = val && displayCode ? `[${displayCode}] ${val}` : (val || displayCode || "-");
+      if (!bpCode) return "-";
+      return (
+        <Link 
+          to={`/basic/business-partners/${bpCode}`} 
+          style={{ 
+            color: '#1677ff', 
+            textDecoration: 'underline',
+            cursor: 'pointer'
+          }}
+        >
+          <EllipsisText text={name} maxWidth={220} />
+        </Link>
+      );
+    },
   },
   {
     label: "小計",

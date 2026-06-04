@@ -49,6 +49,33 @@ export function generateTableColumns<TValues>(
         };
       }
 
+      // 預設將未自訂 render 的數值欄位進行內容格式化 (千分位、最多4位小數、空值 blank 處理)
+      const isNumericField = 
+        tableProps.align === 'right' || 
+        defaultAlign === 'right' ||
+        config.componentType === 'InputNumber' ||
+        /qty|quantity|price|amount|total|tax|sum|subtotal|count|rate|weight/i.test(String(config.name));
+
+      if (isNumericField && !render) {
+        render = (value: any) => {
+          if (value === null || value === undefined || value === '') {
+            return '';
+          }
+          const num = Number(value);
+          return isNaN(num) ? value : num.toLocaleString('zh-TW', { maximumFractionDigits: 4 });
+        };
+      }
+
+      // 預設所有 Table column 欄位皆加上 ellipsis: true
+      const isEllipsis = tableProps.ellipsis !== false;
+      if (isEllipsis) {
+        const originalRender = render;
+        render = (value: any, record: any, index: number) => {
+          const content = originalRender ? originalRender(value, record, index) : value;
+          return React.createElement(EllipsisText, { text: content, maxWidth: tableProps.width ? (typeof tableProps.width === 'number' ? tableProps.width - 32 : 300) : 300 });
+        };
+      }
+
       return {
         title,
         dataIndex: config.name,
@@ -58,6 +85,7 @@ export function generateTableColumns<TValues>(
         render: render,
         sorter: tableProps.sortable === true ? true : (tableProps.sortable ? tableProps.sortable : undefined),
         fixed: tableProps.fixed,
+        ellipsis: isEllipsis,
       };
     });
 
@@ -163,9 +191,24 @@ export function buildTableColumns<TValues>(
       };
     }
 
-    // 若設定了 ellipsis 且沒有提供自訂 render，或是在 custom render 之外想套用 tooltip
-    // 在這裡我們可以覆寫 render，讓它自動包裝 EllipsisText
-    if (config.ellipsis) {
+    // 預設將未自訂 render 的數值欄位進行內容格式化 (千分位、最多4位小數、空值 blank 處理)
+    const isNumericField = 
+      config.align === 'right' || 
+      /qty|quantity|price|amount|total|tax|sum|subtotal|count|rate|weight/i.test(String(config.name));
+
+    if (isNumericField && !render) {
+      render = (value: any) => {
+        if (value === null || value === undefined || value === '') {
+          return '';
+        }
+        const num = Number(value);
+        return isNaN(num) ? value : num.toLocaleString('zh-TW', { maximumFractionDigits: 4 });
+      };
+    }
+
+    // 預設所有 Table column 欄位皆加上 ellipsis: true
+    const isEllipsis = config.ellipsis !== false;
+    if (isEllipsis) {
       const originalRender = render;
       render = (value: any, record: TValues, index: number) => {
         // 如果原本就有提供 render，先取得它的結果，否則直接使用 value
@@ -196,6 +239,7 @@ export function buildTableColumns<TValues>(
       sorter: config.sortable === true ? true : (config.sortable ? config.sortable : undefined),
       sortOrder: config.sortable ? currentSortOrder : undefined,
       fixed: config.fixed,
+      ellipsis: isEllipsis,
     };
   });
 

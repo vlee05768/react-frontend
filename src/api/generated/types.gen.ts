@@ -1531,6 +1531,10 @@ export type CreateSalesDeliveryDto = {
      */
     businessPartnerCode?: string | null;
     /**
+     * 商業夥伴角色的特定交易代碼
+     */
+    partnerRoleCode?: string | null;
+    /**
      * 聯絡人ID
      */
     partnerContactId?: number | null;
@@ -3639,6 +3643,10 @@ export type OrderDto = {
      */
     businessPartnerCode?: string | null;
     /**
+     * 客戶專屬代碼
+     */
+    customerCode?: string | null;
+    /**
      * 客戶名稱
      */
     businessPartnerName?: string | null;
@@ -4791,6 +4799,10 @@ export type PurchaseOrderDto = {
      */
     businessPartnerCode?: string | null;
     /**
+     * 供應商專屬代碼
+     */
+    supplierCode?: string | null;
+    /**
      * 供應商名稱
      */
     businessPartnerName?: string | null;
@@ -5418,6 +5430,10 @@ export type SalesDeliveryDto = {
      * 交易對象代碼
      */
     businessPartnerCode?: string | null;
+    /**
+     * 商業夥伴角色的特定交易代碼
+     */
+    partnerRoleCode?: string | null;
     /**
      * 交易對象名稱
      */
@@ -7245,6 +7261,10 @@ export type UpdateSalesDeliveryDto = {
      */
     businessPartnerCode?: string | null;
     /**
+     * 商業夥伴角色的特定交易代碼
+     */
+    partnerRoleCode?: string | null;
+    /**
      * 聯絡人ID
      */
     partnerContactId?: number | null;
@@ -8638,6 +8658,10 @@ export type OrderDtoWritable = {
      */
     businessPartnerCode?: string | null;
     /**
+     * 客戶專屬代碼
+     */
+    customerCode?: string | null;
+    /**
      * 客戶名稱
      */
     businessPartnerName?: string | null;
@@ -9215,6 +9239,10 @@ export type SalesDeliveryDtoWritable = {
      * 交易對象代碼
      */
     businessPartnerCode?: string | null;
+    /**
+     * 商業夥伴角色的特定交易代碼
+     */
+    partnerRoleCode?: string | null;
     /**
      * 交易對象名稱
      */

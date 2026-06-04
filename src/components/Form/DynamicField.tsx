@@ -128,6 +128,7 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
           ...field,
           id: fieldId, // 確保元件有 ID 供自動 focus
           ...safeComponentProps,
+          placeholder: (isViewMode && (field.value === null || field.value === undefined || field.value === '')) ? '' : safeComponentProps?.placeholder,
           className: safeComponentProps?.className ? `${safeComponentProps.className} w-full` : 'w-full',
           onChange: handleChange,
           onBlur: handleBlur,

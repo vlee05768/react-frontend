@@ -45,6 +45,12 @@ export default function StandardErpTable<RecordType extends object>({
         .ant-table-body { flex: 1; overflow-x: auto !important; overflow-y: auto !important; max-height: none !important; }
         .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
         .ant-table-thead > tr > th { text-align: center !important; }
+        .ant-table-cell-ellipsis, .ant-table-cell-ellipsis * {
+          white-space: nowrap !important;
+          overflow: hidden !important;
+          text-overflow: ellipsis !important;
+          max-width: 100% !important;
+        }
         .selected-table-row > td { background-color: ${token.controlItemBgActive} !important; }
         .deleting-row-highlight > td { background-color: ${token.colorErrorBg} !important; opacity: 0.6; }
       `}</style>

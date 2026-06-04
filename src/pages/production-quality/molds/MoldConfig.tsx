@@ -37,19 +37,19 @@ export const mainFormConfig = (): FormFieldConfig[] => [
 ];
 
 export const mainTableColumns = (): TableColumnConfig[] => [
-  { ...mainDictionary.code, sortable: { multiple: 1 }, width: 140 },
-  { ...mainDictionary.name, sortable: { multiple: 2 }, width: 220 },
-  { ...mainDictionary.isShareable, width: 100, align: 'center', render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{ color: 'green' }} /> : (v === false ? <CloseOutlined style={{ color: 'red' }} /> : null) },
-  { ...mainDictionary.type, sortable: { multiple: 3 }, width: 100, render: (v: any) => <DictLabel dictKey="MOLD_TYPE" value={v} /> },
-  { ...mainDictionary.supplierCode, width: 210, render: (v: any) => <DictLabel dictKey="TOOLING_SUPPLIER" value={v} /> },
-  { ...mainDictionary.shape, width: 100, render: (v: any) => <DictLabel dictKey="MOLD_SHAPE" value={v} /> },
-  { ...mainDictionary.dimensionLMm, width: 120, align: 'right' },
-  { ...mainDictionary.dimensionWMm, width: 120, align: 'right' },
-  { ...mainDictionary.dimensionHMm, width: 120, align: 'right' },
-  { ...mainDictionary.availableProductionQuantity, width: 130, align: 'right' },
-  { ...mainDictionary.totalProductionQuantity, width: 130, align: 'right' },
-  { ...mainDictionary.description, width: 200 },
-  { ...mainDictionary.notes, width: 200 },
+  { ...mainDictionary.code, sortable: { multiple: 1 }, width: 150, ellipsis: true },
+  { ...mainDictionary.name, sortable: { multiple: 2 }, width: 220, ellipsis: true },
+  { ...mainDictionary.isShareable, width: 80, align: 'center', render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{ color: 'green' }} /> : (v === false ? <CloseOutlined style={{ color: 'red' }} /> : null) },
+  { ...mainDictionary.type, sortable: { multiple: 3 }, width: 100, render: (v: any) => <DictLabel dictKey="MOLD_TYPE" value={v} />, ellipsis: true },
+  { ...mainDictionary.supplierCode, width: 210, render: (v: any) => <DictLabel dictKey="TOOLING_SUPPLIER" value={v} />, ellipsis: true },
+  { ...mainDictionary.shape, width: 100, render: (v: any) => <DictLabel dictKey="MOLD_SHAPE" value={v} />, ellipsis: true },
+  { ...mainDictionary.dimensionLMm, width: 120, align: 'right', ellipsis: true },
+  { ...mainDictionary.dimensionWMm, width: 120, align: 'right', ellipsis: true },
+  { ...mainDictionary.dimensionHMm, width: 120, align: 'right', ellipsis: true },
+  { ...mainDictionary.availableProductionQuantity, width: 130, align: 'right', ellipsis: true },
+  { ...mainDictionary.totalProductionQuantity, width: 130, align: 'right', ellipsis: true },
+  { ...mainDictionary.description, width: 200, ellipsis: true },
+  { ...mainDictionary.notes, width: 200, ellipsis: true },
 ];
 
 export const detailDictionaries = {} as const;
