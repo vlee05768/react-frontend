@@ -4285,6 +4285,10 @@ export type ProductDto = {
      */
     businessPartnerCode?: string | null;
     /**
+     * 客戶編號
+     */
+    customerCode?: string | null;
+    /**
      * 客戶名稱
      */
     businessPartnerName?: string | null;

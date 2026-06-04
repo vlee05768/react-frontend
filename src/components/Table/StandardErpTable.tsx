@@ -57,6 +57,7 @@ export default function StandardErpTable<RecordType extends object>({
       
       <Table<RecordType>
         bordered
+        tableLayout="fixed"
         scroll={{ x: 'max-content', y: 300 }} // y: 300 為觸發 .ant-table-body 高度自適應的關鍵，不可移除
         rowClassName={(record, index) => {
           const r = record as any;
