@@ -130,7 +130,7 @@ export default function Dashboard() {
             })}
             {renderKpiCard({
               permissionKey: 'ProductionQuality.WorkOrders.View',
-              path: '/production/workorders?status=Draft',
+              path: '/production-quality/work-orders?status=Draft',
               borderColorClass: 'bg-red-500',
               title: '未開工製令',
               value: pendingTasks.draftWorkOrders ?? 0,
@@ -138,7 +138,7 @@ export default function Dashboard() {
             })}
             {renderKpiCard({
               permissionKey: 'ProductionQuality.WorkOrders.View',
-              path: '/production/workorders?status=StartedUnwarehoused',
+              path: '/production-quality/work-orders?status=StartedUnwarehoused',
               borderColorClass: 'bg-blue-500',
               title: '開工未完工',
               value: pendingTasks.inPrepWorkOrders ?? 0,
@@ -162,7 +162,7 @@ export default function Dashboard() {
             })}
             {renderKpiCard({
               permissionKey: 'Sales.Deliveries.View',
-              path: '/sales/salesdeliveries?shippedConfirmed=false',
+              path: '/sales/sales-deliveries?shippedConfirmed=false',
               borderColorClass: 'bg-yellow-500',
               title: '銷貨未出庫 (SD)',
               value: pendingTasks.notShippedSalesDeliveries ?? 0,
@@ -205,12 +205,12 @@ export default function Dashboard() {
               <div className="flex flex-col gap-2">
                 {renderSubButton({
                   permissionKey: 'BasicData.BusinessPartners.View',
-                  path: '/business-partners',
+                  path: '/basic/business-partners',
                   label: '🤝 商業夥伴管理'
                 })}
                 {renderSubButton({
                   permissionKey: 'BasicData.Employees.View',
-                  path: '/employee',
+                  path: '/basic/employees',
                   label: '🧑‍💼 員工資料'
                 })}
               </div>
@@ -237,7 +237,7 @@ export default function Dashboard() {
                 })}
                 {renderSubButton({
                   permissionKey: 'Sales.Deliveries.View',
-                  path: '/sales/salesdeliveries',
+                  path: '/sales/sales-deliveries',
                   label: '🚚 銷貨單維護'
                 })}
                 {renderSubButton({
@@ -281,7 +281,7 @@ export default function Dashboard() {
               <div className="flex flex-col gap-2">
                 {renderSubButton({
                   permissionKey: 'ProductionQuality.WorkOrders.View',
-                  path: '/production/workorders',
+                  path: '/production-quality/work-orders',
                   label: '📋 製令 (WO)'
                 })}
                 {renderSubButton({
@@ -343,7 +343,7 @@ export default function Dashboard() {
                 })}
                 {renderSubButton({
                   permissionKey: 'Warehouse.Materials.View',
-                  path: '/purchase/materials',
+                  path: '/warehouse/materials',
                   label: '🧰 原物料管理'
                 })}
                 {renderSubButton({

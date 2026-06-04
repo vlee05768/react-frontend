@@ -31,41 +31,41 @@ const withSuspense = <P extends object>(
 };
 
 // 延遲載入頁面組件
-const Employee = withSuspense(lazy(() => import('@/pages/basic/Employee')));
+const Employee = withSuspense(lazy(() => import('@/pages/basic/employees')));
 const Profile = withSuspense(lazy(() => import('@/pages/system/Profile')));
 const UserList = withSuspense(lazy(() => import('@/pages/system/UserList')));
 const RoleList = withSuspense(lazy(() => import('@/pages/system/RoleList')));
 const SystemMaintenance = withSuspense(lazy(() => import('@/pages/system/SystemMaintenance')));
-const GeneralTypeLayout = withSuspense(lazy(() => import('@/pages/system/GeneralType/GeneralTypeLayout')));
-const StorageList = withSuspense(lazy(() => import('@/pages/warehouse/StorageList')));
-const StorageInventoryList = withSuspense(lazy(() => import('@/pages/warehouse/StorageInventory/StorageInventoryList')));
-const StorageTransactionsList = withSuspense(lazy(() => import('@/pages/warehouse/StorageTransactions/StorageTransactionsList')));
+const GeneralTypeLayout = withSuspense(lazy(() => import('@/pages/system/general-types/GeneralTypeLayout')));
+const StorageList = withSuspense(lazy(() => import('@/pages/warehouse/storages/StorageList')));
+const StorageInventoryList = withSuspense(lazy(() => import('@/pages/warehouse/inventory/StorageInventoryList')));
+const StorageTransactionsList = withSuspense(lazy(() => import('@/pages/warehouse/inventory-movements/StorageTransactionsList')));
 const ProductsList = withSuspense(lazy(() => import('@/pages/warehouse/Products/ProductsList')));
-const InventoryAdjustmentList = withSuspense(lazy(() => import('@/pages/warehouse/InventoryAdjustment/InventoryAdjustmentList')));
+const InventoryAdjustmentList = withSuspense(lazy(() => import('@/pages/warehouse/inventory-adjustments/InventoryAdjustmentList')));
 const BrandModelsLayout = withSuspense(lazy(() => import('@/pages/warehouse/BrandModels/BrandModelsLayout')));
 const OrdersList = withSuspense(lazy(() => import('@/pages/sales/orders/OrdersList')));
-const SalesDeliveriesList = withSuspense(lazy(() => import('@/pages/sales/salesdeliveries/SalesDeliveriesList')));
-const SalesDeliveryDrawer = withSuspense(lazy(() => import('@/pages/sales/salesdeliveries/SalesDeliveryDrawer')));
-const CustomerStatementList = withSuspense(lazy(() => import('@/pages/sales/customerstatement/CustomerStatementList')));
+const SalesDeliveriesList = withSuspense(lazy(() => import('@/pages/sales/sales-deliveries/SalesDeliveriesList')));
+const SalesDeliveryDrawer = withSuspense(lazy(() => import('@/pages/sales/sales-deliveries/SalesDeliveryDrawer')));
+const CustomerStatementList = withSuspense(lazy(() => import('@/pages/sales/statements/CustomerStatementList')));
 const OrderDrawer = withSuspense(lazy(() => import('@/pages/sales/orders/OrderDrawer')));
-const MaterialList = withSuspense(lazy(() => import('@/pages/purchase/Material/MaterialList')));
-const MoldList = withSuspense(lazy(() => import('@/pages/production/MoldList')));
-const MachineList = withSuspense(lazy(() => import('@/pages/production/MachineList')));
+const MaterialList = withSuspense(lazy(() => import('@/pages/warehouse/materials/MaterialList')));
+const MoldList = withSuspense(lazy(() => import('@/pages/production-quality/molds/MoldList')));
+const MachineList = withSuspense(lazy(() => import('@/pages/production-quality/machines/MachineList')));
 
 // Named export 延遲載入
 const WorkOrdersList = withSuspense(
   lazy(() =>
-    import('@/pages/production/workorders/WorkOrdersList').then((module) => ({
+    import('@/pages/production-quality/work-orders/WorkOrdersList').then((module) => ({
       default: module.WorkOrdersList,
     }))
   )
 );
 
-const QcReceiptsList = withSuspense(lazy(() => import('@/pages/quality/qcreceipt/QcReceiptsList')));
-const QcReceiptDrawer = withSuspense(lazy(() => import('@/pages/quality/qcreceipt/QcReceiptDrawer')));
-const ProductionReceiptsList = withSuspense(lazy(() => import('@/pages/quality/productionreceipt/ProductionReceiptsList')));
-const ProductionReceiptDrawer = withSuspense(lazy(() => import('@/pages/quality/productionreceipt/ProductionReceiptDrawer')));
-const BusinessPartnerList = withSuspense(lazy(() => import('@/pages/basic/BusinessPartner/BusinessPartnerList')));
+const QcReceiptsList = withSuspense(lazy(() => import('@/pages/production-quality/qc-receipts/QcReceiptsList')));
+const QcReceiptDrawer = withSuspense(lazy(() => import('@/pages/production-quality/qc-receipts/QcReceiptDrawer')));
+const ProductionReceiptsList = withSuspense(lazy(() => import('@/pages/production-quality/production-receipts/ProductionReceiptsList')));
+const ProductionReceiptDrawer = withSuspense(lazy(() => import('@/pages/production-quality/production-receipts/ProductionReceiptDrawer')));
+const BusinessPartnerList = withSuspense(lazy(() => import('@/pages/basic/business-partners/BusinessPartnerList')));
 
 // 路由守衛
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -97,7 +97,7 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Dashboard /> },
-      { path: 'employee/:viewId?', element: <Employee /> },
+      { path: 'basic/employees/:viewId?', element: <Employee /> },
       { path: 'profile', element: <Profile /> },
       { path: 'system/users/:viewId?', element: <UserList /> },
       { path: 'system/roles/:viewId?', element: <RoleList /> },
@@ -109,21 +109,21 @@ export const router = createBrowserRouter([
       { path: 'warehouse/products/:viewId?', element: <ProductsList /> },
       { path: 'warehouse/inventory-adjustments/:viewId?', element: <InventoryAdjustmentList /> },
       { path: 'warehouse/brand-models', element: <BrandModelsLayout /> },
-      { path: 'purchase/materials/:viewId?', element: <MaterialList /> },
+      { path: 'warehouse/materials/:viewId?', element: <MaterialList /> },
       { path: 'production-quality/molds/:viewId?', element: <MoldList /> },
       { path: 'production-quality/machines/:viewId?', element: <MachineList /> },
-      { path: 'production/workorders/:viewId?', element: <WorkOrdersList /> },
+      { path: 'production-quality/work-orders/:viewId?', element: <WorkOrdersList /> },
       { path: 'production-quality/qc-receipts', element: <QcReceiptsList /> },
       { path: 'production-quality/qc-receipts/:id', element: <><QcReceiptsList /><QcReceiptDrawer /></> },
       { path: 'production-quality/production-receipts', element: <ProductionReceiptsList /> },
       { path: 'production-quality/production-receipts/:id', element: <><ProductionReceiptsList /><ProductionReceiptDrawer /></> },
       { path: 'sales/orders', element: <OrdersList /> },
       { path: 'sales/orders/:id', element: <><OrdersList /><OrderDrawer /></> },
-      { path: 'sales/salesdeliveries', element: <SalesDeliveriesList /> },
-      { path: 'sales/salesdeliveries/:id', element: <><SalesDeliveriesList /><SalesDeliveryDrawer /></> },
+      { path: 'sales/sales-deliveries', element: <SalesDeliveriesList /> },
+      { path: 'sales/sales-deliveries/:id', element: <><SalesDeliveriesList /><SalesDeliveryDrawer /></> },
       { path: 'sales/statements', element: <CustomerStatementList /> },
 
-      { path: 'business-partners/:viewId?', element: <BusinessPartnerList /> },
+      { path: 'basic/business-partners/:viewId?', element: <BusinessPartnerList /> },
     ]
   },
   { path: ROUTES.FORBIDDEN, element: <Forbidden /> },

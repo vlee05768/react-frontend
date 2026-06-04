@@ -492,7 +492,7 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
       open={true}
       onClose={() => {
         if (onClose) onClose();
-        navigate('/production/workorders');
+        navigate('/production-quality/work-orders');
       }}
       size={DRAWER_WIDTH_MAIN as any}
       

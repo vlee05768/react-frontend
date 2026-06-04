@@ -148,14 +148,14 @@ export default function BusinessPartnerList() {
 
   const openViewDrawer = (record: any) => {
     setActiveTab('master_info');
-    navigate(`/business-partners/${record.code}`);
+    navigate(`/basic/business-partners/${record.code}`);
   };
 
   const closeViewDrawer = () => {
     setIsCreateDrawerOpen(false);
     setIsDrawerEditing(false);
     if (viewId) {
-      navigate('/business-partners');
+      navigate('/basic/business-partners');
     }
   };
 

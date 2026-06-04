@@ -144,9 +144,9 @@ export default function Profile() {
     if (documentType === 'SalesOrder' || documentType === 'Order') {
       navigate(`/sales/orders/${documentKey}`);
     } else if (documentType === 'SalesDelivery') {
-      navigate(`/sales/salesdeliveries/${documentKey}`);
+      navigate(`/sales/sales-deliveries/${documentKey}`);
     } else if (documentType === 'WorkOrder') {
-      navigate(`/production/workorders/${documentKey}`);
+      navigate(`/production-quality/work-orders/${documentKey}`);
     } else if (documentType === 'ProductionReceipt') {
       navigate(`/production-quality/production-receipts/${documentKey}`);
     }

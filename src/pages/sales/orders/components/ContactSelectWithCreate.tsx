@@ -8,7 +8,7 @@ import {
   getApiV1CustomersByCode
 } from '@/api/generated/sdk.gen';
 import { DynamicForm } from '@/components/Form/DynamicForm';
-import { contactFormConfig } from '@/pages/basic/BusinessPartner/ContactConfig';
+import { contactFormConfig } from '@/pages/basic/business-partners/ContactConfig';
 import { getApiErrorMessage } from '@/utils/apiError';
 
 interface ContactSelectWithCreateProps {

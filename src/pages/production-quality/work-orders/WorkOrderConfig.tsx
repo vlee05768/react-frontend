@@ -152,7 +152,7 @@ export const tableColumns: TableColumnConfig[] = [
       if (!val) return "-";
       return (
         <Link
-          to={`/business-partners/${val}`}
+          to={`/basic/business-partners/${val}`}
           style={{
             color: '#1677ff',
             textDecoration: 'underline',

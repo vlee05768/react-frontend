@@ -80,7 +80,7 @@ export default function SalesDeliveryDrawer() {
         <Space>
           <Button key="save" type="primary" onClick={() => (document.getElementById("salesDeliveryForm") as HTMLFormElement)?.requestSubmit()} loading={isSaving}>儲存</Button>
           <Button key="cancel" onClick={() => {
-            if (isCreating) navigate('/sales/salesdeliveries');
+            if (isCreating) navigate('/sales/sales-deliveries');
             else setIsEditing(false);
           }}>取消</Button>
         </Space>
@@ -197,9 +197,9 @@ export default function SalesDeliveryDrawer() {
         queryClient.invalidateQueries({ queryKey: ['salesdeliveries'] });
         const newId = (res.data as any)?.data?.documentNumber || (res.data as any)?.documentNumber;
         if (newId) {
-          navigate(`/sales/salesdeliveries/${newId}`, { replace: true });
+          navigate(`/sales/sales-deliveries/${newId}`, { replace: true });
         } else {
-          navigate('/sales/salesdeliveries');
+          navigate('/sales/sales-deliveries');
         }
       } else {
         await putApiV1SalesDeliveryByMovementNumber({ path: { movementNumber: id! }, body: data });
@@ -275,7 +275,7 @@ export default function SalesDeliveryDrawer() {
         />
       }
       open={true}
-      onClose={() => navigate('/sales/salesdeliveries')}
+      onClose={() => navigate('/sales/sales-deliveries')}
       size={DRAWER_WIDTH_MAIN as any}
       extra={getHeaderActions()}
       mask={{ closable: isViewMode }}

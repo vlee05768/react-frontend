@@ -2,51 +2,40 @@
 import PageCard from '@/components/common/PageCard';
 import { getApiErrorMessage } from "@/utils/apiError";
 import { useParams, useNavigate } from 'react-router-dom';
-import { DynamicForm } from '@/components/Form/DynamicForm';
-import { DrawerTitle } from '@/components/Form/DrawerTitle';
-import { employeeFormConfig, employeeTableColumns, employeeSearchConfig } from './EmployeeConfig';
-import { buildTableColumns, formatSorterToRules, getColumnLabel } from '@/utils/tableUtils';
-import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
-import { useErpListQuery } from '@/hooks/useErpListQuery';
-import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
-import StandardErpTable from '@/components/Table/StandardErpTable';
-
-import { useState, useRef, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import type { InputRef } from 'antd';
-import { App , Popconfirm} from 'antd';
-import { Spin, Table, Button, Modal, Form, Input, Select, Space, Tag, Tooltip, Row, Col, message, Drawer, Descriptions, Switch, Divider } from 'antd';
+import { useState, useEffect } from 'react';
+import { Spin, Button, Modal, Space, Divider, message, Drawer, App } from 'antd';
 import {
-  SearchOutlined,
-  PlusOutlined,
-  EditOutlined,
-  ClearOutlined,
-  SaveOutlined,
-  AppstoreOutlined,
-  CheckOutlined,
-  CloseOutlined
+  SearchOutlined, PlusOutlined, EditOutlined, ClearOutlined, SaveOutlined
 } from '@ant-design/icons';
 import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
-  getApiV1Employee, 
-  getApiV1EmployeeById,
-  postApiV1Employee,
-  putApiV1EmployeeById,
-  deleteApiV1EmployeeById
+  getApiV1Material, 
+  getApiV1MaterialByCode,
+  postApiV1Material,
+  putApiV1MaterialByCode,
+  deleteApiV1MaterialByCode
 } from '@/api/generated/sdk.gen';
-import { DictLabel } from '@/components/Form/DictLabel';
-import { DictSelect } from '@/components/Form/DictSelect';
-import { useEmployeeQueryStore } from '@/stores/employeeStore';
+
+import { useMaterialQueryStore } from '@/stores/purchaseStore';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';;
+import { DynamicForm } from '@/components/Form/DynamicForm';
+import { DrawerTitle } from '@/components/Form/DrawerTitle';
+import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
+import { useErpListQuery } from '@/hooks/useErpListQuery';
+import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
+import StandardErpTable from '@/components/Table/StandardErpTable';
+import { mainFormConfig, mainTableColumns, materialSearchFormConfig } from './MaterialConfig';
+import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
+import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
+import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 import { ActionBar } from '@/components/common/ActionBar';
 
-export default function EmployeeList() {
+export default function MaterialList() {
   const { modal } = App.useApp();
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
-  const { params, setParams, resetParams } = useEmployeeQueryStore();
+  const { params, setParams, resetParams } = useMaterialQueryStore();
   const { hasPermission } = useAuthStore();
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
@@ -54,10 +43,12 @@ export default function EmployeeList() {
     params,
     setParams,
   });
+
   const [formDefaultValues, setFormDefaultValues] = useState<any>({});
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
-  
+  const [activeTab, setActiveTab] = useState('master_info');
+
   useEffect(() => {
     if (isCreateDrawerOpen || isDrawerEditing) {
       setTimeout(() => {
@@ -68,15 +59,21 @@ export default function EmployeeList() {
       }, ANIMATION_DELAY_MS);
     }
   }, [isCreateDrawerOpen, isDrawerEditing]);
-  
+
+  useEffect(() => {
+    if (isDrawerEditing || isCreateDrawerOpen) {
+      setActiveTab('master_info');
+    }
+  }, [isDrawerEditing, isCreateDrawerOpen]);
+
   const queryClient = useQueryClient();
   const { viewId } = useParams<{ viewId: string }>();
   const navigate = useNavigate();
 
   // 單筆資料查詢 (Drawer)
   const { data: viewRes, isFetching: isFetchingView } = useQuery({
-    queryKey: ['employeeDetail', viewId],
-    queryFn: () => getApiV1EmployeeById({ path: { id: viewId as any } }),
+    queryKey: ['materialDetail', viewId],
+    queryFn: () => getApiV1MaterialByCode({ path: { code: viewId as any } }),
     enabled: !!viewId,
   });
   const viewData = (viewRes?.data?.data || viewRes?.data) as any;
@@ -96,9 +93,9 @@ export default function EmployeeList() {
 
   // API 查詢
   const { data, isFetching } = useQuery({
-    queryKey: ['employeeList', params],
+    queryKey: ['materialList', params],
     queryFn: () =>
-      getApiV1Employee({
+      getApiV1Material({
         query: params as any,
       }),
   });
@@ -108,15 +105,14 @@ export default function EmployeeList() {
   const currentPage = (data?.data as any)?.data?.pageNumber || params.pageNumber;
   const currentPageSize = (data?.data as any)?.data?.pageSize || params.pageSize;
 
-
   // Mutations
   const createMutation = useMutation({
-    mutationFn: (values: any) => postApiV1Employee({ body: values }),
+    mutationFn: (values: any) => postApiV1Material({ body: values }),
     onSuccess: () => {
       message.success('新增成功');
       setIsCreateDrawerOpen(false);
       setFormDefaultValues({});
-      queryClient.invalidateQueries({ queryKey: ['employeeList'] });
+      queryClient.invalidateQueries({ queryKey: ['materialList'] });
     },
     onError: (error: any) => {
       Modal.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(error)}` });
@@ -124,14 +120,14 @@ export default function EmployeeList() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, values }: { id: string | number, values: any }) => 
-      putApiV1EmployeeById({ path: { id: id as any }, body: values }),
+    mutationFn: ({ code, values }: { code: string | number, values: any }) => 
+      putApiV1MaterialByCode({ path: { code: code as any }, body: values }),
     onSuccess: () => {
       message.success('更新成功');
       setIsDrawerEditing(false);
       setFormDefaultValues({});
-      queryClient.invalidateQueries({ queryKey: ['employeeList'] });
-      queryClient.invalidateQueries({ queryKey: ['employeeDetail'] });
+      queryClient.invalidateQueries({ queryKey: ['materialList'] });
+      queryClient.invalidateQueries({ queryKey: ['materialDetail'] });
     },
     onError: (error: any) => {
       Modal.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${getApiErrorMessage(error)}` });
@@ -139,11 +135,11 @@ export default function EmployeeList() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string | number) => deleteApiV1EmployeeById({ path: { id: id as any } }),
+    mutationFn: (code: string | number) => deleteApiV1MaterialByCode({ path: { code: code as any } }),
     onSuccess: () => {
       message.success('刪除成功');
-      queryClient.invalidateQueries({ queryKey: ['employeeList'] });
-      queryClient.invalidateQueries({ queryKey: ['employeeDetail'] });
+      queryClient.invalidateQueries({ queryKey: ['materialList'] });
+      queryClient.invalidateQueries({ queryKey: ['materialDetail'] });
     },
     onError: (error: any) => {
       Modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
@@ -151,14 +147,15 @@ export default function EmployeeList() {
   });
 
   const openViewDrawer = (record: any) => {
-    navigate(`/employee/${record.id}`);
+    setActiveTab('master_info');
+    navigate(`/warehouse/materials/${record.code}`);
   };
 
   const closeViewDrawer = () => {
     setIsCreateDrawerOpen(false);
     setIsDrawerEditing(false);
     if (viewId) {
-      navigate('/employee');
+      navigate('/warehouse/materials');
     }
   };
 
@@ -180,8 +177,8 @@ export default function EmployeeList() {
   };
 
   const openCreateDrawer = () => {
-    setFormDefaultValues({});
-    setFormDefaultValues({ status: 1 });
+    setActiveTab('master_info');
+    setFormDefaultValues({ isActive: true, materialForm: 'R', primaryUoM: 'M²', secondaryUoM: 'ROLL', purchasingUoM: 'ROLL', length: 0, conversionFactor: 1 });
     setIsCreateDrawerOpen(true);
   };
 
@@ -193,26 +190,26 @@ export default function EmployeeList() {
     if (isCreateDrawerOpen) {
       createMutation.mutate(values);
     } else if (viewId) {
-      updateMutation.mutate({ id: viewId as any, values });
+      updateMutation.mutate({ code: viewId as any, values });
     }
   };
 
-    const actionColumn = {
-      title: '操作',
-      key: 'actions',
-      fixed: 'right' as const,
-      width: 120,
-      render: (_: any, record: any) => (
-        <TableActions
-          onView={hasPermission('BasicData.Employees.View') ? () => openViewDrawer(record) : undefined}
-          onDelete={hasPermission('BasicData.Employees.Delete') ? () => deleteMutation.mutate(record.id) : undefined}
-          recordName={record.name || record.employeeCode}
-          deleteConfirmType="popconfirm"
-        />
-      ),
-    };
+  const actionColumn = {
+    title: '操作',
+    key: 'actions',
+    fixed: 'right' as const,
+    width: 120,
+    render: (_: any, record: any) => (
+      <TableActions
+        onView={hasPermission('Warehouse.Materials.View') ? () => openViewDrawer(record) : undefined}
+        onDelete={hasPermission('Warehouse.Materials.Delete') ? () => deleteMutation.mutate(record.code) : undefined}
+        recordName={record.name || record.code}
+        deleteConfirmType="popconfirm"
+      />
+    ),
+  };
 
-      const handleTableChange = (pagination: any, _filters: any, sorter: any) => {
+  const handleTableChange = (pagination: any, _filters: any, sorter: any) => {
     const pageNumber = pagination.current || 1;
     const pageSize = pagination.pageSize || 20;
     const sortRules = formatSorterToRules(sorter);
@@ -223,11 +220,11 @@ export default function EmployeeList() {
     });
   };
 
-  const columns = buildTableColumns(employeeTableColumns, actionColumn, params.SortRules);
+  const columns = buildTableColumns(mainTableColumns(), actionColumn, params.SortRules);
 
-    return (
+  return (
     <div className="p-4 pb-0 flex flex-col h-[calc(100vh-64px)]">
-      <PageCard title="員工基本檔" extra={
+      <PageCard title="原料管理" extra={
           <Space separator={<Divider orientation="vertical" />}>
             <Button
               type="default"
@@ -237,10 +234,10 @@ export default function EmployeeList() {
             >
               查詢
             </Button>
-            {hasPermission('BasicData.Employees.Create') && (
+            {hasPermission('Warehouse.Materials.Create') && (
               <Button 
                 type="primary" 
-                icon={<PlusOutlined/>} 
+                icon={<PlusOutlined />} 
                 onClick={openCreateDrawer}
                 className="font-medium"
               >
@@ -250,8 +247,8 @@ export default function EmployeeList() {
           </Space>
         }>
         <ActiveQueryAndSortTags
-          searchConfig={employeeSearchConfig}
-          tableColumns={employeeTableColumns}
+          searchConfig={materialSearchFormConfig()}
+          tableColumns={mainTableColumns()}
           params={params}
           onQueryTagClose={listQuery.handleClearQueryField}
           onSortTagClose={listQuery.handleClearSortField}
@@ -262,10 +259,10 @@ export default function EmployeeList() {
             onChange={handleTableChange}
             columns={columns}
             dataSource={listData}
-            rowKey="id"
+            rowKey="code"
             loading={isFetching}
             selectedRowId={viewId}
-            selectedRowKey="id"
+            selectedRowKey="code"
             deletingRowId={deletingRecordId}
             pagination={{
               current: currentPage,
@@ -308,7 +305,7 @@ export default function EmployeeList() {
         closeIcon={true}
       >
         <DynamicSearchForm
-          config={employeeSearchConfig}
+          config={materialSearchFormConfig()}
           form={listQuery.searchForm}
           onSearch={listQuery.handleSearch}
         />
@@ -318,11 +315,11 @@ export default function EmployeeList() {
         styles={{ body: { padding: 0 } }}
         title={
           <DrawerTitle
-            moduleName="員工基本檔"
+            moduleName="原料管理"
             isCreate={isCreateDrawerOpen}
             isEdit={isDrawerEditing}
             record={viewData}
-            displayField={(record) => `${record.employeeNo || ''} - ${record.name || ''}`.replace(/^ - | - $/g, '')}
+            displayField={(record) => `${record.code || ''} - ${record.name || ''}`.replace(/^ - | - $/g, '')}
           />
         }
         placement="right"
@@ -331,9 +328,8 @@ export default function EmployeeList() {
         open={!!viewId || isCreateDrawerOpen}
         mask={{ closable: isViewMode }}
         keyboard={isViewMode}
-        
       >
-                <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
+        <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
           <ActionBar 
             createdBy={viewData?.createdBy}
             createdAt={viewData?.createdAt}
@@ -341,37 +337,48 @@ export default function EmployeeList() {
             updatedAt={viewData?.updatedAt}
             actions={
               <Space>
-            {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('BasicData.Employees.Update')) && (
-              <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode}>編輯</Button>
-            )}
-            {(isDrawerEditing || isCreateDrawerOpen) && (
-              <>
-                <Button 
-                  type="primary" 
-                  htmlType="submit"
-                  form="employee-form"
-                  icon={<SaveOutlined />} 
-                  loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
-                >
-                  儲存
-                </Button>
-                <Button onClick={handleCancel}>取消</Button>
-              </>
-            )}
-          </Space>
+                {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('Warehouse.Materials.Update')) && (
+                  <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode}>編輯</Button>
+                )}
+                {(isDrawerEditing || isCreateDrawerOpen) && (
+                  <>
+                    <Button 
+                      type="primary" 
+                      htmlType="submit"
+                      form="materialForm"
+                      icon={<SaveOutlined />} 
+                      loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
+                    >
+                      儲存
+                    </Button>
+                    <Button onClick={handleCancel}>取消</Button>
+                  </>
+                )}
+              </Space>
             }
           />
           <div className="p-6">
-          <DynamicForm
-            formId="employee-form"
-            fields={employeeFormConfig}
-            defaultValues={formDefaultValues}
-            onSubmit={handleCrudSubmit}
-            isUpdateMode={isDrawerEditing}
-            isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
-            hideDefaultFooter={true}
-          />
-                  </div>
+            <MasterDetailTabs
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              isCreateMode={isCreateDrawerOpen}
+              isEditMode={isDrawerEditing}
+              viewId={viewId}
+              entityType="Material"
+              showAttachments={true}
+              masterContent={
+                <DynamicForm
+                  formId="materialForm"
+                  fields={mainFormConfig()}
+                  defaultValues={formDefaultValues}
+                  onSubmit={handleCrudSubmit}
+                  isUpdateMode={isDrawerEditing}
+                  isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
+                  hideDefaultFooter={true}
+                />
+              }
+            />
+          </div>
         </Spin>
       </Drawer>
     </div>

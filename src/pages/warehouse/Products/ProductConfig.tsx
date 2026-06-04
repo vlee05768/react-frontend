@@ -144,7 +144,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
       if (!code) return "-";
       return (
         <Link 
-          to={`/business-partners/${code}`} 
+          to={`/basic/business-partners/${code}`} 
           style={{ 
             color: '#1677ff', 
             textDecoration: 'underline',

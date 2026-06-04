@@ -90,12 +90,12 @@ export const WorkOrdersList: React.FC = () => {
   });
 
   const openDrawer = (id?: string) => {
-    if (id) navigate(`/production/workorders/${id}`);
-    else navigate(`/production/workorders/new`);
+    if (id) navigate(`/production-quality/work-orders/${id}`);
+    else navigate(`/production-quality/work-orders/new`);
   };
 
   const closeDrawer = () => {
-    navigate(`/production/workorders`);
+    navigate(`/production-quality/work-orders`);
   };
 
   const actionColumn = {

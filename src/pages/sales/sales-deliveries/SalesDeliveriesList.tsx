@@ -86,7 +86,7 @@ export default function SalesDeliveriesList() {
 
         return (
           <TableActions
-            onView={(canView || canUpdate) ? () => navigate(`/sales/salesdeliveries/${record.documentNumber}`) : undefined}
+            onView={(canView || canUpdate) ? () => navigate(`/sales/sales-deliveries/${record.documentNumber}`) : undefined}
             onPrint={(record.confirmDate && canConfirm) ? () => {
               downloadFile({
                 apiFunction: () => getApiV1SalesDeliveryByMovementNumberSalesDeliveryReport({ 
@@ -131,7 +131,7 @@ export default function SalesDeliveriesList() {
               <Button 
                 type="primary" 
                 icon={<PlusOutlined />} 
-                onClick={() => navigate('/sales/salesdeliveries/create')}
+                onClick={() => navigate('/sales/sales-deliveries/create')}
               >
                 新增資料
               </Button>
