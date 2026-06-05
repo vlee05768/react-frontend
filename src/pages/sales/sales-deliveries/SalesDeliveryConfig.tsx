@@ -20,6 +20,8 @@ import dayjs from "dayjs";
 import { ContactSelectWithCreate } from "../orders/components/ContactSelectWithCreate";
 import { DictTag } from "@/components/Form/DictTag";
 // import { DictLabel } from "@/components/Form/DictLabel";
+import { Link } from "react-router-dom";
+import { EllipsisText } from "@/components/Table/EllipsisText";
 
 export const getStatusTag = (row: SalesDeliveryDto) => {
   if (row.confirmDate) {
@@ -92,12 +94,28 @@ export const getColumns = (): TableColumnConfig<SalesDeliveryDto>[] => [
     sortable: { multiple: 2 },
     render: (val) => (val ? dayjs(val).format("YYYY-MM-DD") : "-"),
   },
-  { label: "客戶代碼", name: "businessPartnerCode", width: 100 },
   {
-    label: "客戶名稱",
+    label: "客戶",
     name: "businessPartnerName",
-    width: 180,
-    ellipsis: true,
+    width: 240,
+    render: (val: string, record: any) => {
+      const displayCode = record.businessPartnerCode;
+      const bpCode = record.businessPartnerCode;
+      const name = val && displayCode ? `[${displayCode}] ${val}` : (val || displayCode || "-");
+      if (!bpCode) return "-";
+      return (
+        <Link 
+          to={`/basic/business-partners/${bpCode}`} 
+          style={{ 
+            color: '#1677ff', 
+            textDecoration: 'underline',
+            cursor: 'pointer'
+          }}
+        >
+          <EllipsisText text={name} maxWidth={220} />
+        </Link>
+      );
+    },
   },
   {
     label: "發票號碼",
