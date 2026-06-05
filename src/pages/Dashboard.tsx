@@ -169,14 +169,12 @@ export default function Dashboard() {
               textColorClass: 'text-yellow-500'
             })}
             {renderKpiCard({
-              permissionKey: '',
-              path: '',
+              permissionKey: 'Purchase.Orders.View',
+              path: '/purchase/orders?status=DRAFT',
               borderColorClass: 'bg-indigo-500',
               title: '採購待核准',
               value: pendingTasks.draftPurchaseOrders ?? 0,
-              textColorClass: 'text-indigo-500',
-              isDev: true,
-              onClickDev: () => { alert('採購單模組開發中'); }
+              textColorClass: 'text-indigo-500'
             })}
           </div>
         </Spin>
@@ -261,8 +259,12 @@ export default function Dashboard() {
                 <div className="font-bold text-gray-800 dark:text-gray-200">採購管理</div>
               </div>
               <div className="flex flex-col gap-2">
-                <div className="sub-btn-dev" title="開發中">📝 請購單 (Dev)</div>
-                <div className="sub-btn-dev" title="開發中">🛒 採購單 (Dev)</div>
+                {renderSubButton({
+                  permissionKey: 'Purchase.Orders.View',
+                  path: '/purchase/orders',
+                  label: '🛒 採購單維護'
+                })}
+                <div className="sub-btn-dev" title="開發中">🚚 到貨單 (Dev)</div>
               </div>
             </div>
 
