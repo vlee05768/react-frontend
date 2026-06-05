@@ -345,6 +345,10 @@ export function DynamicForm<TValues extends Record<string, any>>({
           </Space>
         </div>
       )}
+      {/* 隱藏的提交按鈕，確保外部呼叫儲存時 100% 觸發 React/AntD 提交事件 */}
+      {formId && !isViewMode && (
+        <button type="submit" id={`${formId}-submit-btn`} style={{ display: 'none' }} />
+      )}
     </Form>
     </div>
   );

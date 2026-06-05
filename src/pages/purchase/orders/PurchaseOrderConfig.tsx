@@ -10,10 +10,11 @@ import { EllipsisText } from "@/components/Table/EllipsisText";
 import { DictTag } from "@/components/Form/DictTag";
 
 export const getStatusTag = (status: string | null | undefined, closeDate?: string | null) => {
-  if (status === 'Finished' || closeDate) {
+  const statusUpper = (status || '').toUpperCase();
+  if (statusUpper === 'CLOSED' || statusUpper === 'FINISHED' || closeDate) {
     return <Tag color="error" className="m-0">已結案</Tag>;
   }
-  if (status === 'Confirmed') {
+  if (statusUpper === 'CONFIRMED') {
     return <Tag color="success" className="m-0">已確認</Tag>;
   }
   return <Tag color="default" className="m-0">新單據</Tag>;
@@ -39,9 +40,9 @@ export const searchConfig: SearchFieldConfig[] = [
     componentType: "Select",
     componentProps: {
       options: [
-        { label: "新單據 (Draft)", value: "Draft" },
-        { label: "已確認 (Confirmed)", value: "Confirmed" },
-        { label: "已結案 (Finished)", value: "Finished" },
+        { label: "新單據 (Draft)", value: "DRAFT" },
+        { label: "已確認 (Confirmed)", value: "CONFIRMED" },
+        { label: "已結案 (Finished)", value: "CLOSED" },
       ],
       allowClear: true,
     },
@@ -224,17 +225,11 @@ export const getFormConfig = (): any[] => [
     colSpan: 4,
     validation: z.any().optional(),
   },
-  {
-    name: "notes",
-    label: "備註",
-    componentType: "Input",
-    colSpan: 4,
-  },
-  {
+    {
     name: "subTotalAmount",
     label: "未稅小計",
     componentType: "InputNumber",
-    colSpan: 4,
+    colSpan: 3,
     editable: "never",
     componentProps: {
       controls: false,
@@ -247,7 +242,7 @@ export const getFormConfig = (): any[] => [
     name: "taxAmount",
     label: "稅額",
     componentType: "InputNumber",
-    colSpan: 4,
+    colSpan: 3,
     editable: "never",
     componentProps: {
       controls: false,
@@ -260,7 +255,7 @@ export const getFormConfig = (): any[] => [
     name: "totalAmount",
     label: "含稅總金額",
     componentType: "InputNumber",
-    colSpan: 4,
+    colSpan: 3,
     editable: "never",
     componentProps: {
       controls: false,
@@ -269,6 +264,17 @@ export const getFormConfig = (): any[] => [
         `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ","),
     },
   },
+  {
+    name: "notes",
+    label: "備註",
+    componentType: "TextArea",
+    colSpan: 1,
+    componentProps: {
+      rows: 3,
+      placeholder: "請輸入備註"
+    }
+  },
+
 ];
 
 export const getItemColumns = (
@@ -309,6 +315,13 @@ export const getItemColumns = (
     ellipsis: true,
   },
   {
+    title: "預計交期",
+    dataIndex: "requestedDeliveryDate",
+    width: 120,
+    render: (date: string) => (date ? dayjs(date).format("YYYY-MM-DD") : "-"),
+  },
+
+  {
     title: "商品類型",
     dataIndex: "goodsType",
     width: 100,
@@ -326,6 +339,12 @@ export const getItemColumns = (
     ellipsis: true,
   },
   {
+    title: "採購單位",
+    dataIndex: "unit",
+    width: 80,
+    align: "center",
+  },
+  {
     title: "數量",
     dataIndex: "quantity",
     width: 100,
@@ -340,38 +359,11 @@ export const getItemColumns = (
     render: (val: number) => (val != null ? Number(val.toFixed(2)).toLocaleString() : "0"),
   },
   {
-    title: "折扣",
-    dataIndex: "discount",
-    width: 100,
-    align: "right",
-    render: (val: number) => (val != null ? Number(val.toFixed(2)).toLocaleString() : "0"),
-  },
-  {
     title: "小計",
     dataIndex: "subTotal",
     width: 120,
     align: "right",
     render: (val: number) => (val != null ? Number(val.toFixed(2)).toLocaleString() : "0"),
-  },
-  {
-    title: "稅額",
-    dataIndex: "tax",
-    width: 100,
-    align: "right",
-    render: (val: number) => (val != null ? Number(val.toFixed(2)).toLocaleString() : "0"),
-  },
-  {
-    title: "總金額",
-    dataIndex: "lineAmount",
-    width: 120,
-    align: "right",
-    render: (val: number) => (val != null ? Number(val.toFixed(2)).toLocaleString() : "0"),
-  },
-  {
-    title: "預計交期",
-    dataIndex: "requestedDeliveryDate",
-    width: 120,
-    render: (date: string) => (date ? dayjs(date).format("YYYY-MM-DD") : "-"),
   },
   {
     title: "備註",
@@ -387,7 +379,6 @@ export const getItemFormConfig = (): any[] => [
     componentType: "Select",
     componentProps: {
       options: [
-        { label: "產品 (P)", value: "P" },
         { label: "原物料 (M)", value: "M" },
         { label: "其他 (O)", value: "O" }
       ]
@@ -397,6 +388,8 @@ export const getItemFormConfig = (): any[] => [
     onChange: (_value: any, _context: any, setValue: any) => {
       setValue("goodsCode", undefined);
       setValue("goodsName", "");
+      setValue("materialForm", undefined);
+      setValue("unit", "卷");
     }
   },
   {
@@ -413,6 +406,20 @@ export const getItemFormConfig = (): any[] => [
       const option = args[1];
       if (option && option.originalData) {
         setValue("goodsName", option.originalData.name || "");
+        
+        const isM = _context?.values?.goodsType === "M";
+        if (isM) {
+          const form = option.originalData.materialForm; // "R" = 捲材, "S" = 片材
+          setValue("materialForm", form);
+          if (form === "S") {
+            setValue("unit", "包");
+          } else {
+            setValue("unit", "卷");
+          }
+        } else {
+          setValue("materialForm", undefined);
+          setValue("unit", "卷");
+        }
       }
     }
   },
@@ -424,6 +431,37 @@ export const getItemFormConfig = (): any[] => [
     editable: "never",
   },
   {
+    name: "requestedDeliveryDate",
+    label: "CRD",
+    componentType: "DatePicker",
+    colSpan: 4,
+    validation: z.any().optional(),
+  },
+  {
+    name: "unitPrice",
+    label: (context: any) => {
+      const unit = context?.values?.unit;
+      return unit ? `單價 (${unit})` : "單價";
+    },
+    componentType: "InputNumber",
+    colSpan: 4,
+    validation: z.number().min(0, "單價不能為負數"),
+    onChange: (value: any, context: any, setValue: any) => {
+      const qty = context.values.quantity || 0;
+      const price = value || 0;
+      const subTotal = Math.round(price * qty);
+      const tax = Math.round(subTotal * 0.05);
+      const lineAmount = subTotal + tax;
+      setValue("subTotal", subTotal);
+      setValue("tax", tax);
+      setValue("lineAmount", lineAmount);
+    },
+    componentProps: {
+      controls: false,
+      style: { width: "100%" }
+    }
+  },
+  {
     name: "quantity",
     label: "數量",
     componentType: "InputNumber",
@@ -432,8 +470,7 @@ export const getItemFormConfig = (): any[] => [
     onChange: (value: any, context: any, setValue: any) => {
       const qty = value || 0;
       const price = context.values.unitPrice || 0;
-      const disc = context.values.discount || 0;
-      const subTotal = Math.round(price * qty - disc);
+      const subTotal = Math.round(price * qty);
       const tax = Math.round(subTotal * 0.05);
       const lineAmount = subTotal + tax;
       setValue("subTotal", subTotal);
@@ -446,47 +483,37 @@ export const getItemFormConfig = (): any[] => [
     }
   },
   {
-    name: "unitPrice",
-    label: "單價",
-    componentType: "InputNumber",
-    colSpan: 4,
-    validation: z.number().min(0, "單價不能為負數"),
-    onChange: (value: any, context: any, setValue: any) => {
-      const qty = context.values.quantity || 0;
-      const price = value || 0;
-      const disc = context.values.discount || 0;
-      const subTotal = Math.round(price * qty - disc);
-      const tax = Math.round(subTotal * 0.05);
-      const lineAmount = subTotal + tax;
-      setValue("subTotal", subTotal);
-      setValue("tax", tax);
-      setValue("lineAmount", lineAmount);
+    name: "unit",
+    label: "採購單位",
+    componentType: (context: any) => {
+      const isM = context?.values?.goodsType === "M";
+      return isM ? "Select" : "Input";
     },
-    componentProps: {
-      controls: false,
-      style: { width: "100%" }
-    }
-  },
-  {
-    name: "discount",
-    label: "折扣",
-    componentType: "InputNumber",
     colSpan: 4,
-    validation: z.number().min(0, "折扣不能為負數"),
-    onChange: (value: any, context: any, setValue: any) => {
-      const qty = context.values.quantity || 0;
-      const price = context.values.unitPrice || 0;
-      const disc = value || 0;
-      const subTotal = Math.round(price * qty - disc);
-      const tax = Math.round(subTotal * 0.05);
-      const lineAmount = subTotal + tax;
-      setValue("subTotal", subTotal);
-      setValue("tax", tax);
-      setValue("lineAmount", lineAmount);
-    },
-    componentProps: {
-      controls: false,
-      style: { width: "100%" }
+    validation: z.string().min(1, "採購單位為必填"),
+    componentProps: (context: any) => {
+      const isM = context?.values?.goodsType === "M";
+      if (isM) {
+        const form = context?.values?.materialForm; // "R" = 捲材, "S" = 片材
+        if (form === "S") {
+          return {
+            options: [
+              { label: "包", value: "包" },
+              { label: "箱", value: "箱" }
+            ]
+          };
+        } else {
+          return {
+            options: [
+              { label: "卷", value: "卷" },
+              { label: "平方米", value: "平方米" }
+            ]
+          };
+        }
+      }
+      return {
+        placeholder: "請輸入採購單位"
+      };
     }
   },
   {
@@ -500,39 +527,15 @@ export const getItemFormConfig = (): any[] => [
       style: { width: "100%" }
     }
   },
-  {
-    name: "tax",
-    label: "稅額",
-    componentType: "InputNumber",
-    colSpan: 4,
-    editable: "never",
-    componentProps: {
-      controls: false,
-      style: { width: "100%" }
-    }
-  },
-  {
-    name: "lineAmount",
-    label: "含稅項目總額",
-    componentType: "InputNumber",
-    colSpan: 4,
-    editable: "never",
-    componentProps: {
-      controls: false,
-      style: { width: "100%" }
-    }
-  },
-  {
-    name: "requestedDeliveryDate",
-    label: "要求到貨日期",
-    componentType: "DatePicker",
-    colSpan: 4,
-    validation: z.any().optional(),
-  },
+
   {
     name: "notes",
     label: "備註",
-    componentType: "Input",
-    colSpan: 4,
+    componentType: "TextArea",
+    colSpan: 1,
+    componentProps: {
+      rows: 3,
+      placeholder: "請輸入備註"
+    }
   }
 ];

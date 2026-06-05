@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Drawer, Space, Button, App, Spin, Empty } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CheckCircleOutlined, SyncOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, SyncOutlined, LockOutlined, UnlockOutlined, DeleteOutlined } from '@ant-design/icons';
 import { ActionButton } from '@/components/common/ActionButton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -12,7 +12,8 @@ import {
   postApiV1PurchaseOrderByCodeConfirm,
   postApiV1PurchaseOrderByCodeCancelConfirm,
   postApiV1PurchaseOrderByCodeForceClose,
-  postApiV1PurchaseOrderByCodeCancelClose
+  postApiV1PurchaseOrderByCodeCancelClose,
+  deleteApiV1PurchaseOrderByCode
 } from '@/api/generated/sdk.gen';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
@@ -169,6 +170,18 @@ export default function PurchaseOrderDrawer() {
     }
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteApiV1PurchaseOrderByCode({ path: { code: id! } }),
+    onSuccess: () => {
+      message.success('刪除成功');
+      queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
+      navigate('/purchase/orders', { replace: true });
+    },
+    onError: (error) => {
+      modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
+    }
+  });
+
   const handleSubmit = async (values: any) => {
     const formattedValues = {
       ...values,
@@ -200,10 +213,12 @@ export default function PurchaseOrderDrawer() {
   };
   
   const getHeaderActions = () => {
-    const isDraft = purchaseOrderData?.status === 'Draft';
-    const isConfirmed = purchaseOrderData?.status === 'Confirmed';
-    const isFinished = purchaseOrderData?.status === 'Finished';
+    const statusUpper = (purchaseOrderData?.status || '').toUpperCase();
+    const isDraft = statusUpper === 'DRAFT';
+    const isConfirmed = statusUpper === 'CONFIRMED';
+    const isFinished = statusUpper === 'CLOSED' || statusUpper === 'FINISHED' || !!purchaseOrderData?.closedAt;
     const canUpdate = hasPermission('Purchase.Orders.Update');
+    const canDelete = hasPermission('Purchase.Orders.Delete');
     const hasItems = purchaseOrderData?.purchaseOrderItems && purchaseOrderData.purchaseOrderItems.length > 0;
 
     if (isCreating || isEditing) return null;
@@ -235,6 +250,29 @@ export default function PurchaseOrderDrawer() {
             }}
           >
             確認單據
+          </ActionButton>
+        )}
+        
+        {canDelete && isDraft && (
+          <ActionButton 
+            key="delete"
+            intent="error" 
+            icon={<DeleteOutlined />} 
+            disabled={isDetailEditing}
+            loading={deleteMutation.isPending}
+            onClick={(e) => {
+              e.preventDefault();
+              modal.confirm({
+                title: '刪除單據',
+                content: `確定要刪除採購單 ${purchaseOrderData.code} 嗎？`,
+                centered: true,
+                width: 400,
+                okButtonProps: { danger: true },
+                onOk: () => { deleteMutation.mutate(); },
+              })
+            }}
+          >
+            刪除
           </ActionButton>
         )}
         
@@ -316,7 +354,14 @@ export default function PurchaseOrderDrawer() {
           <Button 
             key="save" 
             type="primary" 
-            onClick={() => (document.getElementById("purchaseOrderForm") as HTMLFormElement)?.requestSubmit()} 
+            onClick={() => {
+              const submitBtn = document.getElementById("purchaseOrderForm-submit-btn");
+              if (submitBtn) {
+                (submitBtn as HTMLButtonElement).click();
+              } else {
+                (document.getElementById("purchaseOrderForm") as HTMLFormElement)?.requestSubmit();
+              }
+            }} 
             loading={createMutation.isPending || updateMutation.isPending}
           >
             儲存
@@ -328,7 +373,7 @@ export default function PurchaseOrderDrawer() {
 
     if (!purchaseOrderData) return null;
 
-    const isDraft = purchaseOrderData?.status === 'Draft';
+    const isDraft = (purchaseOrderData?.status || '').toUpperCase() === 'DRAFT';
     const canUpdate = hasPermission('Purchase.Orders.Update');
 
     return (
@@ -349,22 +394,23 @@ export default function PurchaseOrderDrawer() {
 
   let steps: any[] = [];
   if (purchaseOrderData) {
+    const statusUpper = (purchaseOrderData.status || '').toUpperCase();
     steps = [
       {
         title: '準備中',
-        status: purchaseOrderData.status !== 'Draft' ? 'finish' : 'process',
+        status: statusUpper !== 'DRAFT' ? 'finish' : 'process',
         date: purchaseOrderData.createdAt,
         user: purchaseOrderData.createdBy,
       },
       {
         title: '單據確認',
-        status: purchaseOrderData.status === 'Draft' ? 'wait' : (purchaseOrderData.status === 'Confirmed' ? 'process' : 'finish'),
+        status: statusUpper === 'DRAFT' ? 'wait' : (statusUpper === 'CONFIRMED' ? 'process' : 'finish'),
         date: purchaseOrderData.confirmedAt,
         user: purchaseOrderData.confirmedBy,
       },
       {
         title: '單據結案',
-        status: purchaseOrderData.status !== 'Finished' ? 'wait' : 'finish',
+        status: (statusUpper !== 'CLOSED' && statusUpper !== 'FINISHED') ? 'wait' : 'finish',
         date: purchaseOrderData.closedAt,
         user: purchaseOrderData.closedBy,
       }

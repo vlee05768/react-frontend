@@ -76,7 +76,7 @@ export default function PurchaseOrdersList() {
         const canView = hasPermission('Purchase.Orders.View');
         const canUpdate = hasPermission('Purchase.Orders.Update');
         const canDelete = hasPermission('Purchase.Orders.Delete');
-        const isDraft = record.status === 'Draft';
+        const isDraft = (record.status || '').toUpperCase() === 'DRAFT';
 
         return (
           <TableActions

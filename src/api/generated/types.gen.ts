@@ -1431,6 +1431,10 @@ export type CreatePurchaseOrderItemDto = {
      */
     goodsName?: string | null;
     /**
+     * 單位
+     */
+    unit?: string | null;
+    /**
      * 異動類別
      */
     transactionType?: string | null;
@@ -4983,6 +4987,10 @@ export type PurchaseOrderItemDto = {
      */
     goodsName?: string | null;
     /**
+     * 單位
+     */
+    unit?: string | null;
+    /**
      * 異動類別
      */
     transactionType?: string | null;
@@ -7192,6 +7200,10 @@ export type UpdatePurchaseOrderItemDto = {
      * 商品名稱
      */
     goodsName?: string | null;
+    /**
+     * 單位
+     */
+    unit?: string | null;
     /**
      * 異動類別
      */

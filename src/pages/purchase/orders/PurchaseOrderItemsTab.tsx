@@ -6,7 +6,8 @@ import dayjs from 'dayjs';
 import { 
   postApiV1PurchaseOrderByCodeItems,
   putApiV1PurchaseOrderByCodeItemsByLineNumber,
-  deleteApiV1PurchaseOrderByCodeItemsByLineNumber
+  deleteApiV1PurchaseOrderByCodeItemsByLineNumber,
+  getApiV1MaterialByCode
 } from '@/api/generated/sdk.gen';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import type { PurchaseOrderDto, PurchaseOrderItemDto } from '@/api/generated/types.gen';
@@ -40,8 +41,26 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
     notifyEdit(true);
   };
 
-  const handleEditOpen = (record: PurchaseOrderItemDto) => {
-    setEditingItem(record);
+  const handleEditOpen = async (record: PurchaseOrderItemDto) => {
+    if (record.goodsType === 'M' && record.goodsCode) {
+      try {
+        const res = await getApiV1MaterialByCode({ path: { code: record.goodsCode } });
+        const material = (res.data as any)?.data;
+        if (material) {
+          setEditingItem({
+            ...record,
+            materialForm: material.materialForm
+          } as any);
+        } else {
+          setEditingItem(record);
+        }
+      } catch (err) {
+        console.error("Failed to fetch material details:", err);
+        setEditingItem(record);
+      }
+    } else {
+      setEditingItem(record);
+    }
     notifyEdit(true);
   };
 
@@ -126,13 +145,14 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
   };
 
   const handleSubmit = async (values: any) => {
+    const { materialForm, ...apiValues } = values;
     const formattedValues = {
-      ...values,
-      requestedDeliveryDate: values.requestedDeliveryDate 
-        ? dayjs(values.requestedDeliveryDate).format('YYYY-MM-DD') 
+      ...apiValues,
+      requestedDeliveryDate: apiValues.requestedDeliveryDate 
+        ? dayjs(apiValues.requestedDeliveryDate).format('YYYY-MM-DD') 
         : undefined,
-      promisedDeliveryDate: values.promisedDeliveryDate 
-        ? dayjs(values.promisedDeliveryDate).format('YYYY-MM-DD') 
+      promisedDeliveryDate: apiValues.promisedDeliveryDate 
+        ? dayjs(apiValues.promisedDeliveryDate).format('YYYY-MM-DD') 
         : undefined,
     };
 
@@ -162,9 +182,10 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
       } 
     : {
         goodsType: 'M',
+        materialForm: 'R',
+        unit: '卷',
         quantity: 0,
         unitPrice: 0,
-        discount: 0,
         subTotal: 0,
         tax: 0,
         lineAmount: 0,
@@ -186,9 +207,15 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
             <Space>
               <Button 
                 type="primary" 
-                htmlType="submit" 
-                form="purchaseOrderItemForm" 
                 loading={createMutation.isPending || updateMutation.isPending}
+                onClick={() => {
+                  const submitBtn = document.getElementById("purchaseOrderItemForm-submit-btn");
+                  if (submitBtn) {
+                    (submitBtn as HTMLButtonElement).click();
+                  } else {
+                    (document.getElementById("purchaseOrderItemForm") as HTMLFormElement)?.requestSubmit();
+                  }
+                }}
               >
                 儲存
               </Button>
@@ -220,7 +247,7 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
               目前共有 <span>{listData.length}</span> 筆明細
             </div>
             <div>
-              {!isMasterViewMode && purchaseOrderData.status === 'Draft' && (
+              {isMasterViewMode && (purchaseOrderData.status || '').toUpperCase() === 'DRAFT' && (
                 <Button 
                   type="primary" 
                   icon={<PlusOutlined />} 
@@ -233,7 +260,7 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
           </div>
           <Table<PurchaseOrderItemDto>
             rowKey="lineNumber"
-            columns={getItemColumns(!isMasterViewMode || purchaseOrderData.status !== 'Draft', handleEditOpen, handleDelete)}
+            columns={getItemColumns(!isMasterViewMode || (purchaseOrderData.status || '').toUpperCase() !== 'DRAFT', handleEditOpen, handleDelete)}
             dataSource={listData}
             pagination={false}
             loading={false}
