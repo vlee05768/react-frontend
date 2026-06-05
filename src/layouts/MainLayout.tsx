@@ -10,6 +10,7 @@ import {
   AppstoreOutlined,
   ToolOutlined,
   ShoppingCartOutlined,
+  ShoppingOutlined,
   SettingOutlined,
   ContactsOutlined,
   ExclamationCircleFilled,
@@ -30,6 +31,7 @@ const ICON_MAPPING: Record<string, React.ReactNode> = {
   'Warehouse': <AppstoreOutlined />,
   'ProductionQuality': <ToolOutlined />,
   'Sales': <ShoppingCartOutlined />,
+  'Purchase': <ShoppingOutlined />,
   'System': <SettingOutlined />,
 };
 
@@ -40,6 +42,8 @@ const ROUTE_MAPPING: Record<string, string> = {
   'Sales.Orders': '/sales/orders',
   'Sales.Deliveries': '/sales/sales-deliveries',
   'Sales.Statements': '/sales/statements',
+  'Purchase.Orders': '/purchase/orders',
+  'Purchase.Receipts': '/purchase/receipts',
   'System.Users': '/system/users',
   'System.Roles': '/system/roles',
   'System.GeneralTypes': '/system/general-types',
@@ -66,6 +70,8 @@ const ROUTE_PERMISSION_MAP: Record<string, string> = {
   '/sales/orders': 'Sales.Orders.View',
   '/sales/sales-deliveries': 'Sales.Deliveries.View',
   '/sales/statements': 'Sales.Statements.View',
+  '/purchase/orders': 'Purchase.Orders.View',
+  '/purchase/receipts': 'Purchase.Receipts.View',
   '/system/users': 'System.Users.View',
   '/system/roles': 'System.Roles.View',
   '/system/general-types': 'System.GeneralTypes.View',
