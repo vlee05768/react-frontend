@@ -339,6 +339,13 @@ export const getItemColumns = (
     ellipsis: true,
   },
   {
+    title: "單價",
+    dataIndex: "unitPrice",
+    width: 100,
+    align: "right",
+    render: (val: number) => (val != null ? Number(val.toFixed(2)).toLocaleString() : "0"),
+  },
+  {
     title: "採購單位",
     dataIndex: "unit",
     width: 80,
@@ -350,13 +357,6 @@ export const getItemColumns = (
     width: 100,
     align: "right",
     render: (val: number) => (val != null ? Number(val.toFixed(4)).toLocaleString() : "0"),
-  },
-  {
-    title: "單價",
-    dataIndex: "unitPrice",
-    width: 100,
-    align: "right",
-    render: (val: number) => (val != null ? Number(val.toFixed(2)).toLocaleString() : "0"),
   },
   {
     title: "小計",
