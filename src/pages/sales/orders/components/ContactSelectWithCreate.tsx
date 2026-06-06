@@ -5,7 +5,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   getApiV1BusinessPartnersByBusinessPartnerCodeContacts,
   postApiV1BusinessPartnersByBusinessPartnerCodeContacts,
-  getApiV1CustomersByCode
+  getApiV1CustomersByCode,
+  getApiV1MaterialSuppliersByCode,
+  getApiV1OutsourceVendorsByCode,
+  getApiV1ToolingSuppliersByCode
 } from '@/api/generated/sdk.gen';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { contactFormConfig } from '@/pages/basic/business-partners/ContactConfig';
@@ -16,26 +19,54 @@ interface ContactSelectWithCreateProps {
   onChange?: (val: number | undefined) => void;
   disabled?: boolean;
   businessPartnerCode?: string;
+  onContactChange?: (contact: any) => void;
+  contactType?: 'purchasing' | 'sales' | 'outsourcing' | 'accounting';
 }
 
 export const ContactSelectWithCreate: React.FC<ContactSelectWithCreateProps> = ({
   value,
   onChange,
   disabled,
-  businessPartnerCode
+  businessPartnerCode,
+  onContactChange,
+  contactType = 'purchasing'
 }) => {
   const { message: messageApi, modal: modalApi } = App.useApp();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // 1. 判斷傳入的代碼是否是 C 開頭的客戶代碼
+  // 1. 判斷傳入代碼的類型
   const isCustomerCode = businessPartnerCode?.startsWith('C');
+  const isSupplierCode = businessPartnerCode?.startsWith('S');
+  const isOutsourceCode = businessPartnerCode?.startsWith('O');
+  const isToolingCode = businessPartnerCode?.startsWith('T');
 
-  // 2. 如果是 C 開頭的客戶代碼，則載入對應客戶的詳細資料以取得真正的商業夥伴代碼 (BP開頭)
+  // 2. 針對不同類型載入對應詳細資料，取得真正的商業夥伴代碼 (BP開頭)
   const { data: customerData, isFetching: isFetchingCustomer } = useQuery({
     queryKey: ['customerByCodeForContactSelect', businessPartnerCode],
     queryFn: () => getApiV1CustomersByCode({ path: { code: businessPartnerCode! } }),
     enabled: !!businessPartnerCode && isCustomerCode,
+    staleTime: 5 * 60 * 1000, // 快取 5 分鐘
+  });
+
+  const { data: supplierData, isFetching: isFetchingSupplier } = useQuery({
+    queryKey: ['supplierByCodeForContactSelect', businessPartnerCode],
+    queryFn: () => getApiV1MaterialSuppliersByCode({ path: { code: businessPartnerCode! } }),
+    enabled: !!businessPartnerCode && isSupplierCode,
+    staleTime: 5 * 60 * 1000, // 快取 5 分鐘
+  });
+
+  const { data: outsourceData, isFetching: isFetchingOutsource } = useQuery({
+    queryKey: ['outsourceByCodeForContactSelect', businessPartnerCode],
+    queryFn: () => getApiV1OutsourceVendorsByCode({ path: { code: businessPartnerCode! } }),
+    enabled: !!businessPartnerCode && isOutsourceCode,
+    staleTime: 5 * 60 * 1000, // 快取 5 分鐘
+  });
+
+  const { data: toolingData, isFetching: isFetchingTooling } = useQuery({
+    queryKey: ['toolingByCodeForContactSelect', businessPartnerCode],
+    queryFn: () => getApiV1ToolingSuppliersByCode({ path: { code: businessPartnerCode! } }),
+    enabled: !!businessPartnerCode && isToolingCode,
     staleTime: 5 * 60 * 1000, // 快取 5 分鐘
   });
 
@@ -46,20 +77,48 @@ export const ContactSelectWithCreate: React.FC<ContactSelectWithCreateProps> = (
       const custInfo = (customerData?.data as any)?.data || (customerData?.data as any);
       return custInfo?.businessPartnerCode || undefined;
     }
+    if (isSupplierCode) {
+      const supInfo = (supplierData?.data as any)?.data || (supplierData?.data as any);
+      return supInfo?.businessPartnerCode || undefined;
+    }
+    if (isOutsourceCode) {
+      const outInfo = (outsourceData?.data as any)?.data || (outsourceData?.data as any);
+      return outInfo?.businessPartnerCode || undefined;
+    }
+    if (isToolingCode) {
+      const toolInfo = (toolingData?.data as any)?.data || (toolingData?.data as any);
+      return toolInfo?.businessPartnerCode || undefined;
+    }
     return businessPartnerCode; // 原本即為 BP 或是其他代碼，直接套用
-  }, [businessPartnerCode, isCustomerCode, customerData]);
+  }, [
+    businessPartnerCode, 
+    isCustomerCode, isSupplierCode, isOutsourceCode, isToolingCode, 
+    customerData, supplierData, outsourceData, toolingData
+  ]);
 
   // 取得該客戶的聯絡人清單
   const { data, isFetching: isFetchingContacts } = useQuery({
-    queryKey: ['partnerContactList', resolvedBpCode, 'purchasing'],
+    queryKey: ['partnerContactList', resolvedBpCode, contactType],
     queryFn: () => getApiV1BusinessPartnersByBusinessPartnerCodeContacts({
       path: { businessPartnerCode: resolvedBpCode! },
-      query: { pageSize: -1, IsPurchasingContact: true } as any // 鎖定採購聯絡人
+      query: { 
+        pageSize: -1, 
+        IsPurchasingContact: contactType === 'purchasing' ? true : undefined,
+        IsSalesContact: contactType === 'sales' ? true : undefined,
+        IsOutsourcingContact: contactType === 'outsourcing' ? true : undefined,
+        IsAccountingContact: contactType === 'accounting' ? true : undefined,
+      } as any
     }),
     enabled: !!resolvedBpCode,
   });
 
-  const isFetching = isFetchingContacts || (isCustomerCode && isFetchingCustomer);
+  const isFetchingDetails = 
+    (isCustomerCode && isFetchingCustomer) ||
+    (isSupplierCode && isFetchingSupplier) ||
+    (isOutsourceCode && isFetchingOutsource) ||
+    (isToolingCode && isFetchingTooling);
+
+  const isFetching = isFetchingContacts || isFetchingDetails;
 
   const listData = useMemo(() => {
     return (data?.data as any)?.data?.data || (data?.data as any)?.data || [];
@@ -71,7 +130,7 @@ export const ContactSelectWithCreate: React.FC<ContactSelectWithCreateProps> = (
   }));
 
   // 記錄前一次執行過自動回填的客戶代碼
-  const lastAutoFillBpCodeRef = useRef<string | undefined>(resolvedBpCode);
+  const lastAutoFillBpCodeRef = useRef<string | undefined>(undefined);
 
   // 自動選取邏輯：如果該客戶只有一筆聯絡人，且目前尚未選取，則自動填入
   useEffect(() => {
@@ -80,9 +139,12 @@ export const ContactSelectWithCreate: React.FC<ContactSelectWithCreateProps> = (
       lastAutoFillBpCodeRef.current = resolvedBpCode;
       if (listData.length === 1 && !value && onChange) {
         onChange(listData[0].id);
+        if (onContactChange) {
+          onContactChange(listData[0]);
+        }
       }
     }
-  }, [resolvedBpCode, listData, isFetching, value, onChange]);
+  }, [resolvedBpCode, listData, isFetching, value, onChange, onContactChange]);
 
   // 新增聯絡人
   const createMutation = useMutation({
@@ -100,7 +162,7 @@ export const ContactSelectWithCreate: React.FC<ContactSelectWithCreateProps> = (
         onChange(newId);
       }
       
-      queryClient.invalidateQueries({ queryKey: ['partnerContactList', resolvedBpCode, 'purchasing'] });
+      queryClient.invalidateQueries({ queryKey: ['partnerContactList', resolvedBpCode, contactType] });
     },
     onError: (error: any) => {
       modalApi.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(error)}` });
@@ -110,8 +172,19 @@ export const ContactSelectWithCreate: React.FC<ContactSelectWithCreateProps> = (
   const handleCreateSubmit = (values: any) => {
     createMutation.mutate({
       ...values,
-      isPurchasingContact: true, // 自動將新增人員視為採購
+      isPurchasingContact: contactType === 'purchasing',
+      isSalesContact: contactType === 'sales',
+      isOutsourcingContact: contactType === 'outsourcing',
+      isAccountingContact: contactType === 'accounting',
     });
+  };
+
+  const handleSelectChange = (val: number | undefined) => {
+    if (onChange) onChange(val);
+    if (onContactChange) {
+      const selected = listData.find((c: any) => c.id === val);
+      onContactChange(selected || null);
+    }
   };
 
   const hasNoContacts = !!resolvedBpCode && !isFetching && options.length === 0;
@@ -122,7 +195,7 @@ export const ContactSelectWithCreate: React.FC<ContactSelectWithCreateProps> = (
         <Select
           className="w-full"
           value={value}
-          onChange={onChange}
+          onChange={handleSelectChange}
           disabled={disabled || !resolvedBpCode}
           loading={isFetching}
           options={options}
@@ -144,7 +217,7 @@ export const ContactSelectWithCreate: React.FC<ContactSelectWithCreateProps> = (
       </Space.Compact>
 
       <Modal
-        title={`新增客戶聯絡人 (${resolvedBpCode || ''})`}
+        title={`新增聯絡人 (${resolvedBpCode || ''})`}
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
         destroyOnHidden
@@ -175,10 +248,10 @@ export const ContactSelectWithCreate: React.FC<ContactSelectWithCreateProps> = (
             formId="contactModalForm"
             hideDefaultFooter={true}
             defaultValues={{
-              isSalesContact: false,
-              isPurchasingContact: true,
-              isOutsourcingContact: false,
-              isAccountingContact: false,
+              isSalesContact: contactType === 'sales',
+              isPurchasingContact: contactType === 'purchasing',
+              isOutsourcingContact: contactType === 'outsourcing',
+              isAccountingContact: contactType === 'accounting',
             } as any}
           />
         </div>

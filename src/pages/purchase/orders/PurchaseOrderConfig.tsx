@@ -82,8 +82,9 @@ export const getColumns = (): TableColumnConfig<PurchaseOrderDto>[] => [
     name: "businessPartnerName",
     width: 240,
     render: (val: string, record: any) => {
+      const displayCode = record.supplierCode || record.businessPartnerCode;
       const bpCode = record.businessPartnerCode;
-      const name = val && bpCode ? `[${bpCode}] ${val}` : (val || bpCode || "-");
+      const name = val && displayCode ? `[${displayCode}] ${val}` : (val || displayCode || "-");
       if (!bpCode) return "-";
       return (
         <Link 

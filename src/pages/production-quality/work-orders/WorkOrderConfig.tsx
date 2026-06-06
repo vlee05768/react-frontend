@@ -148,11 +148,12 @@ export const tableColumns: TableColumnConfig[] = [
     width: 220,
     align: "left",
     render: (val: string, record: any) => {
-      const text = record.customerName ? `${val} - ${record.customerName}` : val;
-      if (!val) return "-";
+      const text = record.customerName ? `[${val}] ${record.customerName}` : val;
+      const bpCode = record.businessPartnerCode;
+      if (!bpCode) return text || "-";
       return (
         <Link
-          to={`/basic/business-partners/${record.businessPartnerCode || val}`}
+          to={`/basic/business-partners/${bpCode}`}
           style={{
             color: '#1677ff',
             textDecoration: 'underline',
