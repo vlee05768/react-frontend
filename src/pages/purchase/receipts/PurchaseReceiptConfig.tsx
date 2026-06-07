@@ -342,8 +342,8 @@ export const getItemColumns = (
   onEdit?: (record: any) => void,
   onDelete?: (record: any) => void,
 ): any[] => [
-  { title: "項次", dataIndex: "lineNumber", width: 70 },
-  { title: "原料編碼", dataIndex: "materialCode", width: 130 },
+  { title: "項次", dataIndex: "serialNumber", width: 70 },
+  { title: "原料編碼", dataIndex: "materialCode", width: 130, ellipsis: true },
   { title: "原料名稱", dataIndex: "materialName", width: 180, ellipsis: true },
   {
     title: "進貨量 (㎡)",
@@ -464,8 +464,8 @@ export const getItemFormConfig = (): any[] => [
     name: "targetStorageCode",
     label: "目的儲位",
     componentType: "Custom",
-    editable: "always",
-    customRender: (field: any) => <DictSelect {...field} dictKey="STORAGE" />,
+    editable: "never",
+    customRender: (field: any) => <DictSelect {...field} dictKey="STORAGE" disabled />,
     colSpan: 3,
     validation: z.string().min(1, "請選擇目的儲位"),
   },

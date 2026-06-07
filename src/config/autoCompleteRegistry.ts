@@ -1,4 +1,4 @@
-import { getApiV1Customers, getApiV1CustomersByCode, getApiV1MaterialSuppliers, getApiV1MaterialSuppliersByCode, getApiV1OutsourceVendors, getApiV1OutsourceVendorsByCode, getApiV1ToolingSuppliers, getApiV1ToolingSuppliersByCode, getApiV1Material, getApiV1MaterialByCode, getApiV1Product, getApiV1ProductByCode, getApiV1BusinessPartnersByBusinessPartnerCodeContacts, getApiV1BusinessPartnersByBusinessPartnerCodeContactsByContactId, getApiV1Mold, getApiV1MoldByCode, getApiV1Storage, getApiV1StorageByCode, getApiV1Employee } from '@/api/generated';
+import { getApiV1Customers, getApiV1CustomersByCode, getApiV1MaterialSuppliers, getApiV1MaterialSuppliersByCode, getApiV1OutsourceVendors, getApiV1OutsourceVendorsByCode, getApiV1ToolingSuppliers, getApiV1ToolingSuppliersByCode, getApiV1Material, getApiV1MaterialByCode, getApiV1Product, getApiV1ProductByCode, getApiV1BusinessPartnersByCode, getApiV1BusinessPartnersByBusinessPartnerCodeContacts, getApiV1BusinessPartnersByBusinessPartnerCodeContactsByContactId, getApiV1Mold, getApiV1MoldByCode, getApiV1Storage, getApiV1StorageByCode, getApiV1Employee } from '@/api/generated';
 import { BusinessPartnerRoleTypes } from '@/constants';
 
 export interface AutoCompleteConfig {
@@ -26,6 +26,17 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
     },
     fetchByValue: async (code: string) => {
       if (!code) return null;
+      if (code.startsWith('BP')) {
+        const res = await getApiV1BusinessPartnersByCode({ path: { code } });
+        const bpData = (res.data as any)?.data;
+        if (bpData) {
+          return {
+            ...bpData,
+            customerCode: bpData.roles?.find((r: any) => r.roleType === 'CUSTOMER')?.roleCode || code
+          };
+        }
+        return null;
+      }
       const res = await getApiV1CustomersByCode({ path: { code } });
       return (res.data as any)?.data;
     },
@@ -49,6 +60,17 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
     },
     fetchByValue: async (code: string) => {
       if (!code) return null;
+      if (code.startsWith('BP')) {
+        const res = await getApiV1BusinessPartnersByCode({ path: { code } });
+        const bpData = (res.data as any)?.data;
+        if (bpData) {
+          return {
+            ...bpData,
+            supplierCode: bpData.roles?.find((r: any) => r.roleType === 'MATERIAL_SUPPLIER')?.roleCode || code
+          };
+        }
+        return null;
+      }
       const res = await getApiV1MaterialSuppliersByCode({ path: { code } });
       return (res.data as any)?.data;
     },
@@ -72,6 +94,17 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
     },
     fetchByValue: async (code: string) => {
       if (!code) return null;
+      if (code.startsWith('BP')) {
+        const res = await getApiV1BusinessPartnersByCode({ path: { code } });
+        const bpData = (res.data as any)?.data;
+        if (bpData) {
+          return {
+            ...bpData,
+            outsourceVendorCode: bpData.roles?.find((r: any) => r.roleType === 'OUTSOURCE_VENDOR')?.roleCode || code
+          };
+        }
+        return null;
+      }
       const res = await getApiV1OutsourceVendorsByCode({ path: { code } });
       return (res.data as any)?.data;
     },
@@ -95,6 +128,17 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
     },
     fetchByValue: async (code: string) => {
       if (!code) return null;
+      if (code.startsWith('BP')) {
+        const res = await getApiV1BusinessPartnersByCode({ path: { code } });
+        const bpData = (res.data as any)?.data;
+        if (bpData) {
+          return {
+            ...bpData,
+            toolingSupplierCode: bpData.roles?.find((r: any) => r.roleType === 'TOOLING_SUPPLIER')?.roleCode || code
+          };
+        }
+        return null;
+      }
       const res = await getApiV1ToolingSuppliersByCode({ path: { code } });
       return (res.data as any)?.data;
     },

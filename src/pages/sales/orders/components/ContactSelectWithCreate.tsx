@@ -38,7 +38,7 @@ export const ContactSelectWithCreate: React.FC<ContactSelectWithCreateProps> = (
   // 1. 判斷傳入代碼的類型
   const isCustomerCode = businessPartnerCode?.startsWith('C');
   const isSupplierCode = businessPartnerCode?.startsWith('S');
-  const isOutsourceCode = businessPartnerCode?.startsWith('O');
+  const isOutsourceCode = businessPartnerCode?.startsWith('U');
   const isToolingCode = businessPartnerCode?.startsWith('T');
 
   // 2. 針對不同類型載入對應詳細資料，取得真正的商業夥伴代碼 (BP開頭)

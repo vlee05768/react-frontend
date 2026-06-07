@@ -320,7 +320,7 @@ export default function SalesDeliveryDrawer() {
                   <SalesDeliveryItemsTab 
                     onEditingChange={setIsDetailEditing}
                     documentNumber={id!}
-                    customerCode={deliveryData.businessPartnerCode || ''}
+                    customerCode={deliveryData.partnerRoleCode || ''}
                     items={items}
                     isEditing={isEditing}
                     isConfirmed={!!deliveryData.confirmDate}
