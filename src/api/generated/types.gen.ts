@@ -3487,6 +3487,366 @@ export type MaterialDtoPagedResultApiResponse = {
 };
 
 /**
+ * 原料庫存交易流水帳列表 DTO
+ */
+export type MaterialInventoryTransactionDto = {
+    /**
+     * 建立者ID
+     */
+    createdById?: number | null;
+    /**
+     * 更新者ID
+     */
+    updatedById?: number | null;
+    /**
+     * 建立時間
+     */
+    createdAt?: string;
+    /**
+     * 更新時間
+     */
+    updatedAt?: string;
+    /**
+     * 是否已刪除
+     */
+    isDeleted?: boolean;
+    /**
+     * 建立者名稱
+     */
+    createdBy?: string | null;
+    /**
+     * 更新者名稱
+     */
+    updatedBy?: string | null;
+    /**
+     * 交易識別碼
+     */
+    transactionId?: string;
+    /**
+     * 單據日期
+     */
+    movementDate?: string;
+    /**
+     * 原料品編
+     */
+    materialCode?: string | null;
+    /**
+     * 原料名稱
+     */
+    materialName?: string | null;
+    /**
+     * 儲位編碼
+     */
+    storageCode?: string | null;
+    /**
+     * 關聯卷卡號 / 批次
+     */
+    lotNo?: string | null;
+    /**
+     * 正負方向(1 或 -1)
+     */
+    signFlag?: number;
+    /**
+     * 異動數量 (SQM)
+     */
+    quantity?: number;
+    /**
+     * 交易發生時間
+     */
+    transactionDate?: string;
+    /**
+     * 來源單號
+     */
+    sourceDocCode?: string | null;
+    /**
+     * 單據類型
+     */
+    docType?: string | null;
+    /**
+     * 備註
+     */
+    notes?: string | null;
+};
+
+/**
+ * 分頁結果
+ */
+export type MaterialInventoryTransactionDtoPagedResult = {
+    /**
+     * 目前頁碼
+     */
+    pageNumber?: number;
+    /**
+     * 每頁數量
+     */
+    pageSize?: number;
+    /**
+     * 總頁數
+     */
+    totalPages?: number;
+    /**
+     * 總數量
+     */
+    totalRecords?: number;
+    /**
+     * 資料
+     */
+    data?: Array<MaterialInventoryTransactionDto> | null;
+};
+
+export type MaterialInventoryTransactionDtoPagedResultApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: MaterialInventoryTransactionDtoPagedResult;
+};
+
+/**
+ * 原料邏輯庫存列表 DTO
+ */
+export type MaterialLogicalInventoryDto = {
+    /**
+     * 建立者ID
+     */
+    createdById?: number | null;
+    /**
+     * 更新者ID
+     */
+    updatedById?: number | null;
+    /**
+     * 建立時間
+     */
+    createdAt?: string;
+    /**
+     * 更新時間
+     */
+    updatedAt?: string;
+    /**
+     * 是否已刪除
+     */
+    isDeleted?: boolean;
+    /**
+     * 建立者名稱
+     */
+    createdBy?: string | null;
+    /**
+     * 更新者名稱
+     */
+    updatedBy?: string | null;
+    /**
+     * 儲位編碼
+     */
+    storageCode?: string | null;
+    /**
+     * 原料品編
+     */
+    materialCode?: string | null;
+    /**
+     * 原料名稱
+     */
+    materialName?: string | null;
+    /**
+     * 原料型態(R=捲料, S=片料)
+     */
+    materialForm?: string | null;
+    /**
+     * 邏輯可用總存量 (SQM)
+     */
+    quantity?: number;
+    /**
+     * 凍結數量/待檢量 (SQM)
+     */
+    frozenQuantity?: number;
+    /**
+     * 財務基準單位
+     */
+    baseUOM?: string | null;
+};
+
+/**
+ * 分頁結果
+ */
+export type MaterialLogicalInventoryDtoPagedResult = {
+    /**
+     * 目前頁碼
+     */
+    pageNumber?: number;
+    /**
+     * 每頁數量
+     */
+    pageSize?: number;
+    /**
+     * 總頁數
+     */
+    totalPages?: number;
+    /**
+     * 總數量
+     */
+    totalRecords?: number;
+    /**
+     * 資料
+     */
+    data?: Array<MaterialLogicalInventoryDto> | null;
+};
+
+export type MaterialLogicalInventoryDtoPagedResultApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: MaterialLogicalInventoryDtoPagedResult;
+};
+
+/**
+ * 原料實物卷卡 LPN 列表 DTO
+ */
+export type MaterialRollDto = {
+    /**
+     * 建立者ID
+     */
+    createdById?: number | null;
+    /**
+     * 更新者ID
+     */
+    updatedById?: number | null;
+    /**
+     * 建立時間
+     */
+    createdAt?: string;
+    /**
+     * 更新時間
+     */
+    updatedAt?: string;
+    /**
+     * 是否已刪除
+     */
+    isDeleted?: boolean;
+    /**
+     * 建立者名稱
+     */
+    createdBy?: string | null;
+    /**
+     * 更新者名稱
+     */
+    updatedBy?: string | null;
+    /**
+     * 物料卡號/LPN
+     */
+    rollNo?: string | null;
+    /**
+     * 關聯批次代碼
+     */
+    lotNo?: string | null;
+    /**
+     * 原料品編
+     */
+    materialCode?: string | null;
+    /**
+     * 原料名稱
+     */
+    materialName?: string | null;
+    /**
+     * 儲位編號
+     */
+    storageCode?: string | null;
+    /**
+     * 物料卷卡在庫狀態
+     */
+    rollStatus?: string | null;
+    /**
+     * 目前實時稱重重量 (KG)
+     */
+    currentWeightKg?: number;
+    /**
+     * 目前實時輔助交易數量
+     */
+    currentQtyAux?: number;
+    /**
+     * 原料實測厚度 (mm)
+     */
+    measuredThicknessMm?: number;
+    /**
+     * 此捲/片之實體寬度 (mm)
+     */
+    widthMm?: number;
+    /**
+     * 【捲料】實測紙芯外外徑 (mm)
+     */
+    measuredCoreDiaMm?: number | null;
+    /**
+     * 【捲料】接頭數量
+     */
+    spliceCount?: number;
+    /**
+     * 【片料】片料實體長度 (mm)
+     */
+    lengthMm?: number | null;
+    /**
+     * 【片料】紋理纖維方向
+     */
+    grainDirection?: string | null;
+    /**
+     * 母卷卡號
+     */
+    parentRollNo?: string | null;
+    /**
+     * 每平方米(SQM)實際成本
+     */
+    costPerSqm?: number;
+    /**
+     * 原始起源單據類型
+     */
+    sourceDocType?: string | null;
+    /**
+     * 原始起源單據編號
+     */
+    sourceDocNumber?: string | null;
+    /**
+     * 原始起源單據行號
+     */
+    sourceDocLine?: string | null;
+    /**
+     * 實體卷卡動態反算的當前面積 (SQM)
+     */
+    currentAreaSqm?: number;
+};
+
+/**
+ * 分頁結果
+ */
+export type MaterialRollDtoPagedResult = {
+    /**
+     * 目前頁碼
+     */
+    pageNumber?: number;
+    /**
+     * 每頁數量
+     */
+    pageSize?: number;
+    /**
+     * 總頁數
+     */
+    totalPages?: number;
+    /**
+     * 總數量
+     */
+    totalRecords?: number;
+    /**
+     * 資料
+     */
+    data?: Array<MaterialRollDto> | null;
+};
+
+export type MaterialRollDtoPagedResultApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: MaterialRollDtoPagedResult;
+};
+
+/**
  * 原料供應商角色展平型 DTO
  */
 export type MaterialSupplierDto = {
@@ -13768,6 +14128,144 @@ export type PostApiV1MaterialByCodeUploadFilesResponses = {
 };
 
 export type PostApiV1MaterialByCodeUploadFilesResponse = PostApiV1MaterialByCodeUploadFilesResponses[keyof PostApiV1MaterialByCodeUploadFilesResponses];
+
+export type GetApiV1MaterialInventoryLogicalData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * 原料品編
+         */
+        MaterialCode?: string;
+        /**
+         * 儲位編碼
+         */
+        StorageCode?: string;
+        /**
+         * 頁碼
+         */
+        pageNumber?: number;
+        /**
+         * 每頁筆數
+         */
+        pageSize?: number;
+        /**
+         * 多欄位排序規則字串。格式為: "field1:asc,field2:desc"
+         * (例如: "type:asc,code:desc,createdAt:desc")
+         */
+        SortRules?: string;
+    };
+    url: '/api/v1/MaterialInventory/logical';
+};
+
+export type GetApiV1MaterialInventoryLogicalResponses = {
+    /**
+     * OK
+     */
+    200: MaterialLogicalInventoryDtoPagedResultApiResponse;
+};
+
+export type GetApiV1MaterialInventoryLogicalResponse = GetApiV1MaterialInventoryLogicalResponses[keyof GetApiV1MaterialInventoryLogicalResponses];
+
+export type GetApiV1MaterialInventoryRollsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * 卷卡號/LPN
+         */
+        RollNo?: string;
+        /**
+         * 關聯批次代碼
+         */
+        LotNo?: string;
+        /**
+         * 原料品編
+         */
+        MaterialCode?: string;
+        /**
+         * 儲位編碼
+         */
+        StorageCode?: string;
+        /**
+         * 物料卷卡在庫狀態
+         */
+        RollStatus?: string;
+        /**
+         * 頁碼
+         */
+        pageNumber?: number;
+        /**
+         * 每頁筆數
+         */
+        pageSize?: number;
+        /**
+         * 多欄位排序規則字串。格式為: "field1:asc,field2:desc"
+         * (例如: "type:asc,code:desc,createdAt:desc")
+         */
+        SortRules?: string;
+    };
+    url: '/api/v1/MaterialInventory/rolls';
+};
+
+export type GetApiV1MaterialInventoryRollsResponses = {
+    /**
+     * OK
+     */
+    200: MaterialRollDtoPagedResultApiResponse;
+};
+
+export type GetApiV1MaterialInventoryRollsResponse = GetApiV1MaterialInventoryRollsResponses[keyof GetApiV1MaterialInventoryRollsResponses];
+
+export type GetApiV1MaterialInventoryTransactionsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * 原料品編
+         */
+        MaterialCode?: string;
+        /**
+         * 儲位編碼
+         */
+        StorageCode?: string;
+        /**
+         * 卷卡號/批次代碼
+         */
+        LotNo?: string;
+        /**
+         * 來源單號
+         */
+        SourceDocCode?: string;
+        /**
+         * 單據類型
+         */
+        DocType?: string;
+        /**
+         * 頁碼
+         */
+        pageNumber?: number;
+        /**
+         * 每頁筆數
+         */
+        pageSize?: number;
+        /**
+         * 多欄位排序規則字串。格式為: "field1:asc,field2:desc"
+         * (例如: "type:asc,code:desc,createdAt:desc")
+         */
+        SortRules?: string;
+    };
+    url: '/api/v1/MaterialInventory/transactions';
+};
+
+export type GetApiV1MaterialInventoryTransactionsResponses = {
+    /**
+     * OK
+     */
+    200: MaterialInventoryTransactionDtoPagedResultApiResponse;
+};
+
+export type GetApiV1MaterialInventoryTransactionsResponse = GetApiV1MaterialInventoryTransactionsResponses[keyof GetApiV1MaterialInventoryTransactionsResponses];
 
 export type GetApiV1MaterialSuppliersData = {
     body?: never;
