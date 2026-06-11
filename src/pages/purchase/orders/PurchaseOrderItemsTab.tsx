@@ -28,8 +28,8 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
   const [isCreating, setIsCreating] = useState(false);
   const [editingItem, setEditingItem] = useState<PurchaseOrderItemDto | null>(null);
 
-  const listData: PurchaseOrderItemDto[] = Array.isArray(purchaseOrderData.purchaseOrderItems) 
-    ? purchaseOrderData.purchaseOrderItems 
+  const listData: PurchaseOrderItemDto[] = Array.isArray(purchaseOrderData.items) 
+    ? purchaseOrderData.items 
     : [];
 
   const notifyEdit = (editing: boolean) => {
@@ -42,7 +42,7 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
   };
 
   const handleEditOpen = async (record: PurchaseOrderItemDto) => {
-    if (record.goodsType === 'M' && record.goodsCode) {
+    if (record.purchaseOrderType === 'Material' && record.goodsCode) {
       try {
         const res = await getApiV1MaterialByCode({ path: { code: record.goodsCode } });
         const material = (res.data as any)?.data;
@@ -181,14 +181,16 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
           : undefined,
       } 
     : {
-        goodsType: 'M',
+        purchaseOrderType: purchaseOrderData.purchaseOrderType || 'Material',
         materialForm: 'R',
         unit: '卷',
         quantity: 0,
         unitPrice: 0,
         subTotal: 0,
-        tax: 0,
-        lineAmount: 0,
+        width: null,
+        length: null,
+        customerCode: null,
+        productCode: null,
         requestedDeliveryDate: purchaseOrderData.expectedArrivalDate 
           ? dayjs(purchaseOrderData.expectedArrivalDate) 
           : dayjs(),

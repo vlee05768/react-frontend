@@ -57,7 +57,7 @@ export default function PurchaseOrderItemSelector({
 
     const rawItems: any[] = [];
     orders.forEach((order: any) => {
-      const items = order.purchaseOrderItems || [];
+      const items = order.items || [];
       if (Array.isArray(items)) {
         items.forEach((item: any) => {
           rawItems.push({

@@ -7,7 +7,6 @@ import type { PurchaseOrderDto, PurchaseOrderItemDto } from "@/api/generated/typ
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import { EllipsisText } from "@/components/Table/EllipsisText";
-import { DictTag } from "@/components/Form/DictTag";
 
 export const getStatusTag = (status: string | null | undefined, closeDate?: string | null) => {
   const statusUpper = (status || '').toUpperCase();
@@ -25,6 +24,19 @@ export const searchConfig: SearchFieldConfig[] = [
     name: "code",
     label: "採購單號",
     componentType: "Input",
+    colSpan: 2,
+  },
+  {
+    name: "purchaseOrderType",
+    label: "採購類別",
+    componentType: "Select",
+    componentProps: {
+      options: [
+        { label: "原料採購 (Material)", value: "Material" },
+        { label: "模具採購 (Mold)", value: "Mold" },
+      ],
+      allowClear: true,
+    },
     colSpan: 2,
   },
   {
@@ -69,6 +81,12 @@ export const getColumns = (): TableColumnConfig<PurchaseOrderDto>[] => [
     width: 120,
     sortable: { multiple: 2 },
     render: (date: string) => (date ? dayjs(date).format("YYYY-MM-DD") : "-"),
+  },
+  {
+    label: "採購類別",
+    name: "purchaseOrderType",
+    width: 110,
+    render: (val: string) => val === "Mold" ? <Tag color="purple">模具採購</Tag> : <Tag color="blue">原料採購</Tag>,
   },
   {
     label: "單據狀態",
@@ -149,6 +167,23 @@ export const getFormConfig = (): any[] => [
     }
   },
   {
+    name: "purchaseOrderType",
+    label: "採購類別",
+    componentType: "Select",
+    editable: "createOnly",
+    colSpan: 4,
+    componentProps: {
+      options: [
+        { label: "原料採購 (Material)", value: "Material" },
+        { label: "模具採購 (Mold)", value: "Mold" }
+      ]
+    },
+    validation: z.string().min(1, "採購類別為必填"),
+    onChange: (_value: any, _context: any, setValue: any) => {
+      setValue("businessPartnerCode", undefined);
+    }
+  },
+  {
     name: "ticketDate",
     label: "單據日期",
     componentType: "DatePicker",
@@ -160,7 +195,10 @@ export const getFormConfig = (): any[] => [
     name: "businessPartnerCode",
     label: "供應商",
     componentType: "AsyncSelect",
-    componentProps: { configKey: "MATERIAL_SUPPLIER" },
+    componentProps: (context: any) => {
+      const isMold = context?.values?.purchaseOrderType === "Mold";
+      return { configKey: isMold ? "TOOLING_SUPPLIER" : "MATERIAL_SUPPLIER" };
+    },
     editable: "createOnly",
     colSpan: 4,
     validation: z.string().min(1, "供應商為必填"),
@@ -226,7 +264,7 @@ export const getFormConfig = (): any[] => [
     colSpan: 4,
     validation: z.any().optional(),
   },
-    {
+  {
     name: "subTotalAmount",
     label: "未稅小計",
     componentType: "InputNumber",
@@ -275,7 +313,6 @@ export const getFormConfig = (): any[] => [
       placeholder: "請輸入備註"
     }
   },
-
 ];
 
 export const getItemColumns = (
@@ -321,12 +358,11 @@ export const getItemColumns = (
     width: 120,
     render: (date: string) => (date ? dayjs(date).format("YYYY-MM-DD") : "-"),
   },
-
   {
-    title: "商品類型",
-    dataIndex: "goodsType",
+    title: "採購類別",
+    dataIndex: "purchaseOrderType",
     width: 100,
-    render: (val: string) => <DictTag dictKey="PRODUCT_TYPE" value={val} />,
+    render: (val: string) => val === "Mold" ? <Tag color="purple">模具</Tag> : <Tag color="blue">原料</Tag>,
   },
   {
     title: "商品代碼",
@@ -338,6 +374,38 @@ export const getItemColumns = (
     dataIndex: "goodsName",
     width: 200,
     ellipsis: true,
+  },
+  {
+    title: "寬度 (mm)",
+    dataIndex: "width",
+    width: 100,
+    align: "right",
+    render: (val: number, record: any) => {
+      if (record.purchaseOrderType === "Mold" || val == null) return "-";
+      return Number(val.toFixed(4)).toLocaleString();
+    }
+  },
+  {
+    title: "長度 (m)",
+    dataIndex: "length",
+    width: 100,
+    align: "right",
+    render: (val: number, record: any) => {
+      if (record.purchaseOrderType === "Mold" || val == null) return "-";
+      return Number(val.toFixed(4)).toLocaleString();
+    }
+  },
+  {
+    title: "客戶編碼",
+    dataIndex: "customerCode",
+    width: 120,
+    render: (val: string) => val || "-",
+  },
+  {
+    title: "成品編碼",
+    dataIndex: "productCode",
+    width: 120,
+    render: (val: string) => val || "-",
   },
   {
     title: "單價",
@@ -375,22 +443,23 @@ export const getItemColumns = (
 
 export const getItemFormConfig = (): any[] => [
   {
-    name: "goodsType",
-    label: "商品類型",
-    componentType: "Select",
-    componentProps: {
-      options: [
-        { label: "原物料 (M)", value: "M" },
-        { label: "其他 (O)", value: "O" }
-      ]
-    },
+    name: "purchaseOrderType",
+    label: "採購類別",
+    componentType: "Input",
+    editable: "never",
     colSpan: 4,
-    validation: z.string().min(1, "商品類型為必填"),
-    onChange: (_value: any, _context: any, setValue: any) => {
-      setValue("goodsCode", undefined);
-      setValue("goodsName", "");
-      setValue("materialForm", undefined);
-      setValue("unit", "卷");
+    componentProps: {
+      style: { display: "none" }
+    }
+  },
+  {
+    name: "materialForm",
+    label: "原料形態",
+    componentType: "Input",
+    editable: "never",
+    colSpan: 4,
+    componentProps: {
+      style: { display: "none" }
     }
   },
   {
@@ -398,8 +467,8 @@ export const getItemFormConfig = (): any[] => [
     label: "商品編碼",
     componentType: "AsyncSelect",
     componentProps: (context: any) => {
-      const isM = context?.values?.goodsType === "M";
-      return { configKey: isM ? "MATERIAL" : "PRODUCT" };
+      const isMold = context?.values?.purchaseOrderType === "Mold";
+      return { configKey: isMold ? "MOLD" : "MATERIAL" };
     },
     colSpan: 4,
     validation: z.string().min(1, "商品編碼為必填"),
@@ -408,18 +477,22 @@ export const getItemFormConfig = (): any[] => [
       if (option && option.originalData) {
         setValue("goodsName", option.originalData.name || "");
         
-        const isM = _context?.values?.goodsType === "M";
-        if (isM) {
+        const isMaterial = _context?.values?.purchaseOrderType === "Material";
+        if (isMaterial) {
           const form = option.originalData.materialForm; // "R" = 捲材, "S" = 片材
           setValue("materialForm", form);
           if (form === "S") {
-            setValue("unit", "包");
+            setValue("unit", "pcs");
+            setValue("length", undefined);
           } else {
             setValue("unit", "卷");
+            setValue("length", null);
           }
         } else {
           setValue("materialForm", undefined);
-          setValue("unit", "卷");
+          setValue("unit", "pcs");
+          setValue("length", null);
+          setValue("width", null);
         }
       }
     }
@@ -433,10 +506,87 @@ export const getItemFormConfig = (): any[] => [
   },
   {
     name: "requestedDeliveryDate",
-    label: "CRD",
+    label: "預計交期",
     componentType: "DatePicker",
     colSpan: 4,
     validation: z.any().optional(),
+  },
+  {
+    name: "width",
+    label: "寬度 (mm)",
+    componentType: "InputNumber",
+    colSpan: 4,
+    componentProps: (context: any) => {
+      const isMold = context?.values?.purchaseOrderType === "Mold";
+      return {
+        controls: false,
+        style: { width: "100%" },
+        disabled: isMold,
+        placeholder: isMold ? "模具不需寬度" : "請輸入寬度",
+      };
+    },
+    validation: z.union([z.number(), z.null(), z.undefined()]).optional().refine((val) => {
+      // 寬度選填/必填邏輯於後端嚴格檢核，前端允許輸入正數
+      if (val != null && val <= 0) return false;
+      return true;
+    }, { message: "寬度必須大於0" }),
+  },
+  {
+    name: "length",
+    label: "長度 (m)",
+    componentType: "InputNumber",
+    colSpan: 4,
+    componentProps: (context: any) => {
+      const isMold = context?.values?.purchaseOrderType === "Mold";
+      const isRoll = context?.values?.materialForm === "R";
+      const disabled = isMold || isRoll;
+      return {
+        controls: false,
+        style: { width: "100%" },
+        disabled: disabled,
+        placeholder: isMold ? "模具不需長度" : (isRoll ? "卷料長度不需填" : "請輸入片料長度"),
+      };
+    },
+    validation: z.union([z.number(), z.null(), z.undefined()]).optional().refine((val) => {
+      if (val != null && val <= 0) return false;
+      return true;
+    }, { message: "長度必須大於0" }),
+  },
+  {
+    name: "customerCode",
+    label: "客戶編碼",
+    componentType: "AsyncSelect",
+    componentProps: (context: any) => {
+      const isMold = context?.values?.purchaseOrderType === "Mold";
+      return {
+        configKey: "CUSTOMER",
+        disabled: !isMold,
+        placeholder: isMold ? "請選擇客戶 (選填)" : "非模具採購不需客戶"
+      };
+    },
+    colSpan: 4,
+    validation: z.string().nullable().optional(),
+    onChange: (_value: any, _context: any, setValue: any) => {
+      if (!_value) {
+        setValue("productCode", undefined);
+      }
+    }
+  },
+  {
+    name: "productCode",
+    label: "成品編碼",
+    componentType: "AsyncSelect",
+    componentProps: (context: any) => {
+      const isMold = context?.values?.purchaseOrderType === "Mold";
+      const customerCode = context?.values?.customerCode;
+      return {
+        configKey: "PRODUCT",
+        disabled: !isMold || !customerCode,
+        placeholder: !isMold ? "非模具採購不需成品" : (!customerCode ? "請先選擇客戶" : "請選擇成品 (選填)"),
+      };
+    },
+    colSpan: 4,
+    validation: z.string().nullable().optional(),
   },
   {
     name: "unitPrice",
@@ -450,12 +600,7 @@ export const getItemFormConfig = (): any[] => [
     onChange: (value: any, context: any, setValue: any) => {
       const qty = context.values.quantity || 0;
       const price = value || 0;
-      const subTotal = Math.round(price * qty);
-      const tax = Math.round(subTotal * 0.05);
-      const lineAmount = subTotal + tax;
-      setValue("subTotal", subTotal);
-      setValue("tax", tax);
-      setValue("lineAmount", lineAmount);
+      setValue("subTotal", Math.round(price * qty));
     },
     componentProps: {
       controls: false,
@@ -471,12 +616,7 @@ export const getItemFormConfig = (): any[] => [
     onChange: (value: any, context: any, setValue: any) => {
       const qty = value || 0;
       const price = context.values.unitPrice || 0;
-      const subTotal = Math.round(price * qty);
-      const tax = Math.round(subTotal * 0.05);
-      const lineAmount = subTotal + tax;
-      setValue("subTotal", subTotal);
-      setValue("tax", tax);
-      setValue("lineAmount", lineAmount);
+      setValue("subTotal", Math.round(price * qty));
     },
     componentProps: {
       controls: false,
@@ -486,36 +626,10 @@ export const getItemFormConfig = (): any[] => [
   {
     name: "unit",
     label: "採購單位",
-    componentType: (context: any) => {
-      const isM = context?.values?.goodsType === "M";
-      return isM ? "Select" : "Input";
-    },
+    componentType: "Input",
     colSpan: 4,
+    editable: "never",
     validation: z.string().min(1, "採購單位為必填"),
-    componentProps: (context: any) => {
-      const isM = context?.values?.goodsType === "M";
-      if (isM) {
-        const form = context?.values?.materialForm; // "R" = 捲材, "S" = 片材
-        if (form === "S") {
-          return {
-            options: [
-              { label: "包", value: "包" },
-              { label: "箱", value: "箱" }
-            ]
-          };
-        } else {
-          return {
-            options: [
-              { label: "卷", value: "卷" },
-              { label: "平方米", value: "平方米" }
-            ]
-          };
-        }
-      }
-      return {
-        placeholder: "請輸入採購單位"
-      };
-    }
   },
   {
     name: "subTotal",
@@ -528,7 +642,6 @@ export const getItemFormConfig = (): any[] => [
       style: { width: "100%" }
     }
   },
-
   {
     name: "notes",
     label: "備註",

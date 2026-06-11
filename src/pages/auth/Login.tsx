@@ -105,10 +105,9 @@ export default function Login() {
           rules={[{ required: true, message: '請輸入帳號' }]}
         >
           <Input 
-            prefix={<UserOutlined className="text-gray-500" />} 
+            prefix={<UserOutlined />} 
             placeholder="帳號 (預設: admin)" 
             autoFocus 
-            className="bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500"
           />
         </Form.Item>
 
@@ -119,9 +118,8 @@ export default function Login() {
           className="mb-4"
         >
           <Input.Password 
-            prefix={<LockOutlined className="text-gray-500" />} 
+            prefix={<LockOutlined />} 
             placeholder="密碼" 
-            className="bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500"
           />
         </Form.Item>
 

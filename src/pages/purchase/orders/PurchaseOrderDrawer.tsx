@@ -60,7 +60,7 @@ export default function PurchaseOrderDrawer() {
   useEffect(() => {
     if (!isLoading && purchaseOrderData && !hasAutoSwitchedRef.current && isViewMode) {
       hasAutoSwitchedRef.current = true;
-      if (!purchaseOrderData.purchaseOrderItems || purchaseOrderData.purchaseOrderItems.length === 0) {
+      if (!purchaseOrderData.items || purchaseOrderData.items.length === 0) {
         setActiveTab('items');
       }
     }
@@ -73,7 +73,7 @@ export default function PurchaseOrderDrawer() {
         ticketDate: dayjs(),
         expectedArrivalDate: dayjs().add(1, 'week'),
         status: 'Draft',
-        targetPlantCode: 'TW',
+        purchaseOrderType: 'Material',
         currency: 'TWD',
         exchangeRate: 1,
         taxRate: 0.05,
@@ -185,7 +185,6 @@ export default function PurchaseOrderDrawer() {
   const handleSubmit = async (values: any) => {
     const formattedValues = {
       ...values,
-      targetPlantCode: 'TW',
       ticketDate: values.ticketDate ? dayjs(values.ticketDate).format('YYYY-MM-DD') : undefined,
       expectedArrivalDate: values.expectedArrivalDate ? dayjs(values.expectedArrivalDate).format('YYYY-MM-DD') : undefined,
     };
@@ -219,7 +218,7 @@ export default function PurchaseOrderDrawer() {
     const isFinished = statusUpper === 'CLOSED' || statusUpper === 'FINISHED' || !!purchaseOrderData?.closedAt;
     const canUpdate = hasPermission('Purchase.Orders.Update');
     const canDelete = hasPermission('Purchase.Orders.Delete');
-    const hasItems = purchaseOrderData?.purchaseOrderItems && purchaseOrderData.purchaseOrderItems.length > 0;
+    const hasItems = purchaseOrderData?.items && purchaseOrderData.items.length > 0;
 
     if (isCreating || isEditing) return null;
     if (!purchaseOrderData) return null;
