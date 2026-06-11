@@ -15,66 +15,50 @@ export const materialFormOptions = [
   { label: "片材 (S)", value: "S" },
 ];
 
-export const primaryUoMOptions = [
-  { label: "平方公尺", value: "M²" },
-  { label: "個", value: "PCS" },
-  { label: "公斤", value: "KG" },
-];
-
-export const secondaryUoMOptions = [
-  { label: "卷", value: "ROLL" },
-  { label: "包", value: "PKG" },
-];
-
-export const purchasingUoMOptions = [
-  { label: "卷", value: "ROLL" },
-  { label: "包", value: "PKG" },
-  { label: "箱", value: "BOX" },
-];
-
-// 計算編碼
+// 計算編碼與自動關聯欄位
 const generateCode = (context: any, setValue: any) => {
-  const { materialForm, brand, modelNo, thickness, width, length } =
-    context.values;
+  const { materialForm, brand, modelNo, thickness } = context.values;
   
   // 只要有任何一個必要欄位為空，就清空編碼和名稱
   const isMissingFields = 
     !materialForm || 
     !brand || 
     !modelNo || 
-    thickness == null || 
-    width == null || 
-    (materialForm === "S" && length == null);
+    thickness == null;
 
   if (isMissingFields) {
     setValue("code", "");
     setValue("name", "");
+    setValue("spec", "");
     return;
   }
 
   // 數值去掉最右邊的0: 利用 Number() 自動去掉多餘的 0，再轉回字串
   const formattedThickness = Number(thickness).toString();
-  const formattedWidth = Number(width).toString();
+  const upperBrand = (brand || "").trim().toUpperCase();
+  const upperModelNo = (modelNo || "").trim().toUpperCase();
   
-  let spec = "";
-  let specLabel = "";
-  if (materialForm === "R") {
-    spec = formattedWidth;
-    specLabel = `寬${formattedWidth}mm`;
-  } else if (materialForm === "S") {
-    const formattedLength = Number(length).toString();
-    spec = `${formattedWidth}×${formattedLength}`;
-    specLabel = `${formattedWidth}×${formattedLength}mm`;
-  }
+  // 規格編碼：後端定義為 ModelNo-Thickness
+  const spec = `${upperModelNo}-${formattedThickness}`;
+  setValue("spec", spec);
 
-  const code = `${materialForm}-${brand}-${modelNo}-${formattedThickness}-${spec}`;
+  // 原料編碼：R/S-廠牌-型號-厚度
+  const code = `${materialForm}-${upperBrand}-${upperModelNo}-${formattedThickness}`;
   setValue("code", code);
 
   const formLabel = materialForm === "R" ? "捲材" : "片材";
   setValue(
     "name",
-    `(${formLabel}) ${brand} ${modelNo} 厚${formattedThickness}mm ${specLabel}`,
+    `(${formLabel}) ${upperBrand} ${upperModelNo} 厚${formattedThickness}mm`,
   );
+
+  // 自動依型態鎖定與更新計量單位
+  setValue("baseUOM", "SQM");
+  if (materialForm === "R") {
+    setValue("auxUOM", "M");
+  } else if (materialForm === "S") {
+    setValue("auxUOM", "PCS");
+  }
 };
 
 export const materialSearchFormConfig = (): SearchFieldConfig[] => [
@@ -154,37 +138,9 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     render: (v) => <DictLabel dictKey="MATERIAL_TYPE" value={v} />,
   },
   { label: "厚度(mm)", name: "thickness", width: 100 },
-  { label: "寬度(mm)", name: "width", width: 100 },
-  { label: "長度(mm)", name: "length", width: 100 },
-  {
-    label: "副計量單位",
-    name: "secondaryUoM",
-    width: 120,
-    render: (v) => {
-      const opt = secondaryUoMOptions.find((o) => o.value === v);
-      return opt ? opt.label : v;
-    },
-  },
-  { label: "轉換係數", name: "conversionFactor", width: 100 },
-  {
-    label: "庫存計量單位",
-    name: "primaryUoM",
-    width: 120,
-    render: (v) => {
-      const opt = primaryUoMOptions.find((o) => o.value === v);
-      return opt ? opt.label : v;
-    },
-  },
-  {
-    label: "採購單位",
-    name: "purchasingUoM",
-    width: 120,
-    render: (v) => {
-      const opt = purchasingUoMOptions.find((o) => o.value === v);
-      return opt ? opt.label : v;
-    },
-  },
-  { label: "成本", name: "cost", width: 100 },
+  { label: "財務單位", name: "baseUOM", width: 100 },
+  { label: "輔助單位", name: "auxUOM", width: 100 },
+  { label: "密度(g/m²)", name: "stdDensity", width: 120 },
   {
     label: "供應商",
     name: "supplierCode",
@@ -251,19 +207,6 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     componentProps: { options: materialFormOptions, allowClear: true },
     onChange: (val, ctx, setValue) => {
       ctx.values.materialForm = val;
-      if (val === "R") {
-        setValue("length", 0);
-        ctx.values.length = 0;
-        setValue("primaryUoM", "M²");
-        setValue("secondaryUoM", "ROLL");
-        setValue("purchasingUoM", "ROLL");
-      } else if (val === "S") {
-        setValue("length", undefined);
-        ctx.values.length = undefined;
-        setValue("primaryUoM", "PCS");
-        setValue("secondaryUoM", "PKG");
-        setValue("purchasingUoM", "BOX");
-      }
       generateCode(ctx, setValue);
     },
   },
@@ -334,36 +277,13 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     },
   },
   {
-    name: "width",
-    label: "寬度 (mm)",
+    name: "stdDensity",
+    label: "標準克重密度 (g/m²)",
     componentType: "InputNumber",
     group: "基本規格",
     colSpan: 6,
-    editable: "createOnly",
-    validation: z.number({ invalid_type_error: "請輸入寬度" }).min(0),
+    validation: z.number({ invalid_type_error: "請輸入標準克重密度" }).min(0),
     componentProps: { min: 0, style: { width: "100%" } },
-    onChange: (val, ctx, setValue) => {
-      ctx.values.width = val;
-      generateCode(ctx, setValue);
-    },
-  },
-  {
-    name: "length",
-    label: "長度 (mm)",
-    componentType: "InputNumber",
-    group: "基本規格",
-    colSpan: 6,
-    editable: (ctx) =>
-      ctx.values.materialForm === "R" ? "never" : "createOnly",
-    dynamicValidation: (ctx) =>
-      ctx.values.materialForm === "S"
-        ? z.number({ invalid_type_error: "片材請輸入長度" }).min(0)
-        : z.any().optional(),
-    componentProps: { min: 0, style: { width: "100%" } },
-    onChange: (val, ctx, setValue) => {
-      ctx.values.length = val;
-      generateCode(ctx, setValue);
-    },
   },
   {
     name: "spec",
@@ -371,6 +291,8 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     componentType: "Input",
     group: "基本規格",
     colSpan: 4,
+    editable: "never",
+    componentProps: { disabled: true },
   },
   {
     name: "supplierCode",
@@ -390,7 +312,7 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     group: "基本規格",
     colSpan: 6,
   },
-    {
+  {
     name: "tag",
     label: "標籤",
     componentType: "Input",
@@ -414,46 +336,23 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     componentProps: { rows: 4 },
   },
 
-  // === Tab 2: 計量單位與成本 ===
+  // === Tab 2: 計量單位資訊 (皆為系統判定唯讀欄位) ===
   {
-    name: "primaryUoM",
-    label: "主計量單位",
-    componentType: "Select",
-    group: "計量單位與成本",
+    name: "baseUOM",
+    label: "財務基準單位",
+    componentType: "Input",
+    group: "計量單位資訊",
     colSpan: 6,
-    componentProps: { options: primaryUoMOptions, allowClear: true },
+    editable: "never",
+    componentProps: { disabled: true },
   },
   {
-    name: "secondaryUoM",
-    label: "副計量單位",
-    componentType: "Select",
-    group: "計量單位與成本",
+    name: "auxUOM",
+    label: "現場輔助單位",
+    componentType: "Input",
+    group: "計量單位資訊",
     colSpan: 6,
-    componentProps: { options: secondaryUoMOptions, allowClear: true },
+    editable: "never",
+    componentProps: { disabled: true },
   },
-  {
-    name: "conversionFactor",
-    label: "轉換係數",
-    componentType: "InputNumber",
-    group: "計量單位與成本",
-    colSpan: 6,
-    componentProps: { min: 0, style: { width: "100%" } },
-  },
-  {
-    name: "purchasingUoM",
-    label: "採購單位",
-    componentType: "Select",
-    group: "計量單位與成本",
-    colSpan: 6,
-    componentProps: { options: purchasingUoMOptions, allowClear: true },
-  },
-  {
-    name: "cost",
-    label: "成本",
-    componentType: "InputNumber",
-    group: "計量單位與成本",
-    colSpan: 3,
-    componentProps: { min: 0, style: { width: "100%" } },
-  },
-
 ];

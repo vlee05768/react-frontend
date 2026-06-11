@@ -178,7 +178,13 @@ export default function MaterialList() {
 
   const openCreateDrawer = () => {
     setActiveTab('master_info');
-    setFormDefaultValues({ isActive: true, materialForm: 'R', primaryUoM: 'M²', secondaryUoM: 'ROLL', purchasingUoM: 'ROLL', length: 0, conversionFactor: 1 });
+    setFormDefaultValues({ 
+      isActive: true, 
+      materialForm: 'R', 
+      baseUOM: 'SQM', 
+      auxUOM: 'M', 
+      stdDensity: 0 
+    });
     setIsCreateDrawerOpen(true);
   };
 
