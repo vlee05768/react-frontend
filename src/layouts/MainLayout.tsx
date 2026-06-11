@@ -49,6 +49,7 @@ const ROUTE_MAPPING: Record<string, string> = {
   'System.GeneralTypes': '/system/general-types',
   'System.SystemMaintenance': '/system/maintenance',
   'Warehouse.Storages': '/warehouse/storages',
+  'Warehouse.MaterialInventory': '/warehouse/material-inventory',
   'Warehouse.Materials': '/warehouse/materials',
   'Warehouse.Products': '/warehouse/products',
   'Warehouse.Inventory': '/warehouse/inventory',
@@ -77,6 +78,7 @@ const ROUTE_PERMISSION_MAP: Record<string, string> = {
   '/system/general-types': 'System.GeneralTypes.View',
   '/system/maintenance': 'System.SystemMaintenance.View',
   '/warehouse/storages': 'Warehouse.Storages.View',
+  '/warehouse/material-inventory': 'Warehouse.Materials.View',
   '/warehouse/materials': 'Warehouse.Materials.View',
   '/warehouse/products': 'Warehouse.Products.View',
   '/warehouse/inventory': 'Warehouse.Inventory.View',
@@ -201,6 +203,23 @@ export default function MainLayout() {
           if (dotCount === 0) {
             // Level 1: 模組 (資料夾)
             const children = node.children ? mapNodes(node.children) : [];
+            
+            if (node.key === 'Warehouse' && hasPermission('Warehouse.Materials.View')) {
+              if (!children.some(c => c.key === '/warehouse/material-inventory')) {
+                const idx = children.findIndex(c => c.key === '/warehouse/materials');
+                if (idx !== -1) {
+                  children.splice(idx + 1, 0, {
+                    key: '/warehouse/material-inventory',
+                    label: '原料 LPN 卷卡追溯',
+                  });
+                } else {
+                  children.push({
+                    key: '/warehouse/material-inventory',
+                    label: '原料 LPN 卷卡追溯',
+                  });
+                }
+              }
+            }
             // 如果該模組下沒有任何有權限的子頁面，就不顯示該模組
             if (children.length === 0) return null;
             return {
