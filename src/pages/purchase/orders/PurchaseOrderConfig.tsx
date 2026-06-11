@@ -448,9 +448,7 @@ export const getItemFormConfig = (): any[] => [
     componentType: "Input",
     editable: "never",
     colSpan: 4,
-    componentProps: {
-      style: { display: "none" }
-    }
+    hidden: true,
   },
   {
     name: "materialForm",
@@ -458,20 +456,21 @@ export const getItemFormConfig = (): any[] => [
     componentType: "Input",
     editable: "never",
     colSpan: 4,
-    componentProps: {
-      style: { display: "none" }
-    }
+    hidden: true,
   },
   {
     name: "goodsCode",
-    label: "商品編碼",
+    label: (context: any) => {
+      const isMold = context?.values?.purchaseOrderType === "Mold";
+      return isMold ? "模具編碼" : "原料編碼";
+    },
     componentType: "AsyncSelect",
     componentProps: (context: any) => {
       const isMold = context?.values?.purchaseOrderType === "Mold";
       return { configKey: isMold ? "MOLD" : "MATERIAL" };
     },
     colSpan: 4,
-    validation: z.string().min(1, "商品編碼為必填"),
+    validation: z.string().min(1, "編碼為必填"),
     onChange: (_value: any, _context: any, setValue: any, ...args: any[]) => {
       const option = args[1];
       if (option && option.originalData) {
@@ -516,17 +515,13 @@ export const getItemFormConfig = (): any[] => [
     label: "寬度 (mm)",
     componentType: "InputNumber",
     colSpan: 4,
-    componentProps: (context: any) => {
-      const isMold = context?.values?.purchaseOrderType === "Mold";
-      return {
-        controls: false,
-        style: { width: "100%" },
-        disabled: isMold,
-        placeholder: isMold ? "模具不需寬度" : "請輸入寬度",
-      };
+    hidden: (context: any) => context?.values?.purchaseOrderType !== "Material",
+    componentProps: {
+      controls: false,
+      style: { width: "100%" },
+      placeholder: "請輸入寬度",
     },
     validation: z.union([z.number(), z.null(), z.undefined()]).optional().refine((val) => {
-      // 寬度選填/必填邏輯於後端嚴格檢核，前端允許輸入正數
       if (val != null && val <= 0) return false;
       return true;
     }, { message: "寬度必須大於0" }),
@@ -536,16 +531,11 @@ export const getItemFormConfig = (): any[] => [
     label: "長度 (m)",
     componentType: "InputNumber",
     colSpan: 4,
-    componentProps: (context: any) => {
-      const isMold = context?.values?.purchaseOrderType === "Mold";
-      const isRoll = context?.values?.materialForm === "R";
-      const disabled = isMold || isRoll;
-      return {
-        controls: false,
-        style: { width: "100%" },
-        disabled: disabled,
-        placeholder: isMold ? "模具不需長度" : (isRoll ? "卷料長度不需填" : "請輸入片料長度"),
-      };
+    hidden: (context: any) => context?.values?.purchaseOrderType !== "Material" || context?.values?.materialForm === "R",
+    componentProps: {
+      controls: false,
+      style: { width: "100%" },
+      placeholder: "請輸入片料長度",
     },
     validation: z.union([z.number(), z.null(), z.undefined()]).optional().refine((val) => {
       if (val != null && val <= 0) return false;
@@ -556,15 +546,12 @@ export const getItemFormConfig = (): any[] => [
     name: "customerCode",
     label: "客戶編碼",
     componentType: "AsyncSelect",
-    componentProps: (context: any) => {
-      const isMold = context?.values?.purchaseOrderType === "Mold";
-      return {
-        configKey: "CUSTOMER",
-        disabled: !isMold,
-        placeholder: isMold ? "請選擇客戶 (選填)" : "非模具採購不需客戶"
-      };
+    componentProps: {
+      configKey: "CUSTOMER",
+      placeholder: "請選擇客戶 (選填)"
     },
     colSpan: 4,
+    hidden: (context: any) => context?.values?.purchaseOrderType !== "Mold",
     validation: z.string().nullable().optional(),
     onChange: (_value: any, _context: any, setValue: any) => {
       if (!_value) {
@@ -577,15 +564,15 @@ export const getItemFormConfig = (): any[] => [
     label: "成品編碼",
     componentType: "AsyncSelect",
     componentProps: (context: any) => {
-      const isMold = context?.values?.purchaseOrderType === "Mold";
       const customerCode = context?.values?.customerCode;
       return {
         configKey: "PRODUCT",
-        disabled: !isMold || !customerCode,
-        placeholder: !isMold ? "非模具採購不需成品" : (!customerCode ? "請先選擇客戶" : "請選擇成品 (選填)"),
+        disabled: !customerCode,
+        placeholder: !customerCode ? "請先選擇客戶" : "請選擇成品 (選填)",
       };
     },
     colSpan: 4,
+    hidden: (context: any) => context?.values?.purchaseOrderType !== "Mold",
     validation: z.string().nullable().optional(),
   },
   {
