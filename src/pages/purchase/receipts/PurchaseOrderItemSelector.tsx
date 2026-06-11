@@ -160,8 +160,14 @@ export default function PurchaseOrderItemSelector({
           ? row.arrivalQuantity
           : row.undeliveredQuantity || 0;
 
-      // Smart Default: default to 1 roll of 1000mm width, length = arrivalQty sqm
-      // So RollCount(1) * (Width(1000)/1000 * Length(arrivalQty)) = arrivalQty sqm. Perfect!
+      // 模切業精密實物庫存繼承與反算：
+      // 1. 寬度優先繼承採購單上的規格寬度 (row.width)，若無則保底 1000
+      const widthVal = row.width && row.width > 0 ? row.width : 1000;
+      // 2. 長度根據公式：長度(M) = 到貨面積(㎡) / (寬度(mm) / 1000)，並保留4位小數
+      const lengthVal = widthVal > 0 
+        ? Number((arrivalQty / (widthVal / 1000)).toFixed(4)) 
+        : arrivalQty;
+
       return {
         referenceNumber: row.lineNumber,
         partnerDocumentNumber: row.purchaseOrderNumber, // PO Number on receipt item level
@@ -170,8 +176,8 @@ export default function PurchaseOrderItemSelector({
         unit: row.unit || "卷",
         unitPrice: row.unitPrice || 0,
         rollCount: 1,
-        width: 1000,
-        length: arrivalQty,
+        width: widthVal,
+        length: lengthVal,
         quantity: arrivalQty,
         amount: Math.round(arrivalQty * (row.unitPrice || 0)),
         targetStorageCode: "TW-QC-GEN", // Default waiting for IQC storage
