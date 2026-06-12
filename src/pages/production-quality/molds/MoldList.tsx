@@ -180,7 +180,7 @@ export default function MoldList() {
 
   const openCreateDrawer = () => {
     setFormDefaultValues({});
-    setFormDefaultValues({ isActive: true });
+    setFormDefaultValues({ isActive: true, isArrived: false });
     setIsCreateDrawerOpen(true);
   };
 

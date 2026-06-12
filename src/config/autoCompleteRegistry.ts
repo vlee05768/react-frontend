@@ -188,7 +188,7 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       label: 'name',
       value: 'code'
     },
-    triggerLength: 2
+    triggerLength: 0
   },
 
   // 產品 (Product)
@@ -252,10 +252,10 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
       return (res.data as any)?.data;
     },
     fieldNames: {
-      label: (item: any) => `${item.name} (${item.code})`,
+      label: (item: any) => `${item.name} (${item.code})${item.typeName ? ` - ${item.typeName}` : ''}`,
       value: 'code'
     },
-    triggerLength: 2
+    triggerLength: 0
   },
 
   // 儲位 (Storage)

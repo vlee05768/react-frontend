@@ -985,6 +985,10 @@ export type CreateMoldDto = {
      */
     isShareable?: boolean | null;
     /**
+     * 是否已到貨
+     */
+    isArrived?: boolean | null;
+    /**
      * 描述
      */
     description?: string | null;
@@ -4040,6 +4044,10 @@ export type MoldDto = {
      * 是否共用
      */
     isShareable?: boolean;
+    /**
+     * 是否已到貨
+     */
+    isArrived?: boolean;
     /**
      * 描述
      */
@@ -7548,6 +7556,10 @@ export type UpdateMoldDto = {
      * 是否共用
      */
     isShareable?: boolean | null;
+    /**
+     * 是否已到貨
+     */
+    isArrived?: boolean | null;
     /**
      * 描述
      */
@@ -14343,6 +14355,10 @@ export type GetApiV1MoldData = {
          * 形狀
          */
         Shape?: string;
+        /**
+         * 是否已到貨
+         */
+        IsArrived?: boolean;
         /**
          * 頁碼
          */
