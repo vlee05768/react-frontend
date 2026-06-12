@@ -319,7 +319,9 @@ export const getItemColumns = (
   isViewMode: boolean,
   onEdit: (record: PurchaseOrderItemDto) => void,
   onDelete: (record: PurchaseOrderItemDto) => void,
-): ColumnsType<PurchaseOrderItemDto> => [
+  purchaseOrderType?: string,
+): ColumnsType<PurchaseOrderItemDto> => {
+  const cols: ColumnsType<PurchaseOrderItemDto> = [
   {
     title: "操作",
     key: "action",
@@ -439,7 +441,28 @@ export const getItemColumns = (
     dataIndex: "notes",
     ellipsis: true,
   },
-];
+  ];
+
+  if (purchaseOrderType === "Material") {
+    return cols.filter(
+      (col) => {
+        const key = col.key || (col as any).dataIndex;
+        return key !== "customerCode" && key !== "productCode";
+      }
+    );
+  }
+
+  if (purchaseOrderType === "Mold") {
+    return cols.filter(
+      (col) => {
+        const key = col.key || (col as any).dataIndex;
+        return key !== "width" && key !== "length";
+      }
+    );
+  }
+
+  return cols;
+};
 
 export const getItemFormConfig = (): any[] => [
   {

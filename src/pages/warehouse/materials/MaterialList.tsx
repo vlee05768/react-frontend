@@ -192,8 +192,45 @@ export default function MaterialList() {
     setIsDrawerEditing(true);
   };
 
-  const handleCrudSubmit = (values: any) => {
+  const handleCrudSubmit = async (values: any) => {
     if (isCreateDrawerOpen) {
+      try {
+        const brand = (values.brand || "").trim().toUpperCase();
+        const modelNo = (values.modelNo || "").trim().toUpperCase();
+        const currentForm = values.materialForm; // 'R' or 'S'
+
+        // 呼叫 API 查詢同廠牌、型號的原料
+        const res = await getApiV1Material({
+          query: {
+            Brand: brand,
+            ModelNo: modelNo,
+          },
+        });
+
+        // 取得已存在的原料列表
+        const existingItems = (res?.data as any)?.data?.data || (res?.data as any)?.data || [];
+
+        // 嚴格比對廠牌與型號（排除模糊查詢結果）
+        const conflictItem = existingItems.find((item: any) => {
+          const isSameBrand = (item.brand || "").trim().toUpperCase() === brand;
+          const isSameModel = (item.modelNo || "").trim().toUpperCase() === modelNo;
+          return isSameBrand && isSameModel && item.materialForm !== currentForm;
+        });
+
+        if (conflictItem) {
+          const existingFormText = conflictItem.materialForm === "R" ? "捲材" : "片材";
+          const currentFormText = currentForm === "R" ? "捲材" : "片材";
+          Modal.error({
+            centered: true,
+            title: "防呆提示",
+            content: `廠牌「${brand}」與型號「${modelNo}」在系統中已設定為「${existingFormText}」，不允許同時新增為「${currentFormText}」！`,
+          });
+          return; // 阻擋儲存
+        }
+      } catch (err) {
+        console.error("檢查廠牌型號衝突失敗:", err);
+      }
+
       createMutation.mutate(values);
     } else if (viewId) {
       updateMutation.mutate({ code: viewId as any, values });

@@ -262,7 +262,12 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
           </div>
           <Table<PurchaseOrderItemDto>
             rowKey="lineNumber"
-            columns={getItemColumns(!isMasterViewMode || (purchaseOrderData.status || '').toUpperCase() !== 'DRAFT', handleEditOpen, handleDelete)}
+            columns={getItemColumns(
+              !isMasterViewMode || (purchaseOrderData.status || '').toUpperCase() !== 'DRAFT', 
+              handleEditOpen, 
+              handleDelete,
+              purchaseOrderData.purchaseOrderType
+            )}
             dataSource={listData}
             pagination={false}
             loading={false}

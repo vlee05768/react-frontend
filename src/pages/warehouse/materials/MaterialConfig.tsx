@@ -9,13 +9,15 @@ import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
 import { DictLabel } from "@/components/Form/DictLabel";
 import { BrandSelect } from "./components/BrandSelect";
 import { ModelSelect } from "./components/ModelSelect";
+import { getApiV1Material } from "@/api/generated/sdk.gen";
+import { Modal } from "antd";
 
 export const materialFormOptions = [
   { label: "捲材 (R)", value: "R" },
   { label: "片材 (S)", value: "S" },
 ];
 
-// 計算編碼與自動關聯欄位
+// 計算編碼與自動關聯欄位與廠牌/型號型態防呆檢查
 const generateCode = (context: any, setValue: any) => {
   const { materialForm, brand, modelNo, thickness } = context.values;
   
@@ -59,6 +61,43 @@ const generateCode = (context: any, setValue: any) => {
   } else if (materialForm === "S") {
     setValue("auxUOM", "PCS");
   }
+
+  // === 非同步防呆檢核：同廠牌、型號不可同時是片料（片材）與卷料（捲材） ===
+  getApiV1Material({
+    query: {
+      Brand: upperBrand,
+      ModelNo: upperModelNo,
+    },
+  })
+    .then((res) => {
+      const existingItems = (res?.data as any)?.data?.data || (res?.data as any)?.data || [];
+      
+      // 嚴格比對廠牌與型號（排除模糊查詢結果）
+      const conflictItem = existingItems.find((item: any) => {
+        const isSameBrand = (item.brand || "").trim().toUpperCase() === upperBrand;
+        const isSameModel = (item.modelNo || "").trim().toUpperCase() === upperModelNo;
+        return isSameBrand && isSameModel && item.materialForm !== materialForm;
+      });
+
+      if (conflictItem) {
+        const existingFormText = conflictItem.materialForm === "R" ? "捲材 (卷料)" : "片材 (片料)";
+        const currentFormText = materialForm === "R" ? "捲材 (卷料)" : "片材 (片料)";
+        Modal.error({
+          centered: true,
+          title: "防呆提示",
+          content: `廠牌「${upperBrand}」與型號「${upperModelNo}」已在系統中被設定為「${existingFormText}」，不允許同時新增為「${currentFormText}」！`,
+        });
+
+        // 發生衝突時，重置型態並清空自動產生的欄位
+        setValue("materialForm", undefined);
+        setValue("code", "");
+        setValue("name", "");
+        setValue("spec", "");
+      }
+    })
+    .catch((err) => {
+      console.error("檢查廠牌型號型態衝突失敗:", err);
+    });
 };
 
 export const materialSearchFormConfig = (): SearchFieldConfig[] => [
