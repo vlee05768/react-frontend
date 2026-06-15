@@ -204,6 +204,7 @@ export default function MaterialList() {
           query: {
             Brand: brand,
             ModelNo: modelNo,
+            pageSize: -1, // 透過 -1 取得所有符合條件的原料，避免分頁限制漏檢
           },
         });
 

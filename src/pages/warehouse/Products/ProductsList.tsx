@@ -94,7 +94,6 @@ export default function ProductsList() {
     queryKey: ['productDetail', viewId],
     queryFn: () => getApiV1ProductByCode({ path: { code: viewId as string } }),
     enabled: !!viewId,
-    refetchInterval: 30000, // Background polling
   });
   const viewData = viewRes?.data?.data || viewRes?.data;
 

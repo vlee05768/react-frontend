@@ -67,6 +67,7 @@ const generateCode = (context: any, setValue: any) => {
     query: {
       Brand: upperBrand,
       ModelNo: upperModelNo,
+      pageSize: -1, // 透過 -1 取得所有符合條件的原料，避免分頁限制漏檢
     },
   })
     .then((res) => {

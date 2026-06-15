@@ -104,15 +104,18 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     render: (val: string, record: any) => {
       const displayCode = record.partnerRoleCode || record.businessPartnerCode;
       const bpCode = record.businessPartnerCode;
-      const name = val && displayCode ? `[${displayCode}] ${val}` : (val || displayCode || "-");
+      const name =
+        val && displayCode
+          ? `[${displayCode}] ${val}`
+          : val || displayCode || "-";
       if (!bpCode) return "-";
       return (
-        <Link 
-          to={`/basic/business-partners/${bpCode}`} 
-          style={{ 
-            color: '#1677ff', 
-            textDecoration: 'underline',
-            cursor: 'pointer'
+        <Link
+          to={`/basic/business-partners/${bpCode}`}
+          style={{
+            color: "#1677ff",
+            textDecoration: "underline",
+            cursor: "pointer",
           }}
         >
           <EllipsisText text={name} maxWidth={180} />
@@ -157,7 +160,14 @@ export const mainFormConfig = (): any[] => [
     name: "businessPartnerCode",
     label: "供應商",
     componentType: "AsyncSelect",
-    componentProps: { configKey: "MATERIAL_SUPPLIER" },
+    componentProps: (context: any) => {
+      const code =
+        context?.values?.partnerRoleCode ||
+        context?.values?.businessPartnerCode ||
+        "";
+      const isMold = code.startsWith("TS");
+      return { configKey: isMold ? "TOOLING_SUPPLIER" : "MATERIAL_SUPPLIER" };
+    },
     editable: "createOnly",
     colSpan: 2,
     validation: z.string().min(1, "請選擇供應商"),
@@ -212,8 +222,9 @@ export const mainFormConfig = (): any[] => [
         onContactChange={(contact) => {
           if (contact) {
             const phoneVal = contact.phone
-              ? (contact.phone + (contact.phoneExtension ? ` #${contact.phoneExtension}` : ''))
-              : (contact.mobilePhone || undefined);
+              ? contact.phone +
+                (contact.phoneExtension ? ` #${contact.phoneExtension}` : "")
+              : contact.mobilePhone || undefined;
             setValue("contactPhone", phoneVal);
           }
         }}
@@ -231,7 +242,6 @@ export const mainFormConfig = (): any[] => [
     editable: "never",
     colSpan: 4,
   },
-
 
   {
     name: "subTotal",
@@ -297,7 +307,7 @@ export const itemTableColumns = (): TableColumnConfig[] => [
   { label: "原料編碼", name: "materialCode", width: 140 },
   { label: "原料名稱", name: "materialName", width: 180 },
   {
-    label: "進貨量 (㎡)",
+    label: "進貨量",
     name: "quantity",
     width: 110,
     align: "right",
@@ -346,7 +356,7 @@ export const getItemColumns = (
   { title: "原料編碼", dataIndex: "materialCode", width: 130, ellipsis: true },
   { title: "原料名稱", dataIndex: "materialName", width: 180, ellipsis: true },
   {
-    title: "進貨量 (㎡)",
+    title: "進貨量",
     dataIndex: "quantity",
     width: 110,
     align: "right" as const,
@@ -381,25 +391,24 @@ export const getItemColumns = (
     render: (v: string) => (v ? <DictTag dictKey="STORAGE" value={v} /> : "-"),
   },
   {
-    title: "拆卷數",
+    title: "卷/包",
     dataIndex: "rollCount",
     width: 80,
     align: "right" as const,
   },
   {
     title: "規格寬度 (mm)",
-    dataIndex: "width",
+    dataIndex: ["extraData", "width"],
     width: 120,
     align: "right" as const,
   },
   {
     title: "規格長度 (M)",
-    dataIndex: "length",
+
+    dataIndex: ["extraData", "length"],
     width: 120,
     align: "right" as const,
   },
-  { title: "到貨廠牌", dataIndex: "brand", width: 120, ellipsis: true },
-  { title: "到貨型號", dataIndex: "modelNo", width: 120, ellipsis: true },
   { title: "備註", dataIndex: "notes", width: 150, ellipsis: true },
   ...(!disabled
     ? [
@@ -465,7 +474,9 @@ export const getItemFormConfig = (): any[] => [
     label: "目的儲位",
     componentType: "Custom",
     editable: "never",
-    customRender: (field: any) => <DictSelect {...field} dictKey="STORAGE" disabled />,
+    customRender: (field: any) => (
+      <DictSelect {...field} dictKey="STORAGE" disabled />
+    ),
     colSpan: 3,
     validation: z.string().min(1, "請選擇目的儲位"),
   },

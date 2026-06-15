@@ -32,6 +32,8 @@ export default function PurchaseOrderItemSelector({
   excludedKeys,
 }: PurchaseOrderItemSelectorProps) {
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
+  const [customRollCounts, setCustomRollCounts] = useState<Record<string, number>>({});
+  const [customRollLengths, setCustomRollLengths] = useState<Record<string, number>>({});
   const [customArrivalQuantities, setCustomArrivalQuantities] = useState<
     Record<string, number>
   >({});
@@ -91,18 +93,46 @@ export default function PurchaseOrderItemSelector({
       const cancel = item.cancelledQuantity || 0;
       const undelivered = Math.max(0, qty - rec - cancel);
       const key = `${item.purchaseOrderNumber}_${item.lineNumber}`;
+      
+      const isRoll = item.purchaseOrderType === "Material" && item.unit === "m";
+
+
+      let arrivalQuantity = 0;
+      let rollCount = 0;
+      let rollLength = 300;
+      // 卷料採購量與已到貨量之計量單位均為米 (m)，故未到貨長度 (m) 即等於未到貨量 (undelivered)
+      const undeliveredLength = undelivered;
+
+      if (isRoll) {
+        rollCount = customRollCounts[key] !== undefined 
+          ? customRollCounts[key] 
+          : Math.max(1, Math.ceil(undeliveredLength / 300));
+        rollLength = customRollLengths[key] !== undefined 
+          ? customRollLengths[key] 
+          : 300;
+        // 到貨長度 (m) = rollCount * rollLength
+        const arrivalLength = rollCount * rollLength;
+        // 卷料到貨量直接等於到貨長度 (m)，不換算 SQM
+        arrivalQuantity = arrivalLength;
+      } else {
+        arrivalQuantity = customArrivalQuantities[key] !== undefined 
+          ? customArrivalQuantities[key] 
+          : undelivered;
+      }
+
       return {
         ...item,
         cancelledQuantity: cancel,
         undeliveredQuantity: undelivered,
-        arrivalQuantity:
-          customArrivalQuantities[key] !== undefined
-            ? customArrivalQuantities[key]
-            : undelivered,
+        undeliveredLength,
+        arrivalQuantity,
+        rollCount,
+        rollLength,
+        isRoll,
         key, // Unique composite key for selection
       };
     });
-  }, [data, excludedKeys, keyword, customArrivalQuantities]);
+  }, [data, excludedKeys, keyword, customRollCounts, customRollLengths, customArrivalQuantities]);
 
   const handleConfirm = () => {
     if (selectedRowKeys.length === 0) {
@@ -119,23 +149,46 @@ export default function PurchaseOrderItemSelector({
       const row = poItems.find((item: any) => item.key === key);
       if (!row) continue;
 
-      const arrivalQty =
-        row.arrivalQuantity !== undefined
-          ? row.arrivalQuantity
-          : row.undeliveredQuantity || 0;
-
-      // 到貨量最少為 1，不可大於未到貨量
-      if (arrivalQty < 1) {
-        newErrorKeys.push(key);
-        if (!firstErrorRow) {
-          firstErrorRow = row;
-          firstErrorMessage = `採購單 [${row.purchaseOrderNumber}] 項次 [${row.lineNumber}] 的到貨量為 ${arrivalQty}，最少必須為 1`;
+      if (row.isRoll) {
+        const rCount = row.rollCount;
+        const rLength = row.rollLength;
+        if (!rCount || rCount <= 0) {
+          newErrorKeys.push(key);
+          if (!firstErrorRow) {
+            firstErrorRow = row;
+            firstErrorMessage = `採購單 [${row.purchaseOrderNumber}] 項次 [${row.lineNumber}] 的到貨卷數必須大於 0`;
+          }
+        } else if (!rLength || rLength <= 0) {
+          newErrorKeys.push(key);
+          if (!firstErrorRow) {
+            firstErrorRow = row;
+            firstErrorMessage = `採購單 [${row.purchaseOrderNumber}] 項次 [${row.lineNumber}] 的每卷長度必須大於 0`;
+          }
+        } else {
+          const arrivalLength = rCount * rLength;
+          const maxAllowedLength = Number((row.undeliveredLength * 1.1).toFixed(4));
+          if (arrivalLength > maxAllowedLength) {
+            newErrorKeys.push(key);
+            if (!firstErrorRow) {
+              firstErrorRow = row;
+              firstErrorMessage = `採購單 [${row.purchaseOrderNumber}] 項次 [${row.lineNumber}] 的本次到貨量 [${arrivalLength} m] 已超過未到貨量 110% 限制 [${Number(maxAllowedLength.toFixed(2))} m]`;
+            }
+          }
         }
-      } else if (arrivalQty > row.undeliveredQuantity) {
-        newErrorKeys.push(key);
-        if (!firstErrorRow) {
-          firstErrorRow = row;
-          firstErrorMessage = `採購單 [${row.purchaseOrderNumber}] 項次 [${row.lineNumber}] 的到貨量為 ${arrivalQty}，不可大於未到貨量 (${row.undeliveredQuantity})`;
+      } else {
+        const arrivalQty = row.arrivalQuantity;
+        if (!arrivalQty || arrivalQty < 1) {
+          newErrorKeys.push(key);
+          if (!firstErrorRow) {
+            firstErrorRow = row;
+            firstErrorMessage = `採購單 [${row.purchaseOrderNumber}] 項次 [${row.lineNumber}] 的到貨量最少必須為 1`;
+          }
+        } else if (arrivalQty > row.undeliveredQuantity) {
+          newErrorKeys.push(key);
+          if (!firstErrorRow) {
+            firstErrorRow = row;
+            firstErrorMessage = `採購單 [${row.purchaseOrderNumber}] 項次 [${row.lineNumber}] 的到貨量 [${arrivalQty}] 不可大於未到貨量 [${row.undeliveredQuantity}]`;
+          }
         }
       }
     }
@@ -144,7 +197,10 @@ export default function PurchaseOrderItemSelector({
       setErrorKeys(newErrorKeys);
       message.error(firstErrorMessage);
       setTimeout(() => {
-        const element = document.getElementById(`arrival-input-${firstErrorRow.key}`);
+        const inputId = firstErrorRow.isRoll 
+          ? `roll-count-input-${firstErrorRow.key}` 
+          : `arrival-input-${firstErrorRow.key}`;
+        const element = document.getElementById(inputId);
         if (element) {
           element.focus();
           (element as any).select?.();
@@ -155,18 +211,29 @@ export default function PurchaseOrderItemSelector({
 
     const selectedItems = selectedRowKeys.map((key) => {
       const row = poItems.find((item: any) => item.key === key);
-      const arrivalQty =
-        row.arrivalQuantity !== undefined
-          ? row.arrivalQuantity
-          : row.undeliveredQuantity || 0;
-
-      // 模切業精密實物庫存繼承與反算：
-      // 1. 寬度優先繼承採購單上的規格寬度 (row.width)，若無則保底 1000
+      const arrivalQty = row.arrivalQuantity;
       const widthVal = row.width && row.width > 0 ? row.width : 1000;
-      // 2. 長度根據公式：長度(M) = 到貨面積(㎡) / (寬度(mm) / 1000)，並保留4位小數
-      const lengthVal = widthVal > 0 
-        ? Number((arrivalQty / (widthVal / 1000)).toFixed(4)) 
-        : arrivalQty;
+
+      let finalRollCount = 1;
+      let finalLength = arrivalQty;
+      let finalQuantity = arrivalQty;
+
+      if (row.isRoll) {
+        finalRollCount = row.rollCount;
+        finalLength = row.rollLength; // per roll length in meters
+        finalQuantity = finalRollCount * finalLength; // 💡 卷料進貨量 = 卷數 * 每卷長度 (m)，不涉及寬度面積換算！
+      } else {
+        finalRollCount = 1;
+        // 片料等非卷料，直接以到貨量入庫，不需要換算面積。長度直接繼承採購單原本長度
+        finalLength = row.length && row.length > 0 ? row.length : 0;
+        finalQuantity = arrivalQty;
+      }
+
+      const originalPrice = row.unitPrice || 0;
+      const undeliveredQty = row.undeliveredQuantity || 0;
+      const amountVal = finalQuantity >= undeliveredQty
+        ? Math.round(originalPrice * undeliveredQty)
+        : Math.round(originalPrice * finalQuantity);
 
       return {
         referenceNumber: row.lineNumber,
@@ -174,12 +241,15 @@ export default function PurchaseOrderItemSelector({
         materialCode: row.goodsCode,
         materialName: row.goodsName,
         unit: row.unit || "卷",
-        unitPrice: row.unitPrice || 0,
-        rollCount: 1,
+        unitPrice: finalQuantity >= undeliveredQty
+          ? (finalQuantity > 0 ? Number((amountVal / finalQuantity).toFixed(6)) : 0)
+          : originalPrice,
+        rollCount: finalRollCount,
         width: widthVal,
-        length: lengthVal,
-        quantity: arrivalQty,
-        amount: Math.round(arrivalQty * (row.unitPrice || 0)),
+        length: finalLength,
+        quantity: finalQuantity,
+        isRoll: row.isRoll,
+        amount: amountVal,
         targetStorageCode: "TW-QC-GEN", // Default waiting for IQC storage
         brand: "",
         modelNo: "",
@@ -189,12 +259,16 @@ export default function PurchaseOrderItemSelector({
 
     onConfirm(selectedItems);
     setSelectedRowKeys([]);
+    setCustomRollCounts({});
+    setCustomRollLengths({});
     setCustomArrivalQuantities({});
     setErrorKeys([]);
   };
 
   const handleClose = () => {
     setSelectedRowKeys([]);
+    setCustomRollCounts({});
+    setCustomRollLengths({});
     setCustomArrivalQuantities({});
     setErrorKeys([]);
     onClose();
@@ -220,13 +294,33 @@ export default function PurchaseOrderItemSelector({
         name: "unitPrice" as any,
         width: 110,
         align: "right",
-        render: (v: number) => (
-          <span className="font-semibold text-[#0958d9] dark:text-[#177ddc]">
-            {v != null ? Number(v.toFixed(4)).toLocaleString("zh-TW") : "0"}
-          </span>
-        ),
+        render: (v: number, record: any) => {
+          const isChecked = selectedRowKeys.includes(record.key);
+          const qty = isChecked ? (record.arrivalQuantity || 0) : 0;
+          const undelivered = record.undeliveredQuantity || 0;
+          const price = v || 0;
+          const isOver = qty >= undelivered;
+
+          let recalculatedPrice = price;
+          if (isOver && qty > 0) {
+            const subtotal = Math.round(price * undelivered);
+            recalculatedPrice = subtotal / qty;
+          }
+
+          return (
+            <div className="flex flex-col items-end">
+              <span className="font-semibold text-[#0958d9] dark:text-[#177ddc]">
+                {v != null ? Number(v.toFixed(4)).toLocaleString("zh-TW") : "0"}
+              </span>
+              {isChecked && isOver && qty > 0 && recalculatedPrice !== price && (
+                <span className="text-[11px] text-[#8c8c8c] dark:text-[#8c8c8c] font-normal">
+                  重算: {Number(recalculatedPrice.toFixed(4)).toLocaleString("zh-TW")}
+                </span>
+              )}
+            </div>
+          );
+        },
       },
-      { label: "單位", name: "unit" as any, width: 80, align: "center" },
 
       {
         label: "採購量",
@@ -239,10 +333,12 @@ export default function PurchaseOrderItemSelector({
           </span>
         ),
       },
+      { label: "單位", name: "unit" as any, width: 80, align: "center" },
+
       {
         label: "已到貨量",
         name: "receivedQuantity" as any,
-        width: 110,
+        width: 90,
         align: "right",
         render: (v: number) =>
           v != null ? Number(v).toLocaleString("zh-TW") : "0",
@@ -250,7 +346,7 @@ export default function PurchaseOrderItemSelector({
       {
         label: "取消量",
         name: "cancelledQuantity" as any,
-        width: 110,
+        width: 90,
         align: "right",
         render: (v: number) =>
           v != null ? Number(v).toLocaleString("zh-TW") : "0",
@@ -267,19 +363,134 @@ export default function PurchaseOrderItemSelector({
         ),
       },
       {
+        label: "到貨卷數",
+        name: "rollCount" as any,
+        width: 100,
+        align: "right",
+        render: (v: number, record: any) => {
+          if (!record.isRoll) return "-";
+          const isChecked = selectedRowKeys.includes(record.key);
+          const hasError = errorKeys.includes(record.key);
+          const rCount = customRollCounts[record.key] !== undefined ? customRollCounts[record.key] : record.rollCount;
+          const rLength = customRollLengths[record.key] !== undefined ? customRollLengths[record.key] : record.rollLength;
+          const arrivalLength = rCount * rLength;
+          const isOverLimit = arrivalLength > record.undeliveredLength * 1.1;
+
+          return (
+            <InputNumber
+              id={`roll-count-input-${record.key}`}
+              value={isChecked ? v : undefined}
+              disabled={!isChecked}
+              status={hasError && (!v || v <= 0 || isOverLimit) ? "error" : undefined}
+              min={1}
+              precision={0}
+              onChange={(val) => {
+                const numVal = val === null ? 0 : Number(val);
+                setCustomRollCounts((prev) => ({
+                  ...prev,
+                  [record.key]: numVal,
+                }));
+
+                const currentLength = customRollLengths[record.key] !== undefined ? customRollLengths[record.key] : record.rollLength;
+                const arrLen = numVal * currentLength;
+                const isOver = arrLen > record.undeliveredLength * 1.1;
+
+                if (numVal > 0 && !isOver) {
+                  setErrorKeys((prev) => prev.filter((k) => k !== record.key));
+                } else if (isOver) {
+                  setErrorKeys((prev) => {
+                    if (!prev.includes(record.key)) return [...prev, record.key];
+                    return prev;
+                  });
+                }
+              }}
+              onFocus={(e) => {
+                e.target.select();
+              }}
+              size="small"
+              style={{ width: "100%", fontWeight: "bold" }}
+              className="font-bold [&_input]:!text-[#18a058] dark:[&_input]:!text-[#389e0d]"
+              controls={false}
+            />
+          );
+        }
+      },
+      {
+        label: "每卷長度 (m)",
+        name: "rollLength" as any,
+        width: 110,
+        align: "right",
+        render: (v: number, record: any) => {
+          if (!record.isRoll) return "-";
+          const isChecked = selectedRowKeys.includes(record.key);
+          const hasError = errorKeys.includes(record.key);
+          const rCount = customRollCounts[record.key] !== undefined ? customRollCounts[record.key] : record.rollCount;
+          const rLength = customRollLengths[record.key] !== undefined ? customRollLengths[record.key] : record.rollLength;
+          const arrivalLength = rCount * rLength;
+          const isOverLimit = arrivalLength > record.undeliveredLength * 1.1;
+
+          return (
+            <InputNumber
+              id={`roll-length-input-${record.key}`}
+              value={isChecked ? v : undefined}
+              disabled={!isChecked}
+              status={hasError && (!v || v <= 0 || isOverLimit) ? "error" : undefined}
+              min={0.0001}
+              onChange={(val) => {
+                const numVal = val === null ? 0 : Number(val);
+                setCustomRollLengths((prev) => ({
+                  ...prev,
+                  [record.key]: numVal,
+                }));
+
+                const currentCount = customRollCounts[record.key] !== undefined ? customRollCounts[record.key] : record.rollCount;
+                const arrLen = currentCount * numVal;
+                const isOver = arrLen > record.undeliveredLength * 1.1;
+
+                if (numVal > 0 && !isOver) {
+                  setErrorKeys((prev) => prev.filter((k) => k !== record.key));
+                } else if (isOver) {
+                  setErrorKeys((prev) => {
+                    if (!prev.includes(record.key)) return [...prev, record.key];
+                    return prev;
+                  });
+                }
+              }}
+              onFocus={(e) => {
+                e.target.select();
+              }}
+              size="small"
+              style={{ width: "100%", fontWeight: "bold" }}
+              className="font-bold [&_input]:!text-[#18a058] dark:[&_input]:!text-[#389e0d]"
+              controls={false}
+            />
+          );
+        }
+      },
+      {
         label: "到貨量",
         name: "arrivalQuantity" as any,
-        width: 140,
+        width: 150,
         align: "right",
         render: (v: number, record: any) => {
           const isChecked = selectedRowKeys.includes(record.key);
           const hasError = errorKeys.includes(record.key);
+          
+          if (record.isRoll) {
+            return (
+              <span className="font-bold text-[#18a058] dark:text-[#389e0d] pr-2">
+                {isChecked ? `${Number(record.arrivalQuantity.toFixed(2)).toLocaleString("zh-TW")} m` : "-"}
+              </span>
+            );
+          }
+
           return (
             <InputNumber
               id={`arrival-input-${record.key}`}
               value={isChecked ? v : undefined}
               disabled={!isChecked}
               status={hasError ? "error" : undefined}
+              min={1}
               onChange={(val) => {
                 const numVal = val === null ? 0 : Number(val);
                 setCustomArrivalQuantities((prev) => ({
@@ -287,7 +498,6 @@ export default function PurchaseOrderItemSelector({
                   [record.key]: numVal,
                 }));
 
-                // 若數值回到合法範圍，則動態移除 error 標記
                 if (numVal >= 1 && numVal <= record.undeliveredQuantity) {
                   setErrorKeys((prev) => prev.filter((k) => k !== record.key));
                 } else {
@@ -318,7 +528,11 @@ export default function PurchaseOrderItemSelector({
         render: (_v: any, record: any) => {
           const isChecked = selectedRowKeys.includes(record.key);
           const qty = isChecked ? (record.arrivalQuantity || 0) : 0;
-          const subtotal = (record.unitPrice || 0) * qty;
+          const undelivered = record.undeliveredQuantity || 0;
+          const price = record.unitPrice || 0;
+          const subtotal = qty >= undelivered
+            ? Math.round(price * undelivered)
+            : Math.round(price * qty);
           return (
             <span
               className={`font-bold ${
@@ -327,7 +541,7 @@ export default function PurchaseOrderItemSelector({
                   : "text-gray-400 dark:text-gray-500"
               }`}
             >
-              {Number(subtotal.toFixed(2)).toLocaleString("zh-TW")}
+              {subtotal.toLocaleString("zh-TW")}
             </span>
           );
         },
@@ -337,7 +551,7 @@ export default function PurchaseOrderItemSelector({
     return buildTableColumns(configs, undefined, undefined, {
       showAudit: false,
     });
-  }, [selectedRowKeys, customArrivalQuantities, errorKeys]);
+  }, [selectedRowKeys, customRollCounts, customRollLengths, customArrivalQuantities, errorKeys]);
 
   return (
     <Modal

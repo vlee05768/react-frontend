@@ -490,7 +490,10 @@ export const getItemFormConfig = (): any[] => [
     componentType: "AsyncSelect",
     componentProps: (context: any) => {
       const isMold = context?.values?.purchaseOrderType === "Mold";
-      return { configKey: isMold ? "MOLD" : "MATERIAL" };
+      return { 
+        configKey: isMold ? "MOLD" : "MATERIAL",
+        additionalParams: isMold ? { IsArrived: false } : undefined
+      };
     },
     colSpan: 4,
     validation: z.string().min(1, "編碼為必填"),
@@ -503,11 +506,10 @@ export const getItemFormConfig = (): any[] => [
         if (isMaterial) {
           const form = option.originalData.materialForm; // "R" = 捲材, "S" = 片材
           setValue("materialForm", form);
+          setValue("unit", "m");
           if (form === "S") {
-            setValue("unit", "pcs");
             setValue("length", undefined);
           } else {
-            setValue("unit", "卷");
             setValue("length", null);
           }
         } else {
@@ -544,10 +546,14 @@ export const getItemFormConfig = (): any[] => [
       style: { width: "100%" },
       placeholder: "請輸入寬度",
     },
-    validation: z.union([z.number(), z.null(), z.undefined()]).optional().refine((val) => {
-      if (val != null && val <= 0) return false;
-      return true;
-    }, { message: "寬度必須大於0" }),
+    validation: z.union([z.number(), z.null(), z.undefined()]).optional(),
+    dynamicValidation: (context: any) => {
+      const isMaterial = context?.values?.purchaseOrderType === "Material";
+      if (isMaterial) {
+        return z.number({ required_error: "原料採購之寬度為必填項目", invalid_type_error: "寬度必須為數值" }).min(0.0001, "寬度必須大於 0");
+      }
+      return z.union([z.number(), z.null(), z.undefined()]).optional();
+    },
   },
   {
     name: "length",
@@ -560,10 +566,15 @@ export const getItemFormConfig = (): any[] => [
       style: { width: "100%" },
       placeholder: "請輸入片料長度",
     },
-    validation: z.union([z.number(), z.null(), z.undefined()]).optional().refine((val) => {
-      if (val != null && val <= 0) return false;
-      return true;
-    }, { message: "長度必須大於0" }),
+    validation: z.union([z.number(), z.null(), z.undefined()]).optional(),
+    dynamicValidation: (context: any) => {
+      const isMaterial = context?.values?.purchaseOrderType === "Material";
+      const isSheet = context?.values?.materialForm === "S";
+      if (isMaterial && isSheet) {
+        return z.number({ required_error: "片料原料採購之長度為必填項目", invalid_type_error: "長度必須為數值" }).min(0.0001, "長度必須大於 0");
+      }
+      return z.union([z.number(), z.null(), z.undefined()]).optional();
+    },
   },
   {
     name: "customerCode",
@@ -607,6 +618,13 @@ export const getItemFormConfig = (): any[] => [
     componentType: "InputNumber",
     colSpan: 4,
     validation: z.number().min(0, "單價不能為負數"),
+    dynamicValidation: (context: any) => {
+      const isMaterial = context?.values?.purchaseOrderType === "Material";
+      if (isMaterial) {
+        return z.number({ required_error: "單價為必填項目", invalid_type_error: "單價必須為數值" }).min(0.0001, "單價必須大於 0");
+      }
+      return z.number().min(0, "單價不能為負數");
+    },
     onChange: (value: any, context: any, setValue: any) => {
       const qty = context.values.quantity || 0;
       const price = value || 0;
@@ -623,6 +641,13 @@ export const getItemFormConfig = (): any[] => [
     componentType: "InputNumber",
     colSpan: 4,
     validation: z.number().min(0.0001, "數量必須大於0"),
+    dynamicValidation: (context: any) => {
+      const isMaterial = context?.values?.purchaseOrderType === "Material";
+      if (isMaterial) {
+        return z.number({ required_error: "數量為必填項目", invalid_type_error: "數量必須為數值" }).min(0.0001, "數量必須大於 0");
+      }
+      return z.number().min(0.0001, "數量必須大於0");
+    },
     onChange: (value: any, context: any, setValue: any) => {
       const qty = value || 0;
       const price = context.values.unitPrice || 0;

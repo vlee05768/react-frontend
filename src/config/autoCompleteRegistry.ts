@@ -238,11 +238,12 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
 
   // 模具 (Mold)
   MOLD: {
-    queryFn: async (keyword: string) => {
+    queryFn: async (keyword: string, additionalParams?: any) => {
       const res = await getApiV1Mold({
         query: {
           CodeOrName: keyword || undefined,
-          pageSize: -1
+          pageSize: -1,
+          ...additionalParams
         } as any
       });
       return (res.data as any)?.data?.data || (res.data as any)?.data || [];

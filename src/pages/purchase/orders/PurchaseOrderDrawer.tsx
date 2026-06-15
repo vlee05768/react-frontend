@@ -45,7 +45,6 @@ export default function PurchaseOrderDrawer() {
     queryFn: () => getApiV1PurchaseOrderByCode({ path: { code: id! } }),
     enabled: !isCreating && !!id,
     retry: false,
-    refetchInterval: 30000,
   });
 
   const purchaseOrderData: PurchaseOrderDto | undefined = (data?.data?.data as any) || undefined;
@@ -83,6 +82,7 @@ export default function PurchaseOrderDrawer() {
     if (purchaseOrderData) {
       return {
         ...purchaseOrderData,
+        businessPartnerCode: purchaseOrderData.supplierCode || purchaseOrderData.businessPartnerCode,
         ticketDate: purchaseOrderData.ticketDate ? dayjs(purchaseOrderData.ticketDate) : undefined,
         expectedArrivalDate: purchaseOrderData.expectedArrivalDate ? dayjs(purchaseOrderData.expectedArrivalDate) : undefined,
       };

@@ -37,6 +37,13 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
   const [keyword, setKeyword] = useState('');
   const [initialOption, setInitialOption] = useState<any>(null);
 
+  // 當 configKey 變更時（例如：採購單從原料採購切換為模具採購，導致 configKey 由 MATERIAL_SUPPLIER 變為 TOOLING_SUPPLIER），
+  // 必須立即清除舊的關鍵字與已載入選項，以防殘留上一個類別的供應商選項或關鍵字
+  useEffect(() => {
+    setKeyword('');
+    setInitialOption(null);
+  }, [configKey]);
+
   const triggerLength = config.triggerLength ?? 2;
   const shouldFetch = keyword.length >= triggerLength;
 

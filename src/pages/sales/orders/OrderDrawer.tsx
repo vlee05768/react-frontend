@@ -47,7 +47,6 @@ export default function OrderDrawer() {
     queryFn: () => getApiV1OrdersByOrderNumber({ path: { orderNumber: id! } }),
     enabled: !isCreating && !!id,
     retry: false,
-    refetchInterval: 30000,
   });
 
   const orderData: OrderDto | undefined = (data?.data?.data as any) || undefined;

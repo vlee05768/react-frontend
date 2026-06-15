@@ -42,7 +42,6 @@ export default function PurchaseReceiptDrawer() {
     queryFn: () => getApiV1PurchaseReceiptByCode({ path: { code: id! } }),
     enabled: !isCreating && !!id,
     retry: false,
-    refetchInterval: 30000,
   });
 
   const purchaseReceiptData: PurchaseReceiptDto | undefined = (data?.data?.data as any) || undefined;
@@ -75,6 +74,7 @@ export default function PurchaseReceiptDrawer() {
     if (purchaseReceiptData) {
       return {
         ...purchaseReceiptData,
+        businessPartnerCode: purchaseReceiptData.partnerRoleCode || purchaseReceiptData.businessPartnerCode,
         documentDate: purchaseReceiptData.documentDate ? dayjs(purchaseReceiptData.documentDate) : undefined,
       };
     }

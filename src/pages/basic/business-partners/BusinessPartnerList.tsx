@@ -93,7 +93,6 @@ export default function BusinessPartnerList() {
     queryKey: ['bpDetail', viewId],
     queryFn: () => getApiV1BusinessPartnersByCode({ path: { code: viewId as string } }),
     enabled: !!viewId,
-    refetchInterval: 30000, // Background polling
   });
   const viewData = (viewRes?.data?.data || viewRes?.data) as any;
 

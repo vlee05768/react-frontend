@@ -56,7 +56,6 @@ export default function SalesDeliveryDrawer() {
     queryFn: () => getApiV1SalesDeliveryByMovementNumber({ path: { movementNumber: id! } }),
     enabled: !isCreating && !!id,
     retry: false,
-    refetchInterval: 30000,
   });
 
   const deliveryData: SalesDeliveryDto | undefined = (data?.data?.data as any) || undefined;

@@ -44,7 +44,7 @@ export const FIELD_REGISTRY: Record<string, FieldRenderer> = {
   
   DictSelect: (props) => <DictSelect allowClear={true} {...props} />,
   
-  AsyncSelect: (props) => <AsyncSelect allowClear={true} {...props} />,
+  AsyncSelect: (props) => <AsyncSelect key={props.configKey} allowClear={true} {...props} />,
   
   InputNumber: (props, options) => {
     const { onFocus, ...restProps } = props;
