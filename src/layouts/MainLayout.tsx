@@ -73,6 +73,7 @@ const ROUTE_PERMISSION_MAP: Record<string, string> = {
   '/sales/statements': 'Sales.Statements.View',
   '/purchase/orders': 'Purchase.Orders.View',
   '/purchase/receipts': 'Purchase.Receipts.View',
+  '/purchase/mold-receipts': 'Purchase.Receipts.View',
   '/system/users': 'System.Users.View',
   '/system/roles': 'System.Roles.View',
   '/system/general-types': 'System.GeneralTypes.View',
@@ -230,6 +231,18 @@ export default function MainLayout() {
             };
           } else {
             // Level 2: 頁面 (葉節點)
+            if (node.key === 'Purchase.Receipts') {
+              return [
+                {
+                   key: '/purchase/receipts',
+                   label: '原料進貨單',
+                },
+                {
+                   key: '/purchase/mold-receipts',
+                   label: '模具進貨單',
+                }
+              ];
+            }
             const routePath = ROUTE_MAPPING[node.key] || node.key;
             return {
                key: routePath,
@@ -238,7 +251,8 @@ export default function MainLayout() {
             };
           }
         })
-        .filter(Boolean); // 過濾掉為 null 的模組
+        .filter(Boolean)
+        .flat(); // 支援一個節點拆分成多個選單（例如原料/模具進貨單）
     };
 
     items.push(...mapNodes(permissionTree));

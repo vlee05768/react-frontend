@@ -18,6 +18,7 @@ import {
 } from './MaterialInventoryConfig';
 import StandardErpTable from '@/components/Table/StandardErpTable';
 import { DictSelect } from '@/components/Form/DictSelect';
+import { buildTableColumns } from '@/utils/tableUtils';
 
 export default function MaterialInventoryList() {
   const [activeTab, setActiveTab] = useState<string>('1');
@@ -238,9 +239,9 @@ export default function MaterialInventoryList() {
   const isFetchingActiveTab = logicalLoading || rollLoading || txLoading;
 
   // 實體卷卡列表 Columns 注入母卷追溯事件
-  const rollColumns = useMemo(() => getRollColumns(handleSelectParentBarcode), []);
-  const logicalColumns = useMemo(() => getLogicalColumns(), []);
-  const txColumns = useMemo(() => getTxColumns(), []);
+  const rollColumns = useMemo(() => buildTableColumns(getRollColumns(handleSelectParentBarcode)), []);
+  const logicalColumns = useMemo(() => buildTableColumns(getLogicalColumns()), []);
+  const txColumns = useMemo(() => buildTableColumns(getTxColumns()), []);
 
   return (
     <div className="p-4 pb-0 flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>

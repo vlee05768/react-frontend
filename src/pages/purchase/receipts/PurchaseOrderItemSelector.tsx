@@ -21,7 +21,9 @@ interface PurchaseOrderItemSelectorProps {
   onClose: () => void;
   onConfirm: (selectedItems: any[]) => void;
   businessPartnerCode?: string;
+  businessPartnerName?: string;
   excludedKeys: string[];
+  isMold?: boolean;
 }
 
 export default function PurchaseOrderItemSelector({
@@ -29,7 +31,9 @@ export default function PurchaseOrderItemSelector({
   onClose,
   onConfirm,
   businessPartnerCode,
+  businessPartnerName,
   excludedKeys,
+  isMold = false,
 }: PurchaseOrderItemSelectorProps) {
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [customRollCounts, setCustomRollCounts] = useState<Record<string, number>>({});
@@ -183,11 +187,23 @@ export default function PurchaseOrderItemSelector({
             firstErrorRow = row;
             firstErrorMessage = `採購單 [${row.purchaseOrderNumber}] 項次 [${row.lineNumber}] 的到貨量最少必須為 1`;
           }
-        } else if (arrivalQty > row.undeliveredQuantity) {
-          newErrorKeys.push(key);
-          if (!firstErrorRow) {
-            firstErrorRow = row;
-            firstErrorMessage = `採購單 [${row.purchaseOrderNumber}] 項次 [${row.lineNumber}] 的到貨量 [${arrivalQty}] 不可大於未到貨量 [${row.undeliveredQuantity}]`;
+        } else if (isMold) {
+          // 💡 模具進貨：到貨量必須大於或等於未到貨量 (不能分批只點收部分，必須一次到位)
+          if (arrivalQty < row.undeliveredQuantity) {
+            newErrorKeys.push(key);
+            if (!firstErrorRow) {
+              firstErrorRow = row;
+              firstErrorMessage = `採購單 [${row.purchaseOrderNumber}] 項次 [${row.lineNumber}] 的模具到貨量 [${arrivalQty}] 必須大於或等於未到貨量 [${row.undeliveredQuantity}]`;
+            }
+          }
+        } else {
+          // 💡 一般原料片料進貨：到貨量不能大於未到貨量
+          if (arrivalQty > row.undeliveredQuantity) {
+            newErrorKeys.push(key);
+            if (!firstErrorRow) {
+              firstErrorRow = row;
+              firstErrorMessage = `採購單 [${row.purchaseOrderNumber}] 項次 [${row.lineNumber}] 的到貨量 [${arrivalQty}] 不可大於未到貨量 [${row.undeliveredQuantity}]`;
+            }
           }
         }
       }
@@ -548,16 +564,30 @@ export default function PurchaseOrderItemSelector({
       },
     ];
 
-    return buildTableColumns(configs, undefined, undefined, {
+    let finalConfigs = configs;
+    if (isMold) {
+      finalConfigs = configs.filter(col => 
+        col.label !== "取消量" && 
+        col.label !== "到貨卷數" && 
+        col.label !== "每卷長度 (m)"
+      );
+      finalConfigs = finalConfigs.map(col => {
+        if (col.label === "原料編碼") return { ...col, label: "模具編碼" };
+        if (col.label === "原料名稱") return { ...col, label: "模具名稱" };
+        return col;
+      });
+    }
+
+    return buildTableColumns(finalConfigs, undefined, undefined, {
       showAudit: false,
     });
-  }, [selectedRowKeys, customRollCounts, customRollLengths, customArrivalQuantities, errorKeys]);
+  }, [selectedRowKeys, customRollCounts, customRollLengths, customArrivalQuantities, errorKeys, isMold]);
 
   return (
     <Modal
       title={
         <div className="font-semibold pb-3 mb-2 text-[18px] border-b border-[var(--ant-color-border-secondary)]">
-          挑選採購明細 (供應商: {businessPartnerCode})
+          挑選採購明細 (供應商: {businessPartnerName || businessPartnerCode})
         </div>
       }
       open={open}

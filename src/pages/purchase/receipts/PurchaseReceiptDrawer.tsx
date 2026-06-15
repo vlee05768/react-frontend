@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Drawer, Space, Button, App, Spin, Empty } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CheckCircleOutlined, DeleteOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, DeleteOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import { ActionButton } from '@/components/common/ActionButton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -10,6 +10,7 @@ import {
   postApiV1PurchaseReceipt, 
   putApiV1PurchaseReceiptByCode,
   postApiV1PurchaseReceiptByCodeConfirm,
+  postApiV1PurchaseReceiptByCodeCancelConfirm,
   deleteApiV1PurchaseReceiptByCode
 } from '@/api/generated/sdk.gen';
 import { DynamicForm } from '@/components/Form/DynamicForm';
@@ -31,6 +32,10 @@ export default function PurchaseReceiptDrawer() {
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
   const { hasPermission, user } = useAuthStore();
+
+  const isMold = window.location.pathname.startsWith('/purchase/mold-receipts');
+  const subType = isMold ? 'Mold' : 'Material';
+  const basePath = isMold ? '/purchase/mold-receipts' : '/purchase/receipts';
 
   const isCreating = id === 'create';
   const [isEditing, setIsEditing] = useState(isCreating);
@@ -69,6 +74,7 @@ export default function PurchaseReceiptDrawer() {
         documentDate: dayjs(),
         status: 'Unconfirmed',
         responsibleEmployeeCode: user?.employeeCode || undefined,
+        subType: subType,
       };
     }
     if (purchaseReceiptData) {
@@ -91,7 +97,7 @@ export default function PurchaseReceiptDrawer() {
         setTimeout(() => {
            setActiveTab('items');
         }, 100);
-        navigate(`/purchase/receipts/${newCode}`, { replace: true });
+        navigate(`${basePath}/${newCode}`, { replace: true });
         setIsEditing(false);
       }
     },
@@ -125,12 +131,24 @@ export default function PurchaseReceiptDrawer() {
     }
   });
 
+  const cancelConfirmMutation = useMutation({
+    mutationFn: () => postApiV1PurchaseReceiptByCodeCancelConfirm({ path: { code: id! } }),
+    onSuccess: () => {
+      message.success('進貨取消確認成功');
+      queryClient.invalidateQueries({ queryKey: ['purchase-receipt', id] });
+      queryClient.invalidateQueries({ queryKey: ['purchase-receipts'] });
+    },
+    onError: (error) => {
+      modal.error({ centered: true, title: '錯誤提示', content: `取消確認失敗: ${getApiErrorMessage(error)}` });
+    }
+  });
+
   const deleteMutation = useMutation({
     mutationFn: () => deleteApiV1PurchaseReceiptByCode({ path: { code: id! } }),
     onSuccess: () => {
       message.success('刪除成功');
       queryClient.invalidateQueries({ queryKey: ['purchase-receipts'] });
-      navigate('/purchase/receipts', { replace: true });
+      navigate(basePath, { replace: true });
     },
     onError: (error) => {
       modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
@@ -141,6 +159,7 @@ export default function PurchaseReceiptDrawer() {
     const formattedValues = {
       ...values,
       targetPlantCode: 'TW',
+      subType: subType,
       documentDate: values.documentDate ? dayjs(values.documentDate).format('YYYY-MM-DD') : undefined,
     };
 
@@ -164,7 +183,7 @@ export default function PurchaseReceiptDrawer() {
     if (isEditing && !isCreating) {
       setIsEditing(false);
     } else {
-      navigate('/purchase/receipts');
+      navigate(basePath);
     }
   };
   
@@ -196,7 +215,9 @@ export default function PurchaseReceiptDrawer() {
               }
               modal.confirm({
                 title: '進貨過帳確認',
-                content: '確定要對此進貨單過帳確認嗎？過帳後將增加待檢庫存並鎖定單據不可修改！',
+                content: isMold
+                  ? '確定要對此進貨單過帳確認嗎？過帳後將更新模具到貨狀態，並鎖定單據不可修改！'
+                  : '確定要對此進貨單過帳確認嗎？過帳後將增加待檢庫存並鎖定單據不可修改！',
                 centered: true,
                 width: 420,
                 onOk: () => { confirmMutation.mutate(); },
@@ -204,6 +225,31 @@ export default function PurchaseReceiptDrawer() {
             }}
           >
             過帳確認
+          </ActionButton>
+        )}
+
+        {canUpdate && !isUnconfirmed && !purchaseReceiptData?.closeDate && (
+          <ActionButton 
+            key="cancel-confirm"
+            intent="warning" 
+            icon={<CloseCircleOutlined />} 
+            disabled={isDetailEditing}
+            loading={cancelConfirmMutation.isPending}
+            onClick={(e) => {
+              e.preventDefault();
+              modal.confirm({
+                title: '取消進貨過帳確認',
+                content: isMold
+                  ? '確定要取消此進貨單的過帳確認嗎？取消確認將還原模具到貨狀態，並將進貨單設回未確認狀態！'
+                  : '確定要取消此進貨單的過帳確認嗎？取消確認將還原待檢庫存、清除物理物料卡，並將進貨單設回未確認狀態！',
+                centered: true,
+                width: 420,
+                okButtonProps: { danger: true },
+                onOk: () => { cancelConfirmMutation.mutate(); },
+              })
+            }}
+          >
+            取消確認
           </ActionButton>
         )}
         
@@ -306,7 +352,7 @@ export default function PurchaseReceiptDrawer() {
       styles={drawerStyles}
       title={
         <DrawerTitle
-          moduleName="進貨單"
+          moduleName={isMold ? '模具進貨單' : '原料進貨單'}
           isCreate={isCreating}
           isEdit={isEditing}
           record={purchaseReceiptData}
@@ -315,7 +361,7 @@ export default function PurchaseReceiptDrawer() {
         />
       }
       open={true}
-      onClose={() => navigate('/purchase/receipts')}
+      onClose={() => navigate(basePath)}
       size={DRAWER_WIDTH_MAIN as any}
       extra={getHeaderActions()}
       mask={{ closable: isViewMode }}

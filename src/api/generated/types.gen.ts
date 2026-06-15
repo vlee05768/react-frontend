@@ -5699,6 +5699,10 @@ export type PurchaseReceiptDto = {
      */
     notes?: string | null;
     /**
+     * 單據次類型 (Material=原料進貨, Mold=模具進貨)
+     */
+    subType?: string | null;
+    /**
      * 進貨明細項目清單
      */
     items?: Array<PurchaseReceiptItemDto> | null;
@@ -17029,6 +17033,37 @@ export type PostApiV1PurchaseReceiptByCodeConfirmResponses = {
 };
 
 export type PostApiV1PurchaseReceiptByCodeConfirmResponse = PostApiV1PurchaseReceiptByCodeConfirmResponses[keyof PostApiV1PurchaseReceiptByCodeConfirmResponses];
+
+export type PostApiV1PurchaseReceiptByCodeCancelConfirmData = {
+    body?: never;
+    path: {
+        code: string;
+    };
+    query?: never;
+    url: '/api/v1/PurchaseReceipt/{code}/cancel-confirm';
+};
+
+export type PostApiV1PurchaseReceiptByCodeCancelConfirmErrors = {
+    /**
+     * Bad Request
+     */
+    400: PurchaseReceiptDtoApiResponse;
+    /**
+     * Not Found
+     */
+    404: PurchaseReceiptDtoApiResponse;
+};
+
+export type PostApiV1PurchaseReceiptByCodeCancelConfirmError = PostApiV1PurchaseReceiptByCodeCancelConfirmErrors[keyof PostApiV1PurchaseReceiptByCodeCancelConfirmErrors];
+
+export type PostApiV1PurchaseReceiptByCodeCancelConfirmResponses = {
+    /**
+     * OK
+     */
+    200: PurchaseReceiptDtoApiResponse;
+};
+
+export type PostApiV1PurchaseReceiptByCodeCancelConfirmResponse = PostApiV1PurchaseReceiptByCodeCancelConfirmResponses[keyof PostApiV1PurchaseReceiptByCodeCancelConfirmResponses];
 
 export type PostApiV1PurchaseReceiptByCodeItemsData = {
     body?: CreatePurchaseReceiptItemDto;

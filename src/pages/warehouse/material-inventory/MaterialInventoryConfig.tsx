@@ -7,6 +7,13 @@ import type {
 import { Tag } from "antd";
 import dayjs from "dayjs";
 
+// 輔助函式：安全格式化小數，防範 string 或 null 造成 toFixed 崩潰
+const formatDecimal = (val: any, decimals: number = 4, fallback: string = "0"): string => {
+  if (val == null) return fallback;
+  const num = Number(val);
+  return !isNaN(num) ? Number(num.toFixed(decimals)).toLocaleString() : fallback;
+};
+
 // ============================================================================
 // 1. 邏輯儲位庫存 (Logical Storage Inventory) 欄位與搜尋
 // ============================================================================
@@ -58,14 +65,14 @@ export const getLogicalColumns = (): TableColumnConfig<MaterialLogicalInventoryD
     name: "quantity",
     width: 160,
     align: "right",
-    render: (val: number) => val != null ? Number(val.toFixed(4)).toLocaleString() : "0",
+    render: (val: any) => formatDecimal(val, 4, "0"),
   },
   {
     label: "凍結待檢量 (SQM)",
     name: "frozenQuantity",
     width: 160,
     align: "right",
-    render: (val: number) => val != null ? Number(val.toFixed(4)).toLocaleString() : "0",
+    render: (val: any) => formatDecimal(val, 4, "0"),
   },
   {
     label: "最後更新時間",
@@ -140,8 +147,8 @@ export const getRollColumns = (
     width: 120,
     align: "center",
     sortable: { multiple: 2 },
-    render: (val: string) => {
-      const upper = (val || '').toUpperCase();
+    render: (val: any) => {
+      const upper = String(val || '').toUpperCase();
       if (upper === 'INSTOCK') return <Tag color="success">在庫 (INSTOCK)</Tag>;
       if (upper === 'WIP') return <Tag color="warning">車間 WIP</Tag>;
       if (upper === 'CONSUMED') return <Tag color="default">已消耗</Tag>;
@@ -165,35 +172,35 @@ export const getRollColumns = (
     name: "widthMm",
     width: 120,
     align: "right",
-    render: (val: number) => val != null ? Number(val.toFixed(4)).toLocaleString() : "-",
+    render: (val: any) => formatDecimal(val, 4, "-"),
   },
   {
     label: "剩餘長度/張數",
     name: "currentQtyAux",
     width: 130,
     align: "right",
-    render: (val: number) => val != null ? Number(val.toFixed(4)).toLocaleString() : "-",
+    render: (val: any) => formatDecimal(val, 4, "-"),
   },
   {
     label: "剩餘重量 (kg)",
     name: "currentWeightKg",
     width: 120,
     align: "right",
-    render: (val: number) => val != null ? Number(val.toFixed(4)).toLocaleString() : "-",
+    render: (val: any) => formatDecimal(val, 4, "-"),
   },
   {
     label: "剩餘面積 (m²)",
     name: "currentAreaSqm",
     width: 130,
     align: "right",
-    render: (val: number) => <span className="font-semibold text-blue-600 dark:text-blue-400">{val != null ? Number(val.toFixed(4)).toLocaleString() : "0"}</span>,
+    render: (val: any) => <span className="font-semibold text-blue-600 dark:text-blue-400">{formatDecimal(val, 4, "0")}</span>,
   },
   {
     label: "每平米成本",
     name: "costPerSqm",
     width: 120,
     align: "right",
-    render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : "-",
+    render: (val: any) => formatDecimal(val, 2, "-"),
   },
   {
     label: "目前儲位",
@@ -291,8 +298,8 @@ export const getTxColumns = (): TableColumnConfig<MaterialInventoryTransactionDt
     label: "交易類型",
     name: "docType",
     width: 180,
-    render: (val: string) => {
-      const upper = (val || '').toUpperCase();
+    render: (val: any) => {
+      const upper = String(val || '').toUpperCase();
       if (upper === 'PURCHASE_RECEIPT') return <Tag color="success">採購入庫</Tag>;
       if (upper === 'PRODUCTION_ISSUE') return <Tag color="red">生產領料</Tag>;
       if (upper === 'PRODUCTION_RETURN') return <Tag color="blue">生產退料</Tag>;
@@ -328,11 +335,11 @@ export const getTxColumns = (): TableColumnConfig<MaterialInventoryTransactionDt
     name: "quantity",
     width: 140,
     align: "right",
-    render: (val: number, record: any) => {
+    render: (val: any, record: any) => {
       if (val == null) return "0";
       const sign = record.signFlag || 1;
-      const amount = val * sign;
-      const formatted = Number(val.toFixed(4)).toLocaleString();
+      const amount = Number(val) * sign;
+      const formatted = formatDecimal(val, 4, "0");
       if (amount > 0) {
         return <span className="text-green-600 dark:text-green-400 font-bold">+{formatted}</span>;
       } else if (amount < 0) {

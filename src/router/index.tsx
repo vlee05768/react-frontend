@@ -133,6 +133,8 @@ export const router = createBrowserRouter([
       { path: 'purchase/orders/:id', element: <><PurchaseOrdersList /><PurchaseOrderDrawer /></> },
       { path: 'purchase/receipts', element: <PurchaseReceiptsList /> },
       { path: 'purchase/receipts/:id', element: <><PurchaseReceiptsList /><PurchaseReceiptDrawer /></> },
+      { path: 'purchase/mold-receipts', element: <PurchaseReceiptsList /> },
+      { path: 'purchase/mold-receipts/:id', element: <><PurchaseReceiptsList /><PurchaseReceiptDrawer /></> },
 
       { path: 'basic/business-partners/:viewId?', element: <BusinessPartnerList /> },
     ]

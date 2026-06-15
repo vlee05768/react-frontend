@@ -1,11 +1,12 @@
 // @ts-nocheck
+import { useEffect } from 'react';
 import PageCard from '@/components/common/PageCard';
 import { Button, Modal, message } from 'antd';
 import { SearchOutlined, PlusOutlined, ClearOutlined } from '@ant-design/icons';
 import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import { MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants/ui';
@@ -24,22 +25,39 @@ export default function PurchaseReceiptsList() {
   const queryClient = useQueryClient();
   const { params, setParams } = usePurchaseReceiptQueryStore();
 
+  const isMold = window.location.pathname.startsWith('/purchase/mold-receipts');
+  const subType = isMold ? 'Mold' : 'Material';
+  const basePath = isMold ? '/purchase/mold-receipts' : '/purchase/receipts';
+
+  const location = useLocation();
+  useEffect(() => {
+    setParams({
+      pageNumber: 1,
+      pageSize: 20,
+      documentNumber: '',
+      purchaseOrderNumber: '',
+      status: '',
+      dateRange: null,
+    });
+  }, [location.pathname, setParams]);
+
   const listQuery = useErpListQuery({
     params,
     setParams,
   });
 
-  const openCreateDrawer = () => navigate('/purchase/receipts/create');
+  const openCreateDrawer = () => navigate(`${basePath}/create`);
 
   // Fetch Data
   const { data: response, isLoading, isFetching } = useQuery({
-    queryKey: ['purchase-receipts', params],
+    queryKey: ['purchase-receipts', subType, params],
     queryFn: () => getApiV1PurchaseReceipt({
       query: {
         pageNumber: params.pageNumber,
         pageSize: params.pageSize,
         DocumentNumber: params.documentNumber || undefined,
         PurchaseOrderNumber: params.purchaseOrderNumber || undefined,
+        SubType: subType,
         DateRange: params.dateRange ? [
           dayjs(params.dateRange[0]).format('YYYY-MM-DD'),
           dayjs(params.dateRange[1]).format('YYYY-MM-DD')
@@ -77,7 +95,7 @@ export default function PurchaseReceiptsList() {
       const isUnconfirmed = record.status === 'Unconfirmed' || !record.confirmDate;
       return (
         <TableActions
-          onView={() => navigate(`/purchase/receipts/${record.documentNumber}`)}
+          onView={() => navigate(`${basePath}/${record.documentNumber}`)}
           onDelete={isUnconfirmed ? () => deleteMutation.mutate(record.documentNumber) : undefined}
           recordName={record.documentNumber}
           deleteConfirmType="modal"
@@ -101,7 +119,7 @@ export default function PurchaseReceiptsList() {
 
   return (
     <div className="p-4 pb-0 flex flex-col h-[calc(100vh-64px)]">
-      <PageCard title="進貨單管理" extra={
+      <PageCard title={isMold ? "模具進貨單管理" : "原料進貨單管理"} extra={
           <Space separator={<Divider orientation="vertical" />}>
             <Button type="default" icon={<SearchOutlined />} onClick={listQuery.openSearchModal}>
               查詢

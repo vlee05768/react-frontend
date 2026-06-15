@@ -165,7 +165,7 @@ export const mainFormConfig = (): any[] => [
         context?.values?.partnerRoleCode ||
         context?.values?.businessPartnerCode ||
         "";
-      const isMold = code.startsWith("TS");
+      const isMold = code.startsWith("TS") || context?.values?.subType === "Mold";
       return { configKey: isMold ? "TOOLING_SUPPLIER" : "MATERIAL_SUPPLIER" };
     },
     editable: "createOnly",
@@ -351,211 +351,237 @@ export const getItemColumns = (
   disabled: boolean,
   onEdit?: (record: any) => void,
   onDelete?: (record: any) => void,
-): any[] => [
-  { title: "項次", dataIndex: "serialNumber", width: 70 },
-  { title: "原料編碼", dataIndex: "materialCode", width: 130, ellipsis: true },
-  { title: "原料名稱", dataIndex: "materialName", width: 180, ellipsis: true },
-  {
-    title: "進貨量",
-    dataIndex: "quantity",
-    width: 110,
-    align: "right" as const,
-    render: (val: number) => (
-      <span className="font-semibold text-[var(--ant-color-success)]">
-        {val != null ? Number(val.toFixed(4)).toLocaleString("zh-TW") : "0"}
-      </span>
-    ),
-  },
-  { title: "單位", dataIndex: "unit", width: 70, align: "center" as const },
-  {
-    title: "單價",
-    dataIndex: "unitPrice",
-    width: 100,
-    align: "right" as const,
-    render: (val: number) =>
-      val != null ? Number(val.toFixed(4)).toLocaleString("zh-TW") : "0",
-  },
-  {
-    title: "金額",
-    dataIndex: "amount",
-    width: 110,
-    align: "right" as const,
-    render: (val: number) =>
-      val != null ? Number(val).toLocaleString("zh-TW") : "0",
-  },
-  {
-    title: "目的儲位",
-    dataIndex: "targetStorageCode",
-    width: 130,
-    align: "center" as const,
-    render: (v: string) => (v ? <DictTag dictKey="STORAGE" value={v} /> : "-"),
-  },
-  {
-    title: "卷/包",
-    dataIndex: "rollCount",
-    width: 80,
-    align: "right" as const,
-  },
-  {
-    title: "規格寬度 (mm)",
-    dataIndex: ["extraData", "width"],
-    width: 120,
-    align: "right" as const,
-  },
-  {
-    title: "規格長度 (M)",
+  isMold?: boolean,
+): any[] => {
+  let columns = [
+    { title: "項次", dataIndex: "serialNumber", width: 70 },
+    { title: isMold ? "模具編碼" : "原料編碼", dataIndex: "materialCode", width: 130, ellipsis: true },
+    { title: isMold ? "模具名稱" : "原料名稱", dataIndex: "materialName", width: 180, ellipsis: true },
+    {
+      title: "進貨量",
+      dataIndex: "quantity",
+      width: 110,
+      align: "right" as const,
+      render: (val: number) => (
+        <span className="font-semibold text-[var(--ant-color-success)]">
+          {val != null ? Number(val.toFixed(4)).toLocaleString("zh-TW") : "0"}
+        </span>
+      ),
+    },
+    { title: "單位", dataIndex: "unit", width: 70, align: "center" as const },
+    {
+      title: "單價",
+      dataIndex: "unitPrice",
+      width: 100,
+      align: "right" as const,
+      render: (val: number) =>
+        val != null ? Number(val.toFixed(4)).toLocaleString("zh-TW") : "0",
+    },
+    {
+      title: "金額",
+      dataIndex: "amount",
+      width: 110,
+      align: "right" as const,
+      render: (val: number) =>
+        val != null ? Number(val).toLocaleString("zh-TW") : "0",
+    },
+    {
+      title: "目的儲位",
+      dataIndex: "targetStorageCode",
+      width: 130,
+      align: "center" as const,
+      render: (v: string) => (v ? <DictTag dictKey="STORAGE" value={v} /> : "-"),
+    },
+    {
+      title: "卷/包",
+      dataIndex: "rollCount",
+      width: 80,
+      align: "right" as const,
+    },
+    {
+      title: "規格寬度 (mm)",
+      dataIndex: ["extraData", "width"],
+      width: 120,
+      align: "right" as const,
+    },
+    {
+      title: "規格長度 (M)",
+      dataIndex: ["extraData", "length"],
+      width: 120,
+      align: "right" as const,
+    },
+    { title: "備註", dataIndex: "notes", width: 150, ellipsis: true },
+    ...(!disabled
+      ? [
+          {
+            title: "操作",
+            key: "actions",
+            fixed: "right" as const,
+            width: 100,
+            align: "center" as const,
+            render: (_: any, record: any) => (
+              <Space size={4}>
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<EditOutlined />}
+                  onClick={() => onEdit?.(record)}
+                />
+                <Button
+                  type="text"
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() => onDelete?.(record)}
+                />
+              </Space>
+            ),
+          },
+        ]
+      : []),
+  ];
 
-    dataIndex: ["extraData", "length"],
-    width: 120,
-    align: "right" as const,
-  },
-  { title: "備註", dataIndex: "notes", width: 150, ellipsis: true },
-  ...(!disabled
-    ? [
-        {
-          title: "操作",
-          key: "actions",
-          fixed: "right" as const,
-          width: 100,
-          align: "center" as const,
-          render: (_: any, record: any) => (
-            <Space size={4}>
-              <Button
-                type="text"
-                size="small"
-                icon={<EditOutlined />}
-                onClick={() => onEdit?.(record)}
-              />
-              <Button
-                type="text"
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-                onClick={() => onDelete?.(record)}
-              />
-            </Space>
-          ),
-        },
-      ]
-    : []),
-];
+  if (isMold) {
+    columns = columns.filter(
+      col =>
+        col.title !== "目的儲位" &&
+        col.title !== "規格寬度 (mm)" &&
+        col.title !== "規格長度 (M)"
+    );
+  }
 
-export const getItemFormConfig = (): any[] => [
-  {
-    name: "lineNumber",
-    label: "項次",
-    componentType: "Input",
-    editable: "never",
-    colSpan: 3,
-  },
-  {
-    name: "materialCode",
-    label: "原料編碼",
-    componentType: "Input",
-    editable: "never",
-    colSpan: 3,
-  },
-  {
-    name: "materialName",
-    label: "原料名稱",
-    componentType: "Input",
-    editable: "never",
-    colSpan: 3,
-  },
-  {
-    name: "unit",
-    label: "單位",
-    componentType: "Input",
-    editable: "never",
-    colSpan: 3,
-  },
-  {
-    name: "targetStorageCode",
-    label: "目的儲位",
-    componentType: "Custom",
-    editable: "never",
-    customRender: (field: any) => (
-      <DictSelect {...field} dictKey="STORAGE" disabled />
-    ),
-    colSpan: 3,
-    validation: z.string().min(1, "請選擇目的儲位"),
-  },
-  {
-    name: "rollCount",
-    label: "拆卷數",
-    componentType: "InputNumber",
-    editable: "always",
-    colSpan: 3,
-    componentProps: {
-      min: 1,
-      precision: 0,
-      controls: false,
-      allowClear: false,
+  return columns;
+};
+
+export const getItemFormConfig = (isMold?: boolean): any[] => {
+  let configs = [
+    {
+      name: "lineNumber",
+      label: "項次",
+      componentType: "Input",
+      editable: "never",
+      colSpan: 3,
     },
-    validation: z.number().min(1, "拆卷數必須大於等於 1"),
-  },
-  {
-    name: "width",
-    label: "規格寬度 (mm)",
-    componentType: "InputNumber",
-    editable: "always",
-    colSpan: 3,
-    componentProps: {
-      min: 1,
-      precision: 4,
-      controls: false,
-      allowClear: false,
+    {
+      name: "materialCode",
+      label: isMold ? "模具編碼" : "原料編碼",
+      componentType: "Input",
+      editable: "never",
+      colSpan: 3,
     },
-    validation: z.number().min(1, "寬度必須大於 0"),
-  },
-  {
-    name: "length",
-    label: "規格長度 (M)",
-    componentType: "InputNumber",
-    editable: "always",
-    colSpan: 3,
-    componentProps: {
-      min: 1,
-      precision: 4,
-      controls: false,
-      allowClear: false,
+    {
+      name: "materialName",
+      label: isMold ? "模具名稱" : "原料名稱",
+      componentType: "Input",
+      editable: "never",
+      colSpan: 3,
     },
-    validation: z.number().min(1, "長度必須大於 0"),
-  },
-  {
-    name: "unitPrice",
-    label: "單價",
-    componentType: "InputNumber",
-    editable: "always",
-    colSpan: 3,
-    componentProps: {
-      min: 0,
-      precision: 4,
-      controls: false,
-      allowClear: false,
+    {
+      name: "unit",
+      label: "單位",
+      componentType: "Input",
+      editable: "never",
+      colSpan: 3,
     },
-    validation: z.number().min(0, "單價不能小於 0"),
-  },
-  {
-    name: "brand",
-    label: "到貨廠牌",
-    componentType: "Input",
-    editable: "always",
-    colSpan: 3,
-  },
-  {
-    name: "modelNo",
-    label: "到貨型號",
-    componentType: "Input",
-    editable: "always",
-    colSpan: 3,
-  },
-  {
-    name: "notes",
-    label: "備註",
-    componentType: "TextArea",
-    editable: "always",
-    componentProps: { rows: 2 },
-    colSpan: 1,
-  },
-];
+    {
+      name: "targetStorageCode",
+      label: "目的儲位",
+      componentType: "Custom",
+      editable: "never",
+      customRender: (field: any) => (
+        <DictSelect {...field} dictKey="STORAGE" disabled />
+      ),
+      colSpan: 3,
+      validation: z.string().min(1, "請選擇目的儲位"),
+    },
+    {
+      name: "rollCount",
+      label: "拆卷數",
+      componentType: "InputNumber",
+      editable: "always",
+      colSpan: 3,
+      componentProps: {
+        min: 1,
+        precision: 0,
+        controls: false,
+        allowClear: false,
+      },
+      validation: z.number().min(1, "拆卷數必須大於等於 1"),
+    },
+    {
+      name: "width",
+      label: "規格寬度 (mm)",
+      componentType: "InputNumber",
+      editable: "always",
+      colSpan: 3,
+      componentProps: {
+        min: 1,
+        precision: 4,
+        controls: false,
+        allowClear: false,
+      },
+      validation: z.number().min(1, "寬度必須大於 0"),
+    },
+    {
+      name: "length",
+      label: "規格長度 (M)",
+      componentType: "InputNumber",
+      editable: "always",
+      colSpan: 3,
+      componentProps: {
+        min: 1,
+        precision: 4,
+        controls: false,
+        allowClear: false,
+      },
+      validation: z.number().min(1, "長度必須大於 0"),
+    },
+    {
+      name: "unitPrice",
+      label: "單價",
+      componentType: "InputNumber",
+      editable: "always",
+      colSpan: 3,
+      componentProps: {
+        min: 0,
+        precision: 4,
+        controls: false,
+        allowClear: false,
+      },
+      validation: z.number().min(0, "單價不能小於 0"),
+    },
+    {
+      name: "brand",
+      label: "到貨廠牌",
+      componentType: "Input",
+      editable: "always",
+      colSpan: 3,
+    },
+    {
+      name: "modelNo",
+      label: "到貨型號",
+      componentType: "Input",
+      editable: "always",
+      colSpan: 3,
+    },
+    {
+      name: "notes",
+      label: "備註",
+      componentType: "TextArea",
+      editable: "always",
+      componentProps: { rows: 2 },
+      colSpan: 1,
+    },
+  ];
+
+  if (isMold) {
+    configs = configs.filter(
+      col =>
+        col.name !== "targetStorageCode" &&
+        col.name !== "width" &&
+        col.name !== "length"
+    );
+  }
+
+  return configs;
+};

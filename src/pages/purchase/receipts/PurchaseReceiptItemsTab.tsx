@@ -173,7 +173,7 @@ export default function PurchaseReceiptItemsTab({ purchaseReceiptData, isMasterV
           </div>
           <DynamicForm
             formId="purchaseReceiptItemForm"
-            fields={getItemFormConfig()}
+            fields={getItemFormConfig(purchaseReceiptData.subType === "Mold")}
             defaultValues={editingItem}
             isViewMode={false}
             isUpdateMode={true}
@@ -208,7 +208,7 @@ export default function PurchaseReceiptItemsTab({ purchaseReceiptData, isMasterV
           </div>
           <Table<PurchaseReceiptItemDto>
             rowKey="lineNumber"
-            columns={getItemColumns(!isMasterViewMode || !isDraft, handleEditOpen, handleDelete)}
+            columns={getItemColumns(!isMasterViewMode || !isDraft, handleEditOpen, handleDelete, purchaseReceiptData.subType === "Mold")}
             dataSource={listData}
             pagination={false}
             loading={false}
@@ -224,6 +224,8 @@ export default function PurchaseReceiptItemsTab({ purchaseReceiptData, isMasterV
           onClose={() => setIsSelectorOpen(false)}
           onConfirm={handleAddItems}
           businessPartnerCode={purchaseReceiptData.businessPartnerCode || undefined}
+          businessPartnerName={purchaseReceiptData.businessPartnerName || undefined}
+          isMold={purchaseReceiptData.subType === "Mold"}
           excludedKeys={excludedKeys}
         />
       )}
