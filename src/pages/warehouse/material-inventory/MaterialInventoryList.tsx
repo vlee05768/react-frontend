@@ -307,7 +307,7 @@ export default function MaterialInventoryList() {
                     {/* Tab 1 Table */}
                     <div className="flex-1 min-h-0">
                       <StandardErpTable
-                        rowKey="id"
+                        rowKey={(record: any) => `${record.materialCode}_${record.storageCode}`}
                         loading={logicalLoading}
                         dataSource={logicalData?.data || []}
                         columns={logicalColumns as any}
@@ -386,7 +386,7 @@ export default function MaterialInventoryList() {
                     {/* Tab 2 Table */}
                     <div className="flex-1 min-h-0">
                       <StandardErpTable
-                        rowKey="id"
+                        rowKey="rollNo"
                         loading={rollLoading}
                         dataSource={rollData?.data || []}
                         columns={rollColumns as any}
@@ -472,7 +472,7 @@ export default function MaterialInventoryList() {
                     {/* Tab 3 Table */}
                     <div className="flex-1 min-h-0">
                       <StandardErpTable
-                        rowKey="id"
+                        rowKey="transactionId"
                         loading={txLoading}
                         dataSource={txData?.data || []}
                         columns={txColumns as any}
