@@ -98,14 +98,22 @@ export default function PurchaseOrderItemSelector({
       const undelivered = Math.max(0, qty - rec - cancel);
       const key = `${item.purchaseOrderNumber}_${item.lineNumber}`;
       
-      const isRoll = item.purchaseOrderType === "Material" && item.unit === "m";
-
+      const isRoll = item.purchaseOrderType === "Material" && (item.unit === "m" || item.unit === "m2");
 
       let arrivalQuantity = 0;
       let rollCount = 0;
       let rollLength = 300;
-      // 卷料採購量與已到貨量之計量單位均為米 (m)，故未到貨長度 (m) 即等於未到貨量 (undelivered)
-      const undeliveredLength = undelivered;
+      
+      // 當卷料時，若計量單位為 m2 (M²)，則未到貨量 (面積) 需要除以寬度 (m) 換算為長度 (m)
+      let undeliveredLength = undelivered;
+      if (isRoll) {
+        if (item.unit === "m2") {
+          const widthMm = item.width && item.width > 0 ? item.width : 1000;
+          undeliveredLength = undelivered / (widthMm / 1000);
+        } else {
+          undeliveredLength = undelivered;
+        }
+      }
 
       if (isRoll) {
         rollCount = customRollCounts[key] !== undefined 
@@ -247,9 +255,23 @@ export default function PurchaseOrderItemSelector({
 
       const originalPrice = row.unitPrice || 0;
       const undeliveredQty = row.undeliveredQuantity || 0;
-      const amountVal = finalQuantity >= undeliveredQty
+
+      // 換算本次實際到貨量至採購計量單位 (m2)
+      let arrivalArea = finalQuantity;
+      if (row.isRoll && row.unit === "m2") {
+        arrivalArea = finalQuantity * (widthVal / 1000);
+      }
+
+      const isOver = arrivalArea >= undeliveredQty;
+      const amountVal = isOver
         ? Math.round(originalPrice * undeliveredQty)
-        : Math.round(originalPrice * finalQuantity);
+        : Math.round(originalPrice * arrivalArea);
+
+      let finalUnitPrice = originalPrice;
+      if (isOver) {
+        const divisor = (row.isRoll && row.unit === "m2") ? arrivalArea : finalQuantity;
+        finalUnitPrice = divisor > 0 ? Number((amountVal / divisor).toFixed(6)) : 0;
+      }
 
       return {
         referenceNumber: row.lineNumber,
@@ -257,9 +279,7 @@ export default function PurchaseOrderItemSelector({
         materialCode: row.goodsCode,
         materialName: row.goodsName,
         unit: row.unit || "卷",
-        unitPrice: finalQuantity >= undeliveredQty
-          ? (finalQuantity > 0 ? Number((amountVal / finalQuantity).toFixed(6)) : 0)
-          : originalPrice,
+        unitPrice: finalUnitPrice,
         rollCount: finalRollCount,
         width: widthVal,
         length: finalLength,
@@ -306,6 +326,27 @@ export default function PurchaseOrderItemSelector({
         ellipsis: true,
       },
       {
+        label: "寬度 (mm)",
+        name: "width" as any,
+        width: 100,
+        align: "right",
+        render: (val: number) => {
+          if (val == null) return "-";
+          return Number(val.toFixed(4)).toLocaleString();
+        }
+      },
+      {
+        label: "長度",
+        name: "length" as any,
+        width: 100,
+        align: "right",
+        render: (val: number, record: any) => {
+          if (val == null) return "-";
+          const suffix = record.isRoll ? " m" : " mm";
+          return `${Number(val.toFixed(4)).toLocaleString()}${suffix}`;
+        }
+      },
+      {
         label: "採購單價",
         name: "unitPrice" as any,
         width: 110,
@@ -315,7 +356,14 @@ export default function PurchaseOrderItemSelector({
           const qty = isChecked ? (record.arrivalQuantity || 0) : 0;
           const undelivered = record.undeliveredQuantity || 0;
           const price = v || 0;
-          const isOver = qty >= undelivered;
+
+          let arrivalArea = qty;
+          if (record.isRoll && record.unit === "m2") {
+            const widthMm = record.width && record.width > 0 ? record.width : 1000;
+            arrivalArea = qty * (widthMm / 1000);
+          }
+
+          const isOver = arrivalArea >= undelivered;
 
           let recalculatedPrice = price;
           if (isOver && qty > 0) {
@@ -372,11 +420,20 @@ export default function PurchaseOrderItemSelector({
         name: "undeliveredQuantity" as any,
         width: 110,
         align: "right",
-        render: (v: number) => (
-          <span className="font-semibold text-[#1890ff] dark:text-[#177ddc]">
-            {v != null ? Number(v).toLocaleString("zh-TW") : "0"}
-          </span>
-        ),
+        render: (v: number, record: any) => {
+          if (record.isRoll) {
+            return (
+              <span className="font-semibold text-[#1890ff] dark:text-[#177ddc]">
+                {record.undeliveredLength != null ? `${Number(record.undeliveredLength.toFixed(2)).toLocaleString("zh-TW")} m` : "0 m"}
+              </span>
+            );
+          }
+          return (
+            <span className="font-semibold text-[#1890ff] dark:text-[#177ddc]">
+              {v != null ? Number(v).toLocaleString("zh-TW") : "0"}
+            </span>
+          );
+        },
       },
       {
         label: "到貨卷數",
@@ -546,9 +603,16 @@ export default function PurchaseOrderItemSelector({
           const qty = isChecked ? (record.arrivalQuantity || 0) : 0;
           const undelivered = record.undeliveredQuantity || 0;
           const price = record.unitPrice || 0;
-          const subtotal = qty >= undelivered
+
+          let arrivalArea = qty;
+          if (record.isRoll && record.unit === "m2") {
+            const widthMm = record.width && record.width > 0 ? record.width : 1000;
+            arrivalArea = qty * (widthMm / 1000);
+          }
+
+          const subtotal = arrivalArea >= undelivered
             ? Math.round(price * undelivered)
-            : Math.round(price * qty);
+            : Math.round(price * arrivalArea);
           return (
             <span
               className={`font-bold ${
@@ -567,6 +631,8 @@ export default function PurchaseOrderItemSelector({
     let finalConfigs = configs;
     if (isMold) {
       finalConfigs = configs.filter(col => 
+        col.label !== "寬度 (mm)" &&
+        col.label !== "長度" &&
         col.label !== "取消量" && 
         col.label !== "到貨卷數" && 
         col.label !== "每卷長度 (m)"

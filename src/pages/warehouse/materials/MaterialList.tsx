@@ -182,8 +182,7 @@ export default function MaterialList() {
       isActive: true, 
       materialForm: 'R', 
       baseUOM: 'SQM', 
-      auxUOM: 'M', 
-      stdDensity: 0 
+      auxUOM: 'M' 
     });
     setIsCreateDrawerOpen(true);
   };

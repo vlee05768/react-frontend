@@ -355,7 +355,33 @@ export const getItemColumns = (
 ): any[] => {
   let columns = [
     { title: "項次", dataIndex: "serialNumber", width: 70 },
-    { title: isMold ? "模具編碼" : "原料編碼", dataIndex: "materialCode", width: 130, ellipsis: true },
+    { 
+      title: isMold ? "模具編碼" : "原料編碼", 
+      dataIndex: "materialCode", 
+      width: 130, 
+      ellipsis: true,
+      render: (val: string) => {
+        if (!val) return "-";
+        if (isMold) {
+          return (
+            <Link 
+              to={`/production-quality/molds/${val}`} 
+              className="text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 hover:underline font-mono"
+            >
+              {val}
+            </Link>
+          );
+        }
+        return (
+          <Link 
+            to={`/warehouse/materials/${val}`} 
+            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline font-mono"
+          >
+            {val}
+          </Link>
+        );
+      }
+    },
     { title: isMold ? "模具名稱" : "原料名稱", dataIndex: "materialName", width: 180, ellipsis: true },
     {
       title: "進貨量",
