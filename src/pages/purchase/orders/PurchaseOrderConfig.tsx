@@ -417,8 +417,23 @@ export const getItemColumns = (
       if (record.purchaseOrderType === "Mold" || val == null) return "-";
       const isRoll = record.materialForm === "R" || record.goodsCode?.startsWith("R-") || record.unit === "m2";
       const isSheet = record.materialForm === "S" || record.goodsCode?.startsWith("S-") || record.unit === "pcs";
-      const suffix = isRoll ? " m" : (isSheet ? " mm" : "");
-      return `${Number(val.toFixed(4)).toLocaleString()}${suffix}`;
+      const formattedVal = Number(val.toFixed(4)).toLocaleString();
+      
+      if (isRoll) {
+        return (
+          <span className="text-blue-600 dark:text-blue-400 font-mono font-medium">
+            {formattedVal} m
+          </span>
+        );
+      }
+      if (isSheet) {
+        return (
+          <span className="text-amber-600 dark:text-amber-400 font-mono font-medium">
+            {formattedVal} mm
+          </span>
+        );
+      }
+      return <span className="font-mono">{formattedVal}</span>;
     }
   },
   {
@@ -517,7 +532,7 @@ export const getItemFormConfig = (): any[] => [
       const isMold = context?.values?.purchaseOrderType === "Mold";
       return isMold ? "模具編碼" : "原料編碼";
     },
-    componentType: "AsyncSelect",
+    componentType: "AutoComplete",
     componentProps: (context: any) => {
       const isMold = context?.values?.purchaseOrderType === "Mold";
       return { 
@@ -617,15 +632,21 @@ export const getItemFormConfig = (): any[] => [
   },
   {
     name: "length",
-    label: "長度 (m)",
+    label: (context: any) => {
+      const isSheet = context?.values?.materialForm === "S" || context?.values?.goodsCode?.startsWith("S-") || context?.values?.unit === "pcs";
+      return isSheet ? "長度 (mm)" : "長度 (m)";
+    },
     componentType: "InputNumber",
     colSpan: 4,
     hidden: (context: any) => context?.values?.purchaseOrderType !== "Material",
-    componentProps: (context: any) => ({
-      controls: false,
-      style: { width: "100%" },
-      placeholder: context?.values?.materialForm === "R" ? "請輸入卷料長度 (米)" : "請輸入片料長度",
-    }),
+    componentProps: (context: any) => {
+      const isSheet = context?.values?.materialForm === "S" || context?.values?.goodsCode?.startsWith("S-") || context?.values?.unit === "pcs";
+      return {
+        controls: false,
+        style: { width: "100%" },
+        placeholder: isSheet ? "請輸入片料長度 (毫米)" : "請輸入卷料長度 (米)",
+      };
+    },
     validation: z.union([z.number(), z.null(), z.undefined()]).optional(),
     dynamicValidation: (context: any) => {
       const isMaterial = context?.values?.purchaseOrderType === "Material";

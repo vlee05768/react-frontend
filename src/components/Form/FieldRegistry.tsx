@@ -1,6 +1,7 @@
 import { Input, Select, InputNumber, DatePicker, Switch, Checkbox } from 'antd';
 import { DictSelect } from './DictSelect';
 import { AsyncSelect } from './AsyncSelect';
+import { AutoCompleteField } from './AutoComplete';
 
 export type FieldComponentType = 
   | 'Input' 
@@ -8,6 +9,7 @@ export type FieldComponentType =
   | 'Select' 
   | 'DictSelect' 
   | 'AsyncSelect' 
+  | 'AutoComplete'
   | 'InputNumber' 
   | 'DatePicker' 
   | 'Switch' 
@@ -45,6 +47,8 @@ export const FIELD_REGISTRY: Record<string, FieldRenderer> = {
   DictSelect: (props) => <DictSelect allowClear={true} {...props} />,
   
   AsyncSelect: (props) => <AsyncSelect key={props.configKey} allowClear={true} {...props} />,
+  
+  AutoComplete: (props) => <AutoCompleteField key={props.configKey} allowClear={true} {...props} />,
   
   InputNumber: (props, options) => {
     const { onFocus, ...restProps } = props;
