@@ -331,7 +331,7 @@ export const getTxColumns = (): TableColumnConfig<MaterialInventoryTransactionDt
     width: 120,
   },
   {
-    label: "異動數量 (SQM)",
+    label: "異動數量",
     name: "quantity",
     width: 140,
     align: "right",
@@ -339,13 +339,14 @@ export const getTxColumns = (): TableColumnConfig<MaterialInventoryTransactionDt
       if (val == null) return "0";
       const sign = record.signFlag || 1;
       const amount = Number(val) * sign;
-      const formatted = formatDecimal(val, 4, "0");
+      const unit = record.auxUOM || (record.materialForm === "R" ? "M" : "PCS");
+      const formatted = record.materialForm === "R" ? formatDecimal(val, 2, "0") : Number(val).toLocaleString();
       if (amount > 0) {
-        return <span className="text-green-600 dark:text-green-400 font-bold">+{formatted}</span>;
+        return <span className="text-green-600 dark:text-green-400 font-bold">+{formatted} {unit}</span>;
       } else if (amount < 0) {
-        return <span className="text-red-600 dark:text-red-400 font-bold">-{formatted}</span>;
+        return <span className="text-red-600 dark:text-red-400 font-bold">-{formatted} {unit}</span>;
       }
-      return <span className="font-semibold">{formatted}</span>;
+      return <span className="font-semibold">{formatted} {unit}</span>;
     }
   },
   {

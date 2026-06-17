@@ -919,10 +919,6 @@ export type CreateMaterialDto = {
      */
     auxUOM?: string | null;
     /**
-     * 標準克重密度 (g/m²)
-     */
-    stdDensity?: number;
-    /**
      * 標記
      */
     tag?: string | null;
@@ -3435,10 +3431,6 @@ export type MaterialDto = {
      */
     auxUOM?: string | null;
     /**
-     * 標準克重密度 (g/m²)
-     */
-    stdDensity?: number;
-    /**
      * 是否啟用
      */
     isActive?: boolean;
@@ -3567,9 +3559,17 @@ export type MaterialInventoryTransactionDto = {
      */
     signFlag?: number;
     /**
-     * 異動數量 (SQM)
+     * 異動數量 (SQM 或 長度M 或 片張數PCS)
      */
     quantity?: number;
+    /**
+     * 原料型態 (R=捲料, S=片料)
+     */
+    materialForm?: string | null;
+    /**
+     * 現場輔助單位 (M 或 PCS)
+     */
+    auxUOM?: string | null;
     /**
      * 交易發生時間
      */
@@ -7518,10 +7518,6 @@ export type UpdateMaterialDto = {
      * 現場輔助計量單位 (M / PCS)
      */
     auxUOM?: string | null;
-    /**
-     * 標準克重密度 (g/m²)
-     */
-    stdDensity?: number | null;
     /**
      * 標記
      */
