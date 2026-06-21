@@ -91,7 +91,7 @@ export default function PurchaseOrderItemSelector({
       );
     }
 
-    return filtered.map((item: any) => {
+    const mapped = filtered.map((item: any) => {
       const qty = item.quantity || 0;
       const rec = item.receivedQuantity || 0;
       const cancel = item.cancelledQuantity || 0;
@@ -144,7 +144,12 @@ export default function PurchaseOrderItemSelector({
         key, // Unique composite key for selection
       };
     });
-  }, [data, excludedKeys, keyword, customRollCounts, customRollLengths, customArrivalQuantities]);
+
+    if (isMold) {
+      return mapped.filter((item: any) => item.undeliveredQuantity > 0);
+    }
+    return mapped;
+  }, [data, excludedKeys, keyword, customRollCounts, customRollLengths, customArrivalQuantities, isMold]);
 
   const handleConfirm = () => {
     if (selectedRowKeys.length === 0) {

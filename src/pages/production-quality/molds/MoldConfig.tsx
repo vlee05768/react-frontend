@@ -23,9 +23,34 @@ export const mainDictionary = {
 } as const;
 
 export const mainFormConfig = (): FormFieldConfig[] => [
-  { ...mainDictionary.code, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'createOnly' },
-  { ...mainDictionary.name, componentType: 'Input', validation: z.any().optional().nullable(), editable: 'always' },
-  { ...mainDictionary.type, componentType: 'DictSelect', validation: z.any().optional().nullable(), editable: 'always', componentProps: { dictKey: 'MOLD_TYPE' } },
+  { 
+    ...mainDictionary.code, 
+    componentType: 'Input', 
+    validation: z.string()
+      .min(1, '編號為必填欄位')
+      .max(50, '編號長度不可超過 50 個字元')
+      .regex(/^[A-Z0-9_\-]+$/, '編號僅能包含大寫英數字及符號（_、-）且禁止中文'), 
+    editable: 'createOnly',
+    onChange: (val, _, setValue) => {
+      const upper = (val || "").replace(/[\u4e00-\u9fff]/g, "").toUpperCase();
+      setValue("code", upper);
+    }
+  },
+  { 
+    ...mainDictionary.name, 
+    componentType: 'Input', 
+    validation: z.string()
+      .min(1, '名稱為必填欄位')
+      .max(255, '名稱長度不可超過 255 個字元'), 
+    editable: 'always' 
+  },
+  { 
+    ...mainDictionary.type, 
+    componentType: 'DictSelect', 
+    validation: z.string().min(1, '請選擇類型'), 
+    editable: 'always', 
+    componentProps: { dictKey: 'MOLD_TYPE' } 
+  },
   { ...mainDictionary.supplierCode, componentType: 'AsyncSelect', validation: z.any().optional().nullable(), editable: 'always', componentProps: { configKey: 'TOOLING_SUPPLIER', allowClear: true } },
   { ...mainDictionary.shape, componentType: 'DictSelect', validation: z.any().optional().nullable(), editable: 'always', componentProps: { dictKey: 'MOLD_SHAPE' } },
   { ...mainDictionary.dimensionLMm, componentType: 'InputNumber', validation: z.any().optional().nullable(), editable: 'always' },
