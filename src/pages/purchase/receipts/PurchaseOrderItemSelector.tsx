@@ -362,13 +362,12 @@ export default function PurchaseOrderItemSelector({
             const widthMm = record.width && record.width > 0 ? record.width : 1000;
             arrivalArea = qty * (widthMm / 1000);
           }
-
-          const isOver = arrivalArea >= undelivered;
+          const isOver = arrivalArea > undelivered;
 
           let recalculatedPrice = price;
           if (isOver && qty > 0) {
             const subtotal = Math.round(price * undelivered);
-            recalculatedPrice = subtotal / qty;
+            recalculatedPrice = subtotal / arrivalArea;
           }
 
           return (

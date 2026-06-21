@@ -172,7 +172,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     },
   },
   {
-    label: "類別",
+    label: "材質類別",
     name: "type",
     width: 120,
     render: (v) => <DictLabel dictKey="MATERIAL_TYPE" value={v} />,
@@ -221,11 +221,11 @@ export const mainFormConfig = (): FormFieldConfig[] => [
   },
   {
     name: "type",
-    label: "類別",
+    label: "材質類別",
     componentType: "DictSelect",
     colSpan: 6,
     editable: "createOnly",
-    validation: z.string().min(1, "請選擇類別"),
+    validation: z.string().min(1, "請選擇材質類別"),
     componentProps: { dictKey: "MATERIAL_TYPE", allowClear: true },
     onChange: (val, ctx, setValue) => {
       ctx.values.type = val;
