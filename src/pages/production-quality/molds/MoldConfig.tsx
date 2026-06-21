@@ -9,7 +9,6 @@ export const mainDictionary = {
   code: { name: 'code', label: '編號' },
   name: { name: 'name', label: '名稱' },
   type: { name: 'type', label: '類型' },
-  supplierCode: { name: 'supplierCode', label: '供應商' },
   shape: { name: 'shape', label: '形狀' },
   dimensionLMm: { name: 'dimensionLMm', label: '長度 (mm)' },
   dimensionWMm: { name: 'dimensionWMm', label: '寬度 (mm)' },
@@ -51,7 +50,6 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     editable: 'always', 
     componentProps: { dictKey: 'MOLD_TYPE' } 
   },
-  { ...mainDictionary.supplierCode, componentType: 'AsyncSelect', validation: z.any().optional().nullable(), editable: 'always', componentProps: { configKey: 'TOOLING_SUPPLIER', allowClear: true } },
   { ...mainDictionary.shape, componentType: 'DictSelect', validation: z.any().optional().nullable(), editable: 'always', componentProps: { dictKey: 'MOLD_SHAPE' } },
   { ...mainDictionary.dimensionLMm, componentType: 'InputNumber', validation: z.any().optional().nullable(), editable: 'always' },
   { ...mainDictionary.dimensionWMm, componentType: 'InputNumber', validation: z.any().optional().nullable(), editable: 'always' },
@@ -70,7 +68,6 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   { ...mainDictionary.isArrived, width: 100, align: 'center', render: (v: boolean | undefined | null) => v === true ? <Tag color="green">已到貨</Tag> : <Tag color="orange">未到貨</Tag> },
   { ...mainDictionary.isShareable, width: 80, align: 'center', render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{ color: 'green' }} /> : (v === false ? <CloseOutlined style={{ color: 'red' }} /> : null) },
   { ...mainDictionary.type, sortable: { multiple: 3 }, width: 100, render: (v: any) => <DictLabel dictKey="MOLD_TYPE" value={v} />, ellipsis: true },
-  { ...mainDictionary.supplierCode, width: 210, render: (v: any) => <DictLabel dictKey="TOOLING_SUPPLIER" value={v} />, ellipsis: true },
   { ...mainDictionary.shape, width: 100, render: (v: any) => <DictLabel dictKey="MOLD_SHAPE" value={v} />, ellipsis: true },
   { ...mainDictionary.dimensionLMm, width: 120, align: 'right', ellipsis: true },
   { ...mainDictionary.dimensionWMm, width: 120, align: 'right', ellipsis: true },
@@ -89,7 +86,6 @@ export const detailTableColumns = {};
 export const moldSearchFormConfig = (): SearchFieldConfig[] => [
   { name: 'CodeOrName', label: '編號或名稱', componentType: 'Input', colSpan: 2 },
   { name: 'Type', label: '類型', componentType: 'DictSelect', colSpan: 2, componentProps: { dictKey: 'MOLD_TYPE' } },
-  { name: 'SupplierCode', label: '供應商', componentType: 'AsyncSelect', colSpan: 2, componentProps: { configKey: 'TOOLING_SUPPLIER', allowClear: true } },
   { name: 'Shape', label: '形狀', componentType: 'DictSelect', colSpan: 2, componentProps: { dictKey: 'MOLD_SHAPE' } },
   { 
     name: 'IsArrived', 
