@@ -51,10 +51,11 @@ export function generateTableColumns<TValues>(
 
       // 預設將未自訂 render 的數值欄位進行內容格式化 (千分位、最多4位小數、空值 blank 處理)
       const isNumericField = 
-        tableProps.align === 'right' || 
+        (tableProps.align === 'right' || 
         defaultAlign === 'right' ||
         config.componentType === 'InputNumber' ||
-        /qty|quantity|price|amount|total|tax|sum|subtotal|count|rate|weight/i.test(String(config.name));
+        /qty|quantity|price|amount|total|tax|sum|subtotal|count|rate|weight/i.test(String(config.name))) &&
+        !/taxid/i.test(String(config.name));
 
       if (isNumericField && !render) {
         render = (value: any) => {
@@ -193,8 +194,9 @@ export function buildTableColumns<TValues>(
 
     // 預設將未自訂 render 的數值欄位進行內容格式化 (千分位、最多4位小數、空值 blank 處理)
     const isNumericField = 
-      config.align === 'right' || 
-      /qty|quantity|price|amount|total|tax|sum|subtotal|count|rate|weight/i.test(String(config.name));
+      (config.align === 'right' || 
+      /qty|quantity|price|amount|total|tax|sum|subtotal|count|rate|weight/i.test(String(config.name))) &&
+      !/taxid/i.test(String(config.name));
 
     if (isNumericField && !render) {
       render = (value: any) => {

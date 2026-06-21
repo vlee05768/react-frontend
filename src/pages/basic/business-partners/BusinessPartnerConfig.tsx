@@ -42,6 +42,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     name: "taxId",
     width: 120,
     sortable: { multiple: 3 },
+    render: (v) => v ? String(v) : "",
   },
   {
     label: "角色身份",
