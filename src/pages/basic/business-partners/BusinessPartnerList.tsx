@@ -183,6 +183,29 @@ export default function BusinessPartnerList() {
         enabledMaterialSupplierRole: false,
         enabledOutsourceVendorRole: false,
         enabledToolingSupplierRole: false,
+        
+        // 客戶資料預設值
+        customerProfile_defaultCurrency: "TWD",
+        customerProfile_status: "active",
+        customerProfile_creditLimit: 0,
+        customerProfile_isCreditBlocked: false,
+        customerProfile_isTYCustomer: false,
+
+        // 原料商資料預設值
+        materialSupplierProfile_defaultCurrency: "TWD",
+        materialSupplierProfile_status: "active",
+        materialSupplierProfile_leadTimeDays: 0,
+        materialSupplierProfile_isPurchaseBlocked: false,
+
+        // 委外商資料預設值
+        outsourceVendorProfile_status: "active",
+        outsourceVendorProfile_leadTimeDays: 0,
+        outsourceVendorProfile_isApprovedVendor: false,
+
+        // 模具商資料預設值
+        toolingSupplierProfile_status: "active",
+        toolingSupplierProfile_leadTimeDays: 0,
+        toolingSupplierProfile_canRepairTooling: false,
       };
     }
     if (!viewData) return {};
