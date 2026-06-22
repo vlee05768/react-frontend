@@ -298,3 +298,29 @@ body {
   display: none !important;
 }
 
+/* === 員工資料等 HTML5 Date Input 選擇器圖標高亮優化 === */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer !important;
+  opacity: 0.9 !important;
+  /* 轉為高質感的 Ant Design 主題藍色 (#1677ff) */
+  filter: invert(41%) sepia(85%) saturate(1455%) hue-rotate(202deg) brightness(101%) contrast(105%) !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1 !important;
+  /* hover 時更亮、更飽和 */
+  filter: invert(30%) sepia(100%) saturate(2000%) hue-rotate(202deg) brightness(110%) contrast(110%) !important;
+  transform: scale(1.1);
+}
+
+/* 暗色模式下，調整為亮藍色以確保完美辨識度 */
+:where(.dark, .dark *) input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(65%) sepia(70%) saturate(1200%) hue-rotate(195deg) brightness(110%) contrast(105%) !important;
+}
+
+:where(.dark, .dark *) input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  filter: invert(80%) sepia(60%) saturate(1500%) hue-rotate(195deg) brightness(120%) contrast(110%) !important;
+}
+
+
