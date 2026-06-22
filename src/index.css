@@ -298,8 +298,12 @@ body {
   display: none !important;
 }
 
-/* === 員工資料等 HTML5 Date Input 選擇器圖標高亮優化 === */
-input[type="date"]::-webkit-calendar-picker-indicator {
+/* === 全域 HTML5 Native Date/Time Inputs 選擇器圖標高亮優化 === */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator,
+input[type="week"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
   cursor: pointer !important;
   opacity: 0.9 !important;
   /* 轉為高質感的 Ant Design 主題藍色 (#1677ff) */
@@ -307,7 +311,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   transition: all 0.2s ease-in-out !important;
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator:hover {
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+input[type="month"]::-webkit-calendar-picker-indicator:hover,
+input[type="week"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
   opacity: 1 !important;
   /* hover 時更亮、更飽和 */
   filter: invert(30%) sepia(100%) saturate(2000%) hue-rotate(202deg) brightness(110%) contrast(110%) !important;
@@ -315,12 +323,39 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 /* 暗色模式下，調整為亮藍色以確保完美辨識度 */
-:where(.dark, .dark *) input[type="date"]::-webkit-calendar-picker-indicator {
+:where(.dark, .dark *) input[type="date"]::-webkit-calendar-picker-indicator,
+:where(.dark, .dark *) input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+:where(.dark, .dark *) input[type="month"]::-webkit-calendar-picker-indicator,
+:where(.dark, .dark *) input[type="week"]::-webkit-calendar-picker-indicator,
+:where(.dark, .dark *) input[type="time"]::-webkit-calendar-picker-indicator {
   filter: invert(65%) sepia(70%) saturate(1200%) hue-rotate(195deg) brightness(110%) contrast(105%) !important;
 }
 
-:where(.dark, .dark *) input[type="date"]::-webkit-calendar-picker-indicator:hover {
+:where(.dark, .dark *) input[type="date"]::-webkit-calendar-picker-indicator:hover,
+:where(.dark, .dark *) input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+:where(.dark, .dark *) input[type="month"]::-webkit-calendar-picker-indicator:hover,
+:where(.dark, .dark *) input[type="week"]::-webkit-calendar-picker-indicator:hover,
+:where(.dark, .dark *) input[type="time"]::-webkit-calendar-picker-indicator:hover {
   filter: invert(80%) sepia(60%) saturate(1500%) hue-rotate(195deg) brightness(120%) contrast(110%) !important;
 }
+
+/* === 全域 Ant Design DatePicker (日曆/時間選擇器) Suffix 圖標高亮優化 === */
+.ant-picker .ant-picker-suffix {
+  color: var(--ant-color-primary, #1677ff) !important;
+  opacity: 0.85 !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.ant-picker:hover .ant-picker-suffix,
+.ant-picker-focused .ant-picker-suffix {
+  opacity: 1 !important;
+  transform: scale(1.1);
+}
+
+/* 暗色模式下 Ant Design 圖標適配 */
+:where(.dark, .dark *) .ant-picker .ant-picker-suffix {
+  color: var(--ant-color-primary, #1677ff) !important;
+}
+
 
 
