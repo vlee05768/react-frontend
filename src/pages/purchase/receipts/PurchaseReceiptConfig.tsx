@@ -366,7 +366,7 @@ export const getItemColumns = (
           return (
             <Link 
               to={`/production-quality/molds/${val}`} 
-              className="text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 hover:underline font-mono"
+              className="text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 hover:underline font-mono cursor-pointer"
             >
               {val}
             </Link>
@@ -375,26 +375,14 @@ export const getItemColumns = (
         return (
           <Link 
             to={`/warehouse/materials/${val}`} 
-            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline font-mono"
+            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline font-mono cursor-pointer"
           >
             {val}
           </Link>
         );
       }
     },
-    { title: isMold ? "模具名稱" : "原料名稱", dataIndex: "materialName", width: 180, ellipsis: true },
-    {
-      title: "進貨量",
-      dataIndex: "quantity",
-      width: 110,
-      align: "right" as const,
-      render: (val: number) => (
-        <span className="font-semibold text-[var(--ant-color-success)]">
-          {val != null ? Number(val.toFixed(4)).toLocaleString("zh-TW") : "0"}
-        </span>
-      ),
-    },
-    { title: "單位", dataIndex: "unit", width: 70, align: "center" as const },
+    { title: isMold ? "模具名稱" : "原料名稱", dataIndex: "materialName", width: 150, ellipsis: true },
     {
       title: "單價",
       dataIndex: "unitPrice",
@@ -403,10 +391,22 @@ export const getItemColumns = (
       render: (val: number) =>
         val != null ? Number(val.toFixed(4)).toLocaleString("zh-TW") : "0",
     },
+    { title: "單位", dataIndex: "unit", width: 60, align: "center" as const },
+    {
+      title: "進貨量",
+      dataIndex: "quantity",
+      width: 100,
+      align: "right" as const,
+      render: (val: number) => (
+        <span className="font-semibold text-[var(--ant-color-success)]">
+          {val != null ? Number(val.toFixed(4)).toLocaleString("zh-TW") : "0"}
+        </span>
+      ),
+    },
     {
       title: "金額",
       dataIndex: "amount",
-      width: 110,
+      width: 100,
       align: "right" as const,
       render: (val: number) =>
         val != null ? Number(val).toLocaleString("zh-TW") : "0",
@@ -414,26 +414,26 @@ export const getItemColumns = (
     {
       title: "目的儲位",
       dataIndex: "targetStorageCode",
-      width: 130,
+      width: 120,
       align: "center" as const,
       render: (v: string) => (v ? <DictTag dictKey="STORAGE" value={v} /> : "-"),
     },
     {
       title: "卷/包",
       dataIndex: "rollCount",
-      width: 80,
+      width: 60,
       align: "right" as const,
     },
     {
-      title: "規格寬度 (mm)",
+      title: "寬度(mm)",
       dataIndex: ["extraData", "width"],
-      width: 120,
+      width: 100,
       align: "right" as const,
     },
     {
-      title: "規格長度 (M)",
+      title: "長度",
       dataIndex: ["extraData", "length"],
-      width: 120,
+      width: 100,
       align: "right" as const,
     },
     { title: "備註", dataIndex: "notes", width: 150, ellipsis: true },

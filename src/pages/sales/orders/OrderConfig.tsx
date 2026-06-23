@@ -391,10 +391,34 @@ export const getItemColumns = (
     render: (val: string, record: any) => {
       if (!val) return "-";
       let color = "default";
-      if (record.goodsType === "P") color = "orange";
-      else if (record.goodsType === "M") color = "cyan";
-      else if (record.goodsType === "S") color = "purple";
-      return <Tag color={color} className="m-0">{val}</Tag>;
+      let toPath = "";
+      if (record.goodsType === "P") {
+        color = "orange";
+        toPath = `/warehouse/products/${val}`;
+      } else if (record.goodsType === "M") {
+        color = "cyan";
+        toPath = `/warehouse/materials/${val}`;
+      } else if (record.goodsType === "S") {
+        color = "purple";
+      }
+
+      const tagElement = (
+        <Tag 
+          color={color} 
+          className="m-0 cursor-pointer hover:opacity-85 transition-opacity"
+        >
+          {val}
+        </Tag>
+      );
+
+      if (toPath) {
+        return (
+          <Link to={toPath} style={{ textDecoration: "none", cursor: "pointer" }}>
+            {tagElement}
+          </Link>
+        );
+      }
+      return tagElement;
     },
   },
   { title: "商品名稱", dataIndex: "goodsName", width: 220, ellipsis: true },

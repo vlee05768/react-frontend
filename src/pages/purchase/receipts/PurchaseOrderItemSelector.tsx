@@ -333,7 +333,7 @@ export default function PurchaseOrderItemSelector({
       {
         label: "寬度 (mm)",
         name: "width" as any,
-        width: 100,
+        width: 90,
         align: "right",
         render: (val: number) => {
           if (val == null) return "-";
@@ -343,7 +343,7 @@ export default function PurchaseOrderItemSelector({
       {
         label: "長度",
         name: "length" as any,
-        width: 100,
+        width: 90,
         align: "right",
         render: (val: number, record: any) => {
           if (val == null) return "-";
@@ -354,7 +354,7 @@ export default function PurchaseOrderItemSelector({
       {
         label: "採購單價",
         name: "unitPrice" as any,
-        width: 110,
+        width: 90,
         align: "right",
         render: (v: number, record: any) => {
           const isChecked = selectedRowKeys.includes(record.key);
@@ -393,7 +393,7 @@ export default function PurchaseOrderItemSelector({
       {
         label: "採購量",
         name: "quantity" as any,
-        width: 110,
+        width: 90,
         align: "right",
         render: (v: number) => (
           <span className="font-semibold text-[#d46b08] dark:text-[#fa8c16]">
@@ -401,7 +401,7 @@ export default function PurchaseOrderItemSelector({
           </span>
         ),
       },
-      { label: "單位", name: "unit" as any, width: 80, align: "center" },
+      { label: "單位", name: "unit" as any, width: 60, align: "center" },
 
       {
         label: "已到貨量",
@@ -422,7 +422,7 @@ export default function PurchaseOrderItemSelector({
       {
         label: "未到貨量",
         name: "undeliveredQuantity" as any,
-        width: 110,
+        width: 90,
         align: "right",
         render: (v: number, record: any) => {
           if (record.isRoll) {
@@ -442,7 +442,7 @@ export default function PurchaseOrderItemSelector({
       {
         label: "到貨卷數",
         name: "rollCount" as any,
-        width: 100,
+        width: 90,
         align: "right",
         render: (v: number, record: any) => {
           if (!record.isRoll) return "-";
@@ -495,7 +495,7 @@ export default function PurchaseOrderItemSelector({
       {
         label: "每卷長度 (m)",
         name: "rollLength" as any,
-        width: 110,
+        width: 100,
         align: "right",
         render: (v: number, record: any) => {
           if (!record.isRoll) return "-";
@@ -547,7 +547,7 @@ export default function PurchaseOrderItemSelector({
       {
         label: "到貨量",
         name: "arrivalQuantity" as any,
-        width: 150,
+        width: 100,
         align: "right",
         render: (v: number, record: any) => {
           const isChecked = selectedRowKeys.includes(record.key);
@@ -600,7 +600,7 @@ export default function PurchaseOrderItemSelector({
       {
         label: "小計",
         name: "subtotal" as any,
-        width: 120,
+        width: 100,
         align: "right",
         render: (_v: any, record: any) => {
           const isChecked = selectedRowKeys.includes(record.key);

@@ -20,6 +20,25 @@ import StandardErpTable from '@/components/Table/StandardErpTable';
 export default function CustomerStatementList() {
   const { params, setParams } = useCustomerStatementQueryStore();
 
+  // 標準化 dateRange，確保它永遠是一個 [string, string] | null 的陣列
+  // 解決 URL 同步時被序列化為逗號字串 "2026-06-01,2026-06-22" 導致的解析與渲染錯誤（如 2001-02-01 -> 2000-01-01）
+  const dateRange = useMemo<[string, string] | null>(() => {
+    if (!params.dateRange) return null;
+    if (Array.isArray(params.dateRange)) {
+      if (params.dateRange.length === 2) {
+        return params.dateRange as [string, string];
+      }
+      return null;
+    }
+    if (typeof params.dateRange === 'string') {
+      const parts = (params.dateRange as string).split(',');
+      if (parts.length === 2) {
+        return parts as [string, string];
+      }
+    }
+    return null;
+  }, [params.dateRange]);
+
   const listQuery = useErpListQuery({
     params,
     setParams,
@@ -32,11 +51,11 @@ export default function CustomerStatementList() {
     queryKey: ['customer-statements', params],
     queryFn: () => getApiV1SalesDeliveryStatisticsGroupByCustomer({
       query: {
-        DateRange: params.dateRange as string[],
+        DateRange: dateRange as string[],
         CustomerCode: params.customerCode || undefined
       }
     }),
-    enabled: !!params.dateRange && params.dateRange.length === 2,
+    enabled: !!dateRange && dateRange.length === 2,
   });
 
   const pagedResult = data?.data;
@@ -62,8 +81,8 @@ export default function CustomerStatementList() {
     const grandTotal = tableData.reduce((sum, row) => sum + (row.totalAmount || 0), 0);
     const totalDocumentCount = tableData.reduce((sum, row) => sum + (row.documentCount || 0), 0);
 
-    const dateRangeText = params.dateRange && params.dateRange.length === 2
-      ? `${dayjs(params.dateRange[0]).format('YYYY-MM-DD')} ~ ${dayjs(params.dateRange[1]).format('YYYY-MM-DD')}`
+    const dateRangeText = dateRange && dateRange.length === 2
+      ? `${dayjs(dateRange[0]).format('YYYY-MM-DD')} ~ ${dayjs(dateRange[1]).format('YYYY-MM-DD')}`
       : '';
 
     const firstRow = tableData[0];
@@ -80,15 +99,15 @@ export default function CustomerStatementList() {
       totalTax,
       grandTotal,
     };
-  }, [tableData, params]);
+  }, [tableData, params, dateRange]);
 
   const handlePrint = (row: SalesDeliveryGroupByCustomerDto) => {
-    if (!params.dateRange || params.dateRange.length !== 2) return;
+    if (!dateRange || dateRange.length !== 2) return;
     
     downloadFile({
       apiFunction: () => getApiV1SalesDeliveryCustomerStatementReport({
         query: {
-          DateRange: [dayjs(params.dateRange![0]).format('YYYY-MM-DD'), dayjs(params.dateRange![1]).format('YYYY-MM-DD')],
+          DateRange: [dayjs(dateRange[0]).format('YYYY-MM-DD'), dayjs(dateRange[1]).format('YYYY-MM-DD')],
           CustomerCode: row.businessPartnerCode!
         },
         // @ts-ignore
@@ -99,13 +118,13 @@ export default function CustomerStatementList() {
     });
   };
 
-  const columns = useMemo(() => getColumns(handlePrint, isDownloading), [isDownloading, params.dateRange]);
+  const columns = useMemo(() => getColumns(handlePrint, isDownloading), [isDownloading, dateRange]);
 
   // 自訂開啟搜尋 Modal 並轉回 dayjs 型態，以避免 RangePicker 接收 string array 報錯或無法顯示
   const handleOpenSearchModal = () => {
     listQuery.searchForm.reset({
       customerCode: params.customerCode || null,
-      dateRange: params.dateRange ? [dayjs(params.dateRange[0]), dayjs(params.dateRange[1])] : null
+      dateRange: dateRange ? [dayjs(dateRange[0]), dayjs(dateRange[1])] : null
     });
     listQuery.setIsSearchModalOpen(true);
   };
