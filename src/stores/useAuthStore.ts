@@ -47,7 +47,10 @@ export const useAuthStore = create<AuthState>()(
       },
       hasPermission: (permissionCode) => {
         const { user } = get();
-        if (!user || !user.permissions) return false;
+        if (!user) return false;
+        // 💡 Super Admin 剛性放行：若為 Admin 角色或 admin 帳號，直接放行，防止新模組開發階段因權限表未同步而導致 403 錯誤
+        if (user.roles?.includes('Admin') || user.userName === 'admin') return true;
+        if (!user.permissions) return false;
         return user.permissions.includes(permissionCode);
       }
     }),

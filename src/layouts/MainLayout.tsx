@@ -61,6 +61,7 @@ const ROUTE_MAPPING: Record<string, string> = {
   'ProductionQuality.WorkOrders': '/production-quality/work-orders',
   'ProductionQuality.QcReceipts': '/production-quality/qc-receipts',
   'ProductionQuality.ProductionReceipts': '/production-quality/production-receipts',
+  'ProductionQuality.IqcInspections': '/production-quality/iqc-inspections',
 };
 
 // 路由權限對照表 (Path -> Required Permission Key)
@@ -90,6 +91,7 @@ const ROUTE_PERMISSION_MAP: Record<string, string> = {
   '/production-quality/work-orders': 'ProductionQuality.WorkOrders.View',
   '/production-quality/qc-receipts': 'ProductionQuality.QcReceipts.View',
   '/production-quality/production-receipts': 'ProductionQuality.ProductionReceipts.View',
+  '/production-quality/iqc-inspections': 'ProductionQuality.IqcInspections.View',
 };
 
 export default function MainLayout() {
@@ -219,6 +221,15 @@ export default function MainLayout() {
                     label: '原料 LPN 卷卡追溯',
                   });
                 }
+              }
+            }
+
+            if (node.key === 'ProductionQuality') {
+              if (!children.some(c => c.key === '/production-quality/iqc-inspections')) {
+                children.unshift({
+                  key: '/production-quality/iqc-inspections',
+                  label: 'IQC 進料品質檢驗',
+                });
               }
             }
             // 如果該模組下沒有任何有權限的子頁面，就不顯示該模組

@@ -71,6 +71,7 @@ const QcReceiptDrawer = withSuspense(lazy(() => import('@/pages/production-quali
 const ProductionReceiptsList = withSuspense(lazy(() => import('@/pages/production-quality/production-receipts/ProductionReceiptsList')));
 const ProductionReceiptDrawer = withSuspense(lazy(() => import('@/pages/production-quality/production-receipts/ProductionReceiptDrawer')));
 const BusinessPartnerList = withSuspense(lazy(() => import('@/pages/basic/business-partners/BusinessPartnerList')));
+const IqcList = withSuspense(lazy(() => import('@/pages/production-quality/iqc-inspections/IqcList')));
 
 // 路由守衛
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -118,6 +119,7 @@ export const router = createBrowserRouter([
       { path: 'warehouse/materials/:viewId?', element: <MaterialList /> },
       { path: 'production-quality/molds/:viewId?', element: <MoldList /> },
       { path: 'production-quality/machines/:viewId?', element: <MachineList /> },
+      { path: 'production-quality/iqc-inspections', element: <IqcList /> },
       { path: 'production-quality/work-orders/:viewId?', element: <WorkOrdersList /> },
       { path: 'production-quality/qc-receipts', element: <QcReceiptsList /> },
       { path: 'production-quality/qc-receipts/:id', element: <><QcReceiptsList /><QcReceiptDrawer /></> },
