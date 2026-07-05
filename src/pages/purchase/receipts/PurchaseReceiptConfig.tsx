@@ -304,6 +304,7 @@ export const mainFormConfig = (): any[] => [
 
 export const itemTableColumns = (): TableColumnConfig[] => [
   { label: "項次", name: "lineNumber", width: 80 },
+  { label: "採購明細編號", name: "referenceNumber", width: 150 },
   { label: "原料編碼", name: "materialCode", width: 140 },
   { label: "原料名稱", name: "materialName", width: 180 },
   {
@@ -355,6 +356,7 @@ export const getItemColumns = (
 ): any[] => {
   let columns = [
     { title: "項次", dataIndex: "serialNumber", width: 70 },
+    { title: "採購明細編號", dataIndex: "referenceNumber", width: 140, ellipsis: true },
     { 
       title: isMold ? "模具編碼" : "原料編碼", 
       dataIndex: "materialCode", 

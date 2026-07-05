@@ -187,6 +187,7 @@ export default function IqcList() {
         onClose={() => {
           setIsDrawerOpen(false);
           setActiveIqcId(null);
+          queryClient.invalidateQueries({ queryKey: ['iqc-inspections'] });
         }}
         onSuccess={() => {
           setIsDrawerOpen(false);

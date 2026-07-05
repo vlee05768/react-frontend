@@ -285,13 +285,21 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
   // 員工 (Employee)
   EMPLOYEE: {
     queryFn: async (keyword: string) => {
-      const res = await getApiV1Employee({
-        query: {
-          EmployeeNo: keyword || undefined,
-          pageSize: -1
-        } as any
+      const isCode = /^[a-zA-Z0-9]+$/.test(keyword);
+      if (isCode) {
+        // 1. 優先以 EmployeeNo 查
+        const resByNo = await getApiV1Employee({
+          query: { EmployeeNo: keyword, pageSize: -1 } as any
+        });
+        const listByNo = (resByNo.data as any)?.data?.data || (resByNo.data as any)?.data || [];
+        if (listByNo.length > 0) return listByNo;
+      }
+
+      // 2. 如果查無資料，或 keyword 不是純英數字，則用 Name 查
+      const resByName = await getApiV1Employee({
+        query: { Name: keyword, pageSize: -1 } as any
       });
-      return (res.data as any)?.data?.data || (res.data as any)?.data || [];
+      return (resByName.data as any)?.data?.data || (resByName.data as any)?.data || [];
     },
     fetchByValue: async (idOrCode: any) => {
       // Because employee uses ID for fetch but we need employeeNo for value
@@ -303,7 +311,18 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
         } as any
       });
       const list = (res.data as any)?.data?.data || (res.data as any)?.data || [];
-      return list.find((e: any) => e.employeeNo === idOrCode || e.employeeCode === idOrCode);
+      const found = list.find((e: any) => e.employeeNo === idOrCode || e.employeeCode === idOrCode);
+      if (found) return found;
+
+      // Backup search by name in case code wasn't exact match
+      const resByName = await getApiV1Employee({
+        query: {
+          Name: String(idOrCode),
+          pageSize: -1
+        } as any
+      });
+      const listByName = (resByName.data as any)?.data?.data || (resByName.data as any)?.data || [];
+      return listByName.find((e: any) => e.employeeNo === idOrCode || e.employeeCode === idOrCode);
     },
     fieldNames: {
       label: (item: any) => `${item.name || ''} (${item.employeeNo || item.employeeCode || ''})`,

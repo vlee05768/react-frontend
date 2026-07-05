@@ -261,8 +261,10 @@ export default function MaterialInventoryList() {
           <style>{`
             .ant-card-body { display: flex; flex-direction: column; }
             .ant-tabs { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-tabs-content-holder { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
             .ant-tabs-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
             .ant-tabs-tabpane { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+            .ant-table-body { max-height: calc(100vh - 380px) !important; overflow-y: auto !important; }
           `}</style>
           
           <Tabs 
@@ -305,7 +307,7 @@ export default function MaterialInventoryList() {
                     </Form>
 
                     {/* Tab 1 Table */}
-                    <div className="flex-1 min-h-0">
+                    <div className="flex-1 min-h-0 flex flex-col">
                       <StandardErpTable
                         rowKey={(record: any) => `${record.materialCode}_${record.storageCode}`}
                         loading={logicalLoading}
@@ -321,7 +323,6 @@ export default function MaterialInventoryList() {
                           showSizeChanger: true,
                           showTotal: (total) => `共 ${total} 筆`,
                         }}
-                        scroll={{ x: 'max-content', y: 'calc(100vh - 360px)' }}
                       />
                     </div>
                   </div>
@@ -384,7 +385,7 @@ export default function MaterialInventoryList() {
                     </Form>
 
                     {/* Tab 2 Table */}
-                    <div className="flex-1 min-h-0">
+                    <div className="flex-1 min-h-0 flex flex-col">
                       <StandardErpTable
                         rowKey="rollNo"
                         loading={rollLoading}
@@ -400,7 +401,6 @@ export default function MaterialInventoryList() {
                           showSizeChanger: true,
                           showTotal: (total) => `共 ${total} 筆`,
                         }}
-                        scroll={{ x: 'max-content', y: 'calc(100vh - 360px)' }}
                       />
                     </div>
                   </div>
@@ -470,7 +470,7 @@ export default function MaterialInventoryList() {
                     </Form>
 
                     {/* Tab 3 Table */}
-                    <div className="flex-1 min-h-0">
+                    <div className="flex-1 min-h-0 flex flex-col">
                       <StandardErpTable
                         rowKey="transactionId"
                         loading={txLoading}
@@ -486,7 +486,6 @@ export default function MaterialInventoryList() {
                           showSizeChanger: true,
                           showTotal: (total) => `共 ${total} 筆`,
                         }}
-                        scroll={{ x: 'max-content', y: 'calc(100vh - 360px)' }}
                       />
                     </div>
                   </div>

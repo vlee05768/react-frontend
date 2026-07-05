@@ -463,6 +463,13 @@ export const getItemColumns = (
     render: (val: number) => (val != null ? Number(val.toFixed(4)).toLocaleString() : "0"),
   },
   {
+    title: "已到貨數量",
+    dataIndex: "receivedQuantity",
+    width: 100,
+    align: "right",
+    render: (val: number) => (val != null ? Number(val.toFixed(4)).toLocaleString() : "0"),
+  },
+  {
     title: "採購計價單位",
     dataIndex: "unit",
     width: 80,

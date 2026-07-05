@@ -38,6 +38,10 @@ export const getStatusTagProps = (status?: string | null) => {
   switch (status.toUpperCase()) {
     case "ALLPASS":
       return { color: "success", text: "全部通過" };
+    case "CONCESSIONPENDING":
+      return { color: "gold", text: "特採審核中" };
+    case "CONCESSIONAPPROVED":
+      return { color: "cyan", text: "特採核准入庫" };
     case "PARTIAL":
       return { color: "orange", text: "部分入庫" };
     case "REJECT":
