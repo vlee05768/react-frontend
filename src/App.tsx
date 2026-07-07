@@ -8,13 +8,16 @@ import { useThemeStore } from './stores/useThemeStore';
 import { useEffect } from 'react';
 import { DevBanner } from './components/DevBanner';
 
-// 建立 React Query Client，統一全域快取設定
+// 💡 智慧快取控制：開發模式下徹底關閉快取、視窗聚焦即刷，正式模式下開啟 5 分鐘快取提速
+const isDev = import.meta.env.DEV;
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 分鐘快取
+      refetchOnWindowFocus: isDev ? true : false, // 開發模式：視窗切換自動更新；正式模式：避免頻繁重新拉取
+      staleTime: isDev ? 0 : 5 * 60 * 1000,       // 開發模式：一秒都不快取（立即使之過期）；正式模式：快取 5 分鐘
+      gcTime: isDev ? 0 : 5 * 60 * 1000,          // 開發模式：關閉即銷毀記憶體快取；正式模式：快取 5 分鐘
     },
   },
 });
