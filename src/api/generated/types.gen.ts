@@ -4067,6 +4067,14 @@ export type MaterialLogicalInventoryDto = {
      * 財務基準單位
      */
     baseUOM?: string | null;
+    /**
+     * 實體寬度 (mm)
+     */
+    widthMm?: number | null;
+    /**
+     * 片料長度 (mm)
+     */
+    lengthMm?: number | null;
 };
 
 /**

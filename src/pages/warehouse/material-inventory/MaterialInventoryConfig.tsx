@@ -55,20 +55,40 @@ export const getLogicalColumns = (): TableColumnConfig<MaterialLogicalInventoryD
     render: (val: string) => val === "R" ? <Tag color="blue">捲材 (R)</Tag> : <Tag color="green">片材 (S)</Tag>,
   },
   {
+    label: "寬度 (mm)",
+    name: "widthMm",
+    width: 120,
+    align: "right",
+    render: (val: any) => formatDecimal(val, 4, "-"),
+  },
+  {
+    label: "在庫可用長度(m)",
+    name: "lengthMm",
+    width: 140,
+    align: "right",
+    render: (_, record) => {
+      const area = record.quantity || 0;
+      const width = record.widthMm || 0;
+      if (width === 0) return "-";
+      const lengthM = (area * 1000) / width;
+      return formatDecimal(lengthM, 2, "0");
+    },
+  },
+  {
     label: "儲位編碼",
     name: "storageCode",
     width: 140,
     sortable: { multiple: 2 },
   },
   {
-    label: "在庫可用量 (SQM)",
+    label: "在庫可用面積(SQM)",
     name: "quantity",
     width: 160,
     align: "right",
     render: (val: any) => formatDecimal(val, 4, "0"),
   },
   {
-    label: "凍結待檢量 (SQM)",
+    label: "凍結待驗面積(SQM)",
     name: "frozenQuantity",
     width: 160,
     align: "right",

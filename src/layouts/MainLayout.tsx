@@ -105,6 +105,41 @@ export default function MainLayout() {
   const [loading, setLoading] = useState(true);
   const { frontendVersion, backendVersion } = useSystemVersion();
 
+  const [siderWidth, setSiderWidth] = useState<number>(() => {
+    const saved = localStorage.getItem('sider_width');
+    return saved ? parseInt(saved, 10) : 250; // 預設 250px 完美自適應左邊文字寬度，不再被截斷
+  });
+
+  const [isResizing, setIsResizing] = useState(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      // 限制寬度在 180px 到 450px 之間
+      const newWidth = Math.max(180, Math.min(450, moveEvent.clientX));
+      setSiderWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  useEffect(() => {
+    localStorage.setItem('sider_width', String(siderWidth));
+  }, [siderWidth]);
+
   useEffect(() => {
     const initProfile = async () => {
       if (!user || !permissionTree) {
@@ -375,8 +410,9 @@ export default function MainLayout() {
         collapsible 
         collapsed={collapsed}
         theme={mode}
-        className={`border-r ${mode === 'dark' ? 'border-[#303030]' : 'border-gray-200'}`}
-        width={220}
+        className={`border-r relative ${mode === 'dark' ? 'border-[#303030]' : 'border-gray-200'}`}
+        width={collapsed ? 80 : siderWidth}
+        style={isResizing ? { transition: 'none' } : undefined}
       >
         <div className="flex flex-col h-full">
           <div 
@@ -409,6 +445,14 @@ export default function MainLayout() {
             </div>
           </div>
         </div>
+        {/* 調整寬度把手 */}
+        {!collapsed && (
+          <div
+            onMouseDown={handleMouseDown}
+            className={`absolute top-0 right-0 w-[4px] h-full cursor-col-resize hover:bg-blue-500/50 active:bg-blue-600 transition-colors z-50`}
+            title="拖曳以調整寬度"
+          />
+        )}
       </Sider>
       <Layout className={`flex-1 ${mode === 'dark' ? 'bg-[#141414]' : 'bg-[#f5f5f5]'}`}>
         <Header 
