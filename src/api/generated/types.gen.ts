@@ -537,6 +537,10 @@ export type CompleteIqcDto = {
      */
     notes?: string | null;
     /**
+     * 入庫儲位編碼（使用者選擇，預設為空）
+     */
+    incomingStorageCode?: string | null;
+    /**
      * 實際抽檢數 (對接前端比例運算值)
      */
     sampleSize?: number | null;
@@ -3460,6 +3464,10 @@ export type IqcDetailDto = {
      * 品檢備註 / 判定說明
      */
     notes?: string | null;
+    /**
+     * 入庫儲位編碼（使用者選擇，預設為空）
+     */
+    incomingStorageCode?: string | null;
     /**
      * 💡 前端預設載入與品檢時填寫的卷/包列表
      * 未進行 IQC 時，此列表根據進貨明細的 RollCount 動態分配出來
