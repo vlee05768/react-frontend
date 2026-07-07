@@ -113,6 +113,8 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
     queryKey: ['iqc-detail', iqcRecordId],
     queryFn: () => getApiV1IqcInspectionByIqcRecordId({ path: { iqcRecordId: iqcRecordId! } }),
     enabled: !!iqcRecordId && open,
+    gcTime: 0, // 💡 不在記憶體中快取詳情，關閉即毀棄，確保每次開啟 100% 讀取最新後端資料，絕不顯示過期快取
+    refetchOnMount: 'always',
   });
 
   const detail = response?.data?.data;
@@ -217,6 +219,8 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
     mutationFn: () => postApiV1IqcInspectionByIqcRecordIdEscalate({ path: { iqcRecordId: iqcRecordId! } }),
     onSuccess: () => {
       message.success('已成功將品檢單解鎖並升級為加嚴 100% 全檢狀態！請務必填寫所有卷卡數據！');
+      queryClient.invalidateQueries({ queryKey: ['iqc-detail', iqcRecordId] });
+      queryClient.invalidateQueries({ queryKey: ['iqc-inspections'] });
       refetch();
     },
     onError: (err: any) => message.error(err.response?.data?.message || '升級全檢失敗'),
@@ -235,6 +239,8 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
       } else {
         message.success('品質檢驗過帳完成！良品已正式產生 LPN 卷卡入庫。');
       }
+      queryClient.invalidateQueries({ queryKey: ['iqc-detail', iqcRecordId] });
+      queryClient.invalidateQueries({ queryKey: ['iqc-inspections'] });
       onSuccess();
     },
     onError: (err: any) => message.error(err.response?.data?.message || '過帳失敗，請重試'),
@@ -249,6 +255,8 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
     onSuccess: () => {
       setIsReviewModalOpen(false);
       message.success('特採核准過帳成功！全數卷料已正式建立 LPN 庫存卡並過帳至正式原料倉。');
+      queryClient.invalidateQueries({ queryKey: ['iqc-detail', iqcRecordId] });
+      queryClient.invalidateQueries({ queryKey: ['iqc-inspections'] });
       onSuccess();
     },
     onError: (err: any) => message.error(err.response?.data?.message || '核准特採失敗'),
@@ -262,6 +270,8 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
     onSuccess: () => {
       setIsReviewModalOpen(false);
       message.success('特採申請已被拒絕！此批到貨全數退回拒收，採購量已完成全額回彈扣減。');
+      queryClient.invalidateQueries({ queryKey: ['iqc-detail', iqcRecordId] });
+      queryClient.invalidateQueries({ queryKey: ['iqc-inspections'] });
       onSuccess();
     },
     onError: (err: any) => message.error(err.response?.data?.message || '拒絕特採失敗'),
@@ -317,6 +327,8 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
       setLocalStatus('Pending');
       setSamplingPercent(isRollMaterial ? 30 : 1);
       setIsCustomPercent(false);
+      queryClient.invalidateQueries({ queryKey: ['iqc-detail', iqcRecordId] });
+      queryClient.invalidateQueries({ queryKey: ['iqc-inspections'] });
       refetch();
     },
     onError: (err: any) => message.error(err.response?.data?.message || '重置待檢驗失敗'),
@@ -345,6 +357,8 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
     onSuccess: () => {
       message.success('已成功取消此品檢單過帳判定，並順利註銷 LPN 與還原庫存量！');
       setLocalStatus('Pending');
+      queryClient.invalidateQueries({ queryKey: ['iqc-detail', iqcRecordId] });
+      queryClient.invalidateQueries({ queryKey: ['iqc-inspections'] });
       refetch();
       if (onSuccess) onSuccess();
     },
