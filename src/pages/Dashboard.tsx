@@ -264,7 +264,11 @@ export default function Dashboard() {
                   path: '/purchase/orders',
                   label: '🛒 採購單維護'
                 })}
-                <div className="sub-btn-dev" title="開發中">🚚 到貨單 (Dev)</div>
+                {renderSubButton({
+                  permissionKey: 'Purchase.Receipts.View',
+                  path: '/purchase/receipts',
+                  label: '🚚 原料進貨單'
+                })}
               </div>
             </div>
 
@@ -312,6 +316,11 @@ export default function Dashboard() {
                 <div className="font-bold text-gray-800 dark:text-gray-200">品檢管理</div>
               </div>
               <div className="flex flex-col gap-2">
+                {renderSubButton({
+                  permissionKey: 'ProductionQuality.IqcInspections.View',
+                  path: '/production-quality/iqc-inspections',
+                  label: '🔍 IQC 進料檢驗'
+                })}
                 {renderSubButton({
                   permissionKey: 'ProductionQuality.ProductionReceipts.View',
                   path: '/production-quality/production-receipts',
