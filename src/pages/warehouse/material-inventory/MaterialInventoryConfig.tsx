@@ -62,16 +62,29 @@ export const getLogicalColumns = (): TableColumnConfig<MaterialLogicalInventoryD
     render: (val: any) => formatDecimal(val, 4, "-"),
   },
   {
-    label: "在庫可用長度(m)",
+    label: "在庫可用長度(M) / 張數(PCS)",
     name: "lengthMm",
-    width: 140,
+    width: 180,
     align: "right",
     render: (_, record) => {
       const area = record.quantity || 0;
       const width = record.widthMm || 0;
+      const length = record.lengthMm || 0;
+      const isRoll = record.materialForm === "R";
+
       if (width === 0) return "-";
-      const lengthM = (area * 1000) / width;
-      return formatDecimal(lengthM, 2, "0");
+
+      if (isRoll) {
+        // 捲材：計算可用長度 = 面積 * 1000 / 寬度
+        const lengthM = (area * 1000) / width;
+        return `${formatDecimal(lengthM, 2, "0")} M`;
+      } else {
+        // 片材：計算可用張數 = 面積 / (寬度/1000 * 長度/1000)
+        if (length === 0) return "-";
+        const singleArea = (width / 1000) * (length / 1000);
+        const pcs = area / singleArea;
+        return `${formatDecimal(pcs, 0, "0")} PCS`;
+      }
     },
   },
   {
