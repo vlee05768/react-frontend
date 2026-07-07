@@ -537,6 +537,10 @@ export type CompleteIqcDto = {
      */
     notes?: string | null;
     /**
+     * 實際抽檢數 (對接前端比例運算值)
+     */
+    sampleSize?: number | null;
+    /**
      * 💡 提交的所有抽驗/全檢實測明細列表
      */
     rolls?: Array<CompleteSampleRollDto> | null;
@@ -14286,6 +14290,8 @@ export type PostApiV1IqcInspectionByIqcRecordIdResetResponses = {
     200: IqcDetailDtoApiResponse;
 };
 
+export type PostApiV1IqcInspectionByIqcRecordIdResetResponse = PostApiV1IqcInspectionByIqcRecordIdResetResponses[keyof PostApiV1IqcInspectionByIqcRecordIdResetResponses];
+
 export type PostApiV1IqcInspectionByIqcRecordIdCancelData = {
     body?: ConcessionActionDto;
     path: {
@@ -14301,8 +14307,6 @@ export type PostApiV1IqcInspectionByIqcRecordIdCancelResponses = {
      */
     200: BooleanApiResponse;
 };
-
-export type PostApiV1IqcInspectionByIqcRecordIdResetResponse = PostApiV1IqcInspectionByIqcRecordIdResetResponses[keyof PostApiV1IqcInspectionByIqcRecordIdResetResponses];
 
 export type PostApiV1IqcInspectionByIqcRecordIdCancelResponse = PostApiV1IqcInspectionByIqcRecordIdCancelResponses[keyof PostApiV1IqcInspectionByIqcRecordIdCancelResponses];
 

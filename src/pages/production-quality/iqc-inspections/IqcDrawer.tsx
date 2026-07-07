@@ -70,6 +70,7 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
   const [inspectorId, setInspectorId] = useState('');
   const [notes, setNotes] = useState('');
   const [responsibleParty, setResponsibleParty] = useState('');
+  const [incomingStorageCode, setIncomingStorageCode] = useState('');
   const [samplingPercent, setSamplingPercent] = useState<number>(30); // 預設 30%
   const [isCustomPercent, setIsCustomPercent] = useState<boolean>(false);
 
@@ -163,6 +164,7 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
 
       setNotes(detail.notes || "");
       setResponsibleParty(detail.responsibleParty || "");
+      setIncomingStorageCode(detail.incomingStorageCode || "");
 
       const defResult = detail.inspectionStatus === 'Pending' 
         ? 'AllPass' 
@@ -407,6 +409,11 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
       return;
     }
 
+    if (!incomingStorageCode) {
+      message.warning('請選擇入庫儲位');
+      return;
+    }
+
     const hasNg = displayedRolls.some(r => r.isOk === false);
     if (hasNg && overallResult === 'AllPass') {
       message.warning('明細中存有異常卷料，判定結果不可為 AllPass (全部通過)！');
@@ -430,6 +437,7 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
       inspectorId: inspectorId.toUpperCase(),
       responsibleParty: overallResult !== 'AllPass' ? (responsibleParty || detail?.supplierCode) : undefined,
       notes,
+      incomingStorageCode: incomingStorageCode || undefined,
       sampleSize: sampleCount, // 💡 同步將計算出的抽樣數回寫至資料庫
       rolls: displayedRolls.map(r => ({
         seq: r.seq,
@@ -520,6 +528,7 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
       label: '品檢人員工代碼',
       componentType: 'Custom',
       colSpan: 4,
+      required: true,
       customRender: () => (
         <AsyncSelect 
           configKey="EMPLOYEE"
@@ -528,6 +537,24 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
           disabled={isReadOnly}
           className="w-full focus:ring-2 focus:ring-blue-400 focus:outline-none"
           onChange={(val) => setInspectorId(val)} 
+        />
+      )
+    },
+    {
+      name: 'incomingStorageCode',
+      label: '入庫儲位',
+      componentType: 'Custom',
+      colSpan: 4,
+      required: true,
+      customRender: () => (
+        <AsyncSelect 
+          configKey="STORAGE"
+          placeholder="請選擇入庫儲位" 
+          value={incomingStorageCode} 
+          disabled={isReadOnly}
+          className="w-full focus:ring-2 focus:ring-blue-400 focus:outline-none"
+          onChange={(val) => setIncomingStorageCode(val || '')} 
+          allowClear
         />
       )
     },
@@ -587,7 +614,8 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
     standardThickness: detail?.standardThickness || 0.05,
     standardWidth: detail?.standardWidth,
     standardLength: detail?.standardLength,
-    poLineNumber: detail?.poLineNumber
+    poLineNumber: detail?.poLineNumber,
+    incomingStorageCode: incomingStorageCode
   };
 
   // 💡 動態依範本產生檢驗項目欄位，將實測值直接行內顯示 (不帶 OK/NG 按鈕，按鈕獨立在檢驗判定列)
