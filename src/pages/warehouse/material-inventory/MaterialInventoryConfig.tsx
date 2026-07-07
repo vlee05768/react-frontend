@@ -195,19 +195,13 @@ export const getRollColumns = (
     render: (val: any) => formatDecimal(val, 4, "-"),
   },
   {
-    label: "剩餘長度/張數",
+    label: "剩餘長度(m)/張數",
     name: "currentQtyAux",
     width: 130,
     align: "right",
     render: (val: any) => formatDecimal(val, 4, "-"),
   },
-  {
-    label: "剩餘重量 (kg)",
-    name: "currentWeightKg",
-    width: 120,
-    align: "right",
-    render: (val: any) => formatDecimal(val, 4, "-"),
-  },
+
   {
     label: "剩餘面積 (m²)",
     name: "currentAreaSqm",
@@ -261,12 +255,27 @@ export const getRollColumns = (
 // 3. 庫存異動流水帳 (Material Inventory Transactions) 欄位與搜尋
 // ============================================================================
 
+export const transactionTypeDict: Record<string, { label: string; color: string }> = {
+  PD: { label: "進貨入庫", color: "success" },
+  PURCHASE_RECEIPT: { label: "採購入庫", color: "success" },
+  IQC: { label: "品檢入庫", color: "processing" },
+  QC: { label: "品質檢驗", color: "warning" },
+  ISS: { label: "生產領料", color: "error" },
+  PRODUCTION_ISSUE: { label: "生產領料", color: "error" },
+  RET: { label: "生產退料", color: "blue" },
+  PRODUCTION_RETURN: { label: "生產退料", color: "blue" },
+  SPLIT: { label: "分切加工", color: "purple" },
+  ADJUST: { label: "庫存調整", color: "orange" },
+  ADJUSTMENT: { label: "庫存調整", color: "orange" },
+};
+
 export const transactionTypeOptions = [
-  { label: "採購入庫 (PURCHASE_RECEIPT)", value: "PURCHASE_RECEIPT" },
-  { label: "生產領料 (PRODUCTION_ISSUE)", value: "PRODUCTION_ISSUE" },
-  { label: "生產退料 (PRODUCTION_RETURN)", value: "PRODUCTION_RETURN" },
+  { label: "採購入庫 (PD / PURCHASE_RECEIPT)", value: "PD" },
+  { label: "品檢入庫 (IQC)", value: "IQC" },
+  { label: "生產領料 (ISS / PRODUCTION_ISSUE)", value: "ISS" },
+  { label: "生產退料 (RET / PRODUCTION_RETURN)", value: "RET" },
   { label: "分切加工 (SPLIT)", value: "SPLIT" },
-  { label: "庫存調整 (ADJUSTMENT)", value: "ADJUSTMENT" }
+  { label: "庫存調整 (ADJUST / ADJUSTMENT)", value: "ADJUST" }
 ];
 
 export const txSearchFields: SearchFieldConfig[] = [
@@ -317,15 +326,14 @@ export const getTxColumns = (): TableColumnConfig<MaterialInventoryTransactionDt
   {
     label: "交易類型",
     name: "docType",
-    width: 180,
+    width: 100,
     render: (val: any) => {
-      const upper = String(val || '').toUpperCase();
-      if (upper === 'PURCHASE_RECEIPT') return <Tag color="success">採購入庫</Tag>;
-      if (upper === 'PRODUCTION_ISSUE') return <Tag color="red">生產領料</Tag>;
-      if (upper === 'PRODUCTION_RETURN') return <Tag color="blue">生產退料</Tag>;
-      if (upper === 'SPLIT') return <Tag color="purple">分切加工</Tag>;
-      if (upper === 'ADJUSTMENT') return <Tag color="orange">庫存調整</Tag>;
-      return <Tag color="default">{val}</Tag>;
+      const key = String(val || '').trim().toUpperCase();
+      const config = transactionTypeDict[key];
+      if (config) {
+        return <Tag color={config.color}>{config.label}</Tag>;
+      }
+      return <Tag color="default">{val || '-'}</Tag>;
     }
   },
   {
