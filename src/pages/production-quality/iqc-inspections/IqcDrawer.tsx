@@ -399,6 +399,14 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
     });
   };
 
+  const handleProceedToPosting = () => {
+    // 💡 觸發 Form 的 validation，會自動檢核必填與格式
+    const submitBtn = document.getElementById('iqcBasicForm-submit-btn');
+    if (submitBtn) {
+      submitBtn.click();
+    }
+  };
+
   const displayedRolls = isReadOnly 
     ? rolls 
     : rolls.slice(0, sampleCount);
@@ -529,14 +537,17 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
       componentType: 'Custom',
       colSpan: 4,
       required: true,
-      customRender: () => (
+      customRender: (props: any) => (
         <AsyncSelect 
           configKey="EMPLOYEE"
           placeholder="請選擇或搜尋員工" 
-          value={inspectorId} 
+          value={props.value || inspectorId} 
           disabled={isReadOnly}
           className="w-full focus:ring-2 focus:ring-blue-400 focus:outline-none"
-          onChange={(val) => setInspectorId(val)} 
+          onChange={(val) => {
+            setInspectorId(val);
+            props.onChange(val);
+          }} 
         />
       )
     },
@@ -546,14 +557,17 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
       componentType: 'Custom',
       colSpan: 4,
       required: true,
-      customRender: () => (
+      customRender: (props: any) => (
         <AsyncSelect 
           configKey="STORAGE"
           placeholder="請選擇入庫儲位" 
-          value={incomingStorageCode} 
+          value={props.value || incomingStorageCode} 
           disabled={isReadOnly}
           className="w-full focus:ring-2 focus:ring-blue-400 focus:outline-none"
-          onChange={(val) => setIncomingStorageCode(val || '')} 
+          onChange={(val) => {
+            setIncomingStorageCode(val || '');
+            props.onChange(val || '');
+          }} 
           allowClear
         />
       )
@@ -758,7 +772,7 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
                 size="large" 
                 icon={<SaveOutlined />} 
                 className="bg-blue-600 hover:bg-blue-500 rounded-md text-white px-8"
-                onClick={() => setIsDecisionModalOpen(true)}
+                onClick={handleProceedToPosting}
               >
                 進行品質判定與過帳
               </Button>
@@ -806,7 +820,10 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
                 isViewMode={isReadOnly}
                 isUpdateMode={!isReadOnly}
                 hideDefaultFooter={true}
-                onSubmit={() => {}}
+                onSubmit={() => {
+                  // 💡 只有當表單驗證完全通過後，才開啟品質判定與過帳彈窗
+                  setIsDecisionModalOpen(true);
+                }}
               />
             </Card>
 
