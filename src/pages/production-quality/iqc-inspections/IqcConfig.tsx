@@ -63,7 +63,33 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   { label: '品檢單號', name: 'iqcRecordId', sortable: { multiple: 1 }, width: 140 },
   { label: '關聯進貨單', name: 'sourceDocNumber', width: 130 },
   { label: '批次代碼', name: 'lotNo', sortable: { multiple: 2 }, width: 130 },
-  { label: '料號', name: 'materialCode', width: 140 },
+  { 
+    label: '料號', 
+    name: 'materialCode', 
+    width: 140,
+    render: (val: string, record: any) => {
+      const isRoll = record.materialForm === 'R';
+      return (
+        <span style={{ color: isRoll ? '#1677ff' : '#d46b08', fontWeight: 'bold' }}>
+          {val}
+        </span>
+      );
+    }
+  },
+  { 
+    label: '型態', 
+    name: 'materialForm', 
+    width: 80,
+    align: 'center',
+    render: (form: string) => {
+      if (form === 'R') {
+        return <Tag color="blue" style={{ fontWeight: 'bold' }}>卷料</Tag>;
+      } else if (form === 'S') {
+        return <Tag color="orange" style={{ fontWeight: 'bold' }}>片料</Tag>;
+      }
+      return <Tag color="default">{form || '-'}</Tag>;
+    }
+  },
   { label: '原料名稱', name: 'materialName', width: 180, ellipsis: true },
   { 
     label: '判定狀態', 

@@ -62,7 +62,7 @@ export const getLogicalColumns = (): TableColumnConfig<MaterialLogicalInventoryD
     render: (val: any) => formatDecimal(val, 4, "-"),
   },
   {
-    label: "在庫可用長度(M) / 張數(PCS)",
+    label: "長度(M) / 單片長度(mm)",
     name: "lengthMm",
     width: 180,
     align: "right",
@@ -72,18 +72,14 @@ export const getLogicalColumns = (): TableColumnConfig<MaterialLogicalInventoryD
       const length = record.lengthMm || 0;
       const isRoll = record.materialForm === "R";
 
-      if (width === 0) return "-";
-
       if (isRoll) {
+        if (width === 0) return "-";
         // 捲材：計算可用長度 = 面積 * 1000 / 寬度
         const lengthM = (area * 1000) / width;
         return `${formatDecimal(lengthM, 2, "0")} M`;
       } else {
-        // 片材：計算可用張數 = 面積 / (寬度/1000 * 長度/1000)
-        if (length === 0) return "-";
-        const singleArea = (width / 1000) * (length / 1000);
-        const pcs = area / singleArea;
-        return `${formatDecimal(pcs, 0, "0")} PCS`;
+        // 片材：顯示單片規格長度
+        return length > 0 ? `${formatDecimal(length, 0, "-")} mm` : "-";
       }
     },
   },
@@ -94,18 +90,28 @@ export const getLogicalColumns = (): TableColumnConfig<MaterialLogicalInventoryD
     sortable: { multiple: 2 },
   },
   {
-    label: "在庫可用面積(SQM)",
+    label: "在庫可用量",
     name: "quantity",
     width: 160,
     align: "right",
-    render: (val: any) => formatDecimal(val, 4, "0"),
+    render: (val: any, record) => {
+      const isRoll = record.materialForm === "R";
+      return isRoll 
+        ? `${formatDecimal(val, 4, "0")} SQM` 
+        : `${formatDecimal(val, 0, "0")} pcs`;
+    },
   },
   {
-    label: "凍結待驗面積(SQM)",
+    label: "凍結待驗量",
     name: "frozenQuantity",
     width: 160,
     align: "right",
-    render: (val: any) => formatDecimal(val, 4, "0"),
+    render: (val: any, record) => {
+      const isRoll = record.materialForm === "R";
+      return isRoll 
+        ? `${formatDecimal(val, 4, "0")} SQM` 
+        : `${formatDecimal(val, 0, "0")} pcs`;
+    },
   },
   {
     label: "最後更新時間",

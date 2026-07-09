@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Drawer, Card, Table, InputNumber, Radio, Select, Button, Tag, Space, Form, Input, Typography, Divider, Badge, Alert, Row, Col, message, Spin, Modal } from 'antd';
-import { CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined, SaveOutlined, WarningOutlined, ArrowRightOutlined, FilePdfOutlined, AuditOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined, SaveOutlined, WarningOutlined, ArrowRightOutlined, FilePdfOutlined, AuditOutlined, EditOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getApiV1IqcInspectionByIqcRecordId, postApiV1IqcInspectionByIqcRecordIdEscalate, postApiV1IqcInspectionByIqcRecordIdComplete, getApiV1IqcInspectionByIqcRecordIdPdf } from '@/api/generated';
 import { useFileDownload } from '@/hooks/useFileDownload';
@@ -9,6 +9,7 @@ import { AsyncSelect } from '@/components/Form/AsyncSelect';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { client } from '@/api/generated/client.gen';
 import { DynamicForm } from '@/components/Form/DynamicForm';
+import { ActionBar } from '@/components/common/ActionBar';
 
 const { Title, Text } = Typography;
 
@@ -30,7 +31,10 @@ const MeasuredInput = React.memo(({ rollNo, itemCode, initialValue, isReadOnly, 
 
   const handleBlur = () => {
     if (val !== (initialValue || '')) {
-      onChange(rollNo, itemCode, val);
+      // 💡 延遲更新父狀態，確保瀏覽器在 React 重新渲染 table 之前，已經完全完成 focus 的 Tab 切換
+      setTimeout(() => {
+        onChange(rollNo, itemCode, val);
+      }, 0);
     }
   };
 
@@ -42,6 +46,7 @@ const MeasuredInput = React.memo(({ rollNo, itemCode, initialValue, isReadOnly, 
 
   return (
     <Input 
+      id={`iqc_input_${rollNo}_${itemCode}`}
       placeholder="實測值" 
       value={val}
       disabled={isReadOnly}
@@ -73,6 +78,7 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
   const [incomingStorageCode, setIncomingStorageCode] = useState('');
   const [samplingPercent, setSamplingPercent] = useState<number>(30); // 預設 30%
   const [isCustomPercent, setIsCustomPercent] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
 
   // 💡 UX控制彈窗狀態
   const [isDecisionModalOpen, setIsDecisionModalOpen] = useState(false);
@@ -119,7 +125,8 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
 
   const detail = response?.data?.data;
   const currentStatus = localStatus || detail?.inspectionStatus || 'Pending';
-  const isReadOnly = currentStatus !== 'Pending' && currentStatus !== 'FullInspecting';
+  const isReadOnlyPermanent = currentStatus !== 'Pending' && currentStatus !== 'FullInspecting';
+  const isReadOnly = isReadOnlyPermanent || !isEditing;
   const isRollMaterial = detail?.materialForm === 'R'; // R=捲材, S=片材
 
   const sampleCount = isReadOnly 
@@ -134,6 +141,7 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
   useEffect(() => {
     if (detail?.rolls) {
       setLocalStatus(null); // 💡 當資料載入時，清除本地 overrides 狀態
+      setIsEditing(false); // 💡 預設開啟時為唯讀檢視模式，點擊編輯按鈕後才可編輯
       const initialRolls = detail.rolls.map((r: any) => ({
         ...r,
         actualQtyAux: r.actualQtyAux,
@@ -205,7 +213,7 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
           responsibleParty: templateRoll.responsibleParty,
           inspectionItems: (templateRoll.inspectionItems || []).map((item: any) => ({
             ...item,
-            measuredValue: '',
+            measuredValue: item.measuredValue || '',
             isOk: true // 💡 預設項目通過
           }))
         });
@@ -276,6 +284,55 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
     },
     onError: (err: any) => message.error(err.response?.data?.message || '拒絕特採失敗'),
   });
+
+  // 💡 儲存品檢單草稿之 Mutation
+  const saveDraftMutation = useMutation({
+    mutationFn: (payload: any) => client.post({
+      url: `/api/v1/IqcInspection/${iqcRecordId}/draft`,
+      body: payload
+    }),
+    onSuccess: () => {
+      message.success('品檢草稿儲存成功！');
+      setIsEditing(false); // 儲存完後回到唯讀狀態
+      queryClient.invalidateQueries({ queryKey: ['iqc-detail', iqcRecordId] });
+      queryClient.invalidateQueries({ queryKey: ['iqc-inspections'] });
+      refetch();
+    },
+    onError: (err: any) => message.error(err.response?.data?.message || '儲存草稿失敗，請重試'),
+  });
+
+  const handleSaveDraft = () => {
+    // 💡 儲存草稿時，僅進行基本必填檢核即可（不強求量測值全填，便於分段錄入）
+    if (!inspectorId) {
+      message.warning('請輸入品檢人員員工工號');
+      return;
+    }
+
+    const payload = {
+      inspectorId,
+      incomingStorageCode: incomingStorageCode || null,
+      rolls: rolls.map((r: any) => ({
+        seq: r.seq,
+        rollNo: r.rollNo,
+        actualQtyAux: r.actualQtyAux,
+        isOk: r.isOk ?? true, // 預設單項合格
+        measuredThicknessMm: r.measuredThicknessMm || 0.05,
+        measuredCoreDiaMm: r.measuredCoreDiaMm || null,
+        lengthMm: r.lengthMm || null,
+        disposition: r.disposition || 'Concession',
+        responsibleParty: r.responsibleParty || detail.supplierCode,
+        inspectionItems: (r.inspectionItems || []).map((item: any) => ({
+          itemCode: item.itemCode,
+          itemName: item.itemName,
+          specification: item.specification,
+          measuredValue: item.measuredValue || '',
+          isOk: item.isOk ?? true
+        }))
+      }))
+    };
+
+    saveDraftMutation.mutate(payload);
+  };
 
   // 5. 事件處理器 (智慧項目連動，整卷只有一個 OK/NG 判定按鈕)
   const handleMeasuredItemValueChange = useCallback((rollNo: string, itemCode: string, value: string) => {
@@ -413,26 +470,157 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
     });
   };
 
-  const handleProceedToPosting = () => {
-    // 💡 觸發 Form 的 validation，會自動檢核必填與格式
-    const submitBtn = document.getElementById('iqcBasicForm-submit-btn');
-    if (submitBtn) {
-      submitBtn.click();
+  const handleClose = () => {
+    if (isEditing) {
+      Modal.confirm({
+        title: '確認關閉',
+        content: '您當前正在編輯模式中，確定要關閉並離開嗎？未儲存的編輯將會遺失！',
+        okText: '確定離開',
+        cancelText: '取消',
+        onOk: () => {
+          setIsEditing(false);
+          onClose();
+        }
+      });
+    } else {
+      onClose();
     }
+  };
+
+  const handleProceedToPosting = () => {
+    // 💡 獨立於編輯狀態外，直接執行剛性全域欄位與品檢項目的完整檢核，並開啟判定彈窗
+    if (validateIqcFields()) {
+      setIsDecisionModalOpen(true);
+    }
+  };
+
+  const getActionBarActions = () => {
+    return (
+      <Space>
+        {/* 💡 編輯按鈕：只有在可編輯狀態（未結案）且當前為唯讀狀態時顯示 */}
+        {!isReadOnlyPermanent && !isEditing && (
+          <Button 
+            key="edit"
+            type="primary" 
+            size="large"
+            icon={<EditOutlined />} 
+            className="bg-blue-600 hover:bg-blue-500 rounded-md text-white"
+            onClick={() => setIsEditing(true)}
+          >
+            編輯
+          </Button>
+        )}
+
+        {/* 💡 儲存草稿按鈕：僅在編輯狀態下顯示 */}
+        {isEditing && (
+          <Button 
+            key="save-draft"
+            type="primary" 
+            size="large"
+            icon={<SaveOutlined />} 
+            className="bg-blue-600 hover:bg-blue-500 rounded-md text-white"
+            loading={saveDraftMutation.isPending}
+            onClick={handleSaveDraft}
+          >
+            儲存
+          </Button>
+        )}
+
+        {/* 💡 取消編輯按鈕：進入編輯狀態時顯示 */}
+        {isEditing && (
+          <Button 
+            key="cancel-edit"
+            size="large"
+            onClick={() => setIsEditing(false)} 
+            className="rounded-md"
+          >
+            取消編輯
+          </Button>
+        )}
+
+        {/* 💡 進行品質判定與過帳（儲存並過帳）：只要單據未結案，且當前不在編輯模式時（防呆機制），直接點擊進行判定與過帳 */}
+        {!isReadOnlyPermanent && !isEditing && (
+          <Button 
+            key="save-post"
+            type="primary" 
+            size="large"
+            icon={<CheckCircleOutlined />} 
+            className="bg-green-600 hover:bg-green-500 rounded-md text-white px-6 border-none font-bold"
+            onClick={handleProceedToPosting}
+          >
+            進行品質判定與過帳
+          </Button>
+        )}
+      </Space>
+    );
   };
 
   const displayedRolls = isReadOnly 
     ? rolls 
     : rolls.slice(0, sampleCount);
 
-  const handleSubmit = () => {
+  const validateIqcFields = (): boolean => {
     if (!inspectorId) {
       message.warning('請輸入品檢人員員工工號');
-      return;
+      return false;
     }
 
     if (!incomingStorageCode) {
       message.warning('請選擇入庫儲位');
+      return false;
+    }
+
+    // 剛性檢核：判定與過帳時，必須每個欄位與品檢項目都有填入值
+    for (let i = 0; i < displayedRolls.length; i++) {
+      const r = displayedRolls[i];
+      const nameLabel = isRollMaterial ? `第 ${r.seq} 卷` : `第 ${r.seq} 包/片`;
+
+      if (r.actualQtyAux === null || r.actualQtyAux === undefined || r.actualQtyAux === "") {
+        message.warning(`請輸入 ${nameLabel} 的「實測數量」`);
+        return false;
+      }
+
+      if (Number(r.actualQtyAux) <= 0) {
+        message.warning(`${nameLabel} 的「實測數量」必須大於 0`);
+        return false;
+      }
+
+      if (r.measuredThicknessMm === null || r.measuredThicknessMm === undefined || r.measuredThicknessMm === "") {
+        message.warning(`請輸入 ${nameLabel} 的「實測厚度」`);
+        return false;
+      }
+
+      if (Number(r.measuredThicknessMm) <= 0) {
+        message.warning(`${nameLabel} 的「實測厚度」必須大於 0`);
+        return false;
+      }
+
+      if (isRollMaterial) {
+        if (r.measuredCoreDiaMm === null || r.measuredCoreDiaMm === undefined || r.measuredCoreDiaMm === "") {
+          message.warning(`請輸入 ${nameLabel} 的「實測紙管」`);
+          return false;
+        }
+        if (Number(r.measuredCoreDiaMm) <= 0) {
+          message.warning(`${nameLabel} 的「實測紙管」必須大於 0`);
+          return false;
+        }
+      }
+
+      // 檢核品檢細項參數
+      for (let j = 0; j < r.inspectionItems.length; j++) {
+        const item = r.inspectionItems[j];
+        if (!item.measuredValue || item.measuredValue.trim() === "") {
+          message.warning(`請填寫 ${nameLabel} 檢驗項目【${item.itemName}】的「實測值」`);
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
+
+  const handleSubmit = () => {
+    if (!validateIqcFields()) {
       return;
     }
 
@@ -738,14 +926,14 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
         </div>
       }
       width="85%"
-      onClose={onClose}
+      onClose={handleClose}
       open={open}
       destroyOnClose
       maskClosable={false} // 💡 UX規範：Drawer禁止點擊背景關閉，防數據遺失
       footer={
         <div className="flex justify-between items-center p-2 bg-[var(--ant-color-bg-container)]">
           <div>
-            {iqcRecordId && (
+            {iqcRecordId && !isEditing && (
               <Space>
                 <Button
                   type="dashed"
@@ -772,23 +960,15 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
             )}
           </div>
           <div className="flex gap-3">
-            <Button onClick={onClose} size="large" className="rounded-md">返回列表</Button>
-            {!isReadOnly && (
+            {/* 💡 返回列表：僅在非編輯模式下顯示 */}
+            {!isEditing && (
+              <Button onClick={handleClose} size="large" className="rounded-md">返回列表</Button>
+            )}
+
+            {/* 💡 恢復為待檢驗狀態：僅在非編輯模式且未結案時顯示 */}
+            {!isReadOnlyPermanent && !isEditing && (
               <Button onClick={handleResetToPending} size="large" className="rounded-md border-slate-300">
                 恢復為待檢驗狀態
-              </Button>
-            )}
-            
-            {/* 💡 主按鈕行為智慧分流 */}
-            {!isReadOnly && (
-              <Button 
-                type="primary" 
-                size="large" 
-                icon={<SaveOutlined />} 
-                className="bg-blue-600 hover:bg-blue-500 rounded-md text-white px-8"
-                onClick={handleProceedToPosting}
-              >
-                進行品質判定與過帳
               </Button>
             )}
 
@@ -823,6 +1003,13 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
       }
     >
       <Spin spinning={isLoading}>
+        <ActionBar 
+          createdBy={detail?.createdBy}
+          createdAt={detail?.createdAt}
+          updatedBy={detail?.updatedBy}
+          updatedAt={detail?.updatedAt}
+          actions={getActionBarActions()}
+        />
         {detail && (
           <div className="space-y-6">
             {/* 上半部：基本資料單頭 */}
@@ -835,8 +1022,10 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
                 isUpdateMode={!isReadOnly}
                 hideDefaultFooter={true}
                 onSubmit={() => {
-                  // 💡 只有當表單驗證完全通過後，才開啟品質判定與過帳彈窗
-                  setIsDecisionModalOpen(true);
+                  // 💡 只有當表單驗證完全與實物明細欄位剛性驗證通過後，才開啟品質判定與過帳彈窗
+                  if (validateIqcFields()) {
+                    setIsDecisionModalOpen(true);
+                  }
                 }}
               />
             </Card>

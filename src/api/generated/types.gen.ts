@@ -3598,6 +3598,10 @@ export type IqcListDto = {
      */
     materialName?: string | null;
     /**
+     * 原料形態 (R=捲材, S=片材)
+     */
+    materialForm?: string | null;
+    /**
      * 關聯進貨單號
      */
     sourceDocNumber?: string | null;
@@ -7041,6 +7045,24 @@ export type SalesDeliveryItemDtoPagedResultApiResponse = {
     error?: unknown;
     timestamp?: string;
     data?: SalesDeliveryItemDtoPagedResult;
+};
+
+/**
+ * 儲存品檢草稿 DTO
+ */
+export type SaveIqcDraftDto = {
+    /**
+     * 品檢員員工代碼
+     */
+    inspectorId?: string | null;
+    /**
+     * 入庫儲位編碼
+     */
+    incomingStorageCode?: string | null;
+    /**
+     * 提交的抽驗/全檢實測明細列表
+     */
+    rolls?: Array<CompleteSampleRollDto> | null;
 };
 
 /**
@@ -14227,6 +14249,24 @@ export type PostApiV1IqcInspectionByIqcRecordIdEscalateResponses = {
 };
 
 export type PostApiV1IqcInspectionByIqcRecordIdEscalateResponse = PostApiV1IqcInspectionByIqcRecordIdEscalateResponses[keyof PostApiV1IqcInspectionByIqcRecordIdEscalateResponses];
+
+export type PostApiV1IqcInspectionByIqcRecordIdDraftData = {
+    body?: SaveIqcDraftDto;
+    path: {
+        iqcRecordId: string;
+    };
+    query?: never;
+    url: '/api/v1/IqcInspection/{iqcRecordId}/draft';
+};
+
+export type PostApiV1IqcInspectionByIqcRecordIdDraftResponses = {
+    /**
+     * OK
+     */
+    200: BooleanApiResponse;
+};
+
+export type PostApiV1IqcInspectionByIqcRecordIdDraftResponse = PostApiV1IqcInspectionByIqcRecordIdDraftResponses[keyof PostApiV1IqcInspectionByIqcRecordIdDraftResponses];
 
 export type PostApiV1IqcInspectionByIqcRecordIdCompleteData = {
     body?: CompleteIqcDto;
