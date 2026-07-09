@@ -1731,6 +1731,94 @@ export type CreateQcReceiptDto = {
 };
 
 /**
+ * 建立領料單 DTO
+ */
+export type CreateRequisitionDto = {
+    /**
+     * 關聯製令單號
+     */
+    referenceNumber?: string | null;
+    /**
+     * 領料日期
+     */
+    documentDate?: string;
+    /**
+     * 備註
+     */
+    notes?: string | null;
+    /**
+     * 領料明細項目
+     */
+    items?: Array<CreateRequisitionItemDto> | null;
+};
+
+/**
+ * 建立領料明細 DTO
+ */
+export type CreateRequisitionItemDto = {
+    /**
+     * 原物料代碼
+     */
+    materialCode?: string | null;
+    /**
+     * 來源儲位編號
+     */
+    sourceStorageCode?: string | null;
+    /**
+     * 備註
+     */
+    notes?: string | null;
+    /**
+     * 萬用 JSONB 封裝資料
+     */
+    extraDataJson?: string | null;
+};
+
+/**
+ * 建立退料單 DTO
+ */
+export type CreateReturnDto = {
+    /**
+     * 關聯製令單號
+     */
+    referenceNumber?: string | null;
+    /**
+     * 退料日期
+     */
+    documentDate?: string;
+    /**
+     * 備註
+     */
+    notes?: string | null;
+    /**
+     * 退料明細項目
+     */
+    items?: Array<CreateReturnItemDto> | null;
+};
+
+/**
+ * 建立退料明細 DTO
+ */
+export type CreateReturnItemDto = {
+    /**
+     * 原物料代碼
+     */
+    materialCode?: string | null;
+    /**
+     * 目的儲位編號
+     */
+    targetStorageCode?: string | null;
+    /**
+     * 備註
+     */
+    notes?: string | null;
+    /**
+     * 萬用 JSONB 封裝資料
+     */
+    extraDataJson?: string | null;
+};
+
+/**
  * 建立角色資料傳輸物件
  */
 export type CreateRoleDto = {
@@ -6568,6 +6656,32 @@ export type RegisterDto = {
 };
 
 /**
+ * 領料一卷一卡 Roll 封裝項目
+ */
+export type RequisitionRollDetailDto = {
+    /**
+     * 實物卷號/LPN
+     */
+    rollNo?: string | null;
+    /**
+     * 寬度 (mm)
+     */
+    widthMm?: number;
+    /**
+     * 領用長度 (M)
+     */
+    qtyAux?: number;
+};
+
+export type RequisitionRollDetailDtoListApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: Array<RequisitionRollDetailDto> | null;
+};
+
+/**
  * 重設密碼請求資料傳輸物件
  */
 export type ResetPasswordDto = {
@@ -6587,6 +6701,32 @@ export type ResetPasswordDto = {
      * 確認新密碼
      */
     confirmPassword?: string | null;
+};
+
+/**
+ * 退料一卷一卡 Roll 封裝項目
+ */
+export type ReturnRollDetailDto = {
+    /**
+     * 實物卷號/LPN
+     */
+    rollNo?: string | null;
+    /**
+     * 寬度 (mm)
+     */
+    widthMm?: number;
+    /**
+     * 退回剩餘長度 (M)
+     */
+    qtyAux?: number;
+};
+
+export type ReturnRollDetailDtoListApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: Array<ReturnRollDetailDto> | null;
 };
 
 /**
@@ -7063,6 +7203,52 @@ export type SaveIqcDraftDto = {
      * 提交的抽驗/全檢實測明細列表
      */
     rolls?: Array<CompleteSampleRollDto> | null;
+};
+
+/**
+ * 智慧選料 LPN 項目與寬度替代適配狀態 DTO
+ */
+export type SelectableRollDto = {
+    /**
+     * 實物卷號/LPN
+     */
+    rollNo?: string | null;
+    /**
+     * 目前剩餘長度 (CurrentQtyAux)
+     */
+    currentQtyAux?: number;
+    /**
+     * 原始到貨長度 (OriginalQtyAux)
+     */
+    originalQtyAux?: number;
+    /**
+     * 實體寬度 (mm)
+     */
+    widthMm?: number;
+    /**
+     * 厚度 (mm)
+     */
+    measuredThicknessMm?: number;
+    /**
+     * 批號
+     */
+    lotNo?: string | null;
+    /**
+     * 品檢日期
+     */
+    checkDate?: string | null;
+    /**
+     * 替代適配度狀態 (Exact=完全符合, Wider=寬度較寬可替代, Narrower=寬度不足不可用)
+     */
+    matchStatus?: string | null;
+};
+
+export type SelectableRollDtoListApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: Array<SelectableRollDto> | null;
 };
 
 /**
@@ -8660,6 +8846,42 @@ export type UpdateQcReceiptDto = {
 };
 
 /**
+ * 修改領料單 DTO
+ */
+export type UpdateRequisitionDto = {
+    /**
+     * 領料日期
+     */
+    documentDate?: string | null;
+    /**
+     * 備註
+     */
+    notes?: string | null;
+    /**
+     * 領料明細項目
+     */
+    items?: Array<CreateRequisitionItemDto> | null;
+};
+
+/**
+ * 修改退料單 DTO
+ */
+export type UpdateReturnDto = {
+    /**
+     * 退料日期
+     */
+    documentDate?: string | null;
+    /**
+     * 備註
+     */
+    notes?: string | null;
+    /**
+     * 退料明細項目
+     */
+    items?: Array<CreateReturnItemDto> | null;
+};
+
+/**
  * 更新角色資料傳輸物件
  */
 export type UpdateRoleDto = {
@@ -9430,6 +9652,270 @@ export type WorkOrderPersonnelHourDto = {
      * 工時（小時）
      */
     hours?: number;
+};
+
+/**
+ * 製令領料單 DTO
+ */
+export type WorkOrderRequisitionDto = {
+    /**
+     * 領料單號
+     */
+    documentNumber?: string | null;
+    /**
+     * 領料日期
+     */
+    documentDate?: string;
+    /**
+     * 關聯製令單號 (ReferenceNumber)
+     */
+    referenceNumber?: string | null;
+    /**
+     * 關聯製令產品編碼
+     */
+    productCode?: string | null;
+    /**
+     * 關聯製令產品名稱
+     */
+    productName?: string | null;
+    /**
+     * 確認狀態 (Unconfirmed = 0, Confirmed = 1)
+     */
+    status?: number;
+    /**
+     * 確認日期
+     */
+    confirmDate?: string | null;
+    /**
+     * 確認人ID
+     */
+    confirmedById?: number | null;
+    /**
+     * 確認人姓名
+     */
+    confirmedByName?: string | null;
+    /**
+     * 備註
+     */
+    notes?: string | null;
+    /**
+     * 建立時間
+     */
+    createdAt?: string;
+    /**
+     * 建立者姓名
+     */
+    createdBy?: string | null;
+    /**
+     * 更新時間
+     */
+    updatedAt?: string | null;
+    /**
+     * 更新者姓名
+     */
+    updatedBy?: string | null;
+    /**
+     * 領料明細項目
+     */
+    items?: Array<WorkOrderRequisitionItemDto> | null;
+};
+
+export type WorkOrderRequisitionDtoApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: WorkOrderRequisitionDto;
+};
+
+export type WorkOrderRequisitionDtoListApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: Array<WorkOrderRequisitionDto> | null;
+};
+
+/**
+ * 製令領料明細 DTO
+ */
+export type WorkOrderRequisitionItemDto = {
+    /**
+     * 領料單號
+     */
+    documentNumber?: string | null;
+    /**
+     * 項次
+     */
+    lineNumber?: string | null;
+    /**
+     * 原物料代碼
+     */
+    materialCode?: string | null;
+    /**
+     * 原物料名稱
+     */
+    materialName?: string | null;
+    /**
+     * 單位 (M/PCS)
+     */
+    unit?: string | null;
+    /**
+     * 領用總數量 (捲材為總長度，片材為總張數)
+     */
+    quantity?: number;
+    /**
+     * 領用總面積 (SQM)
+     */
+    referenceQuantity1?: number;
+    /**
+     * 來源庫位
+     */
+    sourceStorageCode?: string | null;
+    /**
+     * 目的庫位 (WIP車間虛擬庫位)
+     */
+    targetStorageCode?: string | null;
+    /**
+     * 備註
+     */
+    notes?: string | null;
+    /**
+     * 萬用 JSONB 封裝資料 (Rolls 陣列或片料規格)
+     */
+    extraDataJson?: string | null;
+};
+
+/**
+ * 製令退料單 DTO
+ */
+export type WorkOrderReturnDto = {
+    /**
+     * 退料單號
+     */
+    documentNumber?: string | null;
+    /**
+     * 退料日期
+     */
+    documentDate?: string;
+    /**
+     * 關聯製令單號 (ReferenceNumber)
+     */
+    referenceNumber?: string | null;
+    /**
+     * 關聯製令產品編碼
+     */
+    productCode?: string | null;
+    /**
+     * 關聯製令產品名稱
+     */
+    productName?: string | null;
+    /**
+     * 確認狀態 (Unconfirmed = 0, Confirmed = 1)
+     */
+    status?: number;
+    /**
+     * 確認日期
+     */
+    confirmDate?: string | null;
+    /**
+     * 確認人ID
+     */
+    confirmedById?: number | null;
+    /**
+     * 確認人姓名
+     */
+    confirmedByName?: string | null;
+    /**
+     * 備註
+     */
+    notes?: string | null;
+    /**
+     * 建立時間
+     */
+    createdAt?: string;
+    /**
+     * 建立者姓名
+     */
+    createdBy?: string | null;
+    /**
+     * 更新時間
+     */
+    updatedAt?: string | null;
+    /**
+     * 更新者姓名
+     */
+    updatedBy?: string | null;
+    /**
+     * 退料明細項目
+     */
+    items?: Array<WorkOrderReturnItemDto> | null;
+};
+
+export type WorkOrderReturnDtoApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: WorkOrderReturnDto;
+};
+
+export type WorkOrderReturnDtoListApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    timestamp?: string;
+    data?: Array<WorkOrderReturnDto> | null;
+};
+
+/**
+ * 製令退料明細 DTO
+ */
+export type WorkOrderReturnItemDto = {
+    /**
+     * 退料單號
+     */
+    documentNumber?: string | null;
+    /**
+     * 項次
+     */
+    lineNumber?: string | null;
+    /**
+     * 原物料代碼
+     */
+    materialCode?: string | null;
+    /**
+     * 原物料名稱
+     */
+    materialName?: string | null;
+    /**
+     * 單位 (M)
+     */
+    unit?: string | null;
+    /**
+     * 退回總數量 (總長度 M)
+     */
+    quantity?: number;
+    /**
+     * 退回總面積 (SQM)
+     */
+    referenceQuantity1?: number;
+    /**
+     * 來源庫位 (WIP車間虛擬庫位)
+     */
+    sourceStorageCode?: string | null;
+    /**
+     * 目的庫位 (主倉庫)
+     */
+    targetStorageCode?: string | null;
+    /**
+     * 備註
+     */
+    notes?: string | null;
+    /**
+     * 萬用 JSONB 封裝資料 (Rolls 退回清單)
+     */
+    extraDataJson?: string | null;
 };
 
 /**
@@ -20414,3 +20900,433 @@ export type GetApiV1WorkOrderByWorkOrderNumberReportResponses = {
 };
 
 export type GetApiV1WorkOrderByWorkOrderNumberReportResponse = GetApiV1WorkOrderByWorkOrderNumberReportResponses[keyof GetApiV1WorkOrderByWorkOrderNumberReportResponses];
+
+export type GetApiV1WorkOrderRequisitionData = {
+    body?: never;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path?: never;
+    query?: {
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderRequisition';
+};
+
+export type GetApiV1WorkOrderRequisitionResponses = {
+    /**
+     * OK
+     */
+    200: WorkOrderRequisitionDtoListApiResponse;
+};
+
+export type GetApiV1WorkOrderRequisitionResponse = GetApiV1WorkOrderRequisitionResponses[keyof GetApiV1WorkOrderRequisitionResponses];
+
+export type PostApiV1WorkOrderRequisitionData = {
+    body?: CreateRequisitionDto;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path?: never;
+    query?: {
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderRequisition';
+};
+
+export type PostApiV1WorkOrderRequisitionResponses = {
+    /**
+     * OK
+     */
+    200: WorkOrderRequisitionDtoApiResponse;
+};
+
+export type PostApiV1WorkOrderRequisitionResponse = PostApiV1WorkOrderRequisitionResponses[keyof PostApiV1WorkOrderRequisitionResponses];
+
+export type GetApiV1WorkOrderRequisitionWoByWorkOrderNumberData = {
+    body?: never;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path: {
+        workOrderNumber: string;
+    };
+    query?: {
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderRequisition/wo/{workOrderNumber}';
+};
+
+export type GetApiV1WorkOrderRequisitionWoByWorkOrderNumberResponses = {
+    /**
+     * OK
+     */
+    200: WorkOrderRequisitionDtoListApiResponse;
+};
+
+export type GetApiV1WorkOrderRequisitionWoByWorkOrderNumberResponse = GetApiV1WorkOrderRequisitionWoByWorkOrderNumberResponses[keyof GetApiV1WorkOrderRequisitionWoByWorkOrderNumberResponses];
+
+export type DeleteApiV1WorkOrderRequisitionByDocumentNumberData = {
+    body?: never;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path: {
+        documentNumber: string;
+    };
+    query?: {
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderRequisition/{documentNumber}';
+};
+
+export type DeleteApiV1WorkOrderRequisitionByDocumentNumberResponses = {
+    /**
+     * OK
+     */
+    200: BooleanApiResponse;
+};
+
+export type DeleteApiV1WorkOrderRequisitionByDocumentNumberResponse = DeleteApiV1WorkOrderRequisitionByDocumentNumberResponses[keyof DeleteApiV1WorkOrderRequisitionByDocumentNumberResponses];
+
+export type GetApiV1WorkOrderRequisitionByDocumentNumberData = {
+    body?: never;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path: {
+        documentNumber: string;
+    };
+    query?: {
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderRequisition/{documentNumber}';
+};
+
+export type GetApiV1WorkOrderRequisitionByDocumentNumberResponses = {
+    /**
+     * OK
+     */
+    200: WorkOrderRequisitionDtoApiResponse;
+};
+
+export type GetApiV1WorkOrderRequisitionByDocumentNumberResponse = GetApiV1WorkOrderRequisitionByDocumentNumberResponses[keyof GetApiV1WorkOrderRequisitionByDocumentNumberResponses];
+
+export type PutApiV1WorkOrderRequisitionByDocumentNumberData = {
+    body?: UpdateRequisitionDto;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path: {
+        documentNumber: string;
+    };
+    query?: {
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderRequisition/{documentNumber}';
+};
+
+export type PutApiV1WorkOrderRequisitionByDocumentNumberResponses = {
+    /**
+     * OK
+     */
+    200: WorkOrderRequisitionDtoApiResponse;
+};
+
+export type PutApiV1WorkOrderRequisitionByDocumentNumberResponse = PutApiV1WorkOrderRequisitionByDocumentNumberResponses[keyof PutApiV1WorkOrderRequisitionByDocumentNumberResponses];
+
+export type PostApiV1WorkOrderRequisitionByDocumentNumberConfirmData = {
+    body?: never;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path: {
+        documentNumber: string;
+    };
+    query?: {
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderRequisition/{documentNumber}/confirm';
+};
+
+export type PostApiV1WorkOrderRequisitionByDocumentNumberConfirmResponses = {
+    /**
+     * OK
+     */
+    200: BooleanApiResponse;
+};
+
+export type PostApiV1WorkOrderRequisitionByDocumentNumberConfirmResponse = PostApiV1WorkOrderRequisitionByDocumentNumberConfirmResponses[keyof PostApiV1WorkOrderRequisitionByDocumentNumberConfirmResponses];
+
+export type PostApiV1WorkOrderRequisitionByDocumentNumberCancelData = {
+    body?: never;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path: {
+        documentNumber: string;
+    };
+    query?: {
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderRequisition/{documentNumber}/cancel';
+};
+
+export type PostApiV1WorkOrderRequisitionByDocumentNumberCancelResponses = {
+    /**
+     * OK
+     */
+    200: BooleanApiResponse;
+};
+
+export type PostApiV1WorkOrderRequisitionByDocumentNumberCancelResponse = PostApiV1WorkOrderRequisitionByDocumentNumberCancelResponses[keyof PostApiV1WorkOrderRequisitionByDocumentNumberCancelResponses];
+
+export type GetApiV1WorkOrderRequisitionFifoData = {
+    body?: never;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path?: never;
+    query?: {
+        materialCode?: string;
+        requiredLength?: number;
+        requiredWidth?: number;
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderRequisition/fifo';
+};
+
+export type GetApiV1WorkOrderRequisitionFifoResponses = {
+    /**
+     * OK
+     */
+    200: RequisitionRollDetailDtoListApiResponse;
+};
+
+export type GetApiV1WorkOrderRequisitionFifoResponse = GetApiV1WorkOrderRequisitionFifoResponses[keyof GetApiV1WorkOrderRequisitionFifoResponses];
+
+export type GetApiV1WorkOrderRequisitionSelectableRollsData = {
+    body?: never;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path?: never;
+    query?: {
+        materialCode?: string;
+        requiredWidth?: number;
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderRequisition/selectable-rolls';
+};
+
+export type GetApiV1WorkOrderRequisitionSelectableRollsResponses = {
+    /**
+     * OK
+     */
+    200: SelectableRollDtoListApiResponse;
+};
+
+export type GetApiV1WorkOrderRequisitionSelectableRollsResponse = GetApiV1WorkOrderRequisitionSelectableRollsResponses[keyof GetApiV1WorkOrderRequisitionSelectableRollsResponses];
+
+export type GetApiV1WorkOrderReturnData = {
+    body?: never;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path?: never;
+    query?: {
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderReturn';
+};
+
+export type GetApiV1WorkOrderReturnResponses = {
+    /**
+     * OK
+     */
+    200: WorkOrderReturnDtoListApiResponse;
+};
+
+export type GetApiV1WorkOrderReturnResponse = GetApiV1WorkOrderReturnResponses[keyof GetApiV1WorkOrderReturnResponses];
+
+export type PostApiV1WorkOrderReturnData = {
+    body?: CreateReturnDto;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path?: never;
+    query?: {
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderReturn';
+};
+
+export type PostApiV1WorkOrderReturnResponses = {
+    /**
+     * OK
+     */
+    200: WorkOrderReturnDtoApiResponse;
+};
+
+export type PostApiV1WorkOrderReturnResponse = PostApiV1WorkOrderReturnResponses[keyof PostApiV1WorkOrderReturnResponses];
+
+export type GetApiV1WorkOrderReturnWoByWorkOrderNumberData = {
+    body?: never;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path: {
+        workOrderNumber: string;
+    };
+    query?: {
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderReturn/wo/{workOrderNumber}';
+};
+
+export type GetApiV1WorkOrderReturnWoByWorkOrderNumberResponses = {
+    /**
+     * OK
+     */
+    200: WorkOrderReturnDtoListApiResponse;
+};
+
+export type GetApiV1WorkOrderReturnWoByWorkOrderNumberResponse = GetApiV1WorkOrderReturnWoByWorkOrderNumberResponses[keyof GetApiV1WorkOrderReturnWoByWorkOrderNumberResponses];
+
+export type DeleteApiV1WorkOrderReturnByDocumentNumberData = {
+    body?: never;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path: {
+        documentNumber: string;
+    };
+    query?: {
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderReturn/{documentNumber}';
+};
+
+export type DeleteApiV1WorkOrderReturnByDocumentNumberResponses = {
+    /**
+     * OK
+     */
+    200: BooleanApiResponse;
+};
+
+export type DeleteApiV1WorkOrderReturnByDocumentNumberResponse = DeleteApiV1WorkOrderReturnByDocumentNumberResponses[keyof DeleteApiV1WorkOrderReturnByDocumentNumberResponses];
+
+export type GetApiV1WorkOrderReturnByDocumentNumberData = {
+    body?: never;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path: {
+        documentNumber: string;
+    };
+    query?: {
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderReturn/{documentNumber}';
+};
+
+export type GetApiV1WorkOrderReturnByDocumentNumberResponses = {
+    /**
+     * OK
+     */
+    200: WorkOrderReturnDtoApiResponse;
+};
+
+export type GetApiV1WorkOrderReturnByDocumentNumberResponse = GetApiV1WorkOrderReturnByDocumentNumberResponses[keyof GetApiV1WorkOrderReturnByDocumentNumberResponses];
+
+export type PutApiV1WorkOrderReturnByDocumentNumberData = {
+    body?: UpdateReturnDto;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path: {
+        documentNumber: string;
+    };
+    query?: {
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderReturn/{documentNumber}';
+};
+
+export type PutApiV1WorkOrderReturnByDocumentNumberResponses = {
+    /**
+     * OK
+     */
+    200: WorkOrderReturnDtoApiResponse;
+};
+
+export type PutApiV1WorkOrderReturnByDocumentNumberResponse = PutApiV1WorkOrderReturnByDocumentNumberResponses[keyof PutApiV1WorkOrderReturnByDocumentNumberResponses];
+
+export type PostApiV1WorkOrderReturnByDocumentNumberConfirmData = {
+    body?: never;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path: {
+        documentNumber: string;
+    };
+    query?: {
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderReturn/{documentNumber}/confirm';
+};
+
+export type PostApiV1WorkOrderReturnByDocumentNumberConfirmResponses = {
+    /**
+     * OK
+     */
+    200: BooleanApiResponse;
+};
+
+export type PostApiV1WorkOrderReturnByDocumentNumberConfirmResponse = PostApiV1WorkOrderReturnByDocumentNumberConfirmResponses[keyof PostApiV1WorkOrderReturnByDocumentNumberConfirmResponses];
+
+export type PostApiV1WorkOrderReturnByDocumentNumberCancelData = {
+    body?: never;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path: {
+        documentNumber: string;
+    };
+    query?: {
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderReturn/{documentNumber}/cancel';
+};
+
+export type PostApiV1WorkOrderReturnByDocumentNumberCancelResponses = {
+    /**
+     * OK
+     */
+    200: BooleanApiResponse;
+};
+
+export type PostApiV1WorkOrderReturnByDocumentNumberCancelResponse = PostApiV1WorkOrderReturnByDocumentNumberCancelResponses[keyof PostApiV1WorkOrderReturnByDocumentNumberCancelResponses];
+
+export type GetApiV1WorkOrderReturnWipRollsData = {
+    body?: never;
+    headers?: {
+        'X-Version'?: string;
+    };
+    path?: never;
+    query?: {
+        workOrderNumber?: string;
+        materialCode?: string;
+        'api-version'?: string;
+    };
+    url: '/api/v1/WorkOrderReturn/wip-rolls';
+};
+
+export type GetApiV1WorkOrderReturnWipRollsResponses = {
+    /**
+     * OK
+     */
+    200: ReturnRollDetailDtoListApiResponse;
+};
+
+export type GetApiV1WorkOrderReturnWipRollsResponse = GetApiV1WorkOrderReturnWipRollsResponses[keyof GetApiV1WorkOrderReturnWipRollsResponses];

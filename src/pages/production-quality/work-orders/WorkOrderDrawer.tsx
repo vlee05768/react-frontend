@@ -28,6 +28,8 @@ import { DocumentLifecycleBanner } from "@/components/common/DocumentLifecycleBa
 import type { LifecycleStep } from "@/components/common/DocumentLifecycleBanner";
 import { ActionBar } from "@/components/common/ActionBar";
 import { WorkOrderItemsTab } from "./WorkOrderItemsTab";
+import { WorkOrderRequisitionTab } from "./WorkOrderRequisitionTab";
+import { WorkOrderReturnTab } from "./WorkOrderReturnTab";
 import { DocumentWatchButton } from '@/components/common/DocumentWatchButton';
 
 interface WorkOrderDrawerProps {
@@ -534,6 +536,20 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
                   isMasterViewMode={isViewMode}
                   onEditingChange={setIsDetailEditing}
                 />
+              ) : <Empty description="請先儲存製令主檔" />
+            },
+            {
+              key: "requisitions",
+              label: "製令領料記錄",
+              children: record ? (
+                <WorkOrderRequisitionTab masterData={record} />
+              ) : <Empty description="請先儲存製令主檔" />
+            },
+            {
+              key: "returns",
+              label: "製令退料記錄",
+              children: record ? (
+                <WorkOrderReturnTab masterData={record} />
               ) : <Empty description="請先儲存製令主檔" />
             }
           ]}
