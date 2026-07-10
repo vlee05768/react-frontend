@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card, Table, Tag, Space, Button, Select, DatePicker, Input, InputNumber, Empty, App, Spin, Badge, Tooltip } from "antd";
-import { PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined, CheckCircleOutlined, SyncOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+import { PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined, CheckCircleOutlined, SyncOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getApiV1WorkOrderRequisitionWoByWorkOrderNumber,
@@ -27,7 +27,6 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
 
-  const [activeDocNo, setActiveDocNo] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
 
@@ -40,7 +39,7 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
   const [selectedMaterialIndex, setSelectedMaterialIndex] = useState<number | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  // 1. 取得該製令所有的領料單列表
+  // 1. 取得該製令的領料單列表 (1對1，此處拿第一筆)
   const { data: requisitionsResponse, isLoading: listLoading, refetch: refetchList } = useQuery({
     queryKey: ["requisitions", masterData.workOrderNumber],
     queryFn: () => getApiV1WorkOrderRequisitionWoByWorkOrderNumber({
@@ -50,31 +49,24 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
   });
 
   const requisitionList = (requisitionsResponse?.data as any)?.data || [];
+  const activeDocNo = requisitionList.length > 0 ? requisitionList[0].documentNumber : null;
 
-  // 2. 取得當前選定領料單詳情
+  // 2. 取得單據詳情
   const { data: detailResponse, isLoading: detailLoading, refetch: refetchDetail } = useQuery({
     queryKey: ["requisition", activeDocNo],
     queryFn: () => getApiV1WorkOrderRequisitionByDocumentNumber({ path: { documentNumber: activeDocNo! } }),
-    enabled: !!activeDocNo && activeDocNo !== "new",
+    enabled: !!activeDocNo,
   });
 
   const activeRecord = (detailResponse?.data as any)?.data || undefined;
 
-  // 3. 自動設定預設選中最新的一張
+  // 初始化或載入表頭/明細
   useEffect(() => {
-    if (requisitionList.length > 0 && !activeDocNo && !isCreating) {
-      setActiveDocNo(requisitionList[0].documentNumber);
-    }
-  }, [requisitionList, activeDocNo, isCreating]);
-
-  // 當選中單據變更時，初始化表頭與明細欄位
-  useEffect(() => {
-    if (activeRecord && activeDocNo !== "new") {
+    if (activeRecord) {
       setDocDate(dayjs(activeRecord.documentDate));
       setDocNotes(activeRecord.notes || "");
       setIsHeaderEditing(false);
 
-      // 解析 items
       const mappedItems = (activeRecord.items || []).map((it: any) => {
         let extra = [];
         try {
@@ -97,30 +89,26 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
       });
       setItems(mappedItems);
     }
-  }, [activeRecord, activeDocNo]);
+  }, [activeRecord]);
 
-  // 4. Mutations
+  // 3. Mutations
   const createMutation = useMutation({
     mutationFn: (values: any) => postApiV1WorkOrderRequisition({ body: values }),
-    onSuccess: (res: any) => {
-      message.success("新增領料單草稿成功");
+    onSuccess: () => {
+      message.success("領料單建立成功！");
       queryClient.invalidateQueries({ queryKey: ["requisitions", masterData.workOrderNumber] });
       setIsCreating(false);
-      const newDocNo = res.data?.data?.documentNumber;
-      if (newDocNo) {
-        setActiveDocNo(newDocNo);
-      }
       refetchList();
     },
     onError: (error) => {
-      modal.error({ title: "儲存失敗", content: getApiErrorMessage(error), centered: true });
+      modal.error({ title: "建立失敗", content: getApiErrorMessage(error), centered: true });
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: (values: any) => putApiV1WorkOrderRequisitionByDocumentNumber({ path: { documentNumber: activeDocNo! }, body: values }),
     onSuccess: () => {
-      message.success("更新領料單主檔與明細成功");
+      message.success("儲存修改成功！");
       queryClient.invalidateQueries({ queryKey: ["requisition", activeDocNo] });
       queryClient.invalidateQueries({ queryKey: ["requisitions", masterData.workOrderNumber] });
       setIsHeaderEditing(false);
@@ -135,9 +123,8 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
   const deleteMutation = useMutation({
     mutationFn: () => deleteApiV1WorkOrderRequisitionByDocumentNumber({ path: { documentNumber: activeDocNo! } }),
     onSuccess: () => {
-      message.success("刪除領料單成功");
+      message.success("領料單刪除成功");
       queryClient.invalidateQueries({ queryKey: ["requisitions", masterData.workOrderNumber] });
-      setActiveDocNo(null);
       setIsCreating(false);
       refetchList();
     },
@@ -175,7 +162,6 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
   });
 
   const handleCreateNewClick = () => {
-    setActiveDocNo("new");
     setIsCreating(true);
     setDocDate(dayjs());
     setDocNotes("");
@@ -335,7 +321,6 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
     setItems(updated);
   };
 
-  // 整理製令的應發料號列表
   const materialsList = Array.isArray(masterData.items)
     ? masterData.items.map((x: any) => ({
         materialCode: x.materialCode,
@@ -351,59 +336,24 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 頂部單據篩選與建立控制區 */}
-      <div className="flex justify-between items-center py-2 px-3" style={{ backgroundColor: "var(--ant-color-fill-alter)", borderRadius: "6px" }}>
-        <Space>
-          <span style={{ fontWeight: "bold", color: "var(--ant-color-text-secondary)" }}>📋 選擇領料單：</span>
-          <Select
-            style={{ width: "240px" }}
-            placeholder="請選擇或新增領料單"
-            value={activeDocNo || undefined}
-            onChange={(val) => {
-              setActiveDocNo(val);
-              setIsCreating(false);
-              setIsHeaderEditing(false);
-            }}
-            disabled={isCreating || isHeaderEditing}
-          >
-            {requisitionList.map((r: any) => (
-              <Select.Option key={r.documentNumber} value={r.documentNumber}>
-                {r.documentNumber} ({r.confirmDate ? "已過帳" : "草稿"})
-              </Select.Option>
-            ))}
-          </Select>
-          {(isCreating || isHeaderEditing) && (
-            <Button
-              type="text"
-              icon={<ArrowLeftOutlined />}
-              onClick={() => {
-                setIsCreating(false);
-                setIsHeaderEditing(false);
-                setActiveDocNo(requisitionList.length > 0 ? requisitionList[0].documentNumber : null);
-              }}
-            >
-              返回
-            </Button>
-          )}
-        </Space>
-        {!isCreating && !isHeaderEditing && (
-          <Button type="primary" size="small" icon={<PlusOutlined />} onClick={handleCreateNewClick}>
-            🆕 新增領料單
-          </Button>
-        )}
-      </div>
-
       <Spin spinning={listLoading || detailLoading}>
         {!showHeaderForm ? (
-          <Empty description="此製令尚未建立任何領料單記錄，請點擊右上方按鈕建立。" className="mt-10" />
+          <Empty
+            description="尚未建立領料表"
+            className="mt-10"
+          >
+            <Button type="primary" onClick={handleCreateNewClick}>
+              產生領料單
+            </Button>
+          </Empty>
         ) : (
           <div className="flex flex-col gap-4">
-            {/* 類似產品與 BOM 的表頭配置 */}
+            {/* 領料單表頭 */}
             <Card
               size="small"
               title={
                 <Space>
-                  <strong>{isCreating ? "🆕 新增領料單表頭" : `📄 領料單表頭 - ${activeDocNo}`}</strong>
+                  <strong>{isCreating ? "🆕 新增領料單" : `📄 領料單 - ${activeDocNo}`}</strong>
                   {activeRecord && (
                     activeRecord.confirmDate ? (
                       <Tag color="success">🟢 已確認過帳</Tag>
@@ -420,7 +370,7 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
                       <Button type="primary" size="small" icon={<SaveOutlined />} onClick={handleSave} loading={createMutation.isPending || updateMutation.isPending}>
                         儲存草稿
                       </Button>
-                      <Button size="small" onClick={() => (isCreating ? setActiveDocNo(requisitionList.length > 0 ? requisitionList[0].documentNumber : null) : setIsHeaderEditing(false))}>
+                      <Button size="small" onClick={() => (isCreating ? setIsCreating(false) : setIsHeaderEditing(false))}>
                         取消
                       </Button>
                     </>
@@ -429,7 +379,7 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
                       {!isPosted && (
                         <>
                           <Button type="primary" size="small" icon={<EditOutlined />} onClick={() => setIsHeaderEditing(true)}>
-                            編輯表頭/明細
+                            編輯
                           </Button>
                           <Button type="primary" size="small" className="bg-green-600 hover:bg-green-700 border-green-600" icon={<CheckCircleOutlined />} onClick={() => confirmMutation.mutate()} loading={confirmMutation.isPending}>
                             確認過帳
@@ -442,7 +392,7 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
                               onOk: () => deleteMutation.mutate(),
                             });
                           }} loading={deleteMutation.isPending}>
-                            刪除草稿
+                            刪除
                           </Button>
                         </>
                       )}
@@ -475,10 +425,10 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
               </div>
             </Card>
 
-            {/* 類似 BOM tab 設計的領料明細面板 */}
+            {/* 領料明細面板 */}
             <Card
               size="small"
-              title={<strong>📋 領料物料明細 (材料明細)</strong>}
+              title={<strong>📋 領料物料明細</strong>}
               extra={
                 isEditable && (
                   <Button type="dashed" size="small" icon={<PlusOutlined />} onClick={handleAddNewItem}>
@@ -520,7 +470,7 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
                               style={{ width: "100%" }}
                               placeholder="請選擇需求原料"
                               value={it.materialCode || undefined}
-                              onChange={(val) => handleMaterialChange(idx, val)}
+                              onChange={(val: any) => handleMaterialChange(idx, val)}
                               disabled={!isEditable}
                               size="small"
                             >
@@ -536,7 +486,7 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
                             <Select
                               style={{ width: "100%" }}
                               value={it.sourceStorageCode}
-                              onChange={(v) => {
+                              onChange={(v: any) => {
                                 const updated = [...items];
                                 updated[idx].sourceStorageCode = v;
                                 setItems(updated);
