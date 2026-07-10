@@ -107,6 +107,7 @@ export function WorkOrderRequisitionTab({
       message.success("領料單建立成功！");
       queryClient.invalidateQueries({ queryKey: ["requisitions", masterData.workOrderNumber] });
       setIsCreating(false);
+      setIsHeaderEditing(true); // 💡 建立成功後，自動進入編輯狀態，以便新增明細
       refetchList();
     },
     onError: (error) => {
@@ -170,6 +171,14 @@ export function WorkOrderRequisitionTab({
     },
   });
 
+  const handleConfirmPost = () => {
+    if (items.length === 0) {
+      message.warning("此領料單尚無任何明細項目，請先編輯並點選下方「新增領用物料」加入項目！");
+      return;
+    }
+    confirmMutation.mutate();
+  };
+
   const handleCreateNewClick = () => {
     setIsCreating(true);
     setDocDate(dayjs());
@@ -178,11 +187,6 @@ export function WorkOrderRequisitionTab({
   };
 
   const handleSave = () => {
-    if (items.length === 0) {
-      message.warning("請至少加入一筆領料明細項目！");
-      return;
-    }
-
     for (let i = 0; i < items.length; i++) {
       const it = items[i];
       if (!it.materialCode) {
@@ -477,7 +481,7 @@ export function WorkOrderRequisitionTab({
                           <Button type="primary" size="small" icon={<EditOutlined />} onClick={() => setIsHeaderEditing(true)}>
                             編輯
                           </Button>
-                          <Button type="primary" size="small" className="bg-green-600 hover:bg-green-700 border-green-600" icon={<CheckCircleOutlined />} onClick={() => confirmMutation.mutate()} loading={confirmMutation.isPending}>
+                          <Button type="primary" size="small" className="bg-green-600 hover:bg-green-700 border-green-600" icon={<CheckCircleOutlined />} onClick={handleConfirmPost} loading={confirmMutation.isPending}>
                             確認過帳
                           </Button>
                           <Button danger size="small" icon={<DeleteOutlined />} onClick={() => {
@@ -535,13 +539,19 @@ export function WorkOrderRequisitionTab({
               />
             </Card>
 
-            {/* 領料明細面板 採用與 BOM 一致的 Table & Modal 編輯架構 */}
+            {/* 領料明細面板 採用與 BOM 一致 the Table & Modal 編輯架構 */}
             <Card
               size="small"
               title={<strong>📋 領料物料明細</strong>}
               extra={
                 isEditable && (
-                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={handleAddNewItemClick}>
+                  <Button
+                    type="primary"
+                    size="small"
+                    icon={<PlusOutlined />}
+                    onClick={handleAddNewItemClick}
+                    disabled={isCreating || !activeDocNo}
+                  >
                     新增領用物料
                   </Button>
                 )
@@ -553,7 +563,11 @@ export function WorkOrderRequisitionTab({
                 columns={itemColumns}
                 pagination={false}
                 rowKey="materialCode"
-                locale={{ emptyText: "尚未加入任何領用物料項目，請點選右上方新增項目。" }}
+                locale={{
+                  emptyText: !activeDocNo
+                    ? "⚠️ 請先點擊右上方「儲存草稿」保存表頭，即可開始新增領用物料明細。"
+                    : "尚未加入任何領用物料項目，請點選右上方新增項目。"
+                }}
               />
             </Card>
           </div>

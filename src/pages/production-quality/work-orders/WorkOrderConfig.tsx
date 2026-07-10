@@ -778,24 +778,24 @@ export const itemFormConfig: FormFieldConfig<WorkOrderMaterialDto>[] = [
 
 export const requisitionHeaderFormConfig = (): FormFieldConfig<any>[] => [
   {
-    name: "plannedQuantity",
-    label: "製令預計產量 (僅參考)",
-    componentType: "InputNumber",
-    colSpan: 1,
-    editable: "never"
-  },
-  {
     name: "documentDate",
     label: "單據日期",
     componentType: "DatePicker",
-    colSpan: 1,
+    colSpan: 2,
     editable: "always",
     validation: z.any().refine(val => !!val, { message: "單據日期為必填" }),
   },
   {
+    name: "plannedQuantity",
+    label: "製令預計產量 (僅參考)",
+    componentType: "InputNumber",
+    colSpan: 2,
+    editable: "never"
+  },
+  {
     name: "notes",
     label: "備註說明",
-    componentType: "Input",
+    componentType: "TextArea",
     colSpan: 1,
     editable: "always",
     validation: z.string().optional().nullable(),

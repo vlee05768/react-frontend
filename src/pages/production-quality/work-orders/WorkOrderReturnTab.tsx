@@ -107,6 +107,7 @@ export function WorkOrderReturnTab({
       message.success("退料單建立成功！");
       queryClient.invalidateQueries({ queryKey: ["returns", masterData.workOrderNumber] });
       setIsCreating(false);
+      setIsHeaderEditing(true); // 💡 建立成功後，自動進入編輯狀態，以便新增明細
       refetchList();
     },
     onError: (error) => {
@@ -170,6 +171,14 @@ export function WorkOrderReturnTab({
     },
   });
 
+  const handleConfirmPost = () => {
+    if (items.length === 0) {
+      message.warning("此退料單尚無任何明細項目，請先編輯並點選下方「新增退回物料」加入項目！");
+      return;
+    }
+    confirmMutation.mutate();
+  };
+
   const handleCreateNewClick = () => {
     setIsCreating(true);
     setDocDate(dayjs());
@@ -178,11 +187,6 @@ export function WorkOrderReturnTab({
   };
 
   const handleSave = () => {
-    if (items.length === 0) {
-      message.warning("請至少加入一筆退料明細項目！");
-      return;
-    }
-
     for (let i = 0; i < items.length; i++) {
       const it = items[i];
       if (!it.materialCode) {
@@ -460,7 +464,7 @@ export function WorkOrderReturnTab({
                           <Button type="primary" size="small" icon={<EditOutlined />} onClick={() => setIsHeaderEditing(true)}>
                             編輯
                           </Button>
-                          <Button type="primary" size="small" className="bg-green-600 hover:bg-green-700 border-green-600" icon={<CheckCircleOutlined />} onClick={() => confirmMutation.mutate()} loading={confirmMutation.isPending}>
+                          <Button type="primary" size="small" className="bg-green-600 hover:bg-green-700 border-green-600" icon={<CheckCircleOutlined />} onClick={handleConfirmPost} loading={confirmMutation.isPending}>
                             確認退料
                           </Button>
                           <Button danger size="small" icon={<DeleteOutlined />} onClick={() => {
@@ -523,7 +527,13 @@ export function WorkOrderReturnTab({
               title={<strong>📋 退回物料明細 (*僅支援卷料)</strong>}
               extra={
                 isEditable && (
-                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={handleAddNewItemClick}>
+                  <Button
+                    type="primary"
+                    size="small"
+                    icon={<PlusOutlined />}
+                    onClick={handleAddNewItemClick}
+                    disabled={isCreating || !activeDocNo}
+                  >
                     新增退回物料
                   </Button>
                 )
@@ -535,7 +545,11 @@ export function WorkOrderReturnTab({
                 columns={itemColumns}
                 pagination={false}
                 rowKey="materialCode"
-                locale={{ emptyText: "尚未加入任何退料明細項目，請點選右上方新增項目。" }}
+                locale={{
+                  emptyText: !activeDocNo
+                    ? "⚠️ 請先點擊右上方「儲存草稿」保存表頭，即可開始新增退回物料明細。"
+                    : "尚未加入任何退料明細項目，請點選右上方新增項目。"
+                }}
               />
             </Card>
           </div>
