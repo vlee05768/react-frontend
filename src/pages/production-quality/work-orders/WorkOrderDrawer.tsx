@@ -111,7 +111,10 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
   const updateMutation = useMutation({
     mutationFn: (values: any) => putApiV1WorkOrderByWorkOrderNumber({ path: { workOrderNumber: id! }, body: values }),
     onSuccess: () => {
-      message.success("更新製令成功");
+      // 💡 如果是備料確認或生產完工，不要單獨跳出「更新製令成功」提示，由後續作業統一通知
+      if (editMode !== "prepare" && editMode !== "work") {
+        message.success("更新製令成功");
+      }
       queryClient.invalidateQueries({ queryKey: ["workorder", id] });
       queryClient.invalidateQueries({ queryKey: ["workorders"] });
       setEditMode(null);
