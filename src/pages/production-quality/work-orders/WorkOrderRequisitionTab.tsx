@@ -513,6 +513,7 @@ export function WorkOrderRequisitionTab({
                 formId="requisitionHeaderForm"
                 fields={requisitionHeaderFormConfig() as any}
                 defaultValues={{
+                  plannedQuantity: masterData.plannedQuantity || 0,
                   documentDate: docDate as any,
                   notes: docNotes,
                 }}
