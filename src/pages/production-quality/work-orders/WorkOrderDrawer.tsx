@@ -267,7 +267,11 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
             intent="primary" 
             icon={<CheckCircleOutlined />} 
             disabled={isDetailEditing}
-            onClick={(e) => { e.preventDefault(); setEditMode('prepare'); }}
+            onClick={(e) => { 
+              e.preventDefault(); 
+              setEditMode('prepare'); 
+              setActiveTab('requisitions'); 
+            }}
           >
             備料作業
           </ActionButton>

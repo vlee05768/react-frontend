@@ -302,7 +302,7 @@ const permissions: Record<string, FieldPermission> = {
   pitch: { create: true, update: false, work: false, prepare: false },
   punchCavities: { create: true, update: false, work: false, prepare: false },
   productionDate: { create: true, update: true, work: true, prepare: true },
-  plannedQuantity: { create: true, update: true, work: false, prepare: true },
+  plannedQuantity: { create: true, update: true, work: false, prepare: false },
   actualQuantity: { create: false, update: false, work: true, prepare: false },
   notes: { create: true, update: true, work: true, prepare: true },
   defectReason: { create: false, update: false, work: true, prepare: false },
