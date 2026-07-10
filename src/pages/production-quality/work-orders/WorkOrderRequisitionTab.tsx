@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Card, Table, Tag, Space, Button, Empty, App, Spin, Badge, InputNumber } from "antd";
 import { PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined, CheckCircleOutlined, SyncOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -403,8 +403,15 @@ export function WorkOrderRequisitionTab({
                 onSubmit={() => {}}
                 onValuesChange={(values: any) => {
                   if (!isEditable) return;
-                  if (values.documentDate) setDocDate(dayjs(values.documentDate));
-                  if (values.notes !== undefined) setDocNotes(values.notes || "");
+                  if (values.documentDate) {
+                    const newDate = dayjs(values.documentDate);
+                    if (!docDate || !newDate.isSame(docDate, "day")) {
+                      setDocDate(newDate);
+                    }
+                  }
+                  if (values.notes !== undefined && values.notes !== docNotes) {
+                    setDocNotes(values.notes || "");
+                  }
                 }}
                 isViewMode={!isEditable}
                 hideDefaultFooter={true}

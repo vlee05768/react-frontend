@@ -78,12 +78,18 @@ export function DynamicForm<TValues extends Record<string, any>>({
   const currentValues = watch() as TValues;
   const context: FormContext<TValues> = useMemo(() => ({ values: currentValues }), [currentValues]);
 
+  // 💡 使用 Ref 儲存最新的回呼，防止外部傳入 inline 匿名函數時引發無效重渲染遞迴
+  const onValuesChangeRef = useRef(onValuesChange);
+  useEffect(() => {
+    onValuesChangeRef.current = onValuesChange;
+  });
+
   // 💡 當數值變動時，觸發外部回呼 (用於 LPN 領退料與 BOM 聯動)
   useEffect(() => {
-    if (onValuesChange && currentValues) {
-      onValuesChange(currentValues);
+    if (onValuesChangeRef.current && currentValues) {
+      onValuesChangeRef.current(currentValues);
     }
-  }, [currentValues, onValuesChange]);
+  }, [currentValues]);
 
   // 4. 動態計算 Zod Schema
   useEffect(() => {
