@@ -22,9 +22,9 @@ interface WorkOrderReturnTabProps {
   masterData: WorkOrderDto;
 }
 
-export const WorkOrderReturnTab: React.FC<WorkOrderReturnTabProps> = ({
+export function WorkOrderReturnTab({
   masterData,
-}) => {
+}: WorkOrderReturnTabProps) {
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
 
@@ -481,8 +481,8 @@ export const WorkOrderReturnTab: React.FC<WorkOrderReturnTabProps> = ({
 
                         {/* 選擇車間現場正在 WIP 狀態的 LPN 列表 */}
                         {it.materialCode && (
-                          <div style={{ backgroundColor: "var(--ant-color-fill-alter)", padding: "12px", borderRadius: "6px", marginTop: "12px" }}>
-                            <div style={{ fontSize: "12px", fontWeight: "bold", color: "var(--ant-color-text-secondary)", marginBottom: "8px" }}>
+                          <div className="bg-[var(--ant-color-fill-alter)] p-3 rounded-md mt-3">
+                            <div className="text-xs font-bold text-[var(--ant-color-text-secondary)] mb-2">
                               🌀 勾選欲辦理退料回庫的 WIP 現場卷卡 (LPN)
                             </div>
                             <Spin spinning={it.wipLoading || false}>

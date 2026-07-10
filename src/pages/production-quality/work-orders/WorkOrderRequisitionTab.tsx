@@ -23,9 +23,9 @@ interface WorkOrderRequisitionTabProps {
   masterData: WorkOrderDto;
 }
 
-export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = ({
+export function WorkOrderRequisitionTab({
   masterData,
-}) => {
+}: WorkOrderRequisitionTabProps) {
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
 
@@ -487,7 +487,7 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
 
                         {/* 捲材：一卷一卡 LPN 卷卡選擇器 */}
                         {isRoll && it.materialCode && (
-                          <div style={{ backgroundColor: "var(--ant-color-fill-alter)", padding: "12px", borderRadius: "6px", marginTop: "12px" }}>
+                          <div className="bg-[var(--ant-color-fill-alter)] p-3 rounded-md mt-3">
                             <div className="flex justify-between items-center mb-2">
                               <span style={{ fontSize: "12px", fontWeight: "bold", color: "var(--ant-color-text-secondary)" }}>
                                 🌀 捲材實體卡追溯 LPN (已選 {it.extra?.length || 0} 卷)
@@ -535,7 +535,7 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
                                 ]}
                               />
                             ) : (
-                              <div style={{ padding: "8px 0", textAlign: "center", color: "var(--ant-color-text-placeholder)", fontSize: "12px" }}>
+                              <div className="py-2 text-center text-[var(--ant-color-text-placeholder)] text-xs">
                                 目前尚未選擇任何實體物料卷卡，請點選上方按鈕挑選！
                               </div>
                             )}
@@ -544,8 +544,8 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
 
                         {/* 片材：規格參數設定 */}
                         {!isRoll && it.materialCode && (
-                          <div style={{ backgroundColor: "var(--ant-color-fill-alter)", padding: "12px", borderRadius: "6px", marginTop: "12px" }}>
-                            <div style={{ fontSize: "12px", fontWeight: "bold", color: "var(--ant-color-text-secondary)", marginBottom: "8px" }}>
+                          <div className="bg-[var(--ant-color-fill-alter)] p-3 rounded-md mt-3">
+                            <div className="text-xs font-bold text-[var(--ant-color-text-secondary)] mb-2">
                               🔮 片材規格參數
                             </div>
                             <div className="grid grid-cols-3 gap-4">
