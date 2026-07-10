@@ -333,7 +333,7 @@ export function WorkOrderRequisitionTab({
               size="small"
               title={
                 <Space>
-                  <strong>{isCreating ? "🆕 新增領料單" : `📄 領料單 - ${activeDocNo}`}</strong>
+                  <strong>{isCreating ? "新增領料單" : `📄 領料單 - ${activeDocNo}`}</strong>
                   {activeRecord && (
                     activeRecord.confirmDate ? (
                       <Tag color="success">🟢 已確認過帳</Tag>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Space, Button, App, Drawer, Spin, Empty } from "antd";
 import { CheckCircleOutlined, SyncOutlined, LockOutlined, PlusOutlined } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -38,11 +38,11 @@ interface WorkOrderDrawerProps {
   onClose: () => void;
 }
 
-export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
+export function WorkOrderDrawer({
   id,
   isCreateMode = false,
   onClose,
-}) => {
+}: WorkOrderDrawerProps) {
   const { message, modal } = App.useApp();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -54,7 +54,7 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
 
   const isViewMode = !isCreateMode && editMode === null;
 
-  const hasAutoSwitchedRef = React.useRef(false);
+  const hasAutoSwitchedRef = useRef(false);
 
   useEffect(() => {
     hasAutoSwitchedRef.current = false;
@@ -547,7 +547,7 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
           activeTab={activeTab}
           onTabChange={setActiveTab}
           masterContent={
-            <div style={{ display: activeTab === 'master_info' ? 'block' : 'none' }}>
+            <div className={activeTab === 'master_info' ? 'block' : 'hidden'}>
               {masterForm}
             </div>
           }
