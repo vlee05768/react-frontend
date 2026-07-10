@@ -775,3 +775,125 @@ export const itemFormConfig: FormFieldConfig<WorkOrderMaterialDto>[] = [
     validation: z.string().optional().nullable(),
   },
 ];
+
+export const requisitionHeaderFormConfig = (): FormFieldConfig<any>[] => [
+  {
+    name: "documentDate",
+    label: "單據日期",
+    componentType: "DatePicker",
+    colSpan: 1,
+    editable: "always",
+    validation: z.any().refine(val => !!val, { message: "單據日期為必填" }),
+  },
+  {
+    name: "notes",
+    label: "備註說明",
+    componentType: "Input",
+    colSpan: 2,
+    editable: "always",
+    validation: z.string().optional().nullable(),
+  }
+];
+
+export const requisitionItemFormConfig = (materials: any[]): FormFieldConfig<any>[] => [
+  {
+    name: "materialCode",
+    label: "領用原料料號",
+    componentType: "Select",
+    componentProps: {
+      options: materials.map(m => ({ label: `${m.materialCode} (${m.materialForm === 'R' ? '捲材' : '片材'})`, value: m.materialCode }))
+    },
+    colSpan: 1,
+    editable: "always",
+    validation: z.string().min(1, "必填"),
+  },
+  {
+    name: "sourceStorageCode",
+    label: "來源儲位",
+    componentType: "Select",
+    componentProps: {
+      options: [
+        { label: "原料主倉 (TW-GEN-INV)", value: "TW-GEN-INV" },
+        { label: "現場車間倉 (TW-WIP-GEN)", value: "TW-WIP-GEN" }
+      ]
+    },
+    colSpan: 1,
+    editable: "always",
+    validation: z.string().min(1, "必填"),
+  },
+  {
+    name: "quantity",
+    label: "領用數量",
+    componentType: "InputNumber",
+    colSpan: 1,
+    editable: "always",
+    validation: z.number().min(0.0001, "領用數量必須大於 0"),
+  },
+  {
+    name: "referenceQuantity1",
+    label: "領用面積 (SQM)",
+    componentType: "InputNumber",
+    colSpan: 1,
+    editable: "never"
+  }
+];
+
+export const returnHeaderFormConfig = (): FormFieldConfig<any>[] => [
+  {
+    name: "documentDate",
+    label: "單據日期",
+    componentType: "DatePicker",
+    colSpan: 1,
+    editable: "always",
+    validation: z.any().refine(val => !!val, { message: "單據日期為必填" }),
+  },
+  {
+    name: "notes",
+    label: "退料原因 / 備註",
+    componentType: "Input",
+    colSpan: 2,
+    editable: "always",
+    validation: z.string().optional().nullable(),
+  }
+];
+
+export const returnItemFormConfig = (materials: any[]): FormFieldConfig<any>[] => [
+  {
+    name: "materialCode",
+    label: "原料料號",
+    componentType: "Select",
+    componentProps: {
+      options: materials.map(m => ({ label: `${m.materialCode} (捲材)`, value: m.materialCode }))
+    },
+    colSpan: 1,
+    editable: "always",
+    validation: z.string().min(1, "必填"),
+  },
+  {
+    name: "targetStorageCode",
+    label: "退回目的儲位",
+    componentType: "Select",
+    componentProps: {
+      options: [
+        { label: "原料主倉 (TW-GEN-INV)", value: "TW-GEN-INV" }
+      ]
+    },
+    colSpan: 1,
+    editable: "always",
+    validation: z.string().min(1, "必填"),
+  },
+  {
+    name: "quantity",
+    label: "退回總長度 (M)",
+    componentType: "InputNumber",
+    colSpan: 1,
+    editable: "never"
+  },
+  {
+    name: "referenceQuantity1",
+    label: "退回總面積 (SQM)",
+    componentType: "InputNumber",
+    colSpan: 1,
+    editable: "never"
+  }
+];

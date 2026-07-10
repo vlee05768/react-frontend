@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Table, Tag, Space, Button, Select, DatePicker, Input, InputNumber, Empty, App, Spin, Badge, Tooltip } from "antd";
+import { Card, Table, Tag, Space, Button, Empty, App, Spin, Badge, InputNumber } from "antd";
 import { PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined, CheckCircleOutlined, SyncOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -15,6 +15,8 @@ import {
 import { getApiErrorMessage } from "@/utils/apiError";
 import dayjs from "dayjs";
 import type { WorkOrderDto } from "@/api/generated/types.gen";
+import { DynamicForm } from "@/components/Form/DynamicForm";
+import { returnHeaderFormConfig, returnItemFormConfig } from "./WorkOrderConfig";
 
 interface WorkOrderReturnTabProps {
   masterData: WorkOrderDto;
@@ -335,7 +337,7 @@ export const WorkOrderReturnTab: React.FC<WorkOrderReturnTabProps> = ({
           </Empty>
         ) : (
           <div className="flex flex-col gap-4">
-            {/* 退料單表頭 */}
+            {/* 退料單表頭 採用 DynamicForm */}
             <Card
               size="small"
               title={
@@ -400,19 +402,25 @@ export const WorkOrderReturnTab: React.FC<WorkOrderReturnTabProps> = ({
                 </Space>
               }
             >
-              <div className="grid grid-cols-3 gap-4 py-2">
-                <div>
-                  <label className="text-gray-400 block mb-1">單據日期</label>
-                  <DatePicker style={{ width: "100%" }} value={docDate} onChange={(d) => d && setDocDate(d)} disabled={!isEditable} size="small" />
-                </div>
-                <div className="col-span-2">
-                  <label className="text-gray-400 block mb-1">退料原因 / 備註</label>
-                  <Input value={docNotes} onChange={(e) => setDocNotes(e.target.value)} disabled={!isEditable} placeholder="請輸入退料原因與備註說明..." size="small" />
-                </div>
-              </div>
+              <DynamicForm
+                formId="returnHeaderForm"
+                fields={returnHeaderFormConfig() as any}
+                defaultValues={{
+                  documentDate: docDate.toDate() as any,
+                  notes: docNotes,
+                }}
+                onSubmit={() => {}}
+                onValuesChange={(values: any) => {
+                  if (!isEditable) return;
+                  if (values.documentDate) setDocDate(dayjs(values.documentDate));
+                  if (values.notes !== undefined) setDocNotes(values.notes || "");
+                }}
+                isViewMode={!isEditable}
+                hideDefaultFooter={true}
+              />
             </Card>
 
-            {/* 退料明細 */}
+            {/* 退料明細 採用 DynamicForm */}
             <Card
               size="small"
               title={<strong>📋 退回物料明細 (*僅支援卷料)</strong>}
@@ -447,55 +455,33 @@ export const WorkOrderReturnTab: React.FC<WorkOrderReturnTabProps> = ({
                           </div>
                         }
                       >
-                        <div className="grid grid-cols-4 gap-4 mb-3">
-                          <div>
-                            <label className="text-gray-400 block mb-1 text-xs">原料料號</label>
-                            <Select
-                              style={{ width: "100%" }}
-                              placeholder="請選擇退回原料"
-                              value={it.materialCode || undefined}
-                              onChange={(val: any) => handleMaterialChange(idx, val)}
-                              disabled={!isEditable}
-                              size="small"
-                            >
-                              {filteredMaterials.map((m: any) => (
-                                <Select.Option key={m.materialCode} value={m.materialCode}>
-                                  {m.materialCode} (捲材)
-                                </Select.Option>
-                              ))}
-                            </Select>
-                          </div>
-                          <div>
-                            <label className="text-gray-400 block mb-1 text-xs">退回目的儲位</label>
-                            <Select
-                              style={{ width: "100%" }}
-                              value={it.targetStorageCode}
-                              onChange={(v: any) => {
-                                const updated = [...items];
-                                updated[idx].targetStorageCode = v;
-                                setItems(updated);
-                              }}
-                              disabled={!isEditable}
-                              size="small"
-                            >
-                              <Select.Option value="TW-GEN-INV">原料主倉 (TW-GEN-INV)</Select.Option>
-                            </Select>
-                          </div>
-                          <div>
-                            <label className="text-gray-400 block mb-1 text-xs">退回總長度 (M)</label>
-                            <Tooltip title="由下方勾選的 WIP 卷卡實測剩餘長度自動累加">
-                              <InputNumber style={{ width: "100%" }} value={it.quantity} disabled={true} size="small" />
-                            </Tooltip>
-                          </div>
-                          <div>
-                            <label className="text-gray-400 block mb-1 text-xs">退回總面積 (SQM)</label>
-                            <InputNumber style={{ width: "100%" }} value={it.referenceQuantity1} disabled={true} size="small" />
-                          </div>
-                        </div>
+                        <DynamicForm
+                          formId={`returnItemForm-${idx}`}
+                          fields={returnItemFormConfig(filteredMaterials) as any}
+                          defaultValues={{
+                            materialCode: it.materialCode,
+                            targetStorageCode: it.targetStorageCode,
+                            quantity: it.quantity,
+                            referenceQuantity1: it.referenceQuantity1,
+                          }}
+                          onSubmit={() => {}}
+                          onValuesChange={(values: any) => {
+                            if (!isEditable) return;
+                            if (values.materialCode && values.materialCode !== it.materialCode) {
+                              handleMaterialChange(idx, values.materialCode);
+                            } else {
+                              const updated = [...items];
+                              updated[idx].targetStorageCode = values.targetStorageCode || "TW-GEN-INV";
+                              setItems(updated);
+                            }
+                          }}
+                          isViewMode={!isEditable}
+                          hideDefaultFooter={true}
+                        />
 
                         {/* 選擇車間現場正在 WIP 狀態的 LPN 列表 */}
                         {it.materialCode && (
-                          <div style={{ backgroundColor: "var(--ant-color-fill-alter)", padding: "12px", borderRadius: "6px" }}>
+                          <div style={{ backgroundColor: "var(--ant-color-fill-alter)", padding: "12px", borderRadius: "6px", marginTop: "12px" }}>
                             <div style={{ fontSize: "12px", fontWeight: "bold", color: "var(--ant-color-text-secondary)", marginBottom: "8px" }}>
                               🌀 勾選欲辦理退料回庫的 WIP 現場卷卡 (LPN)
                             </div>
@@ -518,7 +504,7 @@ export const WorkOrderReturnTab: React.FC<WorkOrderReturnTabProps> = ({
                                   dataSource={it.wipRolls || []}
                                   pagination={false}
                                   rowKey="rollNo"
-                                  locale={{ emptyText: "目前在 WIP 現場無任何可供退回 the 卷卡" }}
+                                  locale={{ emptyText: "目前在 WIP 現場無任何可供退回的卷卡" }}
                                   rowSelection={{
                                     type: "checkbox",
                                     selectedRowKeys: it.extra.map((x: any) => x.rollNo),
@@ -561,7 +547,7 @@ export const WorkOrderReturnTab: React.FC<WorkOrderReturnTabProps> = ({
                                             value={checked ? checked.qtyAux : undefined}
                                             max={rec.qtyAux}
                                             min={0}
-                                            onChange={(val) => handleWipRollQtyChange(idx, rec.rollNo, val)}
+                                            onChange={(val: any) => handleWipRollQtyChange(idx, rec.rollNo, val)}
                                           />
                                         );
                                       },

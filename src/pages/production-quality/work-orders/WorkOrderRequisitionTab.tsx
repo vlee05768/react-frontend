@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Table, Tag, Space, Button, Select, DatePicker, Input, InputNumber, Empty, App, Spin, Badge, Tooltip } from "antd";
+import { Card, Table, Tag, Space, Button, Empty, App, Spin, Badge, InputNumber } from "antd";
 import { PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined, CheckCircleOutlined, SyncOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -16,6 +16,8 @@ import { getApiErrorMessage } from "@/utils/apiError";
 import dayjs from "dayjs";
 import { RollSubstitutionPicker } from "./RollSubstitutionPicker";
 import type { WorkOrderDto } from "@/api/generated/types.gen";
+import { DynamicForm } from "@/components/Form/DynamicForm";
+import { requisitionHeaderFormConfig, requisitionItemFormConfig } from "./WorkOrderConfig";
 
 interface WorkOrderRequisitionTabProps {
   masterData: WorkOrderDto;
@@ -261,18 +263,6 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
     setItems(updated);
   };
 
-  const handleMaterialChange = (index: number, val: string) => {
-    const matched = materialsList.find((x) => x.materialCode === val);
-    const updated = [...items];
-    updated[index].materialCode = val;
-    updated[index].materialName = matched?.materialName || "";
-    updated[index].unit = matched?.materialForm === "R" ? "M" : "PCS";
-    updated[index].quantity = 0;
-    updated[index].referenceQuantity1 = 0;
-    updated[index].extra = matched?.materialForm === "R" ? [] : [{ widthMm: matched?.widthMm || 0, lengthMm: 0, thicknessMm: 0 }];
-    setItems(updated);
-  };
-
   const handleSheetSpecChange = (index: number, field: string, val: number) => {
     const updated = [...items];
     const spec = updated[index].extra[0] || { widthMm: 0, lengthMm: 0, thicknessMm: 0 };
@@ -281,16 +271,6 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
 
     const qty = updated[index].quantity || 0;
     const area = (spec.widthMm / 1000) * (spec.lengthMm / 1000) * qty;
-    updated[index].referenceQuantity1 = parseFloat(area.toFixed(4));
-    setItems(updated);
-  };
-
-  const handleSheetQuantityChange = (index: number, val: number | null) => {
-    const updated = [...items];
-    updated[index].quantity = val || 0;
-    const spec = updated[index].extra[0] || { widthMm: 0, lengthMm: 0, thicknessMm: 0 };
-
-    const area = (spec.widthMm / 1000) * (spec.lengthMm / 1000) * (val || 0);
     updated[index].referenceQuantity1 = parseFloat(area.toFixed(4));
     setItems(updated);
   };
@@ -348,7 +328,7 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
           </Empty>
         ) : (
           <div className="flex flex-col gap-4">
-            {/* 領料單表頭 */}
+            {/* 領料單表頭 採用 DynamicForm 架構 */}
             <Card
               size="small"
               title={
@@ -413,19 +393,25 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
                 </Space>
               }
             >
-              <div className="grid grid-cols-3 gap-4 py-2">
-                <div>
-                  <label className="text-gray-400 block mb-1">單據日期</label>
-                  <DatePicker style={{ width: "100%" }} value={docDate} onChange={(d) => d && setDocDate(d)} disabled={!isEditable} size="small" />
-                </div>
-                <div className="col-span-2">
-                  <label className="text-gray-400 block mb-1">備註說明</label>
-                  <Input value={docNotes} onChange={(e) => setDocNotes(e.target.value)} disabled={!isEditable} placeholder="請輸入領料備註事項..." size="small" />
-                </div>
-              </div>
+              <DynamicForm
+                formId="requisitionHeaderForm"
+                fields={requisitionHeaderFormConfig() as any}
+                defaultValues={{
+                  documentDate: docDate.toDate() as any,
+                  notes: docNotes,
+                }}
+                onSubmit={() => {}}
+                onValuesChange={(values: any) => {
+                  if (!isEditable) return;
+                  if (values.documentDate) setDocDate(dayjs(values.documentDate));
+                  if (values.notes !== undefined) setDocNotes(values.notes || "");
+                }}
+                isViewMode={!isEditable}
+                hideDefaultFooter={true}
+              />
             </Card>
 
-            {/* 領料明細面板 */}
+            {/* 領料明細面板 採用 DynamicForm 架構 */}
             <Card
               size="small"
               title={<strong>📋 領料物料明細</strong>}
@@ -463,68 +449,45 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
                           </div>
                         }
                       >
-                        <div className="grid grid-cols-4 gap-4 mb-3">
-                          <div>
-                            <label className="text-gray-400 block mb-1 text-xs">領用原料料號</label>
-                            <Select
-                              style={{ width: "100%" }}
-                              placeholder="請選擇需求原料"
-                              value={it.materialCode || undefined}
-                              onChange={(val: any) => handleMaterialChange(idx, val)}
-                              disabled={!isEditable}
-                              size="small"
-                            >
-                              {materialsList.map((m) => (
-                                <Select.Option key={m.materialCode} value={m.materialCode}>
-                                  {m.materialCode} ({m.materialForm === "R" ? "捲材" : "片材"})
-                                </Select.Option>
-                              ))}
-                            </Select>
-                          </div>
-                          <div>
-                            <label className="text-gray-400 block mb-1 text-xs">來源儲位</label>
-                            <Select
-                              style={{ width: "100%" }}
-                              value={it.sourceStorageCode}
-                              onChange={(v: any) => {
-                                const updated = [...items];
-                                updated[idx].sourceStorageCode = v;
-                                setItems(updated);
-                              }}
-                              disabled={!isEditable}
-                              size="small"
-                            >
-                              <Select.Option value="TW-GEN-INV">原料主倉 (TW-GEN-INV)</Select.Option>
-                              <Select.Option value="TW-WIP-GEN">現場車間倉 (TW-WIP-GEN)</Select.Option>
-                            </Select>
-                          </div>
-                          <div>
-                            <label className="text-gray-400 block mb-1 text-xs">領用數量 ({it.unit})</label>
-                            {isRoll ? (
-                              <Tooltip title="捲材為一卷一卡控制，此數值由下方選用卷卡自動累計">
-                                <InputNumber style={{ width: "100%" }} value={it.quantity} disabled={true} size="small" />
-                              </Tooltip>
-                            ) : (
-                              <InputNumber
-                                style={{ width: "100%" }}
-                                placeholder="請輸入領用片數"
-                                value={it.quantity}
-                                min={1}
-                                onChange={(val) => handleSheetQuantityChange(idx, val)}
-                                disabled={!isEditable}
-                                size="small"
-                              />
-                            )}
-                          </div>
-                          <div>
-                            <label className="text-gray-400 block mb-1 text-xs">領用面積 (SQM)</label>
-                            <InputNumber style={{ width: "100%" }} value={it.referenceQuantity1} disabled={true} size="small" />
-                          </div>
-                        </div>
+                        <DynamicForm
+                          formId={`requisitionItemForm-${idx}`}
+                          fields={requisitionItemFormConfig(materialsList) as any}
+                          defaultValues={{
+                            materialCode: it.materialCode,
+                            sourceStorageCode: it.sourceStorageCode,
+                            quantity: it.quantity,
+                            referenceQuantity1: it.referenceQuantity1,
+                          }}
+                          onSubmit={() => {}}
+                          onValuesChange={(values: any) => {
+                            if (!isEditable) return;
+                            const updated = [...items];
+                            const matched = materialsList.find((x) => x.materialCode === values.materialCode);
+                            const updatedItem = updated[idx];
+
+                            updatedItem.materialCode = values.materialCode || "";
+                            updatedItem.materialName = matched?.materialName || "";
+                            updatedItem.sourceStorageCode = values.sourceStorageCode || "TW-GEN-INV";
+
+                            const innerIsRoll = matched ? matched.materialForm === "R" : updatedItem.unit === "M";
+                            updatedItem.unit = innerIsRoll ? "M" : "PCS";
+
+                            if (!innerIsRoll) {
+                              updatedItem.quantity = values.quantity || 0;
+                              // 重新計算片材面積
+                              const spec = updatedItem.extra[0] || { widthMm: matched?.widthMm || 0, lengthMm: 0, thicknessMm: 0 };
+                              const area = (spec.widthMm / 1000) * (spec.lengthMm / 1000) * updatedItem.quantity;
+                              updatedItem.referenceQuantity1 = parseFloat(area.toFixed(4));
+                            }
+                            setItems(updated);
+                          }}
+                          isViewMode={!isEditable}
+                          hideDefaultFooter={true}
+                        />
 
                         {/* 捲材：一卷一卡 LPN 卷卡選擇器 */}
                         {isRoll && it.materialCode && (
-                          <div style={{ backgroundColor: "var(--ant-color-fill-alter)", padding: "12px", borderRadius: "6px" }}>
+                          <div style={{ backgroundColor: "var(--ant-color-fill-alter)", padding: "12px", borderRadius: "6px", marginTop: "12px" }}>
                             <div className="flex justify-between items-center mb-2">
                               <span style={{ fontSize: "12px", fontWeight: "bold", color: "var(--ant-color-text-secondary)" }}>
                                 🌀 捲材實體卡追溯 LPN (已選 {it.extra?.length || 0} 卷)
@@ -581,7 +544,7 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
 
                         {/* 片材：規格參數設定 */}
                         {!isRoll && it.materialCode && (
-                          <div style={{ backgroundColor: "var(--ant-color-fill-alter)", padding: "12px", borderRadius: "6px" }}>
+                          <div style={{ backgroundColor: "var(--ant-color-fill-alter)", padding: "12px", borderRadius: "6px", marginTop: "12px" }}>
                             <div style={{ fontSize: "12px", fontWeight: "bold", color: "var(--ant-color-text-secondary)", marginBottom: "8px" }}>
                               🔮 片材規格參數
                             </div>
@@ -591,7 +554,7 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
                                 <InputNumber
                                   style={{ width: "100%" }}
                                   value={it.extra[0]?.widthMm}
-                                  onChange={(val) => handleSheetSpecChange(idx, "widthMm", val || 0)}
+                                  onChange={(val: any) => handleSheetSpecChange(idx, "widthMm", val || 0)}
                                   disabled={!isEditable}
                                   size="small"
                                 />
@@ -601,7 +564,7 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
                                 <InputNumber
                                   style={{ width: "100%" }}
                                   value={it.extra[0]?.lengthMm}
-                                  onChange={(val) => handleSheetSpecChange(idx, "lengthMm", val || 0)}
+                                  onChange={(val: any) => handleSheetSpecChange(idx, "lengthMm", val || 0)}
                                   disabled={!isEditable}
                                   size="small"
                                 />
@@ -611,7 +574,7 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
                                 <InputNumber
                                   style={{ width: "100%" }}
                                   value={it.extra[0]?.thicknessMm}
-                                  onChange={(val) => handleSheetSpecChange(idx, "thicknessMm", val || 0)}
+                                  onChange={(val: any) => handleSheetSpecChange(idx, "thicknessMm", val || 0)}
                                   disabled={!isEditable}
                                   size="small"
                                 />

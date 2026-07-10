@@ -29,6 +29,7 @@ interface DynamicFormProps<TValues extends Record<string, any>> {
   validationMode?: 'onBlur' | 'onChange' | 'onSubmit' | 'onTouched' | 'all';
   layoutType?: 'grouped' | 'tabs';
   disableOtherTabsInEdit?: boolean; // 新增此屬性，在編輯模式下除了基本資料外其餘 tab 皆 disable
+  onValuesChange?: (values: TValues) => void;
 }
 
 const getGroupIcon = (groupName: string) => {
@@ -54,6 +55,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
   validationMode = 'onBlur',
   layoutType = 'grouped',
   disableOtherTabsInEdit = false,
+  onValuesChange,
 }: DynamicFormProps<TValues>) {
   
   // 1. 儲存最新的 Schema Reference
@@ -75,6 +77,13 @@ export function DynamicForm<TValues extends Record<string, any>>({
   // 3. 監聽所有表單數值，建立執行期上下文 (Context)
   const currentValues = watch() as TValues;
   const context: FormContext<TValues> = useMemo(() => ({ values: currentValues }), [currentValues]);
+
+  // 💡 當數值變動時，觸發外部回呼 (用於 LPN 領退料與 BOM 聯動)
+  useEffect(() => {
+    if (onValuesChange && currentValues) {
+      onValuesChange(currentValues);
+    }
+  }, [currentValues, onValuesChange]);
 
   // 4. 動態計算 Zod Schema
   useEffect(() => {
