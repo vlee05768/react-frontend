@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Space, Button, App, Drawer, Spin, Empty } from "antd";
-import { CheckCircleOutlined, SyncOutlined, LockOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, SyncOutlined, LockOutlined, PlusOutlined } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
   getApiV1WorkOrderByWorkOrderNumber,
@@ -262,19 +262,38 @@ export const WorkOrderDrawer: React.FC<WorkOrderDrawerProps> = ({
       <Space>
         <DocumentWatchButton documentType="WorkOrder" documentKey={record?.workOrderNumber} />
         {isDraft && (
-          <ActionButton 
-            key="prepare"
-            intent="primary" 
-            icon={<CheckCircleOutlined />} 
-            disabled={isDetailEditing}
-            onClick={(e) => { 
-              e.preventDefault(); 
-              setEditMode('prepare'); 
-              setActiveTab('requisitions'); 
-            }}
-          >
-            備料作業
-          </ActionButton>
+          <>
+            <ActionButton 
+              key="prepare-tab"
+              intent="primary" 
+              icon={<PlusOutlined />} 
+              disabled={isDetailEditing}
+              onClick={(e) => { 
+                e.preventDefault(); 
+                setActiveTab('requisitions'); 
+              }}
+            >
+              備料作業
+            </ActionButton>
+            <ActionButton 
+              key="prepare-confirm"
+              intent="success" 
+              icon={<CheckCircleOutlined />} 
+              disabled={isDetailEditing}
+              onClick={(e) => { 
+                e.preventDefault(); 
+                modal.confirm({
+                  title: '備料完成確認',
+                  content: '確定要確認備料完成嗎？確認後將無法隨意修改明細，並進入貼合程序。',
+                  centered: true, 
+                  width: 400,
+                  onOk: () => preparationConfirmMut.mutateAsync({}),
+                });
+              }}
+            >
+              備料確認
+            </ActionButton>
+          </>
         )}
 
         {isPrepCompleted && (
