@@ -397,7 +397,7 @@ export const WorkOrderRequisitionTab: React.FC<WorkOrderRequisitionTabProps> = (
                 formId="requisitionHeaderForm"
                 fields={requisitionHeaderFormConfig() as any}
                 defaultValues={{
-                  documentDate: docDate.toDate() as any,
+                  documentDate: docDate as any,
                   notes: docNotes,
                 }}
                 onSubmit={() => {}}

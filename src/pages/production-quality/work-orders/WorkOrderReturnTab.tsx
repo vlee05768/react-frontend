@@ -406,7 +406,7 @@ export const WorkOrderReturnTab: React.FC<WorkOrderReturnTabProps> = ({
                 formId="returnHeaderForm"
                 fields={returnHeaderFormConfig() as any}
                 defaultValues={{
-                  documentDate: docDate.toDate() as any,
+                  documentDate: docDate as any,
                   notes: docNotes,
                 }}
                 onSubmit={() => {}}
