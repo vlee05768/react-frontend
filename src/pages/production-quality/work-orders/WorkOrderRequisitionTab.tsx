@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, Table, Tag, Space, Button, Empty, App, Spin, Badge, InputNumber } from "antd";
+import { Card, Table, Tag, Space, Button, Empty, App, Spin, Modal, InputNumber } from "antd";
 import { PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined, CheckCircleOutlined, SyncOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -38,7 +38,14 @@ export function WorkOrderRequisitionTab({
 
   // 明細項目狀態
   const [items, setItems] = useState<any[]>([]);
-  const [selectedMaterialIndex, setSelectedMaterialIndex] = useState<number | null>(null);
+
+  // 彈窗控制狀態
+  const [itemModalOpen, setItemModalOpen] = useState(false);
+  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
+
+  // 彈窗內的暫存欄位狀態
+  const [modalFormValues, setModalFormValues] = useState<any>({});
+  const [modalExtra, setModalExtra] = useState<any[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
 
   // 1. 取得該製令的領料單列表 (1對1，此處拿第一筆)
@@ -208,7 +215,12 @@ export function WorkOrderRequisitionTab({
   };
 
   // 💡 FIFO 自動配料一鍵完成
-  const handleFifoAutoAllocate = async (index: number, materialCode: string, requiredQty: number, widthMm: number) => {
+  const handleFifoAutoAllocate = async (requiredQty: number, widthMm: number) => {
+    const materialCode = modalFormValues.materialCode;
+    if (!materialCode) {
+      message.warning("請先選定原料料號！");
+      return;
+    }
     if (!requiredQty || requiredQty <= 0) {
       message.warning("請先輸入所需長度，再點擊 FIFO 配料！");
       return;
@@ -227,34 +239,45 @@ export function WorkOrderRequisitionTab({
         return;
       }
 
-      const updated = [...items];
-      updated[index].extra = allocated;
+      setModalExtra(allocated);
       const totalLen = allocated.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
       const totalArea = allocated.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
 
-      updated[index].quantity = totalLen;
-      updated[index].referenceQuantity1 = totalArea;
-      setItems(updated);
+      setModalFormValues((prev: any) => ({
+        ...prev,
+        quantity: totalLen,
+        referenceQuantity1: parseFloat(totalArea.toFixed(4)),
+      }));
+
       message.success(`FIFO 自動配料成功！共為您選中了 ${allocated.length} 卷可用卷卡`);
     } catch (e) {
       message.error("自動配料失敗：" + getApiErrorMessage(e));
     }
   };
 
-  const handleAddNewItem = () => {
-    setItems([
-      ...items,
-      {
-        materialCode: "",
-        materialName: "",
-        unit: "M",
-        quantity: 0,
-        referenceQuantity1: 0,
-        sourceStorageCode: "TW-GEN-INV",
-        notes: "",
-        extra: [],
-      },
-    ]);
+  const handleAddNewItemClick = () => {
+    setEditingItemIndex(null);
+    setModalFormValues({
+      materialCode: "",
+      sourceStorageCode: "TW-GEN-INV",
+      quantity: 0,
+      referenceQuantity1: 0,
+    });
+    setModalExtra([]);
+    setItemModalOpen(true);
+  };
+
+  const handleEditItemClick = (index: number) => {
+    const it = items[index];
+    setEditingItemIndex(index);
+    setModalFormValues({
+      materialCode: it.materialCode,
+      sourceStorageCode: it.sourceStorageCode,
+      quantity: it.quantity,
+      referenceQuantity1: it.referenceQuantity1,
+    });
+    setModalExtra(it.extra || []);
+    setItemModalOpen(true);
   };
 
   const handleRemoveItem = (index: number) => {
@@ -263,42 +286,68 @@ export function WorkOrderRequisitionTab({
     setItems(updated);
   };
 
-  const handleSheetSpecChange = (index: number, field: string, val: number) => {
-    const updated = [...items];
-    const spec = updated[index].extra[0] || { widthMm: 0, lengthMm: 0, thicknessMm: 0 };
+  const handleSheetSpecChange = (field: string, val: number) => {
+    const spec = modalExtra[0] || { widthMm: 0, lengthMm: 0, thicknessMm: 0 };
     spec[field] = val;
-    updated[index].extra = [spec];
+    const updatedExtra = [spec];
+    setModalExtra(updatedExtra);
 
-    const qty = updated[index].quantity || 0;
+    const qty = modalFormValues.quantity || 0;
     const area = (spec.widthMm / 1000) * (spec.lengthMm / 1000) * qty;
-    updated[index].referenceQuantity1 = parseFloat(area.toFixed(4));
-    setItems(updated);
-  };
 
-  const openRollPicker = (index: number) => {
-    setSelectedMaterialIndex(index);
-    setPickerOpen(true);
+    setModalFormValues((prev: any) => ({
+      ...prev,
+      referenceQuantity1: parseFloat(area.toFixed(4)),
+    }));
   };
 
   const handleRollsSelected = (selectedRolls: any[]) => {
-    if (selectedMaterialIndex === null) return;
-    const updated = [...items];
-    const item = updated[selectedMaterialIndex];
-
     const mappedExtra = selectedRolls.map((r) => ({
       rollNo: r.rollNo,
       widthMm: r.widthMm,
       qtyAux: r.currentQtyAux,
     }));
 
-    item.extra = mappedExtra;
+    setModalExtra(mappedExtra);
     const totalLen = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
     const totalArea = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
 
-    item.quantity = parseFloat(totalLen.toFixed(4));
-    item.referenceQuantity1 = parseFloat(totalArea.toFixed(4));
+    setModalFormValues((prev: any) => ({
+      ...prev,
+      quantity: parseFloat(totalLen.toFixed(4)),
+      referenceQuantity1: parseFloat(totalArea.toFixed(4)),
+    }));
+  };
 
+  const handleModalSave = () => {
+    if (!modalFormValues.materialCode) {
+      message.warning("請先選取領用原料料號！");
+      return;
+    }
+    if (modalFormValues.quantity <= 0) {
+      message.warning("領用數量必須大於 0！");
+      return;
+    }
+
+    const matched = materialsList.find((x) => x.materialCode === modalFormValues.materialCode);
+    const newItem = {
+      materialCode: modalFormValues.materialCode,
+      materialName: matched?.materialName || "",
+      unit: matched?.materialForm === "R" ? "M" : "PCS",
+      quantity: modalFormValues.quantity,
+      referenceQuantity1: modalFormValues.referenceQuantity1,
+      sourceStorageCode: modalFormValues.sourceStorageCode,
+      extra: modalExtra,
+    };
+
+    const updated = [...items];
+    if (editingItemIndex !== null) {
+      updated[editingItemIndex] = newItem;
+    } else {
+      updated.push(newItem);
+    }
     setItems(updated);
+    setItemModalOpen(false);
   };
 
   const materialsList = Array.isArray(masterData.items)
@@ -313,6 +362,73 @@ export function WorkOrderRequisitionTab({
   const showHeaderForm = isCreating || !!activeDocNo;
   const isEditable = isCreating || isHeaderEditing;
   const isPosted = activeRecord && !!activeRecord.confirmDate;
+
+  // 定義明細表格欄位
+  const itemColumns = [
+    {
+      title: "操作",
+      key: "action",
+      width: 100,
+      render: (_: any, __: any, index: number) => {
+        if (!isEditable) return null;
+        return (
+          <Space>
+            <Button
+              type="text"
+              className="text-blue-500 p-0"
+              icon={<EditOutlined />}
+              onClick={() => handleEditItemClick(index)}
+            />
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleRemoveItem(index)}
+            />
+          </Space>
+        );
+      },
+    },
+    { title: "原料料號", dataIndex: "materialCode", key: "materialCode" },
+    { title: "原料名稱", dataIndex: "materialName", key: "materialName" },
+    { title: "單位", dataIndex: "unit", key: "unit", width: 80 },
+    { title: "領用數量", dataIndex: "quantity", key: "quantity", width: 100, render: (v: number) => <strong>{v}</strong> },
+    { title: "領用面積(SQM)", dataIndex: "referenceQuantity1", key: "referenceQuantity1", width: 140, render: (v: number) => v?.toFixed(4) },
+    { title: "來源儲位", dataIndex: "sourceStorageCode", key: "sourceStorageCode", render: (v: string) => v === "TW-GEN-INV" ? "原料主倉" : "現場車間倉" },
+    {
+      title: "實物卡追溯 / 片材規格",
+      key: "details",
+      render: (_: any, record: any) => {
+        const matched = materialsList.find((x) => x.materialCode === record.materialCode);
+        const isRoll = matched ? matched.materialForm === "R" : record.unit === "M";
+        if (isRoll) {
+          return (
+            <div>
+              <Tag color="cyan">捲材</Tag>
+              {record.extra && record.extra.length > 0 ? (
+                <span className="text-xs text-gray-400">已選 {record.extra.length} 卷 LPN</span>
+              ) : (
+                <span className="text-xs text-red-400">尚未選擇任何卷卡</span>
+              )}
+            </div>
+          );
+        } else {
+          const spec = record.extra?.[0] || {};
+          return (
+            <div>
+              <Tag color="purple">片材</Tag>
+              <span className="text-xs text-gray-400">
+                規格: {spec.widthMm || 0}x{spec.lengthMm || 0}mm (厚: {spec.thicknessMm || 0}mm)
+              </span>
+            </div>
+          );
+        }
+      },
+    },
+  ];
+
+  const matchedMaterial = materialsList.find((x) => x.materialCode === modalFormValues.materialCode);
+  const modalIsRoll = matchedMaterial ? matchedMaterial.materialForm === "R" : modalFormValues.unit === "M";
 
   return (
     <div className="flex flex-col gap-4">
@@ -418,198 +534,202 @@ export function WorkOrderRequisitionTab({
               />
             </Card>
 
-            {/* 領料明細面板 採用 DynamicForm 架構 */}
+            {/* 領料明細面板 採用與 BOM 一致的 Table & Modal 編輯架構 */}
             <Card
               size="small"
               title={<strong>📋 領料物料明細</strong>}
               extra={
                 isEditable && (
-                  <Button type="dashed" size="small" icon={<PlusOutlined />} onClick={handleAddNewItem}>
+                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={handleAddNewItemClick}>
                     新增領用物料
                   </Button>
                 )
               }
             >
-              <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-                {items.length === 0 ? (
-                  <Empty description="尚未加入任何領用物料項目，請點選右上方新增項目。" style={{ padding: "20px 0" }} />
-                ) : (
-                  items.map((it, idx) => {
-                    const matchedMaterial = materialsList.find((x) => x.materialCode === it.materialCode);
-                    const isRoll = matchedMaterial ? matchedMaterial.materialForm === "R" : it.unit === "M";
-
-                    return (
-                      <Card
-                        key={idx}
-                        size="small"
-                        type="inner"
-                        title={
-                          <div className="flex justify-between items-center">
-                            <Space>
-                              <Badge count={idx + 1} style={{ backgroundColor: "#1677ff" }} />
-                              <strong>{it.materialName || "請選擇料號"}</strong>
-                              {it.materialCode && <Tag color="blue">{it.materialCode}</Tag>}
-                            </Space>
-                            {isEditable && (
-                              <Button type="text" danger size="small" icon={<DeleteOutlined />} onClick={() => handleRemoveItem(idx)} />
-                            )}
-                          </div>
-                        }
-                      >
-                        <DynamicForm
-                          formId={`requisitionItemForm-${idx}`}
-                          fields={requisitionItemFormConfig(materialsList) as any}
-                          defaultValues={{
-                            materialCode: it.materialCode,
-                            sourceStorageCode: it.sourceStorageCode,
-                            quantity: it.quantity,
-                            referenceQuantity1: it.referenceQuantity1,
-                          }}
-                          onSubmit={() => {}}
-                          onValuesChange={(values: any) => {
-                            if (!isEditable) return;
-                            const updated = [...items];
-                            const matched = materialsList.find((x) => x.materialCode === values.materialCode);
-                            const updatedItem = updated[idx];
-
-                            updatedItem.materialCode = values.materialCode || "";
-                            updatedItem.materialName = matched?.materialName || "";
-                            updatedItem.sourceStorageCode = values.sourceStorageCode || "TW-GEN-INV";
-
-                            const innerIsRoll = matched ? matched.materialForm === "R" : updatedItem.unit === "M";
-                            updatedItem.unit = innerIsRoll ? "M" : "PCS";
-
-                            if (!innerIsRoll) {
-                              updatedItem.quantity = values.quantity || 0;
-                              // 重新計算片材面積
-                              const spec = updatedItem.extra[0] || { widthMm: matched?.widthMm || 0, lengthMm: 0, thicknessMm: 0 };
-                              const area = (spec.widthMm / 1000) * (spec.lengthMm / 1000) * updatedItem.quantity;
-                              updatedItem.referenceQuantity1 = parseFloat(area.toFixed(4));
-                            }
-                            setItems(updated);
-                          }}
-                          isViewMode={!isEditable}
-                          hideDefaultFooter={true}
-                        />
-
-                        {/* 捲材：一卷一卡 LPN 卷卡選擇器 */}
-                        {isRoll && it.materialCode && (
-                          <div className="bg-[var(--ant-color-fill-alter)] p-3 rounded-md mt-3">
-                            <div className="flex justify-between items-center mb-2">
-                              <span style={{ fontSize: "12px", fontWeight: "bold", color: "var(--ant-color-text-secondary)" }}>
-                                🌀 捲材實體卡追溯 LPN (已選 {it.extra?.length || 0} 卷)
-                              </span>
-                              {isEditable && (
-                                <Space>
-                                  <Button
-                                    size="small"
-                                    type="primary"
-                                    ghost
-                                    icon={<PlusOutlined />}
-                                    onClick={() => openRollPicker(idx)}
-                                  >
-                                    智慧挑選卷卡
-                                  </Button>
-                                  <InputNumber
-                                    size="small"
-                                    style={{ width: "120px" }}
-                                    placeholder="FIFO 需求(米)"
-                                    id={`tab-fifo-input-${idx}`}
-                                  />
-                                  <Button
-                                    size="small"
-                                    type="dashed"
-                                    onClick={() => {
-                                      const reqLen = (document.getElementById(`tab-fifo-input-${idx}`) as HTMLInputElement)?.value;
-                                      handleFifoAutoAllocate(idx, it.materialCode, parseFloat(reqLen), matchedMaterial?.widthMm || 0);
-                                    }}
-                                  >
-                                    一鍵 FIFO 配料
-                                  </Button>
-                                </Space>
-                              )}
-                            </div>
-                            {it.extra && it.extra.length > 0 ? (
-                              <Table
-                                size="small"
-                                dataSource={it.extra}
-                                pagination={false}
-                                rowKey="rollNo"
-                                columns={[
-                                  { title: "物料卷卡號 (LPN)", dataIndex: "rollNo", key: "rollNo" },
-                                  { title: "實體規格寬度", dataIndex: "widthMm", key: "widthMm", render: (v) => `${v} mm` },
-                                  { title: "領用長度 (M)", dataIndex: "qtyAux", key: "qtyAux", render: (v) => <strong>{v} M</strong> },
-                                ]}
-                              />
-                            ) : (
-                              <div className="py-2 text-center text-[var(--ant-color-text-placeholder)] text-xs">
-                                目前尚未選擇任何實體物料卷卡，請點選上方按鈕挑選！
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* 片材：規格參數設定 */}
-                        {!isRoll && it.materialCode && (
-                          <div className="bg-[var(--ant-color-fill-alter)] p-3 rounded-md mt-3">
-                            <div className="text-xs font-bold text-[var(--ant-color-text-secondary)] mb-2">
-                              🔮 片材規格參數
-                            </div>
-                            <div className="grid grid-cols-3 gap-4">
-                              <div>
-                                <label className="text-gray-400 block mb-1 text-xs">片料寬度 (mm)</label>
-                                <InputNumber
-                                  style={{ width: "100%" }}
-                                  value={it.extra[0]?.widthMm}
-                                  onChange={(val: any) => handleSheetSpecChange(idx, "widthMm", val || 0)}
-                                  disabled={!isEditable}
-                                  size="small"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-gray-400 block mb-1 text-xs">片料長度 (mm)</label>
-                                <InputNumber
-                                  style={{ width: "100%" }}
-                                  value={it.extra[0]?.lengthMm}
-                                  onChange={(val: any) => handleSheetSpecChange(idx, "lengthMm", val || 0)}
-                                  disabled={!isEditable}
-                                  size="small"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-gray-400 block mb-1 text-xs">厚度 (mm)</label>
-                                <InputNumber
-                                  style={{ width: "100%" }}
-                                  value={it.extra[0]?.thicknessMm}
-                                  onChange={(val: any) => handleSheetSpecChange(idx, "thicknessMm", val || 0)}
-                                  disabled={!isEditable}
-                                  size="small"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </Card>
-                    );
-                  })
-                )}
-              </Space>
+              <Table
+                size="small"
+                dataSource={items}
+                columns={itemColumns}
+                pagination={false}
+                rowKey="materialCode"
+                locale={{ emptyText: "尚未加入任何領用物料項目，請點選右上方新增項目。" }}
+              />
             </Card>
           </div>
         )}
       </Spin>
 
+      {/* 領料明細項目編輯彈窗 採用 DynamicForm 架構 */}
+      {itemModalOpen && (
+        <Modal
+          title={editingItemIndex !== null ? "編輯領用原料" : "新增領用原料"}
+          open={itemModalOpen}
+          onCancel={() => setItemModalOpen(false)}
+          okText="確定"
+          cancelText="取消"
+          onOk={handleModalSave}
+          width="60vw"
+          destroyOnClose
+        >
+          <div className="py-4 space-y-4">
+            <DynamicForm
+              formId="requisitionItemForm"
+              fields={requisitionItemFormConfig(materialsList) as any}
+              defaultValues={{
+                materialCode: modalFormValues.materialCode,
+                sourceStorageCode: modalFormValues.sourceStorageCode,
+                quantity: modalFormValues.quantity,
+                referenceQuantity1: modalFormValues.referenceQuantity1,
+              }}
+              onSubmit={() => {}}
+              onValuesChange={(values: any) => {
+                const matched = materialsList.find((x) => x.materialCode === values.materialCode);
+                const innerIsRoll = matched ? matched.materialForm === "R" : modalFormValues.unit === "M";
+
+                // 比對是否有實質改變
+                if (
+                  values.materialCode !== modalFormValues.materialCode ||
+                  values.sourceStorageCode !== modalFormValues.sourceStorageCode ||
+                  values.quantity !== modalFormValues.quantity
+                ) {
+                  const updatedValues = {
+                    ...modalFormValues,
+                    materialCode: values.materialCode,
+                    sourceStorageCode: values.sourceStorageCode,
+                  };
+
+                  if (values.materialCode !== modalFormValues.materialCode) {
+                    // 原料料號改變，初始化 extra 欄位
+                    updatedValues.quantity = 0;
+                    updatedValues.referenceQuantity1 = 0;
+                    setModalExtra(innerIsRoll ? [] : [{ widthMm: matched?.widthMm || 0, lengthMm: 0, thicknessMm: 0 }]);
+                  } else if (!innerIsRoll) {
+                    // 片材數量改變，重新計算面積
+                    updatedValues.quantity = values.quantity || 0;
+                    const spec = modalExtra[0] || { widthMm: matched?.widthMm || 0, lengthMm: 0, thicknessMm: 0 };
+                    const area = (spec.widthMm / 1000) * (spec.lengthMm / 1000) * updatedValues.quantity;
+                    updatedValues.referenceQuantity1 = parseFloat(area.toFixed(4));
+                  } else {
+                    // 捲材數量由下層 LPN 控制
+                  }
+
+                  setModalFormValues(updatedValues);
+                }
+              }}
+              isViewMode={false}
+              hideDefaultFooter={true}
+            />
+
+            {/* 捲材：一卷一卡 LPN 卷卡選擇區 */}
+            {modalIsRoll && modalFormValues.materialCode && (
+              <div className="bg-[var(--ant-color-fill-alter)] p-4 rounded-md mt-4 border border-[var(--ant-color-border-secondary)]">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-xs font-bold text-[var(--ant-color-text-secondary)]">
+                    🌀 捲材實體卡追溯 LPN (已選 {modalExtra?.length || 0} 卷)
+                  </span>
+                  <Space>
+                    <Button
+                      size="small"
+                      type="primary"
+                      ghost
+                      icon={<PlusOutlined />}
+                      onClick={() => setPickerOpen(true)}
+                    >
+                      智慧挑選卷卡
+                    </Button>
+                    <InputNumber
+                      size="small"
+                      style={{ width: "120px" }}
+                      placeholder="FIFO 需求(米)"
+                      id="modal-fifo-input"
+                    />
+                    <Button
+                      size="small"
+                      type="dashed"
+                      onClick={() => {
+                        const reqLen = (document.getElementById("modal-fifo-input") as HTMLInputElement)?.value;
+                        handleFifoAutoAllocate(parseFloat(reqLen), matchedMaterial?.widthMm || 0);
+                      }}
+                    >
+                      一鍵 FIFO 配料
+                    </Button>
+                  </Space>
+                </div>
+                {modalExtra && modalExtra.length > 0 ? (
+                  <Table
+                    size="small"
+                    dataSource={modalExtra}
+                    pagination={false}
+                    rowKey="rollNo"
+                    columns={[
+                      { title: "物料卷卡號 (LPN)", dataIndex: "rollNo", key: "rollNo" },
+                      { title: "實體規格寬度", dataIndex: "widthMm", key: "widthMm", render: (v) => `${v} mm` },
+                      { title: "領用長度 (M)", dataIndex: "qtyAux", key: "qtyAux", render: (v) => <strong>{v} M</strong> },
+                    ]}
+                  />
+                ) : (
+                  <div className="py-4 text-center text-[var(--ant-color-text-placeholder)] text-xs">
+                    目前尚未選擇任何實體物料卷卡，請點選上方按鈕挑選！
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 片材：規格參數設定 */}
+            {!modalIsRoll && modalFormValues.materialCode && (
+              <div className="bg-[var(--ant-color-fill-alter)] p-4 rounded-md mt-4 border border-[var(--ant-color-border-secondary)]">
+                <div className="text-xs font-bold text-[var(--ant-color-text-secondary)] mb-3">
+                  🔮 片材規格參數設定
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-gray-400 block mb-1 text-xs">片料寬度 (mm)</label>
+                    <InputNumber
+                      style={{ width: "100%" }}
+                      value={modalExtra[0]?.widthMm}
+                      onChange={(val: any) => handleSheetSpecChange("widthMm", val || 0)}
+                      size="small"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-gray-400 block mb-1 text-xs">片料長度 (mm)</label>
+                    <InputNumber
+                      style={{ width: "100%" }}
+                      value={modalExtra[0]?.lengthMm}
+                      onChange={(val: any) => handleSheetSpecChange("lengthMm", val || 0)}
+                      size="small"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-gray-400 block mb-1 text-xs">厚度 (mm)</label>
+                    <InputNumber
+                      style={{ width: "100%" }}
+                      value={modalExtra[0]?.thicknessMm}
+                      onChange={(val: any) => handleSheetSpecChange("thicknessMm", val || 0)}
+                      size="small"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
+
       {/* 智慧 LPN 卷卡選擇 Modal */}
-      {pickerOpen && selectedMaterialIndex !== null && (
+      {pickerOpen && modalFormValues.materialCode && (
         <RollSubstitutionPicker
           visible={pickerOpen}
-          materialCode={items[selectedMaterialIndex]?.materialCode}
-          requiredWidth={materialsList.find((x) => x.materialCode === items[selectedMaterialIndex]?.materialCode)?.widthMm}
-          selectedRollNos={(items[selectedMaterialIndex]?.extra || []).map((x: any) => x.rollNo)}
+          materialCode={modalFormValues.materialCode}
+          requiredWidth={matchedMaterial?.widthMm}
+          selectedRollNos={modalExtra.map((x: any) => x.rollNo)}
           onCancel={() => setPickerOpen(false)}
-          onSelect={handleRollsSelected}
+          onSelect={(selectedRolls) => {
+            handleRollsSelected(selectedRolls);
+            setPickerOpen(false);
+          }}
         />
       )}
     </div>
   );
-};
+}

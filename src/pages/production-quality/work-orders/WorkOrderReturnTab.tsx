@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, Table, Tag, Space, Button, Empty, App, Spin, Badge, InputNumber } from "antd";
+import { Card, Table, Tag, Space, Button, Empty, App, Spin, Modal, InputNumber } from "antd";
 import { PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined, CheckCircleOutlined, SyncOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -37,6 +37,16 @@ export function WorkOrderReturnTab({
 
   // 明細項目狀態
   const [items, setItems] = useState<any[]>([]);
+
+  // 彈窗控制狀態
+  const [itemModalOpen, setItemModalOpen] = useState(false);
+  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
+
+  // 彈窗內的暫存狀態
+  const [modalFormValues, setModalFormValues] = useState<any>({});
+  const [modalExtra, setModalExtra] = useState<any[]>([]);
+  const [wipRolls, setWipRolls] = useState<any[]>([]);
+  const [wipLoading, setWipLoading] = useState(false);
 
   // 1. 取得該製令的退料單列表 (1對1，拿第一筆)
   const { data: returnsResponse, isLoading: listLoading, refetch: refetchList } = useQuery({
@@ -84,8 +94,6 @@ export function WorkOrderReturnTab({
           targetStorageCode: it.targetStorageCode || "TW-GEN-INV",
           notes: it.notes || "",
           extra,
-          wipRolls: [],
-          wipLoading: false,
         };
       });
       setItems(mappedItems);
@@ -206,22 +214,33 @@ export function WorkOrderReturnTab({
     }
   };
 
-  const handleAddNewItem = () => {
-    setItems([
-      ...items,
-      {
-        materialCode: "",
-        materialName: "",
-        unit: "M",
-        quantity: 0,
-        referenceQuantity1: 0,
-        targetStorageCode: "TW-GEN-INV",
-        notes: "",
-        extra: [],
-        wipRolls: [],
-        wipLoading: false,
-      },
-    ]);
+  const handleAddNewItemClick = () => {
+    setEditingItemIndex(null);
+    setModalFormValues({
+      materialCode: "",
+      targetStorageCode: "TW-GEN-INV",
+      quantity: 0,
+      referenceQuantity1: 0,
+    });
+    setModalExtra([]);
+    setWipRolls([]);
+    setItemModalOpen(true);
+  };
+
+  const handleEditItemClick = async (index: number) => {
+    const it = items[index];
+    setEditingItemIndex(index);
+    setModalFormValues({
+      materialCode: it.materialCode,
+      targetStorageCode: it.targetStorageCode,
+      quantity: it.quantity,
+      referenceQuantity1: it.referenceQuantity1,
+    });
+    setModalExtra(it.extra || []);
+    setItemModalOpen(true);
+
+    // 獲取該料號對應的 WIP rolls
+    await fetchWipRolls(it.materialCode);
   };
 
   const handleRemoveItem = (index: number) => {
@@ -231,19 +250,9 @@ export function WorkOrderReturnTab({
   };
 
   // 當退料料號變更時，自動獲取該料號在該製令 WIP 狀態中的所有可用卷卡 LPN
-  const handleMaterialChange = async (index: number, val: string) => {
-    const matched = materialsList.find((x) => x.materialCode === val);
-    const updated = [...items];
-    updated[index].materialCode = val;
-    updated[index].materialName = matched?.materialName || "";
-    updated[index].unit = "M";
-    updated[index].quantity = 0;
-    updated[index].referenceQuantity1 = 0;
-    updated[index].extra = [];
-    updated[index].wipLoading = true;
-    setItems(updated);
-
+  const fetchWipRolls = async (val: string) => {
     try {
+      setWipLoading(true);
       const res: any = await getApiV1WorkOrderReturnWipRolls({
         query: {
           workOrderNumber: masterData.workOrderNumber!,
@@ -251,57 +260,90 @@ export function WorkOrderReturnTab({
         }
       });
       const wipList = res.data?.data || [];
-      const updatedAfterFetch = [...items];
-      updatedAfterFetch[index].wipRolls = wipList;
-      updatedAfterFetch[index].wipLoading = false;
-      setItems(updatedAfterFetch);
+      setWipRolls(wipList);
       if (wipList.length === 0) {
         message.warning(`注意：該料號 ${val} 目前在車間 WIP 現場無任何未結案的物料卷卡！`);
       }
     } catch (e) {
-      const updatedAfterFetch = [...items];
-      updatedAfterFetch[index].wipLoading = false;
-      setItems(updatedAfterFetch);
       message.error("獲取 WIP 卷卡失敗：" + getApiErrorMessage(e));
+    } finally {
+      setWipLoading(false);
     }
   };
 
-  const handleWipRollCheck = (index: number, rollNo: string, checked: boolean, defaultQty: number, widthMm: number) => {
-    const updated = [...items];
-    const item = updated[index];
+  const handleWipRollCheck = (rollNo: string, checked: boolean, defaultQty: number, widthMm: number) => {
+    let updatedExtra = [...modalExtra];
     if (checked) {
-      const exists = item.extra.find((x: any) => x.rollNo === rollNo);
+      const exists = updatedExtra.find((x: any) => x.rollNo === rollNo);
       if (!exists) {
-        item.extra.push({
+        updatedExtra.push({
           rollNo,
           widthMm,
           qtyAux: defaultQty,
         });
       }
     } else {
-      item.extra = item.extra.filter((x: any) => x.rollNo !== rollNo);
+      updatedExtra = updatedExtra.filter((x: any) => x.rollNo !== rollNo);
     }
 
-    const totalLen = item.extra.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
-    const totalArea = item.extra.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
-    item.quantity = parseFloat(totalLen.toFixed(4));
-    item.referenceQuantity1 = parseFloat(totalArea.toFixed(4));
-    setItems(updated);
+    setModalExtra(updatedExtra);
+    const totalLen = updatedExtra.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
+    const totalArea = updatedExtra.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
+
+    setModalFormValues((prev: any) => ({
+      ...prev,
+      quantity: parseFloat(totalLen.toFixed(4)),
+      referenceQuantity1: parseFloat(totalArea.toFixed(4)),
+    }));
   };
 
-  const handleWipRollQtyChange = (index: number, rollNo: string, val: number | null) => {
-    const updated = [...items];
-    const item = updated[index];
-    const roll = item.extra.find((x: any) => x.rollNo === rollNo);
+  const handleWipRollQtyChange = (rollNo: string, val: number | null) => {
+    const updatedExtra = [...modalExtra];
+    const roll = updatedExtra.find((x: any) => x.rollNo === rollNo);
     if (roll) {
       roll.qtyAux = val || 0;
     }
 
-    const totalLen = item.extra.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
-    const totalArea = item.extra.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
-    item.quantity = parseFloat(totalLen.toFixed(4));
-    item.referenceQuantity1 = parseFloat(totalArea.toFixed(4));
+    setModalExtra(updatedExtra);
+    const totalLen = updatedExtra.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
+    const totalArea = updatedExtra.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
+
+    setModalFormValues((prev: any) => ({
+      ...prev,
+      quantity: parseFloat(totalLen.toFixed(4)),
+      referenceQuantity1: parseFloat(totalArea.toFixed(4)),
+    }));
+  };
+
+  const handleModalSave = () => {
+    if (!modalFormValues.materialCode) {
+      message.warning("請先選取退回原料料號！");
+      return;
+    }
+    if (modalFormValues.quantity <= 0) {
+      message.warning("退回數量必須大於 0，請勾選下方 WIP 卷卡並輸入退回長度！");
+      return;
+    }
+
+    const matched = materialsList.find((x) => x.materialCode === modalFormValues.materialCode);
+    const newItem = {
+      materialCode: modalFormValues.materialCode,
+      materialName: matched?.materialName || "",
+      unit: "M",
+      quantity: modalFormValues.quantity,
+      referenceQuantity1: modalFormValues.referenceQuantity1,
+      targetStorageCode: modalFormValues.targetStorageCode,
+      extra: modalExtra,
+    };
+
+    const updated = [...items];
+    if (editingItemIndex !== null) {
+      updated[editingItemIndex] = newItem;
+    } else {
+      updated.push(newItem);
+    }
     setItems(updated);
+    setItemModalOpen(false);
   };
 
   const filteredMaterials = Array.isArray(masterData.items)
@@ -323,6 +365,54 @@ export function WorkOrderReturnTab({
   const isEditable = isCreating || isHeaderEditing;
   const isPosted = activeRecord && !!activeRecord.confirmDate;
 
+  // 定義明細表格欄位
+  const itemColumns = [
+    {
+      title: "操作",
+      key: "action",
+      width: 100,
+      render: (_: any, __: any, index: number) => {
+        if (!isEditable) return null;
+        return (
+          <Space>
+            <Button
+              type="text"
+              className="text-blue-500 p-0"
+              icon={<EditOutlined />}
+              onClick={() => handleEditItemClick(index)}
+            />
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleRemoveItem(index)}
+            />
+          </Space>
+        );
+      },
+    },
+    { title: "原料料號", dataIndex: "materialCode", key: "materialCode" },
+    { title: "原料名稱", dataIndex: "materialName", key: "materialName" },
+    { title: "單位", dataIndex: "unit", key: "unit", width: 80 },
+    { title: "退回數量(M)", dataIndex: "quantity", key: "quantity", width: 120, render: (v: number) => <strong>{v}</strong> },
+    { title: "退回面積(SQM)", dataIndex: "referenceQuantity1", key: "referenceQuantity1", width: 140, render: (v: number) => v?.toFixed(4) },
+    { title: "退回目的儲位", dataIndex: "targetStorageCode", key: "targetStorageCode", render: (v: string) => v === "TW-GEN-INV" ? "原料主倉" : v },
+    {
+      title: "退回卷卡明細",
+      key: "details",
+      render: (_: any, record: any) => (
+        <div>
+          <Tag color="orange">捲材</Tag>
+          {record.extra && record.extra.length > 0 ? (
+            <span className="text-xs text-gray-400">已辦退 {record.extra.length} 卷 LPN</span>
+          ) : (
+            <span className="text-xs text-red-400">尚未勾選任何 WIP 卷卡</span>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-4">
       <Spin spinning={listLoading || detailLoading}>
@@ -342,7 +432,7 @@ export function WorkOrderReturnTab({
               size="small"
               title={
                 <Space>
-                  <strong>{isCreating ? "🆕 新增退料單" : `📄 退料單 - ${activeDocNo}`}</strong>
+                  <strong>{isCreating ? "新增退料單" : `📄 退料單 - ${activeDocNo}`}</strong>
                   {activeRecord && (
                     activeRecord.confirmDate ? (
                       <Tag color="success">🟢 已確認退料</Tag>
@@ -427,153 +517,158 @@ export function WorkOrderReturnTab({
               />
             </Card>
 
-            {/* 退料明細 採用 DynamicForm */}
+            {/* 退料明細 採用與 BOM 一致的 Table & Modal 架構 */}
             <Card
               size="small"
               title={<strong>📋 退回物料明細 (*僅支援卷料)</strong>}
               extra={
                 isEditable && (
-                  <Button type="dashed" size="small" icon={<PlusOutlined />} onClick={handleAddNewItem}>
+                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={handleAddNewItemClick}>
                     新增退回物料
                   </Button>
                 )
               }
             >
-              <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-                {items.length === 0 ? (
-                  <Empty description="尚未加入任何退料明細項目，請點選右上方新增項目。" style={{ padding: "20px 0" }} />
-                ) : (
-                  items.map((it, idx) => {
-                    return (
-                      <Card
-                        key={idx}
-                        size="small"
-                        type="inner"
-                        title={
-                          <div className="flex justify-between items-center">
-                            <Space>
-                              <Badge count={idx + 1} style={{ backgroundColor: "#fa8c16" }} />
-                              <strong>{it.materialName || "請選擇料號"}</strong>
-                              {it.materialCode && <Tag color="orange">{it.materialCode}</Tag>}
-                            </Space>
-                            {isEditable && (
-                              <Button type="text" danger size="small" icon={<DeleteOutlined />} onClick={() => handleRemoveItem(idx)} />
-                            )}
-                          </div>
-                        }
-                      >
-                        <DynamicForm
-                          formId={`returnItemForm-${idx}`}
-                          fields={returnItemFormConfig(filteredMaterials) as any}
-                          defaultValues={{
-                            materialCode: it.materialCode,
-                            targetStorageCode: it.targetStorageCode,
-                            quantity: it.quantity,
-                            referenceQuantity1: it.referenceQuantity1,
-                          }}
-                          onSubmit={() => {}}
-                          onValuesChange={(values: any) => {
-                            if (!isEditable) return;
-                            if (values.materialCode && values.materialCode !== it.materialCode) {
-                              handleMaterialChange(idx, values.materialCode);
-                            } else {
-                              const updated = [...items];
-                              updated[idx].targetStorageCode = values.targetStorageCode || "TW-GEN-INV";
-                              setItems(updated);
-                            }
-                          }}
-                          isViewMode={!isEditable}
-                          hideDefaultFooter={true}
-                        />
-
-                        {/* 選擇車間現場正在 WIP 狀態的 LPN 列表 */}
-                        {it.materialCode && (
-                          <div className="bg-[var(--ant-color-fill-alter)] p-3 rounded-md mt-3">
-                            <div className="text-xs font-bold text-[var(--ant-color-text-secondary)] mb-2">
-                              🌀 勾選欲辦理退料回庫的 WIP 現場卷卡 (LPN)
-                            </div>
-                            <Spin spinning={it.wipLoading || false}>
-                              {!isEditable ? (
-                                <Table
-                                  size="small"
-                                  dataSource={it.extra}
-                                  pagination={false}
-                                  rowKey="rollNo"
-                                  columns={[
-                                    { title: "物料卷卡號 (LPN)", dataIndex: "rollNo", key: "rollNo" },
-                                    { title: "規格寬度", dataIndex: "widthMm", key: "widthMm", render: (v) => `${v} mm` },
-                                    { title: "退回實測剩餘長度 (M)", dataIndex: "qtyAux", key: "qtyAux", render: (v) => <strong>{v} M</strong> },
-                                  ]}
-                                />
-                              ) : (
-                                <Table
-                                  size="small"
-                                  dataSource={it.wipRolls || []}
-                                  pagination={false}
-                                  rowKey="rollNo"
-                                  locale={{ emptyText: "目前在 WIP 現場無任何可供退回的卷卡" }}
-                                  rowSelection={{
-                                    type: "checkbox",
-                                    selectedRowKeys: it.extra.map((x: any) => x.rollNo),
-                                    onSelect: (rec: any, selected: boolean) => {
-                                      handleWipRollCheck(idx, rec.rollNo, selected, rec.qtyAux, rec.widthMm);
-                                    },
-                                    onSelectAll: (selected: boolean, selectedRowsList: any[]) => {
-                                      const updated = [...items];
-                                      if (selected) {
-                                        updated[idx].extra = selectedRowsList.map((r: any) => ({
-                                          rollNo: r.rollNo,
-                                          widthMm: r.widthMm,
-                                          qtyAux: r.qtyAux,
-                                        }));
-                                      } else {
-                                        updated[idx].extra = [];
-                                      }
-                                      const totalLen = updated[idx].extra.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
-                                      const totalArea = updated[idx].extra.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
-                                      updated[idx].quantity = parseFloat(totalLen.toFixed(4));
-                                      updated[idx].referenceQuantity1 = parseFloat(totalArea.toFixed(4));
-                                      setItems(updated);
-                                    },
-                                  }}
-                                  columns={[
-                                    { title: "物料卷卡號 (LPN)", dataIndex: "rollNo", key: "rollNo" },
-                                    { title: "WIP 寬度", dataIndex: "widthMm", key: "widthMm", render: (v) => `${v} mm` },
-                                    { title: "WIP 現場剩餘量", dataIndex: "qtyAux", key: "qtyAux", render: (v) => <span>{v} M</span> },
-                                    {
-                                      title: "退回實測長度 (M)",
-                                      key: "returnedQty",
-                                      render: (_, rec: any) => {
-                                        const checked = it.extra.find((x: any) => x.rollNo === rec.rollNo);
-                                        return (
-                                          <InputNumber
-                                            size="small"
-                                            style={{ width: "130px" }}
-                                            placeholder="請輸入退回實測量"
-                                            disabled={!checked}
-                                            value={checked ? checked.qtyAux : undefined}
-                                            max={rec.qtyAux}
-                                            min={0}
-                                            onChange={(val: any) => handleWipRollQtyChange(idx, rec.rollNo, val)}
-                                          />
-                                        );
-                                      },
-                                    },
-                                  ]}
-                                />
-                              )}
-                            </Spin>
-                          </div>
-                        )}
-                      </Card>
-                    );
-                  })
-                )}
-              </Space>
+              <Table
+                size="small"
+                dataSource={items}
+                columns={itemColumns}
+                pagination={false}
+                rowKey="materialCode"
+                locale={{ emptyText: "尚未加入任何退料明細項目，請點選右上方新增項目。" }}
+              />
             </Card>
           </div>
         )}
       </Spin>
+
+      {/* 退料明細項目編輯彈窗 採用 DynamicForm */}
+      {itemModalOpen && (
+        <Modal
+          title={editingItemIndex !== null ? "編輯退回原料" : "新增退回原料"}
+          open={itemModalOpen}
+          onCancel={() => setItemModalOpen(false)}
+          okText="確定"
+          cancelText="取消"
+          onOk={handleModalSave}
+          width="60vw"
+          destroyOnClose
+        >
+          <div className="py-4 space-y-4">
+            <DynamicForm
+              formId="returnItemForm"
+              fields={returnItemFormConfig(filteredMaterials) as any}
+              defaultValues={{
+                materialCode: modalFormValues.materialCode,
+                targetStorageCode: modalFormValues.targetStorageCode,
+                quantity: modalFormValues.quantity,
+                referenceQuantity1: modalFormValues.referenceQuantity1,
+              }}
+              onSubmit={() => {}}
+              onValuesChange={async (values: any) => {
+                if (
+                  values.materialCode !== modalFormValues.materialCode ||
+                  values.targetStorageCode !== modalFormValues.targetStorageCode
+                ) {
+                  const updatedValues = {
+                    ...modalFormValues,
+                    materialCode: values.materialCode,
+                    targetStorageCode: values.targetStorageCode,
+                  };
+
+                  if (values.materialCode !== modalFormValues.materialCode) {
+                    // 料號變更，初始化 WIP 列表
+                    updatedValues.quantity = 0;
+                    updatedValues.referenceQuantity1 = 0;
+                    setModalExtra([]);
+                    setWipRolls([]);
+                    if (values.materialCode) {
+                      await fetchWipRolls(values.materialCode);
+                    }
+                  }
+
+                  setModalFormValues(updatedValues);
+                }
+              }}
+              isViewMode={false}
+              hideDefaultFooter={true}
+            />
+
+            {/* 選擇車間現場正在 WIP 狀態的 LPN 列表 */}
+            {modalFormValues.materialCode && (
+              <div className="bg-[var(--ant-color-fill-alter)] p-4 rounded-md mt-4 border border-[var(--ant-color-border-secondary)]">
+                <div className="text-xs font-bold text-[var(--ant-color-text-secondary)] mb-3">
+                  🌀 勾選欲辦理退料回庫的 WIP 現場卷卡 (LPN)
+                </div>
+                <Spin spinning={wipLoading}>
+                  <Table
+                    size="small"
+                    dataSource={wipRolls}
+                    pagination={false}
+                    rowKey="rollNo"
+                    locale={{ emptyText: "目前在 WIP 現場無任何可供退回的卷卡" }}
+                    rowSelection={{
+                      type: "checkbox",
+                      selectedRowKeys: modalExtra.map((x: any) => x.rollNo),
+                      onSelect: (rec: any, selected: boolean) => {
+                        handleWipRollCheck(rec.rollNo, selected, rec.qtyAux, rec.widthMm);
+                      },
+                      onSelectAll: (selected: boolean, selectedRowsList: any[]) => {
+                        if (selected) {
+                          const updatedExtra = selectedRowsList.map((r: any) => ({
+                            rollNo: r.rollNo,
+                            widthMm: r.widthMm,
+                            qtyAux: r.qtyAux,
+                          }));
+                          setModalExtra(updatedExtra);
+                          const totalLen = updatedExtra.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
+                          const totalArea = updatedExtra.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
+                          setModalFormValues((prev: any) => ({
+                            ...prev,
+                            quantity: parseFloat(totalLen.toFixed(4)),
+                            referenceQuantity1: parseFloat(totalArea.toFixed(4)),
+                          }));
+                        } else {
+                          setModalExtra([]);
+                          setModalFormValues((prev: any) => ({
+                            ...prev,
+                            quantity: 0,
+                            referenceQuantity1: 0,
+                          }));
+                        }
+                      },
+                    }}
+                    columns={[
+                      { title: "物料卷卡號 (LPN)", dataIndex: "rollNo", key: "rollNo" },
+                      { title: "WIP 寬度", dataIndex: "widthMm", key: "widthMm", render: (v) => `${v} mm` },
+                      { title: "WIP 現場殘留量", dataIndex: "qtyAux", key: "qtyAux", render: (v) => <span>{v} M</span> },
+                      {
+                        title: "退回實測長度 (M)",
+                        key: "returnedQty",
+                        render: (_, rec: any) => {
+                          const checked = modalExtra.find((x: any) => x.rollNo === rec.rollNo);
+                          return (
+                            <InputNumber
+                              size="small"
+                              style={{ width: "130px" }}
+                              placeholder="請輸入退回量"
+                              disabled={!checked}
+                              value={checked ? checked.qtyAux : undefined}
+                              max={rec.qtyAux}
+                              min={0}
+                              onChange={(val: any) => handleWipRollQtyChange(rec.rollNo, val)}
+                            />
+                          );
+                        },
+                      },
+                    ]}
+                  />
+                </Spin>
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
     </div>
   );
-};
+}
