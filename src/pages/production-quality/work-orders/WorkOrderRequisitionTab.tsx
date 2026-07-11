@@ -86,11 +86,18 @@ export function WorkOrderRequisitionTab({
               quantity: parseFloat(totalLen.toFixed(4)),
               referenceQuantity1: parseFloat(totalArea.toFixed(4)),
               sourceStorageCode: null,
-              extra: allocatedRolls.map((r: any) => ({
-                rollNo: r.rollNo,
-                widthMm: r.widthMm,
-                qtyAux: r.qtyAux,
-              })),
+              extra: allocatedRolls.map((r: any) => {
+                const scrapArea = Math.max(0, r.qtyAux * (r.widthMm - (m.widthMm || 0)) / 1000);
+                const scrapCost = (r.costPerSqm || 0) * scrapArea;
+                return {
+                  rollNo: r.rollNo,
+                  widthMm: r.widthMm,
+                  qtyAux: r.qtyAux,
+                  scrapAreaSqm: parseFloat(scrapArea.toFixed(2)),
+                  scrapCost: parseFloat(scrapCost.toFixed(2)),
+                  costPerSqm: r.costPerSqm || 0,
+                };
+              }),
             });
           }
         } else {
@@ -504,6 +511,43 @@ export function WorkOrderRequisitionTab({
     { title: "領用數量", dataIndex: "quantity", key: "quantity", width: 120, render: (v: number) => <strong>{v}</strong> },
     { title: "領用面積(SQM)", dataIndex: "referenceQuantity1", key: "referenceQuantity1", width: 140, render: (v: number) => v?.toFixed(2) },
     {
+      title: "總報廢面積",
+      key: "totalScrapArea",
+      width: 120,
+      render: (_: any, record: any) => {
+        const totalScrapArea = record.extra?.reduce((sum: number, r: any) => sum + (r.scrapAreaSqm || 0), 0) || 0;
+        return totalScrapArea > 0 ? `${totalScrapArea.toFixed(2)} SQM` : "-";
+      }
+    },
+    {
+      title: "總報廢成本",
+      key: "totalScrapCost",
+      width: 120,
+      render: (_: any, record: any) => {
+        const totalScrapCost = record.extra?.reduce((sum: number, r: any) => sum + (r.scrapCost || 0), 0) || 0;
+        return totalScrapCost > 0 ? (
+          <span className="text-red-500 font-bold">${totalScrapCost.toFixed(2)}</span>
+        ) : "-";
+      }
+    },
+    {
+      title: "預估生產成本",
+      key: "totalUtilizedCost",
+      width: 130,
+      render: (_: any, record: any) => {
+        const matched = materialsList.find((x) => x.materialCode === record.materialCode);
+        const totalUtilizedCost = record.extra?.reduce((sum: number, r: any) => {
+          const bomWidth = matched?.widthMm || 0;
+          const utilizedArea = r.qtyAux * (bomWidth / 1000);
+          const utilizedCost = (r.costPerSqm || 0) * utilizedArea;
+          return sum + utilizedCost;
+        }, 0) || 0;
+        return totalUtilizedCost > 0 ? (
+          <span className="text-green-600 font-bold">${totalUtilizedCost.toFixed(2)}</span>
+        ) : "-";
+      }
+    },
+    {
       title: "實物卡追溯 / 片材規格",
       key: "details",
       width: 250,
@@ -816,6 +860,7 @@ export function WorkOrderRequisitionTab({
                               qtyAux: r.qtyAux,
                               scrapAreaSqm: parseFloat(scrapArea.toFixed(2)),
                               scrapCost: parseFloat(scrapCost.toFixed(2)),
+                              costPerSqm: r.costPerSqm || 0,
                             };
                           });
                           setModalExtra(mappedExtra);
@@ -874,6 +919,7 @@ export function WorkOrderRequisitionTab({
                           qtyAux: r.currentQtyAux,
                           scrapAreaSqm: parseFloat(scrapArea.toFixed(2)),
                           scrapCost: parseFloat(scrapCost.toFixed(2)),
+                          costPerSqm: r.costPerSqm || 0,
                         };
                       });
                       setModalExtra(mappedExtra);
