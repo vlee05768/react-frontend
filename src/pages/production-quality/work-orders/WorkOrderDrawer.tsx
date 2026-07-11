@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Space, Button, App, Drawer, Spin, Empty } from "antd";
-import { CheckCircleOutlined, SyncOutlined, LockOutlined, PlusOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, SyncOutlined, LockOutlined } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
   getApiV1WorkOrderByWorkOrderNumber,
@@ -13,7 +13,8 @@ import {
   postApiV1WorkOrderByWorkOrderNumberProductionComplete,
   postApiV1WorkOrderByWorkOrderNumberProductionCompleteCancel,
   postApiV1WorkOrderByWorkOrderNumberWarehousingComplete,
-  postApiV1WorkOrderByWorkOrderNumberWarehousingCompleteCancel
+  postApiV1WorkOrderByWorkOrderNumberWarehousingCompleteCancel,
+  getApiV1WorkOrderRequisitionWoByWorkOrderNumber
 } from "@/api/generated/sdk.gen";
 import { getApiErrorMessage } from "@/utils/apiError";
 import dayjs from "dayjs";
@@ -65,6 +66,17 @@ export function WorkOrderDrawer({
     queryFn: () => getApiV1WorkOrderByWorkOrderNumber({ path: { workOrderNumber: id! } }),
     enabled: !!id && !isCreateMode,
   });
+
+  const { data: requisitionsData } = useQuery({
+    queryKey: ["requisitions", id],
+    queryFn: () => getApiV1WorkOrderRequisitionWoByWorkOrderNumber({ path: { workOrderNumber: id! } }),
+    enabled: !!id && !isCreateMode,
+  });
+
+  const reqList = (requisitionsData?.data as any)?.data || [];
+  const hasRequisition = reqList.length > 0;
+  const requisition = hasRequisition ? reqList[0] : null;
+  const isRequisitionConfirmed = requisition && !!requisition.confirmDate;
 
   const rawData = (data?.data as any)?.data || undefined;
   
@@ -205,6 +217,8 @@ export function WorkOrderDrawer({
       message.success(successMessage);
       queryClient.invalidateQueries({ queryKey: ["workorder", id] });
       queryClient.invalidateQueries({ queryKey: ["workorders"] });
+      queryClient.invalidateQueries({ queryKey: ["requisitions", id] });
+      queryClient.invalidateQueries({ queryKey: ["requisition"] });
     },
     onError: (error) => {
       modal.error({ title: "作業失敗", content: getApiErrorMessage(error), centered: true });
@@ -262,38 +276,24 @@ export function WorkOrderDrawer({
       <Space>
         <DocumentWatchButton documentType="WorkOrder" documentKey={record?.workOrderNumber} />
         {isDraft && (
-          <>
-            <ActionButton 
-              key="prepare-tab"
-              intent="primary" 
-              icon={<PlusOutlined />} 
-              disabled={isDetailEditing}
-              onClick={(e) => { 
-                e.preventDefault(); 
-                setActiveTab('requisitions'); 
-              }}
-            >
-              備料作業
-            </ActionButton>
-            <ActionButton 
-              key="prepare-confirm"
-              intent="success" 
-              icon={<CheckCircleOutlined />} 
-              disabled={isDetailEditing}
-              onClick={(e) => { 
-                e.preventDefault(); 
-                modal.confirm({
-                  title: '備料完成確認',
-                  content: '確定要確認備料完成嗎？確認後將無法隨意修改明細，並進入貼合程序。',
-                  centered: true, 
-                  width: 400,
-                  onOk: () => preparationConfirmMut.mutateAsync({}),
-                });
-              }}
-            >
-              備料確認
-            </ActionButton>
-          </>
+          <ActionButton 
+            key="prepare-confirm"
+            intent="success" 
+            icon={<CheckCircleOutlined />} 
+            disabled={isDetailEditing || !hasRequisition || isRequisitionConfirmed}
+            onClick={(e) => { 
+              e.preventDefault(); 
+              modal.confirm({
+                title: '備料完成確認',
+                content: '確定要確認備料完成嗎？系統將自動對關聯的領料單進行確認過帳，並進入貼合程序。',
+                centered: true, 
+                width: 400,
+                onOk: () => preparationConfirmMut.mutateAsync({}),
+              });
+            }}
+          >
+            備料確認
+          </ActionButton>
         )}
 
         {isPrepCompleted && (

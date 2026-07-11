@@ -1,14 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, Table, Tag, Space, Button, Empty, App, Spin, Modal, InputNumber, Tooltip } from "antd";
-import { PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined, CheckCircleOutlined, SyncOutlined } from "@ant-design/icons";
+import { PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined, SyncOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getApiV1WorkOrderRequisitionWoByWorkOrderNumber,
   getApiV1WorkOrderRequisitionByDocumentNumber,
   postApiV1WorkOrderRequisition,
   putApiV1WorkOrderRequisitionByDocumentNumber,
-  postApiV1WorkOrderRequisitionByDocumentNumberConfirm,
-  postApiV1WorkOrderRequisitionByDocumentNumberCancel,
   deleteApiV1WorkOrderRequisitionByDocumentNumber,
   getApiV1WorkOrderRequisitionSelectableRolls,
   getApiV1MaterialInventoryLogical,
@@ -263,42 +261,6 @@ export function WorkOrderRequisitionTab({
       modal.error({ title: "刪除失敗", content: getApiErrorMessage(error), centered: true });
     },
   });
-
-  const confirmMutation = useMutation({
-    mutationFn: () => postApiV1WorkOrderRequisitionByDocumentNumberConfirm({ path: { documentNumber: activeDocNo! } }),
-    onSuccess: () => {
-      message.success("領料過帳確認成功！一卷一卡已流轉至 WIP 狀態");
-      queryClient.invalidateQueries({ queryKey: ["requisition", activeDocNo] });
-      queryClient.invalidateQueries({ queryKey: ["requisitions", masterData.workOrderNumber] });
-      refetchDetail();
-      refetchList();
-    },
-    onError: (error) => {
-      modal.error({ title: "過帳失敗", content: getApiErrorMessage(error), centered: true });
-    },
-  });
-
-  const cancelMutation = useMutation({
-    mutationFn: () => postApiV1WorkOrderRequisitionByDocumentNumberCancel({ path: { documentNumber: activeDocNo! } }),
-    onSuccess: () => {
-      message.success("取消領料過帳成功！WIP 卷料已安全退回倉庫");
-      queryClient.invalidateQueries({ queryKey: ["requisition", activeDocNo] });
-      queryClient.invalidateQueries({ queryKey: ["requisitions", masterData.workOrderNumber] });
-      refetchDetail();
-      refetchList();
-    },
-    onError: (error) => {
-      modal.error({ title: "取消失敗", content: getApiErrorMessage(error), centered: true });
-    },
-  });
-
-  const handleConfirmPost = () => {
-    if (items.length === 0) {
-      message.warning("此領料單尚無任何明細項目，請先編輯並點選下方「新增領用物料」加入項目！");
-      return;
-    }
-    confirmMutation.mutate();
-  };
 
   const handleCreateNewClick = () => {
     setIsCreating(true);
@@ -656,9 +618,6 @@ export function WorkOrderRequisitionTab({
                           <Button type="primary" size="small" icon={<EditOutlined />} onClick={() => setIsHeaderEditing(true)}>
                             編輯
                           </Button>
-                          <Button type="primary" size="small" className="bg-green-600 hover:bg-green-700 border-green-600" icon={<CheckCircleOutlined />} onClick={handleConfirmPost} loading={confirmMutation.isPending}>
-                            確認過帳
-                          </Button>
                           <Button danger size="small" icon={<DeleteOutlined />} onClick={() => {
                             modal.confirm({
                               title: "刪除確認",
@@ -671,18 +630,7 @@ export function WorkOrderRequisitionTab({
                           </Button>
                         </>
                       )}
-                      {isPosted && (
-                        <Button danger size="small" icon={<SyncOutlined />} onClick={() => {
-                          modal.confirm({
-                            title: "取消過帳確認",
-                            content: "確定要取消此領料單過帳嗎？這會把 WIP 卷卡重新退回倉庫 Available 狀態。",
-                            centered: true,
-                            onOk: () => cancelMutation.mutate(),
-                          });
-                        }} loading={cancelMutation.isPending}>
-                          取消領料過帳
-                        </Button>
-                      )}
+                      {isPosted && null}
                     </>
                   )}
                 </Space>
