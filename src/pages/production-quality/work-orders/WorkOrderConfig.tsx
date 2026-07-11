@@ -878,7 +878,7 @@ export const returnItemFormConfig = (materials: any[]): FormFieldConfig<any>[] =
     componentType: "Select",
     componentProps: {
       options: [
-        { label: "原料主倉 (TW-GEN-INV)", value: "TW-GEN-INV" }
+        { label: "原料主倉 (TW-MAT-GEN)", value: "TW-MAT-GEN" }
       ]
     },
     colSpan: 1,

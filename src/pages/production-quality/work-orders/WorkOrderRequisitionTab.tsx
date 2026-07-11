@@ -87,7 +87,7 @@ export function WorkOrderRequisitionTab({
               unit: "M",
               quantity: parseFloat(totalLen.toFixed(4)),
               referenceQuantity1: parseFloat(totalArea.toFixed(4)),
-              sourceStorageCode: "TW-GEN-INV",
+              sourceStorageCode: "TW-MAT-GEN",
               extra: allocatedRolls.map((r: any) => ({
                 rollNo: r.rollNo,
                 widthMm: r.widthMm,
@@ -140,7 +140,7 @@ export function WorkOrderRequisitionTab({
               unit: "PCS",
               quantity: accumulated,
               referenceQuantity1: parseFloat(totalArea.toFixed(4)),
-              sourceStorageCode: "TW-GEN-INV",
+              sourceStorageCode: "TW-MAT-GEN",
               extra: selectedSpecs,
             });
           }
@@ -211,7 +211,7 @@ export function WorkOrderRequisitionTab({
           unit: it.unit,
           quantity: it.quantity,
           referenceQuantity1: it.referenceQuantity1,
-          sourceStorageCode: it.sourceStorageCode || "TW-GEN-INV",
+          sourceStorageCode: it.sourceStorageCode || "TW-MAT-GEN",
           notes: it.notes || "",
           extra,
         };
@@ -348,7 +348,7 @@ export function WorkOrderRequisitionTab({
     setEditingItemIndex(null);
     setModalFormValues({
       materialCode: "",
-      sourceStorageCode: "TW-GEN-INV",
+      sourceStorageCode: "TW-MAT-GEN",
       quantity: 0,
       referenceQuantity1: 0,
       bomRequiredWidth: 0,
@@ -446,7 +446,7 @@ export function WorkOrderRequisitionTab({
       unit: matched?.materialForm === "R" ? "M" : "PCS",
       quantity: modalFormValues.quantity,
       referenceQuantity1: modalFormValues.referenceQuantity1,
-      sourceStorageCode: modalFormValues.sourceStorageCode || "TW-GEN-INV",
+      sourceStorageCode: modalFormValues.sourceStorageCode || "TW-MAT-GEN",
       extra: mappedExtra,
     };
 
@@ -513,7 +513,7 @@ export function WorkOrderRequisitionTab({
     { title: "單位", dataIndex: "unit", key: "unit", width: 80 },
     { title: "領用數量", dataIndex: "quantity", key: "quantity", width: 100, render: (v: number) => <strong>{v}</strong> },
     { title: "領用面積(SQM)", dataIndex: "referenceQuantity1", key: "referenceQuantity1", width: 140, render: (v: number) => v?.toFixed(4) },
-    { title: "來源儲位", dataIndex: "sourceStorageCode", key: "sourceStorageCode", render: (v: string) => v === "TW-GEN-INV" ? "原料主倉" : "現場車間倉" },
+    { title: "來源儲位", dataIndex: "sourceStorageCode", key: "sourceStorageCode", render: (v: string) => v === "TW-MAT-GEN" ? "原料主倉" : "現場車間倉" },
     {
       title: "實物卡追溯 / 片材規格",
       key: "details",

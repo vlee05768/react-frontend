@@ -98,7 +98,7 @@ export function WorkOrderReturnTab({
           unit: it.unit,
           quantity: it.quantity,
           referenceQuantity1: it.referenceQuantity1,
-          targetStorageCode: it.targetStorageCode || "TW-GEN-INV",
+          targetStorageCode: it.targetStorageCode || "TW-MAT-GEN",
           notes: it.notes || "",
           extra,
         };
@@ -233,7 +233,7 @@ export function WorkOrderReturnTab({
     setEditingItemIndex(null);
     setModalFormValues({
       materialCode: "",
-      targetStorageCode: "TW-GEN-INV",
+      targetStorageCode: "TW-MAT-GEN",
       quantity: 0,
       referenceQuantity1: 0,
     });
@@ -437,7 +437,7 @@ export function WorkOrderReturnTab({
     { title: "單位", dataIndex: "unit", key: "unit", width: 80 },
     { title: "退回數量(M)", dataIndex: "quantity", key: "quantity", width: 120, render: (v: number) => <strong>{v}</strong> },
     { title: "退回面積(SQM)", dataIndex: "referenceQuantity1", key: "referenceQuantity1", width: 140, render: (v: number) => v?.toFixed(4) },
-    { title: "退回目的儲位", dataIndex: "targetStorageCode", key: "targetStorageCode", render: (v: string) => v === "TW-GEN-INV" ? "原料主倉" : v },
+    { title: "退回目的儲位", dataIndex: "targetStorageCode", key: "targetStorageCode", render: (v: string) => v === "TW-MAT-GEN" ? "原料主倉" : v },
     {
       title: "退回卷卡明細",
       key: "details",
