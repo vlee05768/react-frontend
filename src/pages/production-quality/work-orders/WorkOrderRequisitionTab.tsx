@@ -87,7 +87,7 @@ export function WorkOrderRequisitionTab({
               unit: "M",
               quantity: parseFloat(totalLen.toFixed(4)),
               referenceQuantity1: parseFloat(totalArea.toFixed(4)),
-              sourceStorageCode: "TW-MAT-GEN",
+              sourceStorageCode: null,
               extra: allocatedRolls.map((r: any) => ({
                 rollNo: r.rollNo,
                 widthMm: r.widthMm,
@@ -446,7 +446,7 @@ export function WorkOrderRequisitionTab({
       unit: matched?.materialForm === "R" ? "M" : "PCS",
       quantity: modalFormValues.quantity,
       referenceQuantity1: modalFormValues.referenceQuantity1,
-      sourceStorageCode: modalFormValues.sourceStorageCode || "TW-MAT-GEN",
+      sourceStorageCode: (matched?.materialForm === "R" || (matched?.materialCode || "").startsWith("R-")) ? null : "TW-MAT-GEN",
       extra: mappedExtra,
     };
 
@@ -513,7 +513,7 @@ export function WorkOrderRequisitionTab({
     { title: "單位", dataIndex: "unit", key: "unit", width: 80 },
     { title: "領用數量", dataIndex: "quantity", key: "quantity", width: 100, render: (v: number) => <strong>{v}</strong> },
     { title: "領用面積(SQM)", dataIndex: "referenceQuantity1", key: "referenceQuantity1", width: 140, render: (v: number) => v?.toFixed(4) },
-    { title: "來源儲位", dataIndex: "sourceStorageCode", key: "sourceStorageCode", render: (v: string) => v === "TW-MAT-GEN" ? "原料主倉" : "現場車間倉" },
+    { title: "來源儲位", dataIndex: "sourceStorageCode", key: "sourceStorageCode", render: (v: string, record: any) => record.unit === "M" ? "-" : (v === "TW-MAT-GEN" ? "原料主倉" : "現場車間倉") },
     {
       title: "實物卡追溯 / 片材規格",
       key: "details",
