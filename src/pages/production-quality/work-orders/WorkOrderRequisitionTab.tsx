@@ -11,7 +11,8 @@ import {
   postApiV1WorkOrderRequisitionByDocumentNumberCancel,
   deleteApiV1WorkOrderRequisitionByDocumentNumber,
   getApiV1WorkOrderRequisitionSelectableRolls,
-  getApiV1MaterialInventoryLogical
+  getApiV1MaterialInventoryLogical,
+  getApiV1WorkOrderRequisitionFifo
 } from "@/api/generated/sdk.gen";
 import { getApiErrorMessage } from "@/utils/apiError";
 import dayjs from "dayjs";
@@ -48,6 +49,118 @@ export function WorkOrderRequisitionTab({
   const [modalFormValues, setModalFormValues] = useState<any>({});
   const [modalExtra, setModalExtra] = useState<any[]>([]);
   const [sheetDrawQty, setSheetDrawQty] = useState<Record<string, number>>({});
+  const [isAutoAllocating, setIsAutoAllocating] = useState(false);
+
+  const handleAutoAllocateAll = async () => {
+    if (materialsList.length === 0) {
+      message.warning("BOM 組成原料清單為空，無法進行自動配料！");
+      return;
+    }
+    
+    setIsAutoAllocating(true);
+    const hide = message.loading("正在為整張領料單進行智慧 FIFO 自動配料中...", 0);
+    
+    try {
+      const updatedItems: any[] = [];
+      
+      for (const m of materialsList) {
+        const isRoll = m.materialForm === "R";
+        
+        if (isRoll) {
+          // 1. Roll (捲材) ➡️ FIFO 自動選配 rolls
+          const res = await getApiV1WorkOrderRequisitionFifo({
+            query: {
+              materialCode: m.materialCode,
+              requiredLength: m.requiredQuantity,
+              requiredWidth: m.widthMm || undefined,
+            } as any
+          });
+          
+          const allocatedRolls = (res?.data as any)?.data || [];
+          if (allocatedRolls.length > 0) {
+            const totalLen = allocatedRolls.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
+            const totalArea = allocatedRolls.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
+            
+            updatedItems.push({
+              materialCode: m.materialCode,
+              materialName: m.materialName || "",
+              unit: "M",
+              quantity: parseFloat(totalLen.toFixed(4)),
+              referenceQuantity1: parseFloat(totalArea.toFixed(4)),
+              sourceStorageCode: "TW-GEN-INV",
+              extra: allocatedRolls.map((r: any) => ({
+                rollNo: r.rollNo,
+                widthMm: r.widthMm,
+                qtyAux: r.qtyAux,
+              })),
+            });
+          }
+        } else {
+          // 2. Sheet (片材) ➡️ 邏輯庫存自動選配 specs
+          const res = await getApiV1MaterialInventoryLogical({
+            query: {
+              materialCode: m.materialCode,
+              pageSize: 100,
+            } as any
+          });
+          
+          const stockLines = (res?.data as any)?.list || [];
+          let accumulated = 0;
+          const selectedSpecs: any[] = [];
+          const initialQtys: Record<string, number> = {};
+          
+          for (const line of stockLines) {
+            if (accumulated >= m.requiredQuantity) break;
+            
+            const needed = m.requiredQuantity - accumulated;
+            const take = Math.min(line.quantity || 0, needed);
+            if (take > 0) {
+              const specKey = `${line.widthMm}-${line.lengthMm || 0}`;
+              initialQtys[specKey] = take;
+              selectedSpecs.push({
+                widthMm: line.widthMm,
+                lengthMm: line.lengthMm || 0,
+                thicknessMm: 0,
+              });
+              accumulated += take;
+            }
+          }
+          
+          if (selectedSpecs.length > 0) {
+            let totalArea = 0;
+            selectedSpecs.forEach((spec) => {
+              const key = `${spec.widthMm}-${spec.lengthMm}`;
+              const qty = initialQtys[key] || 0;
+              totalArea += qty * (spec.widthMm / 1000) * (spec.lengthMm / 1000);
+            });
+            
+            updatedItems.push({
+              materialCode: m.materialCode,
+              materialName: m.materialName || "",
+              unit: "PCS",
+              quantity: accumulated,
+              referenceQuantity1: parseFloat(totalArea.toFixed(4)),
+              sourceStorageCode: "TW-GEN-INV",
+              extra: selectedSpecs,
+            });
+          }
+        }
+      }
+      
+      if (updatedItems.length === 0) {
+        message.warning("現有庫存不足以配出任何物料，配料完成但無新增項目！");
+      } else {
+        setItems(updatedItems);
+        saveItemsDirectly(updatedItems);
+        message.success(`⚡ 一鍵智慧配料完成！自動配出 ${updatedItems.length} 種物料。`);
+      }
+    } catch (err: any) {
+      message.error("一鍵配料失敗：" + (err?.message || err));
+    } finally {
+      hide();
+      setIsAutoAllocating(false);
+    }
+  };
 
   // 1. 取得該製令的領料單列表 (1對1，此處拿第一筆)
   const { data: requisitionsResponse, isLoading: listLoading, refetch: refetchList } = useQuery({
@@ -561,14 +674,25 @@ export function WorkOrderRequisitionTab({
               title={<strong>📋 領料物料明細</strong>}
               extra={
                 !isPosted && activeDocNo && (
-                  <Button
-                    type="primary"
-                    size="small"
-                    icon={<PlusOutlined />}
-                    onClick={handleAddNewItemClick}
-                  >
-                    新增領用物料
-                  </Button>
+                  <Space>
+                    <Button
+                      type="default"
+                      size="small"
+                      icon={<SyncOutlined spin={isAutoAllocating} />}
+                      onClick={handleAutoAllocateAll}
+                      loading={isAutoAllocating}
+                    >
+                      ⚡ 一鍵自動配料
+                    </Button>
+                    <Button
+                      type="primary"
+                      size="small"
+                      icon={<PlusOutlined />}
+                      onClick={handleAddNewItemClick}
+                    >
+                      新增領用物料
+                    </Button>
+                  </Space>
                 )
               }
             >
@@ -662,6 +786,51 @@ export function WorkOrderRequisitionTab({
                   <span className="text-xs font-bold text-[var(--ant-color-text-secondary)]">
                     🌀 捲材實體卡候選清單 (已選 {modalExtra?.length || 0} 卷，總長度: {modalFormValues.quantity || 0} M)
                   </span>
+                  <Button
+                    type="primary"
+                    ghost
+                    size="small"
+                    icon={<SyncOutlined spin={isAutoAllocating} />}
+                    onClick={async () => {
+                      if (!modalFormValues.materialCode) return;
+                      const hide = message.loading("正在進行智慧 FIFO 自動配料...", 0);
+                      try {
+                        const res = await getApiV1WorkOrderRequisitionFifo({
+                          query: {
+                            materialCode: modalFormValues.materialCode,
+                            requiredLength: matchedMaterial?.requiredQuantity || 0,
+                            requiredWidth: matchedMaterial?.widthMm || undefined,
+                          } as any
+                        });
+                        const allocatedRolls = (res?.data as any)?.data || [];
+                        if (allocatedRolls.length > 0) {
+                          const mappedExtra = allocatedRolls.map((r: any) => ({
+                            rollNo: r.rollNo,
+                            widthMm: r.widthMm,
+                            qtyAux: r.qtyAux,
+                          }));
+                          setModalExtra(mappedExtra);
+                          const totalLen = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
+                          const totalArea = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
+                          
+                          setModalFormValues((prev: any) => ({
+                            ...prev,
+                            quantity: parseFloat(totalLen.toFixed(4)),
+                            referenceQuantity1: parseFloat(totalArea.toFixed(4)),
+                          }));
+                          message.success(`智慧配料完成！自動選取 ${allocatedRolls.length} 卷物料滿足生產需求。`);
+                        } else {
+                          message.warning("現有 LPN 庫存不足，無法配出足夠物料！");
+                        }
+                      } catch (err: any) {
+                        message.error("自動配料失敗：" + (err?.message || err));
+                      } finally {
+                        hide();
+                      }
+                    }}
+                  >
+                    智慧自動配料
+                  </Button>
                 </div>
                 <Table
                   size="small"
@@ -734,6 +903,70 @@ export function WorkOrderRequisitionTab({
                   <span className="text-xs font-bold text-[var(--ant-color-text-secondary)]">
                     🔮 片材庫存規格清單 (已選規格 {modalExtra?.length || 0} 筆，總數量: {modalFormValues.quantity || 0} PCS)
                   </span>
+                  <Button
+                    type="primary"
+                    ghost
+                    size="small"
+                    icon={<SyncOutlined spin={isAutoAllocating} />}
+                    onClick={() => {
+                      if (logicalInventoryList.length === 0) {
+                        message.warning("現有庫存無規格行，無法進行自動配料！");
+                        return;
+                      }
+                      const targetQty = matchedMaterial?.requiredQuantity || 0;
+                      if (targetQty <= 0) {
+                        message.warning("需求量為 0，無需進行配料！");
+                        return;
+                      }
+                      
+                      let accumulated = 0;
+                      const selectedSpecs: any[] = [];
+                      const updatedDrawQty = { ...sheetDrawQty };
+                      
+                      for (const record of logicalInventoryList) {
+                        if (accumulated >= targetQty) break;
+                        const key = `${record.widthMm}-${record.lengthMm || 0}`;
+                        const lineQty = record.quantity || 0;
+                        if (lineQty > 0) {
+                          const needed = targetQty - accumulated;
+                          const take = Math.min(lineQty, needed);
+                          updatedDrawQty[key] = take;
+                          selectedSpecs.push({
+                            widthMm: record.widthMm,
+                            lengthMm: record.lengthMm || 0,
+                            thicknessMm: 0,
+                          });
+                          accumulated += take;
+                        }
+                      }
+                      
+                      setSheetDrawQty(updatedDrawQty);
+                      setModalExtra(selectedSpecs);
+                      
+                      let totalQty = 0;
+                      let totalArea = 0;
+                      selectedSpecs.forEach((spec) => {
+                        const key = `${spec.widthMm}-${spec.lengthMm}`;
+                        const qty = updatedDrawQty[key] || 0;
+                        totalQty += qty;
+                        totalArea += qty * (spec.widthMm / 1000) * (spec.lengthMm / 1000);
+                      });
+                      
+                      setModalFormValues((prev: any) => ({
+                        ...prev,
+                        quantity: totalQty,
+                        referenceQuantity1: parseFloat(totalArea.toFixed(4)),
+                      }));
+                      
+                      if (accumulated >= targetQty) {
+                        message.success(`智慧配料完成！自動選取 ${selectedSpecs.length} 個規格行以滿足生產需求。`);
+                      } else {
+                        message.warning(`現有庫存不足！自動配出 ${accumulated} PCS，尚缺 ${targetQty - accumulated} PCS！`);
+                      }
+                    }}
+                  >
+                    智慧自動配料
+                  </Button>
                 </div>
                 <Table
                   size="small"
