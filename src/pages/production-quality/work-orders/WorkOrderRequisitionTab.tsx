@@ -295,10 +295,26 @@ export function WorkOrderRequisitionTab({
     setItemModalOpen(true);
   };
 
+  const saveItemsDirectly = (newItems: any[]) => {
+    const postData = {
+      referenceNumber: masterData.workOrderNumber!,
+      documentDate: docDate.format("YYYY-MM-DD"),
+      notes: docNotes || "",
+      items: newItems.map((it) => ({
+        materialCode: it.materialCode,
+        sourceStorageCode: it.sourceStorageCode,
+        notes: it.notes,
+        extraDataJson: JSON.stringify(it.extra),
+      })),
+    };
+    updateMutation.mutate(postData);
+  };
+
   const handleRemoveItem = (index: number) => {
     const updated = [...items];
     updated.splice(index, 1);
     setItems(updated);
+    saveItemsDirectly(updated);
   };
 
   const handleSheetSpecChange = (field: string, val: number) => {
@@ -363,6 +379,7 @@ export function WorkOrderRequisitionTab({
     }
     setItems(updated);
     setItemModalOpen(false);
+    saveItemsDirectly(updated);
   };
 
   const materialsList = Array.isArray(masterData.items)
@@ -385,7 +402,7 @@ export function WorkOrderRequisitionTab({
       key: "action",
       width: 100,
       render: (_: any, __: any, index: number) => {
-        if (!isEditable) return null;
+        if (isPosted) return null;
         return (
           <Space>
             <Button
@@ -543,13 +560,12 @@ export function WorkOrderRequisitionTab({
               size="small"
               title={<strong>📋 領料物料明細</strong>}
               extra={
-                isEditable && (
+                !isPosted && activeDocNo && (
                   <Button
                     type="primary"
                     size="small"
                     icon={<PlusOutlined />}
                     onClick={handleAddNewItemClick}
-                    disabled={isCreating || !activeDocNo}
                   >
                     新增領用物料
                   </Button>

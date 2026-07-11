@@ -258,10 +258,26 @@ export function WorkOrderReturnTab({
     await fetchWipRolls(it.materialCode);
   };
 
+  const saveItemsDirectly = (newItems: any[]) => {
+    const postData = {
+      referenceNumber: masterData.workOrderNumber!,
+      documentDate: docDate.format("YYYY-MM-DD"),
+      notes: docNotes || "",
+      items: newItems.map((it) => ({
+        materialCode: it.materialCode,
+        targetStorageCode: it.targetStorageCode,
+        notes: it.notes,
+        extraDataJson: JSON.stringify(it.extra),
+      })),
+    };
+    updateMutation.mutate(postData);
+  };
+
   const handleRemoveItem = (index: number) => {
     const updated = [...items];
     updated.splice(index, 1);
     setItems(updated);
+    saveItemsDirectly(updated);
   };
 
   // 當退料料號變更時，自動獲取該料號在該製令 WIP 狀態中的所有可用卷卡 LPN
@@ -359,6 +375,7 @@ export function WorkOrderReturnTab({
     }
     setItems(updated);
     setItemModalOpen(false);
+    saveItemsDirectly(updated);
   };
 
   const filteredMaterials = Array.isArray(masterData.items)
@@ -387,7 +404,7 @@ export function WorkOrderReturnTab({
       key: "action",
       width: 100,
       render: (_: any, __: any, index: number) => {
-        if (!isEditable) return null;
+        if (isPosted) return null;
         return (
           <Space>
             <Button
@@ -525,13 +542,12 @@ export function WorkOrderReturnTab({
               size="small"
               title={<strong>📋 退回物料明細 (*僅支援卷料)</strong>}
               extra={
-                isEditable && (
+                !isPosted && activeDocNo && (
                   <Button
                     type="primary"
                     size="small"
                     icon={<PlusOutlined />}
                     onClick={handleAddNewItemClick}
-                    disabled={isCreating || !activeDocNo}
                   >
                     新增退回物料
                   </Button>
