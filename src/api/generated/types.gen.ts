@@ -9726,6 +9726,10 @@ export type WorkOrderRequisitionDto = {
      * 領料明細項目
      */
     items?: Array<WorkOrderRequisitionItemDto> | null;
+    /**
+     * 萬用 JSONB 封裝資料 (表頭擴充欄位)
+     */
+    extraDataJson?: string | null;
 };
 
 export type WorkOrderRequisitionDtoApiResponse = {
