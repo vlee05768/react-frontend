@@ -599,13 +599,6 @@ export function WorkOrderRequisitionTab({
           cancelText="取消"
           onOk={handleModalSave}
           width="65vw"
-          styles={{
-            body: {
-              maxHeight: "75vh",
-              overflowY: "auto",
-              paddingRight: "8px",
-            }
-          }}
           destroyOnClose
         >
           <div className="py-4 space-y-4">
