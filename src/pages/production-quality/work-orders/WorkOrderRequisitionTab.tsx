@@ -736,7 +736,7 @@ export function WorkOrderRequisitionTab({
           <div className="py-4 space-y-4">
             {/* 💡 計算後需求量展示區 */}
             {matchedMaterial && (
-              <div className="text-sm text-blue-600 font-bold bg-blue-50 p-3 rounded-md border border-blue-200">
+              <div className="text-sm text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-950/30 p-3 rounded-md border border-blue-200 dark:border-blue-900/50">
                 💡 計算後原料需求量：{matchedMaterial.requiredQuantity} {matchedMaterial.materialForm === 'R' ? 'M' : 'PCS'}
               </div>
             )}
