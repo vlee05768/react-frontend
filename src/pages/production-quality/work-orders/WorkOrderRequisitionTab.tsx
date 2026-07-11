@@ -840,6 +840,10 @@ export function WorkOrderRequisitionTab({
                   rowSelection={{
                     type: "checkbox",
                     selectedRowKeys: modalExtra.map((x: any) => x.rollNo),
+                    getCheckboxProps: (record: any) => ({
+                      disabled: record.matchStatus === "Narrower",
+                      name: record.rollNo,
+                    }),
                     onChange: (_, selectedRows: any[]) => {
                       const validKeys: React.Key[] = [];
                       const validRows: any[] = [];

@@ -6671,6 +6671,10 @@ export type RequisitionRollDetailDto = {
      * 領用長度 (M)
      */
     qtyAux?: number;
+    /**
+     * 每平方米成本 (NTD)
+     */
+    costPerSqm?: number;
 };
 
 export type RequisitionRollDetailDtoListApiResponse = {
@@ -7237,6 +7241,10 @@ export type SelectableRollDto = {
      * 品檢日期
      */
     checkDate?: string | null;
+    /**
+     * 該卷卡每平方米成本 (NTD)
+     */
+    costPerSqm?: number;
     /**
      * 替代適配度狀態 (Exact=完全符合, Wider=寬度較寬可替代, Narrower=寬度不足不可用)
      */
