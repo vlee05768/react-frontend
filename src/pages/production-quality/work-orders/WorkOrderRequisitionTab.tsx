@@ -461,6 +461,21 @@ export function WorkOrderRequisitionTab({
   );
   const isAllBomRequisitioned = availableBomMaterials.length === 0;
 
+  // 💡 計算所有明細項目的「預估生產成本」總和，並依此計算表頭的「單位生產成本」
+  const totalRequisitionUtilizedCost = items.reduce((sum, item) => {
+    const matched = materialsList.find((x) => x.materialCode === item.materialCode);
+    const itemUtilizedCost = item.extra?.reduce((itemSum: number, r: any) => {
+      const bomWidth = matched?.widthMm || 0;
+      const utilizedArea = r.qtyAux * (bomWidth / 1000);
+      const utilizedCost = (r.costPerSqm || 0) * utilizedArea;
+      return itemSum + utilizedCost;
+    }, 0) || 0;
+    return sum + itemUtilizedCost;
+  }, 0);
+
+  const plannedQty = masterData.plannedQuantity || 1;
+  const unitProductionCost = totalRequisitionUtilizedCost / plannedQty;
+
   const showHeaderForm = isCreating || !!activeDocNo;
   const isEditable = isCreating || isHeaderEditing;
   const isPosted = activeRecord && !!activeRecord.confirmDate;
@@ -504,19 +519,19 @@ export function WorkOrderRequisitionTab({
       width: 120,
       render: (_: any, record: any) => {
         const matched = materialsList.find((x) => x.materialCode === record.materialCode);
-        return matched?.widthMm ? `${matched.widthMm} mm` : "-";
+        return matched?.widthMm ? `${matched.widthMm.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} mm` : "-";
       }
     },
     { title: "單位", dataIndex: "unit", key: "unit", width: 80 },
-    { title: "領用數量", dataIndex: "quantity", key: "quantity", width: 120, render: (v: number) => <strong>{v}</strong> },
-    { title: "領用面積(SQM)", dataIndex: "referenceQuantity1", key: "referenceQuantity1", width: 140, render: (v: number) => v?.toFixed(2) },
+    { title: "領用數量", dataIndex: "quantity", key: "quantity", width: 120, render: (v: number) => <strong>{v?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}</strong> },
+    { title: "領用面積(SQM)", dataIndex: "referenceQuantity1", key: "referenceQuantity1", width: 140, render: (v: number) => v != null ? v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "-" },
     {
       title: "總報廢面積",
       key: "totalScrapArea",
       width: 120,
       render: (_: any, record: any) => {
         const totalScrapArea = record.extra?.reduce((sum: number, r: any) => sum + (r.scrapAreaSqm || 0), 0) || 0;
-        return totalScrapArea > 0 ? `${totalScrapArea.toFixed(2)} SQM` : "-";
+        return totalScrapArea > 0 ? `${totalScrapArea.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SQM` : "-";
       }
     },
     {
@@ -526,7 +541,7 @@ export function WorkOrderRequisitionTab({
       render: (_: any, record: any) => {
         const totalScrapCost = record.extra?.reduce((sum: number, r: any) => sum + (r.scrapCost || 0), 0) || 0;
         return totalScrapCost > 0 ? (
-          <span className="text-red-500 font-bold">${totalScrapCost.toFixed(2)}</span>
+          <span className="text-red-500 font-bold">${totalScrapCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         ) : "-";
       }
     },
@@ -543,7 +558,7 @@ export function WorkOrderRequisitionTab({
           return sum + utilizedCost;
         }, 0) || 0;
         return totalUtilizedCost > 0 ? (
-          <span className="text-green-600 font-bold">${totalUtilizedCost.toFixed(2)}</span>
+          <span className="text-green-600 font-bold">${totalUtilizedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         ) : "-";
       }
     },
@@ -644,7 +659,7 @@ export function WorkOrderRequisitionTab({
               size="small"
               styles={{ body: { padding: "8px 12px" } }}
               title={
-                <Space>
+                <Space size="middle">
                   <strong>{isCreating ? "新增領料單" : `📄 領料單 - ${activeDocNo}`}</strong>
                   {activeRecord && (
                     activeRecord.confirmDate ? (
@@ -652,6 +667,12 @@ export function WorkOrderRequisitionTab({
                     ) : (
                       <Tag color="default">⚪ 草稿 (Draft)</Tag>
                     )
+                  )}
+                  {/* 💡 單位生產成本展示 */}
+                  {totalRequisitionUtilizedCost > 0 && (
+                    <Tag color="cyan">
+                      🎯 單位生產成本: <strong style={{ fontFamily: "monospace" }}>${unitProductionCost.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</strong> / PCS
+                    </Tag>
                   )}
                 </Space>
               }
