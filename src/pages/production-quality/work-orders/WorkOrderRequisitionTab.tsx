@@ -782,8 +782,8 @@ export function WorkOrderRequisitionTab({
                   </span>
                   <Button
                     type="primary"
-                    ghost
                     size="small"
+                    className="bg-green-600 hover:bg-green-700 border-green-600 text-white"
                     icon={<SyncOutlined spin={isAutoAllocating} />}
                     onClick={async () => {
                       if (!modalFormValues.materialCode) return;
@@ -798,11 +798,18 @@ export function WorkOrderRequisitionTab({
                         });
                         const allocatedRolls = (res?.data as any)?.data || [];
                         if (allocatedRolls.length > 0) {
-                          const mappedExtra = allocatedRolls.map((r: any) => ({
-                            rollNo: r.rollNo,
-                            widthMm: r.widthMm,
-                            qtyAux: r.qtyAux,
-                          }));
+                          const bomWidth = matchedMaterial?.widthMm || 0;
+                          const mappedExtra = allocatedRolls.map((r: any) => {
+                            const scrapArea = Math.max(0, r.qtyAux * (r.widthMm - bomWidth) / 1000);
+                            const scrapCost = (r.costPerSqm || 0) * scrapArea;
+                            return {
+                              rollNo: r.rollNo,
+                              widthMm: r.widthMm,
+                              qtyAux: r.qtyAux,
+                              scrapAreaSqm: parseFloat(scrapArea.toFixed(2)),
+                              scrapCost: parseFloat(scrapCost.toFixed(2)),
+                            };
+                          });
                           setModalExtra(mappedExtra);
                           const totalLen = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
                           const totalArea = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
@@ -845,11 +852,18 @@ export function WorkOrderRequisitionTab({
                         }
                       });
                       
-                      const mappedExtra = validRows.map((r) => ({
-                        rollNo: r.rollNo,
-                        widthMm: r.widthMm,
-                        qtyAux: r.currentQtyAux,
-                      }));
+                      const bomWidth = matchedMaterial?.widthMm || 0;
+                      const mappedExtra = validRows.map((r) => {
+                        const scrapArea = Math.max(0, r.currentQtyAux * (r.widthMm - bomWidth) / 1000);
+                        const scrapCost = (r.costPerSqm || 0) * scrapArea;
+                        return {
+                          rollNo: r.rollNo,
+                          widthMm: r.widthMm,
+                          qtyAux: r.currentQtyAux,
+                          scrapAreaSqm: parseFloat(scrapArea.toFixed(2)),
+                          scrapCost: parseFloat(scrapCost.toFixed(2)),
+                        };
+                      });
                       setModalExtra(mappedExtra);
                       const totalLen = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
                       const totalArea = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
@@ -871,6 +885,27 @@ export function WorkOrderRequisitionTab({
                     { title: "寬度 (mm)", dataIndex: "widthMm", key: "widthMm", width: 90, render: (v) => `${v} mm` },
                     { title: "厚度 (mm)", dataIndex: "measuredThicknessMm", key: "measuredThicknessMm", width: 90, render: (v) => v != null ? `${v} mm` : "-" },
                     { title: "入庫時間", dataIndex: "checkDate", key: "checkDate", width: 140, render: (v) => v ? dayjs(v).format("YYYY-MM-DD HH:mm") : "-" },
+                    {
+                      title: "報廢面積 (SQM)",
+                      key: "scrapAreaSqm",
+                      width: 130,
+                      render: (_, r: any) => {
+                        const bomWidth = matchedMaterial?.widthMm || 0;
+                        const scrapArea = Math.max(0, r.currentQtyAux * (r.widthMm - bomWidth) / 1000);
+                        return <strong>{scrapArea.toFixed(2)} SQM</strong>;
+                      }
+                    },
+                    {
+                      title: "報廢成本 (NTD)",
+                      key: "scrapCost",
+                      width: 130,
+                      render: (_, r: any) => {
+                        const bomWidth = matchedMaterial?.widthMm || 0;
+                        const scrapArea = Math.max(0, r.currentQtyAux * (r.widthMm - bomWidth) / 1000);
+                        const scrapCost = (r.costPerSqm || 0) * scrapArea;
+                        return <span className="text-red-500 font-bold">${scrapCost.toFixed(2)}</span>;
+                      }
+                    },
                     {
                       title: "匹配判定",
                       dataIndex: "matchStatus",
