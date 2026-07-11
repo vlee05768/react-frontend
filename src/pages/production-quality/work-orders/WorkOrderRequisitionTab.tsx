@@ -448,6 +448,12 @@ export function WorkOrderRequisitionTab({
       })
     : [];
 
+  // 💡 判斷是否所有 BOM 原料都已經在領料明細中
+  const availableBomMaterials = materialsList.filter(
+    (bm) => !items.some((item) => item.materialCode === bm.materialCode)
+  );
+  const isAllBomRequisitioned = availableBomMaterials.length === 0;
+
   const showHeaderForm = isCreating || !!activeDocNo;
   const isEditable = isCreating || isHeaderEditing;
   const isPosted = activeRecord && !!activeRecord.confirmDate;
@@ -670,6 +676,8 @@ export function WorkOrderRequisitionTab({
                       size="small"
                       icon={<PlusOutlined />}
                       onClick={handleAddNewItemClick}
+                      disabled={isAllBomRequisitioned}
+                      title={isAllBomRequisitioned ? "所有 BOM 原料均已加入領料明細，無法重複新增" : undefined}
                     >
                       新增領用物料
                     </Button>
@@ -725,7 +733,11 @@ export function WorkOrderRequisitionTab({
 
             <DynamicForm
               formId="requisitionItemForm"
-              fields={requisitionItemFormConfig(materialsList).map((f) => {
+              fields={requisitionItemFormConfig(
+                editingItemIndex !== null
+                  ? materialsList
+                  : materialsList.filter((m) => !items.some((item) => item.materialCode === m.materialCode))
+              ).map((f) => {
                 // 💡 Lock quantity from being manually typed for BOTH rolls and sheets!
                 if (f.name === "quantity") {
                   return { ...f, editable: "never" };
