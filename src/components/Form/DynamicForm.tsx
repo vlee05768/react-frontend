@@ -72,7 +72,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
     },
   });
 
-  const { control, handleSubmit, watch, setValue, trigger } = methods;
+  const { control, handleSubmit, watch, setValue, trigger, formState: { isDirty } } = methods;
 
   // 3. 監聽所有表單數值，建立執行期上下文 (Context)
   const currentValues = watch() as TValues;
@@ -147,11 +147,12 @@ export function DynamicForm<TValues extends Record<string, any>>({
 
   // 當 defaultValues 改變時 (例如 API 資料載入完成)，重置表單值
   useEffect(() => {
+    if (isDirty) return; // 💡 如果表單已經有使用者修改的髒數據(Dirty)，絕對不要自動重置以避免遺失 Input Focus!
     if (defaultValues && !isEqual(prevDefaultValuesRef.current, defaultValues)) {
       methods.reset(defaultValues);
       prevDefaultValuesRef.current = defaultValues;
     }
-  }, [defaultValues, methods]);
+  }, [defaultValues, methods, isDirty]);
 
   // 當 isViewMode 變為 true (回到檢視模式) 時，重置表單值為原始資料，以確保取消編輯時能完全恢復原始內容
   useEffect(() => {

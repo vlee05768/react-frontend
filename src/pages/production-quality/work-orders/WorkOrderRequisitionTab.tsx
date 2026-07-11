@@ -468,7 +468,7 @@ export function WorkOrderRequisitionTab({
                   {isEditable ? (
                     <>
                       <Button type="primary" size="small" icon={<SaveOutlined />} onClick={handleSave} loading={createMutation.isPending || updateMutation.isPending}>
-                        儲存草稿
+                        儲存
                       </Button>
                       <Button size="small" onClick={() => (isCreating ? setIsCreating(false) : setIsHeaderEditing(false))}>
                         取消
