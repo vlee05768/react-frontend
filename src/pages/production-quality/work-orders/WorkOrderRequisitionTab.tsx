@@ -602,8 +602,15 @@ export function WorkOrderRequisitionTab({
           <div className="py-4 space-y-4">
             {/* 💡 計算後需求量展示區 */}
             {matchedMaterial && (
-              <div className="text-sm text-blue-600 font-bold bg-blue-50 p-3 rounded-md border border-blue-200">
-                💡 計算後原料需求量：{matchedMaterial.requiredQuantity} {matchedMaterial.materialForm === 'R' ? 'M' : 'PCS'}
+              <div className="text-sm text-blue-600 font-bold bg-blue-50 p-3 rounded-md border border-blue-200 flex justify-between items-center">
+                <span>
+                  💡 計算後原料需求量：{matchedMaterial.requiredQuantity} {matchedMaterial.materialForm === 'R' ? 'M' : 'PCS'}
+                </span>
+                {matchedMaterial.widthMm && (
+                  <Tag color="blue" className="text-sm px-2 py-0.5 m-0">
+                    BOM 設定幅寬：{matchedMaterial.widthMm} mm
+                  </Tag>
+                )}
               </div>
             )}
 
