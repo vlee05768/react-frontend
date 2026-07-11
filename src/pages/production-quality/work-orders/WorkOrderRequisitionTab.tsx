@@ -238,6 +238,7 @@ export function WorkOrderRequisitionTab({
       sourceStorageCode: "TW-GEN-INV",
       quantity: 0,
       referenceQuantity1: 0,
+      bomRequiredWidth: 0,
     });
     setModalExtra([]);
     setSheetDrawQty({});
@@ -247,16 +248,17 @@ export function WorkOrderRequisitionTab({
   const handleEditItemClick = (index: number) => {
     const it = items[index];
     setEditingItemIndex(index);
+    const matched = materialsList.find((x) => x.materialCode === it.materialCode);
     setModalFormValues({
       materialCode: it.materialCode,
       sourceStorageCode: it.sourceStorageCode,
       quantity: it.quantity,
       referenceQuantity1: it.referenceQuantity1,
+      bomRequiredWidth: matched?.widthMm || 0,
     });
     setModalExtra(it.extra || []);
     
     // 💡 If sheet material, initialize sheetDrawQty with the existing quantity!
-    const matched = materialsList.find((x) => x.materialCode === it.materialCode);
     const isRoll = matched ? matched.materialForm === "R" : it.unit === "M";
     if (!isRoll && it.extra && it.extra.length > 0) {
       const initialQtys: Record<string, number> = {};
@@ -602,15 +604,8 @@ export function WorkOrderRequisitionTab({
           <div className="py-4 space-y-4">
             {/* 💡 計算後需求量展示區 */}
             {matchedMaterial && (
-              <div className="text-sm text-blue-600 font-bold bg-blue-50 p-3 rounded-md border border-blue-200 flex justify-between items-center">
-                <span>
-                  💡 計算後原料需求量：{matchedMaterial.requiredQuantity} {matchedMaterial.materialForm === 'R' ? 'M' : 'PCS'}
-                </span>
-                {matchedMaterial.widthMm && (
-                  <Tag color="blue" className="text-sm px-2 py-0.5 m-0">
-                    BOM 設定幅寬：{matchedMaterial.widthMm} mm
-                  </Tag>
-                )}
+              <div className="text-sm text-blue-600 font-bold bg-blue-50 p-3 rounded-md border border-blue-200">
+                💡 計算後原料需求量：{matchedMaterial.requiredQuantity} {matchedMaterial.materialForm === 'R' ? 'M' : 'PCS'}
               </div>
             )}
 
@@ -627,9 +622,11 @@ export function WorkOrderRequisitionTab({
                 materialCode: modalFormValues.materialCode,
                 quantity: modalFormValues.quantity,
                 referenceQuantity1: modalFormValues.referenceQuantity1,
+                bomRequiredWidth: modalFormValues.bomRequiredWidth,
               }}
               onSubmit={() => {}}
               onValuesChange={(values: any) => {
+                const matched = materialsList.find((x) => x.materialCode === values.materialCode);
                 // 比對是否有實質改變
                 if (
                   values.materialCode !== modalFormValues.materialCode ||
@@ -644,6 +641,7 @@ export function WorkOrderRequisitionTab({
                     // 原料料號改變，初始化 extra 欄位與 sheet selections
                     updatedValues.quantity = 0;
                     updatedValues.referenceQuantity1 = 0;
+                    updatedValues.bomRequiredWidth = matched?.widthMm || 0;
                     setModalExtra([]);
                     setSheetDrawQty({});
                   } else {

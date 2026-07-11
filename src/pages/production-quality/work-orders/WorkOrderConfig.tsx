@@ -813,15 +813,22 @@ export const requisitionItemFormConfig = (materials: any[]): FormFieldConfig<any
         return { label: `${m.materialCode} (${isRoll ? '捲材' : '片材'})`, value: m.materialCode };
       })
     },
-    colSpan: 1,
+    colSpan: 2,
     editable: "always",
     validation: z.string().min(1, "必填"),
+  },
+  {
+    name: "bomRequiredWidth",
+    label: "BOM需求寬度 (mm)",
+    componentType: "InputNumber",
+    colSpan: 2,
+    editable: "never"
   },
   {
     name: "quantity",
     label: "領用數量",
     componentType: "InputNumber",
-    colSpan: 1,
+    colSpan: 2,
     editable: "never",
     validation: z.number().min(0.0001, "領用數量必須大於 0"),
   },
@@ -829,7 +836,7 @@ export const requisitionItemFormConfig = (materials: any[]): FormFieldConfig<any
     name: "referenceQuantity1",
     label: "領用面積 (SQM)",
     componentType: "InputNumber",
-    colSpan: 1,
+    colSpan: 2,
     editable: "never"
   }
 ];
