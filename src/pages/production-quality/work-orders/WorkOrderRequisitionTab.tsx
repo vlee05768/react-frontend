@@ -343,7 +343,7 @@ export function WorkOrderRequisitionTab({
           materialName: x.materialName,
           materialForm: form,
           widthMm: x.materialWidth,
-          requiredQuantity: x.requiredAmount || 0,
+          requiredQuantity: form === "R" ? (x.totalLength || 0) : (x.requiredAmount || 0),
         };
       })
     : [];
