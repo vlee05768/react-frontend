@@ -186,7 +186,7 @@ export function WorkOrderRequisitionTab({
     setItems([]);
   };
 
-  const handleSave = () => {
+  const handleSave = (formValues: any) => {
     for (let i = 0; i < items.length; i++) {
       const it = items[i];
       if (!it.materialCode) {
@@ -199,10 +199,13 @@ export function WorkOrderRequisitionTab({
       }
     }
 
+    const savedDate = formValues.documentDate ? dayjs(formValues.documentDate) : docDate;
+    const savedNotes = formValues.notes || "";
+
     const postData = {
       referenceNumber: masterData.workOrderNumber!,
-      documentDate: docDate.format("YYYY-MM-DD"),
-      notes: docNotes || "",
+      documentDate: savedDate.format("YYYY-MM-DD"),
+      notes: savedNotes || "",
       items: items.map((it) => ({
         materialCode: it.materialCode,
         sourceStorageCode: it.sourceStorageCode,
@@ -467,8 +470,8 @@ export function WorkOrderRequisitionTab({
                 <Space>
                   {isEditable ? (
                     <>
-                      <Button type="primary" size="small" icon={<SaveOutlined />} onClick={handleSave} loading={createMutation.isPending || updateMutation.isPending}>
-                        儲存
+                      <Button type="primary" size="small" icon={<SaveOutlined />} onClick={() => (document.getElementById("requisitionHeaderForm") as HTMLFormElement)?.requestSubmit()} loading={createMutation.isPending || updateMutation.isPending}>
+                        儲存草稿
                       </Button>
                       <Button size="small" onClick={() => (isCreating ? setIsCreating(false) : setIsHeaderEditing(false))}>
                         取消
@@ -521,19 +524,7 @@ export function WorkOrderRequisitionTab({
                   documentDate: docDate as any,
                   notes: docNotes,
                 }}
-                onSubmit={() => {}}
-                onValuesChange={(values: any) => {
-                  if (!isEditable) return;
-                  if (values.documentDate) {
-                    const newDate = dayjs(values.documentDate);
-                    if (!docDate || !newDate.isSame(docDate, "day")) {
-                      setDocDate(newDate);
-                    }
-                  }
-                  if (values.notes !== undefined && values.notes !== docNotes) {
-                    setDocNotes(values.notes || "");
-                  }
-                }}
+                onSubmit={handleSave}
                 isViewMode={!isEditable}
                 hideDefaultFooter={true}
               />
