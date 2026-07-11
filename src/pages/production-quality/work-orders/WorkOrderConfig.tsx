@@ -808,7 +808,10 @@ export const requisitionItemFormConfig = (materials: any[]): FormFieldConfig<any
     label: "領用BOM組成原料",
     componentType: "Select",
     componentProps: {
-      options: materials.map(m => ({ label: `${m.materialCode} (${m.materialForm === 'R' ? '捲材' : '片材'})`, value: m.materialCode }))
+      options: materials.map(m => {
+        const isRoll = m.materialForm === 'R' || m.materialCode?.startsWith("R-");
+        return { label: `${m.materialCode} (${isRoll ? '捲材' : '片材'})`, value: m.materialCode };
+      })
     },
     colSpan: 1,
     editable: "always",

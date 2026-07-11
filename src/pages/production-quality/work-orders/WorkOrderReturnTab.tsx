@@ -379,18 +379,27 @@ export function WorkOrderReturnTab({
   };
 
   const filteredMaterials = Array.isArray(masterData.items)
-    ? masterData.items.filter((m: any) => m.materialForm === "R").map((x: any) => ({
-        materialCode: x.materialCode,
-        materialName: x.materialName,
-      }))
+    ? masterData.items
+        .filter((m: any) => m.materialForm === "R" || m.materialCode?.startsWith("R-"))
+        .map((x: any) => ({
+          materialCode: x.materialCode,
+          materialName: x.materialName,
+        }))
     : [];
 
   const materialsList = Array.isArray(masterData.items)
-    ? masterData.items.map((x: any) => ({
-        materialCode: x.materialCode,
-        materialName: x.materialName,
-        materialForm: x.materialForm,
-      }))
+    ? masterData.items.map((x: any) => {
+        let form = x.materialForm;
+        if (!form || (form !== "R" && form !== "S")) {
+          if (x.materialCode?.startsWith("R-")) form = "R";
+          else if (x.materialCode?.startsWith("S-")) form = "S";
+        }
+        return {
+          materialCode: x.materialCode,
+          materialName: x.materialName,
+          materialForm: form,
+        };
+      })
     : [];
 
   const showHeaderForm = isCreating || !!activeDocNo;

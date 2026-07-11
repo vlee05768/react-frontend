@@ -332,13 +332,20 @@ export function WorkOrderRequisitionTab({
   };
 
   const materialsList = Array.isArray(masterData.items)
-    ? masterData.items.map((x: any) => ({
-        materialCode: x.materialCode,
-        materialName: x.materialName,
-        materialForm: x.materialForm,
-        widthMm: x.materialWidth,
-        requiredQuantity: x.requiredAmount || 0,
-      }))
+    ? masterData.items.map((x: any) => {
+        let form = x.materialForm;
+        if (!form || (form !== "R" && form !== "S")) {
+          if (x.materialCode?.startsWith("R-")) form = "R";
+          else if (x.materialCode?.startsWith("S-")) form = "S";
+        }
+        return {
+          materialCode: x.materialCode,
+          materialName: x.materialName,
+          materialForm: form,
+          widthMm: x.materialWidth,
+          requiredQuantity: x.requiredAmount || 0,
+        };
+      })
     : [];
 
   const showHeaderForm = isCreating || !!activeDocNo;
