@@ -10,7 +10,8 @@ import {
   postApiV1WorkOrderRequisitionByDocumentNumberConfirm,
   postApiV1WorkOrderRequisitionByDocumentNumberCancel,
   deleteApiV1WorkOrderRequisitionByDocumentNumber,
-  getApiV1WorkOrderRequisitionSelectableRolls
+  getApiV1WorkOrderRequisitionSelectableRolls,
+  getApiV1MaterialInventoryLogical
 } from "@/api/generated/sdk.gen";
 import { getApiErrorMessage } from "@/utils/apiError";
 import dayjs from "dayjs";
@@ -46,6 +47,7 @@ export function WorkOrderRequisitionTab({
   // 彈窗內的暫存欄位狀態
   const [modalFormValues, setModalFormValues] = useState<any>({});
   const [modalExtra, setModalExtra] = useState<any[]>([]);
+  const [sheetDrawQty, setSheetDrawQty] = useState<Record<string, number>>({});
 
   // 1. 取得該製令的領料單列表 (1對1，此處拿第一筆)
   const { data: requisitionsResponse, isLoading: listLoading, refetch: refetchList } = useQuery({
@@ -236,26 +238,36 @@ export function WorkOrderRequisitionTab({
       sourceStorageCode: "TW-GEN-INV",
       quantity: 0,
       referenceQuantity1: 0,
-      estimatedUnitPrice: 0,
-      estimatedTotalCost: 0,
     });
     setModalExtra([]);
+    setSheetDrawQty({});
     setItemModalOpen(true);
   };
 
   const handleEditItemClick = (index: number) => {
     const it = items[index];
-    const { estimatedUnitPrice, estimatedTotalCost } = getEstimatedCostInfo(it.extra);
     setEditingItemIndex(index);
     setModalFormValues({
       materialCode: it.materialCode,
       sourceStorageCode: it.sourceStorageCode,
       quantity: it.quantity,
       referenceQuantity1: it.referenceQuantity1,
-      estimatedUnitPrice,
-      estimatedTotalCost,
     });
     setModalExtra(it.extra || []);
+    
+    // 💡 If sheet material, initialize sheetDrawQty with the existing quantity!
+    const matched = materialsList.find((x) => x.materialCode === it.materialCode);
+    const isRoll = matched ? matched.materialForm === "R" : it.unit === "M";
+    if (!isRoll && it.extra && it.extra.length > 0) {
+      const initialQtys: Record<string, number> = {};
+      it.extra.forEach((spec: any) => {
+        initialQtys[`${spec.widthMm}-${spec.lengthMm}`] = it.quantity || 0;
+      });
+      setSheetDrawQty(initialQtys);
+    } else {
+      setSheetDrawQty({});
+    }
+
     setItemModalOpen(true);
   };
 
@@ -281,20 +293,7 @@ export function WorkOrderRequisitionTab({
     saveItemsDirectly(updated);
   };
 
-  const handleSheetSpecChange = (field: string, val: number) => {
-    const spec = modalExtra[0] || { widthMm: 0, lengthMm: 0, thicknessMm: 0 };
-    spec[field] = val;
-    const updatedExtra = [spec];
-    setModalExtra(updatedExtra);
 
-    const qty = modalFormValues.quantity || 0;
-    const area = (spec.widthMm / 1000) * (spec.lengthMm / 1000) * qty;
-
-    setModalFormValues((prev: any) => ({
-      ...prev,
-      referenceQuantity1: parseFloat(area.toFixed(4)),
-    }));
-  };
 
 
 
@@ -368,17 +367,6 @@ export function WorkOrderRequisitionTab({
   const isEditable = isCreating || isHeaderEditing;
   const isPosted = activeRecord && !!activeRecord.confirmDate;
 
-  const getEstimatedCostInfo = (extra: any) => {
-    const arr = Array.isArray(extra) ? extra : [];
-    if (arr.length > 0) {
-      return {
-        estimatedUnitPrice: arr[0].estimatedUnitPrice || 0,
-        estimatedTotalCost: arr[0].estimatedTotalCost || 0,
-      };
-    }
-    return { estimatedUnitPrice: 0, estimatedTotalCost: 0 };
-  };
-
   // 定義明細表格欄位
   const itemColumns = [
     {
@@ -410,24 +398,6 @@ export function WorkOrderRequisitionTab({
     { title: "單位", dataIndex: "unit", key: "unit", width: 80 },
     { title: "領用數量", dataIndex: "quantity", key: "quantity", width: 100, render: (v: number) => <strong>{v}</strong> },
     { title: "領用面積(SQM)", dataIndex: "referenceQuantity1", key: "referenceQuantity1", width: 140, render: (v: number) => v?.toFixed(4) },
-    {
-      title: "預估單價",
-      key: "estimatedUnitPrice",
-      width: 110,
-      render: (_: any, record: any) => {
-        const { estimatedUnitPrice } = getEstimatedCostInfo(record.extra);
-        return estimatedUnitPrice ? `$${estimatedUnitPrice.toLocaleString()}` : "-";
-      }
-    },
-    {
-      title: "預計總成本",
-      key: "estimatedTotalCost",
-      width: 120,
-      render: (_: any, record: any) => {
-        const { estimatedTotalCost } = getEstimatedCostInfo(record.extra);
-        return estimatedTotalCost ? <strong>${estimatedTotalCost.toLocaleString()}</strong> : "-";
-      }
-    },
     { title: "來源儲位", dataIndex: "sourceStorageCode", key: "sourceStorageCode", render: (v: string) => v === "TW-GEN-INV" ? "原料主倉" : "現場車間倉" },
     {
       title: "實物卡追溯 / 片材規格",
@@ -476,6 +446,19 @@ export function WorkOrderRequisitionTab({
   });
 
   const selectableRollsList = (selectableRollsResponse?.data as any)?.data || [];
+
+  const { data: logicalInventoryResponse, isLoading: logicalInventoryLoading } = useQuery({
+    queryKey: ["logical-inventory-modal", modalFormValues.materialCode],
+    queryFn: () => getApiV1MaterialInventoryLogical({
+      query: {
+        materialCode: modalFormValues.materialCode,
+        pageSize: 100,
+      } as any
+    }),
+    enabled: itemModalOpen && !modalIsRoll && !!modalFormValues.materialCode,
+  });
+
+  const logicalInventoryList = (logicalInventoryResponse?.data as any)?.list || [];
 
   return (
     <div className="flex flex-col gap-4">
@@ -627,7 +610,8 @@ export function WorkOrderRequisitionTab({
             <DynamicForm
               formId="requisitionItemForm"
               fields={requisitionItemFormConfig(materialsList).map((f) => {
-                if (f.name === "quantity" && modalIsRoll) {
+                // 💡 Lock quantity from being manually typed for BOTH rolls and sheets!
+                if (f.name === "quantity") {
                   return { ...f, editable: "never" };
                 }
                 return f;
@@ -636,44 +620,27 @@ export function WorkOrderRequisitionTab({
                 materialCode: modalFormValues.materialCode,
                 quantity: modalFormValues.quantity,
                 referenceQuantity1: modalFormValues.referenceQuantity1,
-                estimatedUnitPrice: modalFormValues.estimatedUnitPrice,
-                estimatedTotalCost: modalFormValues.estimatedTotalCost,
               }}
               onSubmit={() => {}}
               onValuesChange={(values: any) => {
-                const matched = materialsList.find((x) => x.materialCode === values.materialCode);
-                const innerIsRoll = matched ? matched.materialForm === "R" : modalFormValues.unit === "M";
-
                 // 比對是否有實質改變
                 if (
                   values.materialCode !== modalFormValues.materialCode ||
-                  values.quantity !== modalFormValues.quantity ||
-                  values.estimatedUnitPrice !== modalFormValues.estimatedUnitPrice
+                  values.quantity !== modalFormValues.quantity
                 ) {
                   const updatedValues = {
                     ...modalFormValues,
                     materialCode: values.materialCode,
-                    estimatedUnitPrice: values.estimatedUnitPrice || 0,
                   };
 
                   if (values.materialCode !== modalFormValues.materialCode) {
-                    // 原料料號改變，初始化 extra 欄位
+                    // 原料料號改變，初始化 extra 欄位與 sheet selections
                     updatedValues.quantity = 0;
                     updatedValues.referenceQuantity1 = 0;
-                    updatedValues.estimatedUnitPrice = 0;
-                    updatedValues.estimatedTotalCost = 0;
-                    setModalExtra(innerIsRoll ? [] : [{ widthMm: matched?.widthMm || 0, lengthMm: 0, thicknessMm: 0 }]);
-                  } else if (!innerIsRoll) {
-                    // 片材數量改變，重新計算面積與總成本
-                    updatedValues.quantity = values.quantity || 0;
-                    const spec = modalExtra[0] || { widthMm: matched?.widthMm || 0, lengthMm: 0, thicknessMm: 0 };
-                    const area = (spec.widthMm / 1000) * (spec.lengthMm / 1000) * updatedValues.quantity;
-                    updatedValues.referenceQuantity1 = parseFloat(area.toFixed(4));
-                    updatedValues.estimatedTotalCost = parseFloat((updatedValues.quantity * updatedValues.estimatedUnitPrice).toFixed(2));
+                    setModalExtra([]);
+                    setSheetDrawQty({});
                   } else {
-                    // 捲材數量由下層 LPN 控制，但也更新成本
-                    updatedValues.quantity = values.quantity || modalFormValues.quantity || 0;
-                    updatedValues.estimatedTotalCost = parseFloat((updatedValues.quantity * updatedValues.estimatedUnitPrice).toFixed(2));
+                    updatedValues.quantity = values.quantity || 0;
                   }
 
                   setModalFormValues(updatedValues);
@@ -718,14 +685,11 @@ export function WorkOrderRequisitionTab({
                       setModalExtra(mappedExtra);
                       const totalLen = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
                       const totalArea = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
-                      const unitPrice = modalFormValues.estimatedUnitPrice || 0;
-                      const totalCost = totalLen * unitPrice;
                       
                       setModalFormValues((prev: any) => ({
                         ...prev,
                         quantity: parseFloat(totalLen.toFixed(4)),
                         referenceQuantity1: parseFloat(totalArea.toFixed(4)),
-                        estimatedTotalCost: parseFloat(totalCost.toFixed(2)),
                       }));
                     }
                   }}
@@ -758,41 +722,104 @@ export function WorkOrderRequisitionTab({
               </div>
             )}
 
-            {/* 片材：規格參數設定 */}
+            {/* 片材：庫存規格選擇區 */}
             {!modalIsRoll && modalFormValues.materialCode && (
               <div className="bg-[var(--ant-color-fill-alter)] p-4 rounded-md mt-4 border border-[var(--ant-color-border-secondary)]">
-                <div className="text-xs font-bold text-[var(--ant-color-text-secondary)] mb-3">
-                  🔮 片材規格參數設定
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-xs font-bold text-[var(--ant-color-text-secondary)]">
+                    🔮 片材庫存規格清單 (已選規格 {modalExtra?.length || 0} 筆，總數量: {modalFormValues.quantity || 0} PCS)
+                  </span>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="text-gray-400 block mb-1 text-xs">片料寬度 (mm)</label>
-                    <InputNumber
-                      style={{ width: "100%" }}
-                      value={modalExtra[0]?.widthMm}
-                      onChange={(val: any) => handleSheetSpecChange("widthMm", val || 0)}
-                      size="small"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-gray-400 block mb-1 text-xs">片料長度 (mm)</label>
-                    <InputNumber
-                      style={{ width: "100%" }}
-                      value={modalExtra[0]?.lengthMm}
-                      onChange={(val: any) => handleSheetSpecChange("lengthMm", val || 0)}
-                      size="small"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-gray-400 block mb-1 text-xs">厚度 (mm)</label>
-                    <InputNumber
-                      style={{ width: "100%" }}
-                      value={modalExtra[0]?.thicknessMm}
-                      onChange={(val: any) => handleSheetSpecChange("thicknessMm", val || 0)}
-                      size="small"
-                    />
-                  </div>
-                </div>
+                <Table
+                  size="small"
+                  loading={logicalInventoryLoading}
+                  dataSource={logicalInventoryList}
+                  rowSelection={{
+                    type: "checkbox",
+                    selectedRowKeys: modalExtra.map((x: any) => `${x.widthMm}-${x.lengthMm}`),
+                    onChange: (_, selectedRows: any[]) => {
+                      const mappedExtra = selectedRows.map((r) => ({
+                        widthMm: r.widthMm,
+                        lengthMm: r.lengthMm || 0,
+                        thicknessMm: 0,
+                      }));
+                      setModalExtra(mappedExtra);
+                      
+                      let totalQty = 0;
+                      let totalArea = 0;
+                      mappedExtra.forEach((spec) => {
+                        const key = `${spec.widthMm}-${spec.lengthMm}`;
+                        const qty = sheetDrawQty[key] || 0;
+                        totalQty += qty;
+                        totalArea += qty * (spec.widthMm / 1000) * (spec.lengthMm / 1000);
+                      });
+                      
+                      setModalFormValues((prev: any) => ({
+                        ...prev,
+                        quantity: totalQty,
+                        referenceQuantity1: parseFloat(totalArea.toFixed(4)),
+                      }));
+                    }
+                  }}
+                  rowKey={(record: any) => `${record.widthMm}-${record.lengthMm}`}
+                  pagination={false}
+                  scroll={{ y: 250 }}
+                  columns={[
+                    { title: "寬度 (mm)", dataIndex: "widthMm", key: "widthMm", render: (v) => `${v} mm` },
+                    { title: "長度 (mm)", dataIndex: "lengthMm", key: "lengthMm", render: (v) => v ? `${v} mm` : "-" },
+                    { title: "現有庫存量", dataIndex: "quantity", key: "quantity", render: (v) => <strong>{v?.toLocaleString()} PCS</strong> },
+                    {
+                      title: "領用數量 (PCS)",
+                      key: "drawQty",
+                      width: 150,
+                      render: (_, record: any) => {
+                        const key = `${record.widthMm}-${record.lengthMm}`;
+                        return (
+                          <InputNumber
+                            size="small"
+                            min={0}
+                            max={record.quantity}
+                            value={sheetDrawQty[key] || 0}
+                            onChange={(val) => {
+                              const qty = val || 0;
+                              const updatedDrawQty = { ...sheetDrawQty, [key]: qty };
+                              setSheetDrawQty(updatedDrawQty);
+                              
+                              let updatedExtra = [...modalExtra];
+                              const exists = updatedExtra.some((x: any) => x.widthMm === record.widthMm && x.lengthMm === record.lengthMm);
+                              if (qty > 0 && !exists) {
+                                updatedExtra.push({
+                                  widthMm: record.widthMm,
+                                  lengthMm: record.lengthMm || 0,
+                                  thicknessMm: 0,
+                                });
+                                setModalExtra(updatedExtra);
+                              } else if (qty === 0 && exists) {
+                                updatedExtra = updatedExtra.filter((x: any) => !(x.widthMm === record.widthMm && x.lengthMm === record.lengthMm));
+                                setModalExtra(updatedExtra);
+                              }
+                              
+                              let totalQty = 0;
+                              let totalArea = 0;
+                              updatedExtra.forEach((spec) => {
+                                const specKey = `${spec.widthMm}-${spec.lengthMm}`;
+                                const dQty = updatedDrawQty[specKey] || 0;
+                                totalQty += dQty;
+                                totalArea += dQty * (spec.widthMm / 1000) * (spec.lengthMm / 1000);
+                              });
+                              
+                              setModalFormValues((prev: any) => ({
+                                ...prev,
+                                quantity: totalQty,
+                                referenceQuantity1: parseFloat(totalArea.toFixed(4)),
+                              }));
+                            }}
+                          />
+                        );
+                      }
+                    }
+                  ]}
+                />
               </div>
             )}
           </div>

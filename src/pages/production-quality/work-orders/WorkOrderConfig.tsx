@@ -822,7 +822,7 @@ export const requisitionItemFormConfig = (materials: any[]): FormFieldConfig<any
     label: "領用數量",
     componentType: "InputNumber",
     colSpan: 1,
-    editable: "always",
+    editable: "never",
     validation: z.number().min(0.0001, "領用數量必須大於 0"),
   },
   {
@@ -831,21 +831,6 @@ export const requisitionItemFormConfig = (materials: any[]): FormFieldConfig<any
     componentType: "InputNumber",
     colSpan: 1,
     editable: "never"
-  },
-  {
-    name: "estimatedUnitPrice",
-    label: "預估單價 ($)",
-    componentType: "InputNumber",
-    colSpan: 1,
-    editable: "always",
-    validation: z.number().optional().nullable(),
-  },
-  {
-    name: "estimatedTotalCost",
-    label: "預計總成本 ($)",
-    componentType: "InputNumber",
-    colSpan: 1,
-    editable: "never",
   }
 ];
 
