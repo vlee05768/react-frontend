@@ -665,7 +665,7 @@ export function WorkOrderRequisitionTab({
 
             {/* 捲材：一卷一卡 LPN 卷卡選擇區 */}
             {modalIsRoll && modalFormValues.materialCode && (
-              <div className="bg-[var(--ant-color-fill-alter)] p-4 rounded-md mt-4 border border-[var(--ant-color-border-secondary)]">
+              <div className="bg-[var(--ant-color-fill-alter)] p-4 rounded-md mt-4 border border-[var(--ant-color-border-secondary)] requisition-modal-table">
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-xs font-bold text-[var(--ant-color-text-secondary)]">
                     🌀 捲材實體卡候選清單 (已選 {modalExtra?.length || 0} 卷，總長度: {modalFormValues.quantity || 0} M)
@@ -737,7 +737,7 @@ export function WorkOrderRequisitionTab({
 
             {/* 片材：庫存規格選擇區 */}
             {!modalIsRoll && modalFormValues.materialCode && (
-              <div className="bg-[var(--ant-color-fill-alter)] p-4 rounded-md mt-4 border border-[var(--ant-color-border-secondary)]">
+              <div className="bg-[var(--ant-color-fill-alter)] p-4 rounded-md mt-4 border border-[var(--ant-color-border-secondary)] requisition-modal-table">
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-xs font-bold text-[var(--ant-color-text-secondary)]">
                     🔮 片材庫存規格清單 (已選規格 {modalExtra?.length || 0} 筆，總數量: {modalFormValues.quantity || 0} PCS)
@@ -835,6 +835,14 @@ export function WorkOrderRequisitionTab({
                 />
               </div>
             )}
+
+            {/* 💡 Scope style block to override page-level max-height: none !important */}
+            <style>{`
+              .requisition-modal-table .ant-table-body {
+                max-height: 250px !important;
+                overflow-y: auto !important;
+              }
+            `}</style>
           </div>
         </Modal>
       )}
