@@ -402,10 +402,19 @@ export function WorkOrderRequisitionTab({
   };
 
   const handleRemoveItem = (index: number) => {
-    const updated = [...items];
-    updated.splice(index, 1);
-    setItems(updated);
-    saveItemsDirectly(updated);
+    modal.confirm({
+      title: "確認刪除",
+      content: `確定要刪除物料 ${items[index]?.materialCode} 的領用明細嗎？`,
+      okText: "確認",
+      cancelText: "取消",
+      centered: true,
+      onOk: () => {
+        const updated = [...items];
+        updated.splice(index, 1);
+        setItems(updated);
+        saveItemsDirectly(updated);
+      }
+    });
   };
 
 

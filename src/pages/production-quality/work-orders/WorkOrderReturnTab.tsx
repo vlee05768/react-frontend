@@ -274,10 +274,19 @@ export function WorkOrderReturnTab({
   };
 
   const handleRemoveItem = (index: number) => {
-    const updated = [...items];
-    updated.splice(index, 1);
-    setItems(updated);
-    saveItemsDirectly(updated);
+    modal.confirm({
+      title: "確認刪除",
+      content: `確定要刪除物料 ${items[index]?.materialCode} 的退料明細嗎？`,
+      okText: "確認",
+      cancelText: "取消",
+      centered: true,
+      onOk: () => {
+        const updated = [...items];
+        updated.splice(index, 1);
+        setItems(updated);
+        saveItemsDirectly(updated);
+      }
+    });
   };
 
   // 當退料料號變更時，自動獲取該料號在該製令 WIP 狀態中的所有可用卷卡 LPN
