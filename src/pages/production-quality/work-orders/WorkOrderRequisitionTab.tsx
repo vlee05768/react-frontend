@@ -870,6 +870,7 @@ export function WorkOrderRequisitionTab({
                     { title: "剩餘長度 (M)", dataIndex: "currentQtyAux", key: "currentQtyAux", width: 100, render: (v) => <strong>{v} M</strong> },
                     { title: "寬度 (mm)", dataIndex: "widthMm", key: "widthMm", width: 90, render: (v) => `${v} mm` },
                     { title: "厚度 (mm)", dataIndex: "measuredThicknessMm", key: "measuredThicknessMm", width: 90, render: (v) => v != null ? `${v} mm` : "-" },
+                    { title: "入庫時間", dataIndex: "checkDate", key: "checkDate", width: 140, render: (v) => v ? dayjs(v).format("YYYY-MM-DD HH:mm") : "-" },
                     {
                       title: "匹配判定",
                       dataIndex: "matchStatus",
