@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Card, Table, Tag, Space, Button, Empty, App, Spin, Modal, InputNumber } from "antd";
+import { Card, Table, Tag, Space, Button, Empty, App, Spin, Modal, InputNumber, Tooltip } from "antd";
 import { PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined, CheckCircleOutlined, SyncOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -519,10 +519,18 @@ export function WorkOrderRequisitionTab({
     },
     { title: "原料料號", dataIndex: "materialCode", key: "materialCode", width: 160 },
     { title: "原料名稱", dataIndex: "materialName", key: "materialName", width: 220 },
+    {
+      title: "寬度規格 (mm)",
+      key: "widthMm",
+      width: 120,
+      render: (_: any, record: any) => {
+        const matched = materialsList.find((x) => x.materialCode === record.materialCode);
+        return matched?.widthMm ? `${matched.widthMm} mm` : "-";
+      }
+    },
     { title: "單位", dataIndex: "unit", key: "unit", width: 80 },
     { title: "領用數量", dataIndex: "quantity", key: "quantity", width: 120, render: (v: number) => <strong>{v}</strong> },
     { title: "領用面積(SQM)", dataIndex: "referenceQuantity1", key: "referenceQuantity1", width: 140, render: (v: number) => v?.toFixed(4) },
-    { title: "來源儲位", dataIndex: "sourceStorageCode", key: "sourceStorageCode", width: 120, render: (v: string, record: any) => record.unit === "M" ? "-" : (v === "TW-MAT-GEN" ? "原料主倉" : "現場車間倉") },
     {
       title: "實物卡追溯 / 片材規格",
       key: "details",
@@ -531,15 +539,31 @@ export function WorkOrderRequisitionTab({
         const matched = materialsList.find((x) => x.materialCode === record.materialCode);
         const isRoll = matched ? matched.materialForm === "R" : record.unit === "M";
         if (isRoll) {
-          return (
-            <div>
-              <Tag color="cyan">捲材</Tag>
-              {record.extra && record.extra.length > 0 ? (
-                <span className="text-xs text-gray-400">已選 {record.extra.length} 卷 LPN</span>
-              ) : (
-                <span className="text-xs text-red-400">尚未選擇任何卷卡</span>
-              )}
+          const hasExtra = record.extra && record.extra.length > 0;
+          const tooltipContent = hasExtra ? (
+            <div className="p-1 space-y-1">
+              <div className="font-bold border-b border-gray-600 pb-1 mb-1">
+                已選卷卡清單 ({record.extra.length} 卷)
+              </div>
+              {record.extra.map((r: any, idx: number) => (
+                <div key={idx} className="text-xs">
+                  {idx + 1}. <strong className="text-blue-400">{r.rollNo}</strong> : {r.qtyAux} M ({r.widthMm} mm)
+                </div>
+              ))}
             </div>
+          ) : null;
+
+          return (
+            <Tooltip title={tooltipContent} overlayStyle={{ maxWidth: 300 }}>
+              <div style={{ cursor: hasExtra ? "pointer" : "default" }}>
+                <Tag color="cyan">捲材</Tag>
+                {hasExtra ? (
+                  <span className="text-xs text-blue-400 underline">已選 {record.extra.length} 卷 LPN (懸停查看)</span>
+                ) : (
+                  <span className="text-xs text-red-400">尚未選擇任何卷卡</span>
+                )}
+              </div>
+            </Tooltip>
           );
         } else {
           const spec = record.extra?.[0] || {};
