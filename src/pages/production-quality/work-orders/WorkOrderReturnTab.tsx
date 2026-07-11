@@ -445,7 +445,7 @@ export function WorkOrderReturnTab({
     { title: "原料名稱", dataIndex: "materialName", key: "materialName" },
     { title: "單位", dataIndex: "unit", key: "unit", width: 80 },
     { title: "退回數量(M)", dataIndex: "quantity", key: "quantity", width: 120, render: (v: number) => <strong>{v}</strong> },
-    { title: "退回面積(SQM)", dataIndex: "referenceQuantity1", key: "referenceQuantity1", width: 140, render: (v: number) => v?.toFixed(4) },
+    { title: "退回面積(SQM)", dataIndex: "referenceQuantity1", key: "referenceQuantity1", width: 140, render: (v: number) => v?.toFixed(2) },
     { title: "退回目的儲位", dataIndex: "targetStorageCode", key: "targetStorageCode", render: () => "-" },
     {
       title: "退回卷卡明細",

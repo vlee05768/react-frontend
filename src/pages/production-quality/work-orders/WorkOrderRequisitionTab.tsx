@@ -530,7 +530,7 @@ export function WorkOrderRequisitionTab({
     },
     { title: "單位", dataIndex: "unit", key: "unit", width: 80 },
     { title: "領用數量", dataIndex: "quantity", key: "quantity", width: 120, render: (v: number) => <strong>{v}</strong> },
-    { title: "領用面積(SQM)", dataIndex: "referenceQuantity1", key: "referenceQuantity1", width: 140, render: (v: number) => v?.toFixed(4) },
+    { title: "領用面積(SQM)", dataIndex: "referenceQuantity1", key: "referenceQuantity1", width: 140, render: (v: number) => v?.toFixed(2) },
     {
       title: "實物卡追溯 / 片材規格",
       key: "details",
