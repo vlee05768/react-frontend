@@ -508,15 +508,16 @@ export function WorkOrderRequisitionTab({
         );
       },
     },
-    { title: "原料料號", dataIndex: "materialCode", key: "materialCode" },
-    { title: "原料名稱", dataIndex: "materialName", key: "materialName" },
+    { title: "原料料號", dataIndex: "materialCode", key: "materialCode", width: 160 },
+    { title: "原料名稱", dataIndex: "materialName", key: "materialName", width: 220 },
     { title: "單位", dataIndex: "unit", key: "unit", width: 80 },
-    { title: "領用數量", dataIndex: "quantity", key: "quantity", width: 100, render: (v: number) => <strong>{v}</strong> },
+    { title: "領用數量", dataIndex: "quantity", key: "quantity", width: 120, render: (v: number) => <strong>{v}</strong> },
     { title: "領用面積(SQM)", dataIndex: "referenceQuantity1", key: "referenceQuantity1", width: 140, render: (v: number) => v?.toFixed(4) },
-    { title: "來源儲位", dataIndex: "sourceStorageCode", key: "sourceStorageCode", render: (v: string, record: any) => record.unit === "M" ? "-" : (v === "TW-MAT-GEN" ? "原料主倉" : "現場車間倉") },
+    { title: "來源儲位", dataIndex: "sourceStorageCode", key: "sourceStorageCode", width: 120, render: (v: string, record: any) => record.unit === "M" ? "-" : (v === "TW-MAT-GEN" ? "原料主倉" : "現場車間倉") },
     {
       title: "實物卡追溯 / 片材規格",
       key: "details",
+      width: 250,
       render: (_: any, record: any) => {
         const matched = materialsList.find((x) => x.materialCode === record.materialCode);
         const isRoll = matched ? matched.materialForm === "R" : record.unit === "M";
@@ -701,6 +702,7 @@ export function WorkOrderRequisitionTab({
                 dataSource={items}
                 columns={itemColumns}
                 pagination={false}
+                scroll={{ x: 1000 }}
                 rowKey="materialCode"
                 locale={{
                   emptyText: !activeDocNo
