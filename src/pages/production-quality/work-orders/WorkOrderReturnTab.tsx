@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, Table, Tag, Space, Button, Empty, App, Spin, Modal, InputNumber } from "antd";
 import { PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined, CheckCircleOutlined, SyncOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -30,6 +30,7 @@ export function WorkOrderReturnTab({
 
   const [isCreating, setIsCreating] = useState(false);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const justCreatedRef = useRef(false);
 
   // 退料主檔表頭編輯狀態
   const [docDate, setDocDate] = useState<dayjs.Dayjs>(dayjs());
@@ -74,7 +75,13 @@ export function WorkOrderReturnTab({
     if (activeRecord) {
       setDocDate(dayjs(activeRecord.documentDate));
       setDocNotes(activeRecord.notes || "");
-      setIsHeaderEditing(false);
+      
+      if (justCreatedRef.current) {
+        setIsHeaderEditing(true);
+        justCreatedRef.current = false;
+      } else {
+        setIsHeaderEditing(false);
+      }
 
       const mappedItems = (activeRecord.items || []).map((it: any) => {
         let extra = [];
@@ -106,6 +113,7 @@ export function WorkOrderReturnTab({
     onSuccess: () => {
       message.success("退料單建立成功！");
       queryClient.invalidateQueries({ queryKey: ["returns", masterData.workOrderNumber] });
+      justCreatedRef.current = true; // 💡 標記為剛建立，保留編輯狀態
       setIsCreating(false);
       setIsHeaderEditing(true); // 💡 建立成功後，自動進入編輯狀態，以便新增明細
       refetchList();
