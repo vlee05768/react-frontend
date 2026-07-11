@@ -10,11 +10,10 @@ import {
   postApiV1WorkOrderRequisitionByDocumentNumberConfirm,
   postApiV1WorkOrderRequisitionByDocumentNumberCancel,
   deleteApiV1WorkOrderRequisitionByDocumentNumber,
-  getApiV1WorkOrderRequisitionFifo
+  getApiV1WorkOrderRequisitionSelectableRolls
 } from "@/api/generated/sdk.gen";
 import { getApiErrorMessage } from "@/utils/apiError";
 import dayjs from "dayjs";
-import { RollSubstitutionPicker } from "./RollSubstitutionPicker";
 import type { WorkOrderDto } from "@/api/generated/types.gen";
 import { DynamicForm } from "@/components/Form/DynamicForm";
 import { requisitionHeaderFormConfig, requisitionItemFormConfig } from "./WorkOrderConfig";
@@ -47,7 +46,6 @@ export function WorkOrderRequisitionTab({
   // 彈窗內的暫存欄位狀態
   const [modalFormValues, setModalFormValues] = useState<any>({});
   const [modalExtra, setModalExtra] = useState<any[]>([]);
-  const [pickerOpen, setPickerOpen] = useState(false);
 
   // 1. 取得該製令的領料單列表 (1對1，此處拿第一筆)
   const { data: requisitionsResponse, isLoading: listLoading, refetch: refetchList } = useQuery({
@@ -229,46 +227,7 @@ export function WorkOrderRequisitionTab({
     }
   };
 
-  // 💡 FIFO 自動配料一鍵完成
-  const handleFifoAutoAllocate = async (requiredQty: number, widthMm: number) => {
-    const materialCode = modalFormValues.materialCode;
-    if (!materialCode) {
-      message.warning("請先選定原料料號！");
-      return;
-    }
-    if (!requiredQty || requiredQty <= 0) {
-      message.warning("請先輸入所需長度，再點擊 FIFO 配料！");
-      return;
-    }
-    try {
-      const res: any = await getApiV1WorkOrderRequisitionFifo({
-        query: {
-          materialCode,
-          requiredLength: requiredQty,
-          requiredWidth: widthMm || undefined,
-        } as any
-      });
-      const allocated = res.data?.data || [];
-      if (allocated.length === 0) {
-        message.error("原料倉庫中無足夠的可用 LPN 卷卡可供 FIFO 配料！");
-        return;
-      }
 
-      setModalExtra(allocated);
-      const totalLen = allocated.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
-      const totalArea = allocated.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
-
-      setModalFormValues((prev: any) => ({
-        ...prev,
-        quantity: totalLen,
-        referenceQuantity1: parseFloat(totalArea.toFixed(4)),
-      }));
-
-      message.success(`FIFO 自動配料成功！共為您選中了 ${allocated.length} 卷可用卷卡`);
-    } catch (e) {
-      message.error("自動配料失敗：" + getApiErrorMessage(e));
-    }
-  };
 
   const handleAddNewItemClick = () => {
     setEditingItemIndex(null);
@@ -332,23 +291,7 @@ export function WorkOrderRequisitionTab({
     }));
   };
 
-  const handleRollsSelected = (selectedRolls: any[]) => {
-    const mappedExtra = selectedRolls.map((r) => ({
-      rollNo: r.rollNo,
-      widthMm: r.widthMm,
-      qtyAux: r.currentQtyAux,
-    }));
 
-    setModalExtra(mappedExtra);
-    const totalLen = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
-    const totalArea = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
-
-    setModalFormValues((prev: any) => ({
-      ...prev,
-      quantity: parseFloat(totalLen.toFixed(4)),
-      referenceQuantity1: parseFloat(totalArea.toFixed(4)),
-    }));
-  };
 
   const handleModalSave = () => {
     if (!modalFormValues.materialCode) {
@@ -361,13 +304,19 @@ export function WorkOrderRequisitionTab({
     }
 
     const matched = materialsList.find((x) => x.materialCode === modalFormValues.materialCode);
+    const requiredQty = matched ? matched.requiredQuantity : 0;
+    if (modalFormValues.quantity < requiredQty) {
+      message.warning(`領用數量不足！目前選擇/輸入的使用量為 ${modalFormValues.quantity}，必須大於等於計算後的需求量 ${requiredQty}！`);
+      return;
+    }
+
     const newItem = {
       materialCode: modalFormValues.materialCode,
       materialName: matched?.materialName || "",
       unit: matched?.materialForm === "R" ? "M" : "PCS",
       quantity: modalFormValues.quantity,
       referenceQuantity1: modalFormValues.referenceQuantity1,
-      sourceStorageCode: modalFormValues.sourceStorageCode,
+      sourceStorageCode: modalFormValues.sourceStorageCode || "TW-GEN-INV",
       extra: modalExtra,
     };
 
@@ -388,6 +337,7 @@ export function WorkOrderRequisitionTab({
         materialName: x.materialName,
         materialForm: x.materialForm,
         widthMm: x.materialWidth,
+        requiredQuantity: x.requiredAmount || 0,
       }))
     : [];
 
@@ -461,6 +411,19 @@ export function WorkOrderRequisitionTab({
 
   const matchedMaterial = materialsList.find((x) => x.materialCode === modalFormValues.materialCode);
   const modalIsRoll = matchedMaterial ? matchedMaterial.materialForm === "R" : modalFormValues.unit === "M";
+
+  const { data: selectableRollsResponse, isLoading: selectableRollsLoading } = useQuery({
+    queryKey: ["selectable-rolls-modal", modalFormValues.materialCode, matchedMaterial?.widthMm],
+    queryFn: () => getApiV1WorkOrderRequisitionSelectableRolls({
+      query: {
+        materialCode: modalFormValues.materialCode,
+        requiredWidth: matchedMaterial?.widthMm || undefined,
+      } as any
+    }),
+    enabled: itemModalOpen && modalIsRoll && !!modalFormValues.materialCode,
+  });
+
+  const selectableRollsList = (selectableRollsResponse?.data as any)?.data || [];
 
   return (
     <div className="flex flex-col gap-4">
@@ -602,12 +565,18 @@ export function WorkOrderRequisitionTab({
           destroyOnClose
         >
           <div className="py-4 space-y-4">
+            {/* 💡 計算後需求量展示區 */}
+            {matchedMaterial && (
+              <div className="text-sm text-blue-600 font-bold bg-blue-50 p-3 rounded-md border border-blue-200">
+                💡 計算後原料需求量：{matchedMaterial.requiredQuantity} {matchedMaterial.materialForm === 'R' ? 'M' : 'PCS'}
+              </div>
+            )}
+
             <DynamicForm
               formId="requisitionItemForm"
               fields={requisitionItemFormConfig(materialsList) as any}
               defaultValues={{
                 materialCode: modalFormValues.materialCode,
-                sourceStorageCode: modalFormValues.sourceStorageCode,
                 quantity: modalFormValues.quantity,
                 referenceQuantity1: modalFormValues.referenceQuantity1,
               }}
@@ -619,13 +588,11 @@ export function WorkOrderRequisitionTab({
                 // 比對是否有實質改變
                 if (
                   values.materialCode !== modalFormValues.materialCode ||
-                  values.sourceStorageCode !== modalFormValues.sourceStorageCode ||
                   values.quantity !== modalFormValues.quantity
                 ) {
                   const updatedValues = {
                     ...modalFormValues,
                     materialCode: values.materialCode,
-                    sourceStorageCode: values.sourceStorageCode,
                   };
 
                   if (values.materialCode !== modalFormValues.materialCode) {
@@ -655,53 +622,70 @@ export function WorkOrderRequisitionTab({
               <div className="bg-[var(--ant-color-fill-alter)] p-4 rounded-md mt-4 border border-[var(--ant-color-border-secondary)]">
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-xs font-bold text-[var(--ant-color-text-secondary)]">
-                    🌀 捲材實體卡追溯 LPN (已選 {modalExtra?.length || 0} 卷)
+                    🌀 捲材實體卡候選清單 (已選 {modalExtra?.length || 0} 卷，總長度: {modalFormValues.quantity || 0} M)
                   </span>
-                  <Space>
-                    <Button
-                      size="small"
-                      type="primary"
-                      ghost
-                      icon={<PlusOutlined />}
-                      onClick={() => setPickerOpen(true)}
-                    >
-                      智慧挑選卷卡
-                    </Button>
-                    <InputNumber
-                      size="small"
-                      style={{ width: "120px" }}
-                      placeholder="FIFO 需求(米)"
-                      id="modal-fifo-input"
-                    />
-                    <Button
-                      size="small"
-                      type="dashed"
-                      onClick={() => {
-                        const reqLen = (document.getElementById("modal-fifo-input") as HTMLInputElement)?.value;
-                        handleFifoAutoAllocate(parseFloat(reqLen), matchedMaterial?.widthMm || 0);
-                      }}
-                    >
-                      一鍵 FIFO 配料
-                    </Button>
-                  </Space>
                 </div>
-                {modalExtra && modalExtra.length > 0 ? (
-                  <Table
-                    size="small"
-                    dataSource={modalExtra}
-                    pagination={false}
-                    rowKey="rollNo"
-                    columns={[
-                      { title: "物料卷卡號 (LPN)", dataIndex: "rollNo", key: "rollNo" },
-                      { title: "實體規格寬度", dataIndex: "widthMm", key: "widthMm", render: (v) => `${v} mm` },
-                      { title: "領用長度 (M)", dataIndex: "qtyAux", key: "qtyAux", render: (v) => <strong>{v} M</strong> },
-                    ]}
-                  />
-                ) : (
-                  <div className="py-4 text-center text-[var(--ant-color-text-placeholder)] text-xs">
-                    目前尚未選擇任何實體物料卷卡，請點選上方按鈕挑選！
-                  </div>
-                )}
+                <Table
+                  size="small"
+                  loading={selectableRollsLoading}
+                  dataSource={selectableRollsList}
+                  rowSelection={{
+                    type: "checkbox",
+                    selectedRowKeys: modalExtra.map((x: any) => x.rollNo),
+                    onChange: (_, selectedRows: any[]) => {
+                      const validKeys: React.Key[] = [];
+                      const validRows: any[] = [];
+                      selectedRows.forEach((row) => {
+                        if (row.matchStatus !== "Narrower") {
+                          validKeys.push(row.rollNo);
+                          validRows.push(row);
+                        } else {
+                          message.warning(`物料卡 ${row.rollNo} 寬度不足，無法領用！`);
+                        }
+                      });
+                      
+                      const mappedExtra = validRows.map((r) => ({
+                        rollNo: r.rollNo,
+                        widthMm: r.widthMm,
+                        qtyAux: r.currentQtyAux,
+                      }));
+                      setModalExtra(mappedExtra);
+                      const totalLen = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
+                      const totalArea = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
+                      
+                      setModalFormValues((prev: any) => ({
+                        ...prev,
+                        quantity: parseFloat(totalLen.toFixed(4)),
+                        referenceQuantity1: parseFloat(totalArea.toFixed(4)),
+                      }));
+                    }
+                  }}
+                  rowKey="rollNo"
+                  pagination={false}
+                  scroll={{ y: 250 }}
+                  columns={[
+                    { title: "物料卡號 (LPN)", dataIndex: "rollNo", key: "rollNo", width: 160 },
+                    { title: "批次號", dataIndex: "lotNo", key: "lotNo", width: 110 },
+                    { title: "剩餘長度 (M)", dataIndex: "currentQtyAux", key: "currentQtyAux", width: 100, render: (v) => <strong>{v} M</strong> },
+                    { title: "寬度 (mm)", dataIndex: "widthMm", key: "widthMm", width: 90, render: (v) => `${v} mm` },
+                    { title: "厚度 (mm)", dataIndex: "measuredThicknessMm", key: "measuredThicknessMm", width: 90, render: (v) => v != null ? `${v} mm` : "-" },
+                    {
+                      title: "匹配判定",
+                      dataIndex: "matchStatus",
+                      key: "matchStatus",
+                      width: 130,
+                      render: (status: string) => {
+                        if (status === "Exact") {
+                          return <Tag color="success">🟢 完全符合 (Exact)</Tag>;
+                        } else if (status === "Wider") {
+                          return <Tag color="orange">🟡 寬度替代 (Wider)</Tag>;
+                        } else {
+                          return <Tag color="error">🔴 寬度不足 (窄)</Tag>;
+                        }
+                      },
+                    },
+                  ]}
+                />
               </div>
             )}
 
@@ -744,21 +728,6 @@ export function WorkOrderRequisitionTab({
             )}
           </div>
         </Modal>
-      )}
-
-      {/* 智慧 LPN 卷卡選擇 Modal */}
-      {pickerOpen && modalFormValues.materialCode && (
-        <RollSubstitutionPicker
-          visible={pickerOpen}
-          materialCode={modalFormValues.materialCode}
-          requiredWidth={matchedMaterial?.widthMm}
-          selectedRollNos={modalExtra.map((x: any) => x.rollNo)}
-          onCancel={() => setPickerOpen(false)}
-          onSelect={(selectedRolls) => {
-            handleRollsSelected(selectedRolls);
-            setPickerOpen(false);
-          }}
-        />
       )}
     </div>
   );

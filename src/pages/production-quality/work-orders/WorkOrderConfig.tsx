@@ -805,24 +805,10 @@ export const requisitionHeaderFormConfig = (): FormFieldConfig<any>[] => [
 export const requisitionItemFormConfig = (materials: any[]): FormFieldConfig<any>[] => [
   {
     name: "materialCode",
-    label: "領用原料料號",
+    label: "領用BOM組成原料",
     componentType: "Select",
     componentProps: {
       options: materials.map(m => ({ label: `${m.materialCode} (${m.materialForm === 'R' ? '捲材' : '片材'})`, value: m.materialCode }))
-    },
-    colSpan: 1,
-    editable: "always",
-    validation: z.string().min(1, "必填"),
-  },
-  {
-    name: "sourceStorageCode",
-    label: "來源儲位",
-    componentType: "Select",
-    componentProps: {
-      options: [
-        { label: "原料主倉 (TW-GEN-INV)", value: "TW-GEN-INV" },
-        { label: "現場車間倉 (TW-WIP-GEN)", value: "TW-WIP-GEN" }
-      ]
     },
     colSpan: 1,
     editable: "always",
