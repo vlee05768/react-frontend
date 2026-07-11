@@ -831,6 +831,21 @@ export const requisitionItemFormConfig = (materials: any[]): FormFieldConfig<any
     componentType: "InputNumber",
     colSpan: 1,
     editable: "never"
+  },
+  {
+    name: "estimatedUnitPrice",
+    label: "預估單價 ($)",
+    componentType: "InputNumber",
+    colSpan: 1,
+    editable: "always",
+    validation: z.number().optional().nullable(),
+  },
+  {
+    name: "estimatedTotalCost",
+    label: "預計總成本 ($)",
+    componentType: "InputNumber",
+    colSpan: 1,
+    editable: "never",
   }
 ];
 

@@ -236,6 +236,8 @@ export function WorkOrderRequisitionTab({
       sourceStorageCode: "TW-GEN-INV",
       quantity: 0,
       referenceQuantity1: 0,
+      estimatedUnitPrice: 0,
+      estimatedTotalCost: 0,
     });
     setModalExtra([]);
     setItemModalOpen(true);
@@ -243,12 +245,15 @@ export function WorkOrderRequisitionTab({
 
   const handleEditItemClick = (index: number) => {
     const it = items[index];
+    const { estimatedUnitPrice, estimatedTotalCost } = getEstimatedCostInfo(it.extra);
     setEditingItemIndex(index);
     setModalFormValues({
       materialCode: it.materialCode,
       sourceStorageCode: it.sourceStorageCode,
       quantity: it.quantity,
       referenceQuantity1: it.referenceQuantity1,
+      estimatedUnitPrice,
+      estimatedTotalCost,
     });
     setModalExtra(it.extra || []);
     setItemModalOpen(true);
@@ -310,6 +315,17 @@ export function WorkOrderRequisitionTab({
       return;
     }
 
+    const mappedExtra = modalExtra.length > 0
+      ? modalExtra.map((el) => ({
+          ...el,
+          estimatedUnitPrice: modalFormValues.estimatedUnitPrice || 0,
+          estimatedTotalCost: modalFormValues.estimatedTotalCost || 0,
+        }))
+      : [{
+          estimatedUnitPrice: modalFormValues.estimatedUnitPrice || 0,
+          estimatedTotalCost: modalFormValues.estimatedTotalCost || 0,
+        }];
+
     const newItem = {
       materialCode: modalFormValues.materialCode,
       materialName: matched?.materialName || "",
@@ -317,7 +333,7 @@ export function WorkOrderRequisitionTab({
       quantity: modalFormValues.quantity,
       referenceQuantity1: modalFormValues.referenceQuantity1,
       sourceStorageCode: modalFormValues.sourceStorageCode || "TW-GEN-INV",
-      extra: modalExtra,
+      extra: mappedExtra,
     };
 
     const updated = [...items];
@@ -352,6 +368,17 @@ export function WorkOrderRequisitionTab({
   const isEditable = isCreating || isHeaderEditing;
   const isPosted = activeRecord && !!activeRecord.confirmDate;
 
+  const getEstimatedCostInfo = (extra: any) => {
+    const arr = Array.isArray(extra) ? extra : [];
+    if (arr.length > 0) {
+      return {
+        estimatedUnitPrice: arr[0].estimatedUnitPrice || 0,
+        estimatedTotalCost: arr[0].estimatedTotalCost || 0,
+      };
+    }
+    return { estimatedUnitPrice: 0, estimatedTotalCost: 0 };
+  };
+
   // 定義明細表格欄位
   const itemColumns = [
     {
@@ -383,6 +410,24 @@ export function WorkOrderRequisitionTab({
     { title: "單位", dataIndex: "unit", key: "unit", width: 80 },
     { title: "領用數量", dataIndex: "quantity", key: "quantity", width: 100, render: (v: number) => <strong>{v}</strong> },
     { title: "領用面積(SQM)", dataIndex: "referenceQuantity1", key: "referenceQuantity1", width: 140, render: (v: number) => v?.toFixed(4) },
+    {
+      title: "預估單價",
+      key: "estimatedUnitPrice",
+      width: 110,
+      render: (_: any, record: any) => {
+        const { estimatedUnitPrice } = getEstimatedCostInfo(record.extra);
+        return estimatedUnitPrice ? `$${estimatedUnitPrice.toLocaleString()}` : "-";
+      }
+    },
+    {
+      title: "預計總成本",
+      key: "estimatedTotalCost",
+      width: 120,
+      render: (_: any, record: any) => {
+        const { estimatedTotalCost } = getEstimatedCostInfo(record.extra);
+        return estimatedTotalCost ? <strong>${estimatedTotalCost.toLocaleString()}</strong> : "-";
+      }
+    },
     { title: "來源儲位", dataIndex: "sourceStorageCode", key: "sourceStorageCode", render: (v: string) => v === "TW-GEN-INV" ? "原料主倉" : "現場車間倉" },
     {
       title: "實物卡追溯 / 片材規格",
@@ -581,11 +626,18 @@ export function WorkOrderRequisitionTab({
 
             <DynamicForm
               formId="requisitionItemForm"
-              fields={requisitionItemFormConfig(materialsList) as any}
+              fields={requisitionItemFormConfig(materialsList).map((f) => {
+                if (f.name === "quantity" && modalIsRoll) {
+                  return { ...f, editable: "never" };
+                }
+                return f;
+              }) as any}
               defaultValues={{
                 materialCode: modalFormValues.materialCode,
                 quantity: modalFormValues.quantity,
                 referenceQuantity1: modalFormValues.referenceQuantity1,
+                estimatedUnitPrice: modalFormValues.estimatedUnitPrice,
+                estimatedTotalCost: modalFormValues.estimatedTotalCost,
               }}
               onSubmit={() => {}}
               onValuesChange={(values: any) => {
@@ -595,26 +647,33 @@ export function WorkOrderRequisitionTab({
                 // 比對是否有實質改變
                 if (
                   values.materialCode !== modalFormValues.materialCode ||
-                  values.quantity !== modalFormValues.quantity
+                  values.quantity !== modalFormValues.quantity ||
+                  values.estimatedUnitPrice !== modalFormValues.estimatedUnitPrice
                 ) {
                   const updatedValues = {
                     ...modalFormValues,
                     materialCode: values.materialCode,
+                    estimatedUnitPrice: values.estimatedUnitPrice || 0,
                   };
 
                   if (values.materialCode !== modalFormValues.materialCode) {
                     // 原料料號改變，初始化 extra 欄位
                     updatedValues.quantity = 0;
                     updatedValues.referenceQuantity1 = 0;
+                    updatedValues.estimatedUnitPrice = 0;
+                    updatedValues.estimatedTotalCost = 0;
                     setModalExtra(innerIsRoll ? [] : [{ widthMm: matched?.widthMm || 0, lengthMm: 0, thicknessMm: 0 }]);
                   } else if (!innerIsRoll) {
-                    // 片材數量改變，重新計算面積
+                    // 片材數量改變，重新計算面積與總成本
                     updatedValues.quantity = values.quantity || 0;
                     const spec = modalExtra[0] || { widthMm: matched?.widthMm || 0, lengthMm: 0, thicknessMm: 0 };
                     const area = (spec.widthMm / 1000) * (spec.lengthMm / 1000) * updatedValues.quantity;
                     updatedValues.referenceQuantity1 = parseFloat(area.toFixed(4));
+                    updatedValues.estimatedTotalCost = parseFloat((updatedValues.quantity * updatedValues.estimatedUnitPrice).toFixed(2));
                   } else {
-                    // 捲材數量由下層 LPN 控制
+                    // 捲材數量由下層 LPN 控制，但也更新成本
+                    updatedValues.quantity = values.quantity || modalFormValues.quantity || 0;
+                    updatedValues.estimatedTotalCost = parseFloat((updatedValues.quantity * updatedValues.estimatedUnitPrice).toFixed(2));
                   }
 
                   setModalFormValues(updatedValues);
@@ -659,11 +718,14 @@ export function WorkOrderRequisitionTab({
                       setModalExtra(mappedExtra);
                       const totalLen = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
                       const totalArea = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
+                      const unitPrice = modalFormValues.estimatedUnitPrice || 0;
+                      const totalCost = totalLen * unitPrice;
                       
                       setModalFormValues((prev: any) => ({
                         ...prev,
                         quantity: parseFloat(totalLen.toFixed(4)),
                         referenceQuantity1: parseFloat(totalArea.toFixed(4)),
+                        estimatedTotalCost: parseFloat(totalCost.toFixed(2)),
                       }));
                     }
                   }}
