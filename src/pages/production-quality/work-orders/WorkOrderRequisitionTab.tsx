@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Card, Table, Tag, Space, Button, Empty, App, Spin, Modal, InputNumber, Tooltip } from "antd";
+import { Card, Table, Tag, Space, Button, Empty, App, Spin, Modal, InputNumber, Tooltip, Alert } from "antd";
 import { PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined, SyncOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -466,6 +466,7 @@ export function WorkOrderRequisitionTab({
       width: 100,
       render: (_: any, __: any, index: number) => {
         if (isPosted) return null;
+        const isDisabled = isHeaderEditing || isCreating;
         return (
           <Space>
             <Button
@@ -473,12 +474,16 @@ export function WorkOrderRequisitionTab({
               className="text-blue-500 p-0"
               icon={<EditOutlined />}
               onClick={() => handleEditItemClick(index)}
+              disabled={isDisabled}
+              title={isDisabled ? "請先儲存表頭編輯" : undefined}
             />
             <Button
               type="text"
               danger
               icon={<DeleteOutlined />}
               onClick={() => handleRemoveItem(index)}
+              disabled={isDisabled}
+              title={isDisabled ? "請先儲存表頭編輯" : undefined}
             />
           </Space>
         );
@@ -610,7 +615,7 @@ export function WorkOrderRequisitionTab({
                   {isEditable ? (
                     <>
                       <Button type="primary" size="small" icon={<SaveOutlined />} onClick={() => (document.getElementById("requisitionHeaderForm") as HTMLFormElement)?.requestSubmit()} loading={createMutation.isPending || updateMutation.isPending}>
-                        儲存草稿
+                        儲存
                       </Button>
                       <Button size="small" onClick={() => (isCreating ? setIsCreating(false) : setIsHeaderEditing(false))}>
                         取消
@@ -656,6 +661,16 @@ export function WorkOrderRequisitionTab({
             </Card>
 
             {/* 領料明細面板 採用與 BOM 一致 the Table & Modal 編輯架構 */}
+            {(isHeaderEditing || isCreating) && (
+              <div className="mb-3">
+                <Alert
+                  type="warning"
+                  showIcon
+                  message={<strong>表頭編輯中</strong>}
+                  description="您目前正在建立或編輯領料單表頭。請先點擊上方「儲存」以保存表頭，或點擊「取消」，然後才能管理領料物料明細、一鍵自動配料等功能。"
+                />
+              </div>
+            )}
             <Card
               size="small"
               title={<strong>📋 領料物料明細</strong>}
@@ -668,6 +683,7 @@ export function WorkOrderRequisitionTab({
                       icon={<SyncOutlined spin={isAutoAllocating} />}
                       onClick={handleAutoAllocateAll}
                       loading={isAutoAllocating}
+                      disabled={isHeaderEditing || isCreating}
                     >
                       ⚡ 一鍵自動配料
                     </Button>
@@ -676,7 +692,7 @@ export function WorkOrderRequisitionTab({
                       size="small"
                       icon={<PlusOutlined />}
                       onClick={handleAddNewItemClick}
-                      disabled={isAllBomRequisitioned}
+                      disabled={isAllBomRequisitioned || isHeaderEditing || isCreating}
                       title={isAllBomRequisitioned ? "所有 BOM 原料均已加入領料明細，無法重複新增" : undefined}
                     >
                       新增領用物料
@@ -694,7 +710,7 @@ export function WorkOrderRequisitionTab({
                 rowKey="materialCode"
                 locale={{
                   emptyText: !activeDocNo
-                    ? "⚠️ 請先點擊右上方「儲存草稿」保存表頭，即可開始新增領用物料明細。"
+                    ? "⚠️ 請先點擊右上方「儲存」保存表頭，即可開始新增領用物料明細。"
                     : "尚未加入任何領用物料項目，請點選右上方新增項目。"
                 }}
               />
