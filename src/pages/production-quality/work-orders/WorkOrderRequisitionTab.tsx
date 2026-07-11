@@ -708,7 +708,7 @@ export function WorkOrderRequisitionTab({
                   }}
                   rowKey="rollNo"
                   pagination={false}
-                  scroll={{ y: 250 }}
+                  scroll={selectableRollsList.length > 5 ? { y: 250 } : undefined}
                   columns={[
                     { title: "物料卡號 (LPN)", dataIndex: "rollNo", key: "rollNo", width: 160 },
                     { title: "批次號", dataIndex: "lotNo", key: "lotNo", width: 110 },
@@ -776,7 +776,7 @@ export function WorkOrderRequisitionTab({
                   }}
                   rowKey={(record: any) => `${record.widthMm}-${record.lengthMm}`}
                   pagination={false}
-                  scroll={{ y: 250 }}
+                  scroll={logicalInventoryList.length > 5 ? { y: 250 } : undefined}
                   columns={[
                     { title: "寬度 (mm)", dataIndex: "widthMm", key: "widthMm", render: (v) => `${v} mm` },
                     { title: "長度 (mm)", dataIndex: "lengthMm", key: "lengthMm", render: (v) => v ? `${v} mm` : "-" },
