@@ -396,8 +396,7 @@ export function WorkOrderRequisitionTab({
     const matched = materialsList.find((x) => x.materialCode === modalFormValues.materialCode);
     const requiredQty = matched ? matched.requiredQuantity : 0;
     if (modalFormValues.quantity < requiredQty) {
-      message.warning(`領用數量不足！目前選擇/輸入的使用量為 ${modalFormValues.quantity}，必須大於等於計算後的需求量 ${requiredQty}！`);
-      return;
+      message.warning(`提醒：目前選擇/輸入的領用數量 (${modalFormValues.quantity}) 低於 BOM 計算後的需求量 (${requiredQty})。已為您儲存，但最後「備料確認」前必須補足。`);
     }
 
     const mappedExtra = modalExtra.length > 0
