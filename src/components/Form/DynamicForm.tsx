@@ -147,12 +147,27 @@ export function DynamicForm<TValues extends Record<string, any>>({
 
   // 當 defaultValues 改變時 (例如 API 資料載入完成)，重置表單值
   useEffect(() => {
-    if (isDirty) return; // 💡 如果表單已經有使用者修改的髒數據(Dirty)，絕對不要自動重置以避免遺失 Input Focus!
+    if (isDirty) {
+      // 💡 Even if dirty, if read-only or never-editable fields in defaultValues changed, we should setValue them programmatically!
+      if (defaultValues) {
+        Object.keys(defaultValues).forEach((key) => {
+          const field = fields.find((f) => f.name === key) as any;
+          if (field && (field.editable === "never" || field.editable === false || field.disabled === true)) {
+            const currentVal = methods.getValues(key as any);
+            const defaultVal = (defaultValues as any)[key];
+            if (currentVal !== defaultVal) {
+              methods.setValue(key as any, defaultVal, { shouldDirty: false });
+            }
+          }
+        });
+      }
+      return; 
+    }
     if (defaultValues && !isEqual(prevDefaultValuesRef.current, defaultValues)) {
       methods.reset(defaultValues);
       prevDefaultValuesRef.current = defaultValues;
     }
-  }, [defaultValues, methods, isDirty]);
+  }, [defaultValues, methods, isDirty, fields]);
 
   // 當 isViewMode 變為 true (回到檢視模式) 時，重置表單值為原始資料，以確保取消編輯時能完全恢復原始內容
   useEffect(() => {
