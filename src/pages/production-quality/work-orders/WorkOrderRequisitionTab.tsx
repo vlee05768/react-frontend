@@ -634,28 +634,20 @@ export function WorkOrderRequisitionTab({
               }}
               onSubmit={() => {}}
               onValuesChange={(values: any) => {
-                const matched = materialsList.find((x) => x.materialCode === values.materialCode);
-                // 比對是否有實質改變
-                if (
-                  values.materialCode !== modalFormValues.materialCode ||
-                  values.quantity !== modalFormValues.quantity
-                ) {
+                // 💡 僅需監聽手動選取的原料料號 (materialCode) 變化
+                // 唯讀欄位 (quantity / referenceQuantity1) 是由 Parent 狀態向下單向驅動同步的，不需重複向上反饋
+                if (values.materialCode !== modalFormValues.materialCode) {
+                  const matched = materialsList.find((x) => x.materialCode === values.materialCode);
                   const updatedValues = {
                     ...modalFormValues,
                     materialCode: values.materialCode,
+                    quantity: 0,
+                    referenceQuantity1: 0,
+                    bomRequiredWidth: matched?.widthMm || 0,
                   };
 
-                  if (values.materialCode !== modalFormValues.materialCode) {
-                    // 原料料號改變，初始化 extra 欄位與 sheet selections
-                    updatedValues.quantity = 0;
-                    updatedValues.referenceQuantity1 = 0;
-                    updatedValues.bomRequiredWidth = matched?.widthMm || 0;
-                    setModalExtra([]);
-                    setSheetDrawQty({});
-                  } else {
-                    updatedValues.quantity = values.quantity || 0;
-                  }
-
+                  setModalExtra([]);
+                  setSheetDrawQty({});
                   setModalFormValues(updatedValues);
                 }
               }}
