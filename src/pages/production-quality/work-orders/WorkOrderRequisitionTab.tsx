@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Card, Table, Tag, Space, Button, Empty, App, Spin, Modal, InputNumber, Tooltip, Alert } from "antd";
+import { Card, Table, Tag, Space, Button, Empty, App, Spin, Modal, InputNumber, Tooltip } from "antd";
 import { PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined, SyncOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -594,10 +594,11 @@ export function WorkOrderRequisitionTab({
             </Button>
           </Empty>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
             {/* 領料單表頭 採用 DynamicForm 架構 */}
             <Card
               size="small"
+              styles={{ body: { padding: "8px 12px" } }}
               title={
                 <Space>
                   <strong>{isCreating ? "新增領料單" : `📄 領料單 - ${activeDocNo}`}</strong>
@@ -661,18 +662,9 @@ export function WorkOrderRequisitionTab({
             </Card>
 
             {/* 領料明細面板 採用與 BOM 一致 the Table & Modal 編輯架構 */}
-            {(isHeaderEditing || isCreating) && (
-              <div className="mb-3">
-                <Alert
-                  type="warning"
-                  showIcon
-                  message={<strong>表頭編輯中</strong>}
-                  description="您目前正在建立或編輯領料單表頭。請先點擊上方「儲存」以保存表頭，或點擊「取消」，然後才能管理領料物料明細、一鍵自動配料等功能。"
-                />
-              </div>
-            )}
             <Card
               size="small"
+              styles={{ body: { padding: "8px 12px" } }}
               title={<strong>📋 領料物料明細</strong>}
               extra={
                 !isPosted && activeDocNo && (
