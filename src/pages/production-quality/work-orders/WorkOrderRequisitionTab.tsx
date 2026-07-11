@@ -602,7 +602,7 @@ export function WorkOrderRequisitionTab({
           styles={{
             body: {
               maxHeight: "calc(90vh - 130px)",
-              overflowY: "auto",
+              overflowY: "hidden",
               overflowX: "hidden",
               paddingRight: "4px",
             }
