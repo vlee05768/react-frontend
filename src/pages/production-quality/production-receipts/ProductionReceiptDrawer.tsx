@@ -217,7 +217,7 @@ export default function ProductionReceiptDrawer() {
       return (
         <Space>
           <Button key="save" type="primary" onClick={() => (document.getElementById("production-receipt-form") as HTMLFormElement)?.requestSubmit()} loading={createMutation.isPending || updateMutation.isPending}>
-            儲存主檔
+            儲存
           </Button>
           <Button key="cancel" onClick={(e) => {
             e.preventDefault();

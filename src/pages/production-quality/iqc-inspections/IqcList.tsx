@@ -7,6 +7,8 @@ import { Button, Modal, Space, Divider } from 'antd';
 import { SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import { getApiV1IqcInspection } from '@/api/generated';
+import { useFileDownload } from '@/hooks/useFileDownload';
+import { client } from '@/api/generated/client.gen';
 import { useIqcQueryStore } from './useIqcQueryStore';
 import { iqcSearchConfig, mainTableColumns } from './IqcConfig';
 import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
@@ -24,6 +26,20 @@ export default function IqcList() {
 
   const [activeIqcId, setActiveIqcId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const { downloadFile } = useFileDownload();
+
+  const handlePrintLabels = (iqcRecordId: string) => {
+    downloadFile({
+      apiFunction: () => client.get({
+        url: `/api/v1/IqcInspection/${iqcRecordId}/labels-pdf`,
+        responseType: 'blob'
+      }),
+      successMessage: 'LPN 卷卡合格標籤 PDF 導出成功！',
+      filename: `LABELS-${iqcRecordId}.pdf`,
+      openInNewTab: true
+    });
+  };
 
   // 1. 初始化分頁與查詢參數
   useEffect(() => {
@@ -64,9 +80,10 @@ export default function IqcList() {
     title: '操作',
     key: 'actions',
     fixed: 'right' as const,
-    width: 100,
+    width: 120,
     render: (_: any, record: any) => {
       const isPending = record.inspectionStatus === 'Pending' || record.inspectionStatus === 'FullInspecting';
+      const isCompleted = record.inspectionStatus === 'AllPass' || record.inspectionStatus === 'ConcessionApproved' || record.inspectionStatus === 'Partial';
       return (
         <TableActions
           onView={() => {
@@ -74,6 +91,7 @@ export default function IqcList() {
             setIsDrawerOpen(true);
           }}
           recordName={record.iqcRecordId}
+          onPrint={isCompleted ? () => handlePrintLabels(record.iqcRecordId) : undefined}
           customActions={isPending ? [
             {
               key: 'inspect',

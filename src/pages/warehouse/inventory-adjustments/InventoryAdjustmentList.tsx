@@ -330,7 +330,7 @@ export default function InventoryAdjustmentList() {
             icon={<SaveOutlined />} 
             loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
           >
-            儲存主檔
+            儲存
           </Button>
           <Button key="cancel" onClick={(e) => {
             e.preventDefault();

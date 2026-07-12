@@ -269,11 +269,12 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     colSpan: 6,
   },
   {
-    name: "businessPartnerCode",
+    name: "customerCode",
     label: "客戶名稱 (代碼)",
     componentType: "AsyncSelect",
-    componentProps: { configKey: "CUSTOMER" },
+    componentProps: { configKey: "CUSTOMER", autoSelectIfSingle: true },
     editable: "always",
+    validation: z.string().min(1, "請選擇客戶"),
     colSpan: 3,
   },
   {
@@ -289,7 +290,9 @@ export const mainFormConfig = (): FormFieldConfig[] => [
         "僅允許大寫英文、數字及符號",
       )
       .optional()
-      .or(z.literal("")),
+      .nullable()
+      .or(z.literal(""))
+      .or(z.null()),
     colSpan: 3,
   },
   {
@@ -305,7 +308,9 @@ export const mainFormConfig = (): FormFieldConfig[] => [
         "僅允許大寫英文、數字及符號",
       )
       .optional()
-      .or(z.literal("")),
+      .nullable()
+      .or(z.literal(""))
+      .or(z.null()),
     colSpan: 3,
   },
   {

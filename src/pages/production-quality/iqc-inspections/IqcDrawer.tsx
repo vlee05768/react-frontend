@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Drawer, Card, Table, InputNumber, Radio, Select, Button, Tag, Space, Form, Input, Typography, Divider, Badge, Alert, Row, Col, message, Spin, Modal } from 'antd';
-import { CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined, SaveOutlined, WarningOutlined, ArrowRightOutlined, FilePdfOutlined, AuditOutlined, EditOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined, SaveOutlined, WarningOutlined, ArrowRightOutlined, FilePdfOutlined, AuditOutlined, EditOutlined, PrinterOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getApiV1IqcInspectionByIqcRecordId, postApiV1IqcInspectionByIqcRecordIdEscalate, postApiV1IqcInspectionByIqcRecordIdComplete, getApiV1IqcInspectionByIqcRecordIdPdf } from '@/api/generated';
 import { useFileDownload } from '@/hooks/useFileDownload';
@@ -111,6 +111,31 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
       openInNewTab: true
     });
   };
+
+  const handlePrintLabelsPdf = () => {
+    if (!iqcRecordId) return;
+    downloadFile({
+      apiFunction: () => client.get({ 
+        url: `/api/v1/IqcInspection/${iqcRecordId}/labels-pdf`,
+        responseType: 'blob'
+      }),
+      successMessage: 'LPN 卷卡合格標籤 PDF 導出成功！',
+      filename: `LABELS-${iqcRecordId}.pdf`,
+      openInNewTab: true
+    });
+  };
+
+  const handlePrintSingleLabelPdf = useCallback((rollNo: string) => {
+    downloadFile({
+      apiFunction: () => client.get({ 
+        url: `/api/v1/IqcInspection/rolls/${rollNo}/label-pdf`,
+        responseType: 'blob'
+      }),
+      successMessage: `LPN ${rollNo} 標籤補印 PDF 導出成功！`,
+      filename: `LABEL-${rollNo}.pdf`,
+      openInNewTab: true
+    });
+  }, [downloadFile]);
 
   const [localStatus, setLocalStatus] = useState<string | null>(null);
 
@@ -899,9 +924,28 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
             <Radio.Button value={false} className="px-3 hover:bg-red-50">異常 (R)</Radio.Button>
           </Radio.Group>
         )
-      }
+      },
+      ...(isReadOnlyPermanent ? [{
+        title: "標籤補印",
+        key: "print_action",
+        width: 100,
+        align: 'center' as const,
+        render: (_: any, record: any) => {
+          if (record.isOk === false) return <span className="text-slate-400">-</span>;
+          return (
+            <Tooltip title="單卷補印合格標籤">
+              <Button
+                type="text"
+                size="small"
+                icon={<PrinterOutlined style={{ color: '#722ed1' }} />}
+                onClick={() => handlePrintSingleLabelPdf(record.rollNo)}
+              />
+            </Tooltip>
+          );
+        }
+      }] : [])
     ];
-  }, [templateItems, isReadOnly, handleMeasuredItemValueChange, handleStatusChange, detail?.sampleSize]);
+  }, [templateItems, isReadOnly, isReadOnlyPermanent, handleMeasuredItemValueChange, handleStatusChange, detail?.sampleSize, handlePrintSingleLabelPdf]);
 
   return (
     <Drawer
@@ -944,6 +988,18 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
                 >
                   下載品檢報告 (PDF)
                 </Button>
+                {detail?.inspectionStatus && ['AllPass', 'ConcessionApproved', 'Partial'].includes(detail.inspectionStatus) && (
+                  <Button
+                    type="dashed"
+                    size="large"
+                    loading={isDownloading}
+                    className="border-purple-500 text-purple-600 rounded-md hover:bg-purple-50/20"
+                    onClick={handlePrintLabelsPdf}
+                    icon={<PrinterOutlined />}
+                  >
+                    列印合格標籤 (PDF)
+                  </Button>
+                )}
                 {(overallResult === 'Concession' || detail?.inspectionStatus?.startsWith('Concession')) && (
                   <Button
                     type="dashed"

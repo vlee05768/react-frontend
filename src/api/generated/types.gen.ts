@@ -1291,9 +1291,9 @@ export type CreateProductDto = {
      */
     type?: string | null;
     /**
-     * 客戶代碼
+     * 客戶專屬代碼
      */
-    businessPartnerCode?: string | null;
+    customerCode: string;
     /**
      * 客戶產品代碼
      */
@@ -1602,6 +1602,10 @@ export type CreatePurchaseReceiptDto = {
      * 單據次類型 (Material=原料進貨, Mold=模具進貨)
      */
     subType?: string | null;
+    /**
+     * 額外擴充資料
+     */
+    extraData?: unknown;
     /**
      * 進貨明細清單
      */
@@ -6220,6 +6224,10 @@ export type PurchaseReceiptDto = {
      */
     subType?: string | null;
     /**
+     * 額外擴充資料
+     */
+    extraData?: unknown;
+    /**
      * 進貨明細項目清單
      */
     items?: Array<PurchaseReceiptItemDto> | null;
@@ -8410,9 +8418,9 @@ export type UpdateProductDto = {
      */
     type?: string | null;
     /**
-     * 客戶代碼
+     * 客戶專屬代碼
      */
-    businessPartnerCode?: string | null;
+    customerCode?: string | null;
     /**
      * 客戶產品代碼
      */
@@ -8733,6 +8741,10 @@ export type UpdatePurchaseReceiptDto = {
      * 單據次類型 (Material=原料進貨, Mold=模具進貨)
      */
     subType?: string | null;
+    /**
+     * 額外擴充資料
+     */
+    extraData?: unknown;
 };
 
 /**
@@ -11262,6 +11274,10 @@ export type PurchaseReceiptDtoWritable = {
      * 單據次類型 (Material=原料進貨, Mold=模具進貨)
      */
     subType?: string | null;
+    /**
+     * 額外擴充資料
+     */
+    extraData?: unknown;
     /**
      * 進貨明細項目清單
      */

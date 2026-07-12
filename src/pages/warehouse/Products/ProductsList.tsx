@@ -303,7 +303,7 @@ export default function ProductsList() {
       </Modal>
 
       <Drawer
-        styles={{ body: { padding: 0 } }}
+        styles={{ body: { padding: 0, overflow: 'hidden' } }}
         title={
           <DrawerTitle
             moduleName="產品管理"
@@ -333,7 +333,7 @@ export default function ProductsList() {
             actions={
               <Space>
             {(!isDrawerEditing && !isCreateDrawerOpen) && (
-              <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode} disabled={isBomEditing}>編輯主檔</Button>
+              <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode} disabled={isBomEditing}>編輯</Button>
             )}
             {(isDrawerEditing || isCreateDrawerOpen) && activeTab === 'master_info' && (
               <>
@@ -344,7 +344,7 @@ export default function ProductsList() {
                   icon={<SaveOutlined />} 
                   loading={isCreateDrawerOpen ? createMutation.isPending : updateMutation.isPending}
                 >
-                  儲存主檔
+                  儲存
                 </Button>
                 <Button onClick={handleCancel}>取消</Button>
               </>
@@ -361,9 +361,10 @@ export default function ProductsList() {
             viewId={viewId}
             entityType="Product"
             disableTabSwitching={isBomEditing} // 新增此行，當 BOM 在編輯狀態時鎖定所有 Tab 切換
+            heightOffset={(!isCreateDrawerOpen && viewData) ? 220 : 180}
             masterContent={
               <DynamicForm
-                key={isCreateDrawerOpen ? 'create' : (viewId || 'empty')}
+                key={isCreateDrawerOpen ? 'create' : `${viewId || 'empty'}_${isViewMode}`}
                 defaultValues={isCreateDrawerOpen ? { 
                   isActive: true,
                   type: '0002', // 0002 預設對應 "量產"

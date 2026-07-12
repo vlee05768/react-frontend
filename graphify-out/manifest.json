@@ -1,0 +1,3402 @@
+{
+  "dotnet-backend/.claude/settings.local.json": {
+    "mtime": 1779290447.9453685,
+    "ast_hash": "fbd0127e3455df772d33a613a65782f4",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BackendSystem.Tests/BackendSystem.Tests.csproj": {
+    "mtime": 1779290447.9473684,
+    "ast_hash": "a176963624ded2feae7d2c9337bae6c5",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BackendSystem.Tests/Services/BomServiceTests.cs": {
+    "mtime": 1780581896.2481434,
+    "ast_hash": "286fe155da744898f4e08cdafcfad8e6",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BackendSystem.Tests/Services/BusinessPartnerServiceTests.cs": {
+    "mtime": 1780456499.4214215,
+    "ast_hash": "b8bb54b6362d3fb87792a132eb576362",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BackendSystem.Tests/Services/IqcInspectionCancelTests.cs": {
+    "mtime": 1783442411.4935122,
+    "ast_hash": "e796fd3d8706ef1ab6483c1ca6881d28",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BackendSystem.Tests/Services/IqcInspectionDualLayerInventoryTests.cs": {
+    "mtime": 1783520898.9984915,
+    "ast_hash": "75173176750ab39cd6e9017b287f33ee",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BackendSystem.Tests/Services/MaterialCostRecalculationServiceTests.cs": {
+    "mtime": 1783442294.429322,
+    "ast_hash": "194422738f2cb6c4ec9de24b460d40d9",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BackendSystem.Tests/Services/OrderServiceTests.cs": {
+    "mtime": 1783768507.0096033,
+    "ast_hash": "8cc008a37e5c3cb553b28b58809a9180",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BackendSystem.Tests/Services/PurchaseOrderServiceTests.cs": {
+    "mtime": 1781621116.3641691,
+    "ast_hash": "f2eb227a7441ae67911315a845b431e5",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BackendSystem.Tests/Services/PurchaseReceiptItemTests.cs": {
+    "mtime": 1782225365.517721,
+    "ast_hash": "11c07195378c6f61b07681368782b547",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BackendSystem.Tests/Services/PurchaseReceiptServiceTests.cs": {
+    "mtime": 1783442253.5763223,
+    "ast_hash": "411db3fa52cf56a485be25983f8ee456",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BackendSystem.Tests/Services/ReportConcessionTests.cs": {
+    "mtime": 1783429079.3353674,
+    "ast_hash": "d0c658d7f044ae96ac2761c392cea060",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BackendSystem.Tests/Services/ReportIqcInspectionTests.cs": {
+    "mtime": 1782454164.4873698,
+    "ast_hash": "9785ba5e5ce8db8654a1ed8f2e9facd2",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BackendSystem.Tests/Services/SalesDeliveryItemServiceTests.cs": {
+    "mtime": 1780994647.684575,
+    "ast_hash": "7beb7e038ee141d4d5ccabb372133357",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BackendSystem.Tests/Services/SalesDeliveryServiceTests.cs": {
+    "mtime": 1779290447.9473684,
+    "ast_hash": "dc6e45077bd7bc5e2fb251033db4e2da",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BackendSystem.Tests/Services/StorageServiceTests.cs": {
+    "mtime": 1780376133.3637109,
+    "ast_hash": "f95834c0a72756a4bfc9da03aa7fc75b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BackendSystem.Tests/Services/WorkOrderServiceTests.cs": {
+    "mtime": 1783768519.5745146,
+    "ast_hash": "9219ad758fb74d7de385de2a8f95e5a9",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BackendSystem.csproj": {
+    "mtime": 1783786625.2091892,
+    "ast_hash": "b065e231b31a6f35748614235de7bc10",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BackendSystem.sln": {
+    "mtime": 1779295335.7273517,
+    "ast_hash": "965a96c7130719a43b2178b8e8a94f9e",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/AttachmentController.cs": {
+    "mtime": 1779290447.9483685,
+    "ast_hash": "022188ea556525cb2b2c14c6bba078fa",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/AuthController.cs": {
+    "mtime": 1779290447.9493685,
+    "ast_hash": "9c0d8861768466942d2905d908ece21e",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/BaseApiController.cs": {
+    "mtime": 1779290447.9493685,
+    "ast_hash": "60245bf0683af9107f69224d515f9349",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/BomController.cs": {
+    "mtime": 1779290447.9493685,
+    "ast_hash": "5a57834b7addc03a10ffc4de37b25605",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/BusinessPartnersController.cs": {
+    "mtime": 1779290447.9493685,
+    "ast_hash": "967f8737e46789e4f53fbbbbb3c3b169",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/CommonController.cs": {
+    "mtime": 1779290447.9493685,
+    "ast_hash": "1b33c9737d3be78b995ffef2b9447c87",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/CustomersController.cs": {
+    "mtime": 1780472410.7333052,
+    "ast_hash": "1f9645eddc9b285732a01969d7dfd57c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/DashboardController.cs": {
+    "mtime": 1779290447.9503684,
+    "ast_hash": "0c314cff24f11f6bfbcbc79464ca3093",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/DocumentSubscriptionController.cs": {
+    "mtime": 1779734813.5571344,
+    "ast_hash": "82018ce5809c7b511f26e5b7401a3baa",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/EmployeeController.cs": {
+    "mtime": 1779290447.9503684,
+    "ast_hash": "26d57fa4f757ed71db0d95f08c4d650e",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/GeneralTypesController.cs": {
+    "mtime": 1779290447.9503684,
+    "ast_hash": "44209c817694555925fe50532263b19a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/InventoryAdjustmentController.cs": {
+    "mtime": 1779290447.9503684,
+    "ast_hash": "e757b76df798309dc1b92585417042a6",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/InventoryTransferController.cs": {
+    "mtime": 1779290447.9513683,
+    "ast_hash": "489587f5d54ae72531cb5fa16bf0a529",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/IqcInspectionController.cs": {
+    "mtime": 1783526228.0676937,
+    "ast_hash": "289328c517c1bdd434924b5a5bfb6d7f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/MachineController.cs": {
+    "mtime": 1779290447.9513683,
+    "ast_hash": "1ffaf00a4f16e4ab4a85e853694dce38",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/MaterialController.cs": {
+    "mtime": 1779290447.9513683,
+    "ast_hash": "ec18199297732251e5f9415a72252983",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/MaterialInventoryController.cs": {
+    "mtime": 1783447463.4922771,
+    "ast_hash": "90c8d51a4f245f2565630f29cb9d253d",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/MaterialSuppliersController.cs": {
+    "mtime": 1780472427.7632635,
+    "ast_hash": "1237120ac2affb0e1a090d9f6ac88cbf",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/MoldController.cs": {
+    "mtime": 1779290447.9513683,
+    "ast_hash": "9e960c52503237b5e8928fe54fc217ba",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/OrdersController.cs": {
+    "mtime": 1779290447.9523685,
+    "ast_hash": "e10cffddd256bf831341ad818255a321",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/OutsourceVendorsController.cs": {
+    "mtime": 1780472442.4552324,
+    "ast_hash": "e5c3822071e9454f232210058c2070b1",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/ProductController.cs": {
+    "mtime": 1779290447.9523685,
+    "ast_hash": "133ef3d44f31e7da80af7bc122df0f3f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/ProductionReceiptController.cs": {
+    "mtime": 1779290447.9523685,
+    "ast_hash": "d306d4d6358674422a8a7eb6857261d2",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/PurchaseOrderController.cs": {
+    "mtime": 1781275776.6192663,
+    "ast_hash": "59b72588206de063924d88ec0a3a5479",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/PurchaseReceiptController.cs": {
+    "mtime": 1783260027.2759922,
+    "ast_hash": "a54a4cac9f6f2206d2a13ea7d030bd0b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/QcReceiptController.cs": {
+    "mtime": 1779290447.9523685,
+    "ast_hash": "3f7969c09da6a10bc229b4d825eafa0a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/RoleController.cs": {
+    "mtime": 1779290447.9533684,
+    "ast_hash": "1e02c4abf815e56724abc3aa52deeccb",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/SalesDeliveryController.cs": {
+    "mtime": 1782148069.4158387,
+    "ast_hash": "82bba69e04734242f53ee4b565de6bb7",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/SqlMonitoringController.cs": {
+    "mtime": 1779290447.9533684,
+    "ast_hash": "e6c93f0ad77ae61a90f309848b560b06",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/SqlMonitoringTestController.cs": {
+    "mtime": 1779290447.9533684,
+    "ast_hash": "1d121a42f374717c419347193662831a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/StorageController.cs": {
+    "mtime": 1779290447.9533684,
+    "ast_hash": "88a062513c0bb0c4916d8bafd686ac05",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/SystemMaintenanceController.cs": {
+    "mtime": 1779290447.9543684,
+    "ast_hash": "d6205affccd7c543962065c9195aed84",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/ToolingSuppliersController.cs": {
+    "mtime": 1780472457.6162047,
+    "ast_hash": "7cf03670515a4d1ce0d437c56e3af828",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/UserController.cs": {
+    "mtime": 1779290447.9543684,
+    "ast_hash": "7aa8b166f1bb1a82ae4be2e3433cffa8",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/WorkOrderController.cs": {
+    "mtime": 1783775855.7442653,
+    "ast_hash": "a0ef6b8b5f1aebc5effff416159c710d",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/WorkOrderRequisitionController.cs": {
+    "mtime": 1783756875.0038202,
+    "ast_hash": "c10cfe1aab0cb11ddb29ba42974a9bd4",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Controllers/WorkOrderReturnController.cs": {
+    "mtime": 1783756910.2415307,
+    "ast_hash": "273c34ececdda858c9f7804f945801d6",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Data/ApplicationDbContext.cs": {
+    "mtime": 1783620240.09061,
+    "ast_hash": "51202d421e60eff3c59eefc02fc03113",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Data/DataSeeder.cs": {
+    "mtime": 1780555240.9493468,
+    "ast_hash": "470902d686d2f100263158b89d21ee1a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Data/DateTimeToSecondsConverter.cs": {
+    "mtime": 1779290447.9553683,
+    "ast_hash": "763ee23cb8fe3217a35ea64fca690789",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Data/DesignTimeDbContextFactory.cs": {
+    "mtime": 1779733378.1402104,
+    "ast_hash": "a2c4754157b63dbeadcc9304dd5b9900",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Data/Interceptors/DocumentWatchInterceptor.cs": {
+    "mtime": 1779736591.6529753,
+    "ast_hash": "080c1c77b7da9cfe7f203154d88eee03",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Extensions/ApplicationBuilderExtensions.cs": {
+    "mtime": 1779290447.9553683,
+    "ast_hash": "6738c6efcfa6578643f703c825e7932a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Extensions/DateTimeExtensions.cs": {
+    "mtime": 1779290447.9553683,
+    "ast_hash": "f955df01b8f7bce360faf67f68465a5d",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Extensions/ServiceCollectionExtensions.cs": {
+    "mtime": 1783620549.1724117,
+    "ast_hash": "a7affa3929d4b4ff1fe557fd88013c90",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Filters/RequirePermissionAttribute.cs": {
+    "mtime": 1779290447.9553683,
+    "ast_hash": "3edc267478ae4ff9972f610fa3904eca",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Handlers/DateTimeTrimHandler.cs": {
+    "mtime": 1779290447.9563684,
+    "ast_hash": "4f45b09dab4ae57dc7488ab19b7bb047",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/ApiResponse.cs": {
+    "mtime": 1779290447.9563684,
+    "ast_hash": "34188b8d37c8cdd48fc0dbf383c3a9e6",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/Config/ConfigureSwaggerOptions.cs": {
+    "mtime": 1779290447.9563684,
+    "ast_hash": "93316fe468b2d49c286687ab5476606f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/Config/CorsSettings.cs": {
+    "mtime": 1779290447.9563684,
+    "ast_hash": "5bf72598fe497a3f52be9461d58b992a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/Config/JwtSettings.cs": {
+    "mtime": 1779290447.9563684,
+    "ast_hash": "a3d46f61e5755f47de215418398fd63a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/Config/LoginDefaultValueFilter.cs": {
+    "mtime": 1779290447.9563684,
+    "ast_hash": "efa813b72bb91a551aa8ce2b4f24c988",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/Config/MinioSettings.cs": {
+    "mtime": 1779290447.9563684,
+    "ast_hash": "06a0542162b434da5e66a06f9c052eba",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/Config/SqlMonitoringSettings.cs": {
+    "mtime": 1779290447.9563684,
+    "ast_hash": "1532a8076328f87b7049d55c0bcad274",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/Constants.cs": {
+    "mtime": 1780555831.7075832,
+    "ast_hash": "e79aec5b16981b3c2f90c29c7b28f35a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/IQuestPdfReport.cs": {
+    "mtime": 1779290447.9563684,
+    "ast_hash": "3cc85aa94caff74b9caec9ae57a19761",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/Mail/EmailMessage.cs": {
+    "mtime": 1779290447.9563684,
+    "ast_hash": "142ddd9fdfee258221940a9321ca1698",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/Mail/EmailService.cs": {
+    "mtime": 1779290447.9563684,
+    "ast_hash": "36b30b96c3d69ed310888bc6bc669904",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/Mail/EmailSettings.cs": {
+    "mtime": 1779290447.9563684,
+    "ast_hash": "ba56c8f873d20a3579daa59f627adf78",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/Mail/IEmailService.cs": {
+    "mtime": 1779290447.9573684,
+    "ast_hash": "0cfae8ce7da6bddefe625c14aba6de60",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/PagedResult.cs": {
+    "mtime": 1779290447.9573684,
+    "ast_hash": "8ff202695529a06fa190d7b4ad24f69b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/PostgreSqlHealthCheck.cs": {
+    "mtime": 1779290447.9573684,
+    "ast_hash": "04a0ebc75852767d4f559af9e12ca97e",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/Util/AutoNumberAttribute.cs": {
+    "mtime": 1779290447.9573684,
+    "ast_hash": "49e56fe3b4cbbf1959e9e3366c6d890f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/Util/BaseEntityModelRegistry.cs": {
+    "mtime": 1779290447.9573684,
+    "ast_hash": "8a0fe80a67eaedd576764708180f7983",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/Util/ClassHandler.cs": {
+    "mtime": 1779290447.9573684,
+    "ast_hash": "7d6267d7a410cf6bd4bb262c515680d8",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/Util/DateTimeExtensions.cs": {
+    "mtime": 1780588556.1937873,
+    "ast_hash": "e925404c42c7f574e2bdc1d1855800a3",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Lib/Util/QueryableExtensions.cs": {
+    "mtime": 1779360917.465916,
+    "ast_hash": "682f03cf7062aee901f6efd6ca88190a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Middlewares/ExceptionHandlingMiddleware.cs": {
+    "mtime": 1779290447.9573684,
+    "ast_hash": "244a234c2a0f3a5df36ff1a7ef8d9bac",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260105170205_InitialCreate.Designer.cs": {
+    "mtime": 1779290447.9593682,
+    "ast_hash": "f7c27feb9fe5d51d53618e846b68acb6",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260105170205_InitialCreate.cs": {
+    "mtime": 1779290447.9593682,
+    "ast_hash": "6b3d0cdf6a8350c4a7427e436e69bc93",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260225121549_RemoveIncorrectFKs.Designer.cs": {
+    "mtime": 1779290447.9593682,
+    "ast_hash": "6d9293ba0f2c2b2fce3bf11d21219ee8",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260225121549_RemoveIncorrectFKs.cs": {
+    "mtime": 1779290447.9593682,
+    "ast_hash": "ae736e92646ce811edc4eda89f3bb7a0",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260317131913_FixPartnerContactSequence.Designer.cs": {
+    "mtime": 1779290447.9593682,
+    "ast_hash": "9977f62fe133a3dc791214f95ef3f94d",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260317131913_FixPartnerContactSequence.cs": {
+    "mtime": 1779290447.9603684,
+    "ast_hash": "cca841d6be36fdc4c2c537edc187bee8",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260328184440_FixFkFieldMaxLengths.Designer.cs": {
+    "mtime": 1779290447.9603684,
+    "ast_hash": "7a3eb206a646062a5f28322dbf6e558c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260328184440_FixFkFieldMaxLengths.cs": {
+    "mtime": 1779290447.9603684,
+    "ast_hash": "21a260318a6253fc2c9cb06d1355a305",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260329102221_SimplifyOrderStatus.Designer.cs": {
+    "mtime": 1779290447.9603684,
+    "ast_hash": "4e1fc0506873e5fbb771cbce82a8a3dd",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260329102221_SimplifyOrderStatus.cs": {
+    "mtime": 1779290447.9603684,
+    "ast_hash": "d5aabc1582d79a17781806e6bb645c3c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260331113207_AddGenerateWorkOrderToOrder.Designer.cs": {
+    "mtime": 1779290447.9603684,
+    "ast_hash": "999163375f9caa21d910c6bcbe8600f9",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260331113207_AddGenerateWorkOrderToOrder.cs": {
+    "mtime": 1779290447.9603684,
+    "ast_hash": "8950508dc7409acb0ce8a524891da653",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260331151726_MaterialDimensionsToDecimal.Designer.cs": {
+    "mtime": 1779290447.9613683,
+    "ast_hash": "51d427e239d040993ff2aa2845c3a8b0",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260331151726_MaterialDimensionsToDecimal.cs": {
+    "mtime": 1779290447.9613683,
+    "ast_hash": "4328aae7a27918dbc1d27dceb5c2c11c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260401120427_AddLotNumberAndNullableOrderFK.Designer.cs": {
+    "mtime": 1779290447.9613683,
+    "ast_hash": "3af9260b12f42b15228a2872b4d8a7cc",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260401120427_AddLotNumberAndNullableOrderFK.cs": {
+    "mtime": 1779290447.9613683,
+    "ast_hash": "cab21d3b5477a3c37c926856cece0e0e",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260401153508_ResetPartnerContactIdSequence.Designer.cs": {
+    "mtime": 1779290447.9613683,
+    "ast_hash": "9df236752aa879df03d44510e7272170",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260401153508_ResetPartnerContactIdSequence.cs": {
+    "mtime": 1779290447.9613683,
+    "ast_hash": "9ce33b64b3ecf66e05b5a51795dacc42",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260405161255_MoveGenerateWorkOrderToOrderItem.Designer.cs": {
+    "mtime": 1779290447.9613683,
+    "ast_hash": "6339d75fd15b82730313c845f957d126",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260405161255_MoveGenerateWorkOrderToOrderItem.cs": {
+    "mtime": 1779290447.9613683,
+    "ast_hash": "fc983f84618f0cdb6cd61dd762c31bcd",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260406183335_AddWorkOrderMode.Designer.cs": {
+    "mtime": 1779290447.9623682,
+    "ast_hash": "e4048099ffd80125e086d68e7e116a1f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260406183335_AddWorkOrderMode.cs": {
+    "mtime": 1779290447.9623682,
+    "ast_hash": "5e8c2116be7a195e1ead2f4ce045dea2",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260407102802_AddWorkOrderCustomerCode.Designer.cs": {
+    "mtime": 1779290447.9623682,
+    "ast_hash": "aa3ab556e92c7c8d2bdb5e2bb306a583",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260407102802_AddWorkOrderCustomerCode.cs": {
+    "mtime": 1779290447.9623682,
+    "ast_hash": "d0ac54e0d4a4314f03dce39ed1582494",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260408090202_AllowNullMachineCode.Designer.cs": {
+    "mtime": 1779290447.9623682,
+    "ast_hash": "309177baf920dcf9d8d67ecd3aeecc50",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260408090202_AllowNullMachineCode.cs": {
+    "mtime": 1779290447.9623682,
+    "ast_hash": "0136b26ed0c8866e4c4844c48a414938",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260409165458_AddBrandAndModelNoToMaterial.Designer.cs": {
+    "mtime": 1779290447.9623682,
+    "ast_hash": "321fee5f5f984b2e8764a6ed238d0523",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260409165458_AddBrandAndModelNoToMaterial.cs": {
+    "mtime": 1779290447.9623682,
+    "ast_hash": "d1ae8a7b944a5292cd971c4a853c2aaf",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260412090531_changeFieldNameToDocumentNumber.Designer.cs": {
+    "mtime": 1779290447.9633682,
+    "ast_hash": "f9a0813753cea15842652d603b630ce1",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260412090531_changeFieldNameToDocumentNumber.cs": {
+    "mtime": 1779290447.9633682,
+    "ast_hash": "fac9ccf82e65909db78f52932a952522",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260413083231_FixMachineCapacityValidation.Designer.cs": {
+    "mtime": 1779290447.9633682,
+    "ast_hash": "7037821ac3638a22c0a69ba8b9b1d6b7",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260413083231_FixMachineCapacityValidation.cs": {
+    "mtime": 1779290447.9633682,
+    "ast_hash": "28712958f34aa267d4dc8fb0d670dc99",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260420061625_AddIsActiveToUser.Designer.cs": {
+    "mtime": 1779290447.9643683,
+    "ast_hash": "ea16b950f29b2cc2fda2cd67a10a7f72",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260420061625_AddIsActiveToUser.cs": {
+    "mtime": 1779290447.9643683,
+    "ast_hash": "c055bbe3ddf46cd81009e9563963b307",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260430110011_AddEmployeeModel.Designer.cs": {
+    "mtime": 1779290447.9643683,
+    "ast_hash": "0f48bfb1098c3305a57371473f873924",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260430110011_AddEmployeeModel.cs": {
+    "mtime": 1779290447.9643683,
+    "ast_hash": "249c25b4f228b6c6ae8fe73a16350f44",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260508095108_MakeProductNameOptional.Designer.cs": {
+    "mtime": 1779290447.9653683,
+    "ast_hash": "8a58db576a7ad2ba458d1176e00f98eb",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260508095108_MakeProductNameOptional.cs": {
+    "mtime": 1779290447.9653683,
+    "ast_hash": "260993860b22591cca517b717713d3fb",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260509175453_ChangeResponsibleToEmployeeCode.Designer.cs": {
+    "mtime": 1779290447.9653683,
+    "ast_hash": "f5acec8cf8da29717281a1b02ebb083f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260509175453_ChangeResponsibleToEmployeeCode.cs": {
+    "mtime": 1779290447.9653683,
+    "ast_hash": "c601510d21feb6777dfd54e0f9ee9d30",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260509184421_ChangeOrderSalespersonToEmployeeCode.Designer.cs": {
+    "mtime": 1779290447.9663682,
+    "ast_hash": "4a6234d0e2b2d5c631059dc40898df6b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260509184421_ChangeOrderSalespersonToEmployeeCode.cs": {
+    "mtime": 1779290447.9663682,
+    "ast_hash": "3c1359c28534e85227d5f7684feac45e",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260521172803_AddExtraDataToInventoryMovementItem.Designer.cs": {
+    "mtime": 1779384483.1516466,
+    "ast_hash": "03c253d346e2b29ac881e1c29c32f9ed",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260521172803_AddExtraDataToInventoryMovementItem.cs": {
+    "mtime": 1779384483.1506467,
+    "ast_hash": "2ad0a008133c6fd0c88ad067899a479b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260523161558_AddUnitToOrderItem.Designer.cs": {
+    "mtime": 1779552958.2714434,
+    "ast_hash": "a7376db7ca0add061b3b6b713b9162f1",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260523161558_AddUnitToOrderItem.cs": {
+    "mtime": 1779552958.2714434,
+    "ast_hash": "5b002b4ae7de07d1330b9c77bd59d932",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260525163446_AddDocumentSubscription.Designer.cs": {
+    "mtime": 1779726886.9786315,
+    "ast_hash": "fb26237e58783e0432463b6db9fac8ad",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260525163446_AddDocumentSubscription.cs": {
+    "mtime": 1779726886.9786315,
+    "ast_hash": "23e305c837a8fe81eea7e5db37221513",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260526153432_RenameEmployeesToEmployee.Designer.cs": {
+    "mtime": 1779809672.9248812,
+    "ast_hash": "8276b8b559edc8c507116c6fbc61efe9",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260526153432_RenameEmployeesToEmployee.cs": {
+    "mtime": 1779809672.923881,
+    "ast_hash": "51897e619054b21821d2e9583931a116",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260527051123_RenamePoItemToPurchaseOrderItem.Designer.cs": {
+    "mtime": 1779858683.739017,
+    "ast_hash": "4df480784055215381e6a508aba91e20",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260527051123_RenamePoItemToPurchaseOrderItem.cs": {
+    "mtime": 1779858683.738017,
+    "ast_hash": "fe0248d7d9f9071934e6af38f5d9db14",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260603032803_AddBusinessPartnerMultiRolesAndOldCode.Designer.cs": {
+    "mtime": 1780457283.3403592,
+    "ast_hash": "dd830de3210e6b64e88698754ceadd33",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260603032803_AddBusinessPartnerMultiRolesAndOldCode.cs": {
+    "mtime": 1780457283.3393593,
+    "ast_hash": "942528c5a8fcfc24db32c9e9572574b5",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260604064421_AddOrderCustomerCodeAndPurchaseOrderSupplierCode.Designer.cs": {
+    "mtime": 1780555461.6645474,
+    "ast_hash": "ff25ed1648b8c832f57d323bda98e71c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260604064421_AddOrderCustomerCodeAndPurchaseOrderSupplierCode.cs": {
+    "mtime": 1780555461.6645474,
+    "ast_hash": "65d2250dc37776e90d4bfd046c4a4df2",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260604074956_AddPartnerRoleCodeToTransaction.Designer.cs": {
+    "mtime": 1780559396.7784371,
+    "ast_hash": "e7e156b95ff13472319c4664bf7dc451",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260604074956_AddPartnerRoleCodeToTransaction.cs": {
+    "mtime": 1780559396.7774372,
+    "ast_hash": "b4dadbdead7451734a63387b4736e4b6",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260604095755_UpdateMoldSupplierToToolingSupplier.Designer.cs": {
+    "mtime": 1780567075.6765723,
+    "ast_hash": "80f422d65d77aa5602e08e4f82374b85",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260604095755_UpdateMoldSupplierToToolingSupplier.cs": {
+    "mtime": 1780567139.6004896,
+    "ast_hash": "d12d0074a30ab36e08365da31b5ff89f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260605134301_AddPurchaseReceiptAndMaterialDoubleLayerInventory.Designer.cs": {
+    "mtime": 1780666982.053634,
+    "ast_hash": "69e286bcd61570cd6d4316fff341d0eb",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260605134301_AddPurchaseReceiptAndMaterialDoubleLayerInventory.cs": {
+    "mtime": 1780667068.8195746,
+    "ast_hash": "757d11b61db34e326107c6cff481b791",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260605140335_AddUnitToPurchaseOrderItem.Designer.cs": {
+    "mtime": 1780668215.5726671,
+    "ast_hash": "d9ee85e1563abd0a9303bf1ab6c7711f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260605140335_AddUnitToPurchaseOrderItem.cs": {
+    "mtime": 1780668215.5726671,
+    "ast_hash": "64974c3d1fed5a05ddb475c0037220d6",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260606134049_DefineBusinessPartnerRelations.Designer.cs": {
+    "mtime": 1780753249.1236875,
+    "ast_hash": "51beb84c368210a46f69705a821fe2ea",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260606134049_DefineBusinessPartnerRelations.cs": {
+    "mtime": 1780753249.1236875,
+    "ast_hash": "03da46754b64118f5dcf2da39e0246d8",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260610053000_ReconstructMaterialToLpnWithSqmBase.Designer.cs": {
+    "mtime": 1781069400.844088,
+    "ast_hash": "5d75af83f75ae323408d742dd19c3531",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260610053000_ReconstructMaterialToLpnWithSqmBase.cs": {
+    "mtime": 1781071587.0617561,
+    "ast_hash": "db4c07245de83b3bf52295b6f22f619b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260611180709_ReconstructPurchaseOrderAndItemForMaterialAndMold.Designer.cs": {
+    "mtime": 1781201229.138188,
+    "ast_hash": "d17df6db21bc47c96a727e6c11fe4a4b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260611180709_ReconstructPurchaseOrderAndItemForMaterialAndMold.cs": {
+    "mtime": 1781667229.2233267,
+    "ast_hash": "55a7dbf4f7faaae898b474bdc522d448",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260612092517_AddIsArrivedToMold.Designer.cs": {
+    "mtime": 1781256318.0575924,
+    "ast_hash": "2ca5a09dbafc53201b75df40bf9dae21",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260612092517_AddIsArrivedToMold.cs": {
+    "mtime": 1781256318.0565922,
+    "ast_hash": "21f072d7feb6c34def7d8526c42c4389",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260613170731_ReconstructPurchaseOrderAndReceiptSchema.Designer.cs": {
+    "mtime": 1781370451.4362104,
+    "ast_hash": "7d8b91e6a801b7c14979f9c63f475403",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260613170731_ReconstructPurchaseOrderAndReceiptSchema.cs": {
+    "mtime": 1781370451.4362104,
+    "ast_hash": "8af2a48c5a60f08ec7c695a7f3160184",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260616154721_RemoveStdDensityFromMaterial.Designer.cs": {
+    "mtime": 1781624841.930395,
+    "ast_hash": "1be81db0873e9e60dbd6aa4602c515ac",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260616154721_RemoveStdDensityFromMaterial.cs": {
+    "mtime": 1781624841.929395,
+    "ast_hash": "0bd1974c7b65a12b8eeb45e49b2dbb09",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260617094903_AddMissingSubTotalToPurchaseOrderItem.Designer.cs": {
+    "mtime": 1781689743.816089,
+    "ast_hash": "4b6d2be17589a83aceeab25e9dfd30e3",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260617094903_AddMissingSubTotalToPurchaseOrderItem.cs": {
+    "mtime": 1781689771.7108815,
+    "ast_hash": "0f08a42b63836ecb031872b6010facea",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260624185124_AddInspectionDetailsToIqc.Designer.cs": {
+    "mtime": 1782327084.8937356,
+    "ast_hash": "74d4f315e97a39b5cbb09209169281b2",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260624185124_AddInspectionDetailsToIqc.cs": {
+    "mtime": 1782327084.8927355,
+    "ast_hash": "de5702336640c71cba4b98cbd9d17f9a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260625075202_AddNotesToIqc.Designer.cs": {
+    "mtime": 1782373922.505126,
+    "ast_hash": "7d8e115b86f6535cff31f74af84cfe5c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260625075202_AddNotesToIqc.cs": {
+    "mtime": 1782373922.504126,
+    "ast_hash": "17910eeaf983f04620697c0ef09f1c10",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260707074912_ResetMaterialRollWeightToZero.Designer.cs": {
+    "mtime": 1783410552.3139575,
+    "ast_hash": "0e12d349a75d48a09c81537c355e5579",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260707074912_ResetMaterialRollWeightToZero.cs": {
+    "mtime": 1783410611.043536,
+    "ast_hash": "fece7842757f665328ba5a4ead1f11d9",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260707084911_AddIncomingStorageCodeToIqc.Designer.cs": {
+    "mtime": 1783414151.8483162,
+    "ast_hash": "e1048359caabfbad365c8193eebe2da8",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260707084911_AddIncomingStorageCodeToIqc.cs": {
+    "mtime": 1783414151.8483162,
+    "ast_hash": "b17da9711e53233033afefdc9c1d91a1",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260707164832_AddWidthAndLengthToMaterialStorageInventory.Designer.cs": {
+    "mtime": 1783442912.5431192,
+    "ast_hash": "c5cb2c53df167d4d1562d0c4491d77ac",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260707164832_AddWidthAndLengthToMaterialStorageInventory.cs": {
+    "mtime": 1783442912.5421193,
+    "ast_hash": "c199962949c6ece9eadcbde1db49ff63",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260709180452_AddWorkOrderRequisitionAndReturn.Designer.cs": {
+    "mtime": 1783620292.7662323,
+    "ast_hash": "c3c7bbf79e16bdeadd52eecdac95f220",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260709180452_AddWorkOrderRequisitionAndReturn.cs": {
+    "mtime": 1783620292.7652323,
+    "ast_hash": "d30185c96809b0646b0fe10a49443f19",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260711161550_MovePurchaseOrderNumberToExtraData.Designer.cs": {
+    "mtime": 1783786550.7516475,
+    "ast_hash": "9320035a6eb53f410f1c7580bea0f5f0",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/20260711161550_MovePurchaseOrderNumberToExtraData.cs": {
+    "mtime": 1783786550.7506475,
+    "ast_hash": "da5961d9a86d2ed479296502578bc19f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Migrations/ApplicationDbContextModelSnapshot.cs": {
+    "mtime": 1783786550.7526476,
+    "ast_hash": "9a6a92fd25670e195c651b6fc647ae4d",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/ApplicationRole.cs": {
+    "mtime": 1779290447.9673681,
+    "ast_hash": "5647d0889c2aff69708aaaa1f90e6c0e",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/ApplicationUser.cs": {
+    "mtime": 1779290447.9673681,
+    "ast_hash": "0d6e6ef30a668afa12481f027a455570",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/BaseEntity.cs": {
+    "mtime": 1779290447.9673681,
+    "ast_hash": "1c85fbb40288f2448ef3b3ed085f3a94",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/Bom.cs": {
+    "mtime": 1779290447.9673681,
+    "ast_hash": "a16a260bd7078c562a4ba66b48bf296b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/BomItem.cs": {
+    "mtime": 1779290447.9673681,
+    "ast_hash": "689717893980f746534f0a70cac43cf4",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/BusinessPartner.cs": {
+    "mtime": 1780493391.8629909,
+    "ast_hash": "a50b0a057757e84b490cb0bb23b4bbc2",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/BusinessPartnerRole.cs": {
+    "mtime": 1780398511.8106594,
+    "ast_hash": "f851cbaa8c681f8b4d0325e5244fdd31",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/Customer.cs": {
+    "mtime": 1780398468.148462,
+    "ast_hash": "93effd343e81324b185fbbc3d30dfd95",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/AuthResponseDto.cs": {
+    "mtime": 1779290447.9673681,
+    "ast_hash": "6410818b30281a4a4a7319e6871a5ed9",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/BaseDto.cs": {
+    "mtime": 1779353119.5184216,
+    "ast_hash": "e8b04d7f0a64571f7e066ba68a2994ae",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/BomDto.cs": {
+    "mtime": 1779290447.9673681,
+    "ast_hash": "25bcc76b79e9b2c73758625ac7d2f8cb",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/BusinessPartnerDto.cs": {
+    "mtime": 1780476092.0617158,
+    "ast_hash": "c089a0c0a4a95728242bc3a5b112a9ea",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/ChangePasswordDto.cs": {
+    "mtime": 1779290447.9673681,
+    "ast_hash": "787b20878940788eeef7e8be114d0f5d",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/DashboardPendingTasksDto.cs": {
+    "mtime": 1779290447.9673681,
+    "ast_hash": "64ec84325822da11988f5e5e6a89801e",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/EmployeeDto.cs": {
+    "mtime": 1779290447.9673681,
+    "ast_hash": "bbc9dc0455c07ffed207060ad19e2c63",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/FileAttachmentDto.cs": {
+    "mtime": 1779290447.9673681,
+    "ast_hash": "268dae84f204ace0d63ae794ac19994f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/GeneralTypesDto.cs": {
+    "mtime": 1779290447.9683683,
+    "ast_hash": "f55be7d35ec26c25b3efb9ec3deeeffe",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/Inventory/InventoryAdjustmentDtos.cs": {
+    "mtime": 1779290447.9683683,
+    "ast_hash": "7dcd48cd6783fc0904226a1cfd92fbd3",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/Inventory/InventoryMovementDtos.cs": {
+    "mtime": 1779767658.109886,
+    "ast_hash": "21cefccbf1ec60502cac3d24ed42e815",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/Inventory/InventoryTransactionDtos.cs": {
+    "mtime": 1779290447.9683683,
+    "ast_hash": "06e609caec5972da87f845092030ecc7",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/Inventory/InventoryTransferDtos.cs": {
+    "mtime": 1779290447.9683683,
+    "ast_hash": "b0f5a526b7f2090a5ecced6a1efb4f7f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/Inventory/ProductionReceiptDtos.cs": {
+    "mtime": 1779290447.9683683,
+    "ast_hash": "38d3199930f4b8024f78599a0d48467b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/Inventory/QcGroupedItemDtos.cs": {
+    "mtime": 1783754906.7676222,
+    "ast_hash": "64761a355ea4c3deb16b57bb86d66e9a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/Inventory/QcReceiptDtos.cs": {
+    "mtime": 1779290447.9683683,
+    "ast_hash": "40bb97ac214363e2cf97d5912e83c6cb",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/Inventory/SalesDeliveryDtos.cs": {
+    "mtime": 1780559265.9397898,
+    "ast_hash": "1c5b5c28ea9ced1c7e643de06e67cfa2",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/IqcDtos.cs": {
+    "mtime": 1783589253.1773493,
+    "ast_hash": "5178880c21ce5440e080981072bf6e83",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/LoginDto.cs": {
+    "mtime": 1779290447.9683683,
+    "ast_hash": "20468fda0f3acf503ffa40a064fe19ea",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/MachineDto.cs": {
+    "mtime": 1779290447.9683683,
+    "ast_hash": "d948075a579aeb4d6d48d9e756d5e9dc",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/MaterialDto.cs": {
+    "mtime": 1782007865.2347603,
+    "ast_hash": "fd9acd39eced263291f0ae07d2eb35e9",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/MaterialInventoriesDto.cs": {
+    "mtime": 1782007867.4817457,
+    "ast_hash": "518f1dfce6bd139901d4fe07f05d2c6d",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/MaterialInventoryDtos.cs": {
+    "mtime": 1783411924.7225263,
+    "ast_hash": "4cde75acae486f760863dee707b9c274",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/MoldDto.cs": {
+    "mtime": 1781256212.0943654,
+    "ast_hash": "2f2e6afe35837c6329b48a1ca5883698",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/OrderDto.cs": {
+    "mtime": 1780546136.5530808,
+    "ast_hash": "c92e745c9432579bcb07e378abb42ae1",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/PartnerContactDto.cs": {
+    "mtime": 1780400143.1364357,
+    "ast_hash": "3650dfb625cc7d39a44bcb1cbe2be1e6",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/PasswordResetDto.cs": {
+    "mtime": 1779290447.9693682,
+    "ast_hash": "32fa34badf9aacdb36a3027e2022ef5b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/ProductDto.cs": {
+    "mtime": 1782007878.0906768,
+    "ast_hash": "4586f4cf348672be88b5d4b04654635c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/ProductInventoriesDto.cs": {
+    "mtime": 1779290447.9693682,
+    "ast_hash": "19391f9023103dcf65128faa387c7f9c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/ProductMoldDto.cs": {
+    "mtime": 1779290447.9693682,
+    "ast_hash": "e5f37338359fb8cd724b961b33fb5376",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/PurchaseOrderDto.cs": {
+    "mtime": 1781200757.4090292,
+    "ast_hash": "63207dc42849d54b751fb6dcf8d03159",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/PurchaseOrderItemDto.cs": {
+    "mtime": 1781761943.1413295,
+    "ast_hash": "486f972fc716d082c21040bbd565f09c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/PurchaseReceiptDto.cs": {
+    "mtime": 1783819913.2534363,
+    "ast_hash": "af730122f71c41de67381790073eafb9",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/RegisterDto.cs": {
+    "mtime": 1779290447.9693682,
+    "ast_hash": "5309f655c806baacaa5acfc63478909b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/RoleDto.cs": {
+    "mtime": 1779290447.9693682,
+    "ast_hash": "471737870f8ac5fcb22174224446810d",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/RoleDtos.cs": {
+    "mtime": 1780470562.526754,
+    "ast_hash": "abdedda8043f9ec8c7dda00aa8ebc254",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/StorageDto.cs": {
+    "mtime": 1779290447.9693682,
+    "ast_hash": "0d73f0c492f1ea37826d6de358236917",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/StorageInventoryDto.cs": {
+    "mtime": 1779375708.8892164,
+    "ast_hash": "31d7ef37995963394a3f458b660a8110",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/UserDto.cs": {
+    "mtime": 1779290447.9703681,
+    "ast_hash": "4dca90e9b1d437048fffa7c4c5a0699d",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/WorkOrderDto.cs": {
+    "mtime": 1780587187.1654353,
+    "ast_hash": "7ae78af8d9cc1fdd0c0a00a02d8de456",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/WorkOrderRequisitionDto.cs": {
+    "mtime": 1783784815.697226,
+    "ast_hash": "7f79200a3ddd75f3d9ac50257c76e7b6",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DTOs/WorkOrderReturnDto.cs": {
+    "mtime": 1783620434.4032233,
+    "ast_hash": "0f6350cc15078e3bd8bbca4c4240fb58",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DocumentChangeEvent.cs": {
+    "mtime": 1779726974.6524336,
+    "ast_hash": "cffc1d068b2570eec2422bb516b0b8ed",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/DocumentSubscription.cs": {
+    "mtime": 1779726797.2938168,
+    "ast_hash": "1fdd825d741a229ecfa8e103a4802842",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/Employee.cs": {
+    "mtime": 1779290447.9703681,
+    "ast_hash": "9fdc351b043f08c2723938a6b1fecece",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/FileAttachment.cs": {
+    "mtime": 1779290447.9703681,
+    "ast_hash": "c00132b5f4905a079d72ef95722ef859",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/GeneralTypes.cs": {
+    "mtime": 1779290447.9703681,
+    "ast_hash": "c60fa55c0e187e19154d73904851f6b0",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/InventoryAdjustment.cs": {
+    "mtime": 1779290447.9703681,
+    "ast_hash": "a22047505f294ad0b840746d232d4e39",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/InventoryAdjustmentItem.cs": {
+    "mtime": 1779290447.9703681,
+    "ast_hash": "a9c377369ae7ebeca260c563076ffb01",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/InventoryMovement.cs": {
+    "mtime": 1783784731.177772,
+    "ast_hash": "dc99fdd990df31ab34248c1818a31687",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/InventoryMovementItem.cs": {
+    "mtime": 1779596591.6235893,
+    "ast_hash": "6e15206995d7ba31083f06344e5caf4a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/InventoryTransaction.cs": {
+    "mtime": 1779290447.9703681,
+    "ast_hash": "82f2a4d74dac33c59c05296e5ba4007e",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/InventoryTransfer.cs": {
+    "mtime": 1779290447.9703681,
+    "ast_hash": "cb5e815e31aa6a13aeed4fb9e61ecd0c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/InventoryTransferItem.cs": {
+    "mtime": 1779290447.9703681,
+    "ast_hash": "15af5af7965b9f75684b0f8df3ac1c56",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/IqcInspectionRecord.cs": {
+    "mtime": 1783413800.285582,
+    "ast_hash": "809fbc554cd744b14d4db51d947af8c0",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/Machine.cs": {
+    "mtime": 1779290447.9703681,
+    "ast_hash": "57cabf923c9df2f5004b15287addad6a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/Material.cs": {
+    "mtime": 1782007861.5937839,
+    "ast_hash": "c91ae082e1e06a614b27c1a57d9e9fc7",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/MaterialInventoryTransaction.cs": {
+    "mtime": 1780666563.3699424,
+    "ast_hash": "33da2a0ff220f384c5b45a85d79210b5",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/MaterialLot.cs": {
+    "mtime": 1781024547.35863,
+    "ast_hash": "16674e8006e3e4a27f36b7e5030cd888",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/MaterialRoll.cs": {
+    "mtime": 1783618995.3077672,
+    "ast_hash": "cd5f56fd6926b60d7862c288a2c7900e",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/MaterialRollStatus.cs": {
+    "mtime": 1783441874.785295,
+    "ast_hash": "f4e0b1193d3aae62cba01893072a8c0d",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/MaterialStorageInventory.cs": {
+    "mtime": 1783441899.4325967,
+    "ast_hash": "d7f8744273e64c6a54715a9a1abac37f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/MaterialSupplier.cs": {
+    "mtime": 1780398476.4514995,
+    "ast_hash": "49d8db09dad7968efe52d262dbd993ad",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/Mold.cs": {
+    "mtime": 1781256181.6979966,
+    "ast_hash": "5505700e49334004d3d5be8f1c96b574",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/Order.cs": {
+    "mtime": 1780753058.924802,
+    "ast_hash": "274d17d8da46754c856c395aa6ed763d",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/OrderItem.cs": {
+    "mtime": 1779552686.8722107,
+    "ast_hash": "57c473072175e024ca1a74bc1a3f4976",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/OutsourceVendor.cs": {
+    "mtime": 1780398483.9395332,
+    "ast_hash": "eed783b9e8b24f0f475f92952a6385b6",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/PartnerContact.cs": {
+    "mtime": 1780398669.7733848,
+    "ast_hash": "33b526dfca83d7375599fa0fe89c18a6",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/PartneredTransaction.cs": {
+    "mtime": 1780559194.545439,
+    "ast_hash": "85d7053b9d7fde0ffe4140f7abea2592",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/PartneredTransactionItem.cs": {
+    "mtime": 1779290447.9713683,
+    "ast_hash": "1e6d27581a1e4c8395b953fd8e0569e2",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/PermissionNode.cs": {
+    "mtime": 1779290447.9713683,
+    "ast_hash": "1ae16d27a4a75e991b8fbd8d2829a7f0",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/Product.cs": {
+    "mtime": 1779290447.9713683,
+    "ast_hash": "f556c48d57733d5963af6fc93f645831",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/ProductMold.cs": {
+    "mtime": 1779290447.9713683,
+    "ast_hash": "f2205630ce5f18fd1797873f07dcebf2",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/ProductionReceipt.cs": {
+    "mtime": 1779290447.9713683,
+    "ast_hash": "1d853cc86359a9f47300a09b67d1c752",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/ProductionReceiptItem.cs": {
+    "mtime": 1779290447.9713683,
+    "ast_hash": "56d64ac2c81fd35ea828592720ccbc5d",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/PurchaseOrder.cs": {
+    "mtime": 1781275666.5457041,
+    "ast_hash": "4a4bbc9571ac4eda9e5fc309adba2ba0",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/PurchaseOrderItem.cs": {
+    "mtime": 1781289532.5569222,
+    "ast_hash": "f49199d8df49a396d3fdac096e4db6b5",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/PurchaseReceipt.cs": {
+    "mtime": 1783786395.2676017,
+    "ast_hash": "acb081b9da761e97e5df6acdb0e344fc",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/PurchaseReceiptItem.cs": {
+    "mtime": 1782225332.7309532,
+    "ast_hash": "1eb11b34b1c6628d0915a3ac14f9858b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/QcReceipt.cs": {
+    "mtime": 1779290447.9713683,
+    "ast_hash": "163119b6d625926bff4858b57076acef",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/QcReceiptItem.cs": {
+    "mtime": 1779290447.9713683,
+    "ast_hash": "aa90699abafea7c6dcfc754010e34db6",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/RefreshToken.cs": {
+    "mtime": 1779290447.9713683,
+    "ast_hash": "583403f7908b0d76d538a2cb07d633af",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/SalesDelivery.cs": {
+    "mtime": 1780559211.3095212,
+    "ast_hash": "a259c53d1f674d1dcaaf60a3f0644973",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/SalesDeliveryItem.cs": {
+    "mtime": 1779290447.9713683,
+    "ast_hash": "951a5475e7e893880c6aa0e59ea0748c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/SequenceRule.cs": {
+    "mtime": 1779290447.9713683,
+    "ast_hash": "bd9b46c20325858f647efe8a6bdc3e1e",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/Storage.cs": {
+    "mtime": 1780326232.9699044,
+    "ast_hash": "1d1dd86ad3b505bb4244dc91d206024c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/StorageInventory.cs": {
+    "mtime": 1779290447.9723682,
+    "ast_hash": "ce7a9ad10e440a9f315c53f13dd00ceb",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/ToolingSupplier.cs": {
+    "mtime": 1780398504.9376283,
+    "ast_hash": "809f3bd1e0e42072a346d2edf38ecfd4",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/WorkOrder.cs": {
+    "mtime": 1779417005.3928068,
+    "ast_hash": "14ce64d848ee0c75ee097d408a4960eb",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/WorkOrderMaterial.cs": {
+    "mtime": 1779290447.9723682,
+    "ast_hash": "1133f80b5b677318d797a59ce4c7e6e8",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/WorkOrderRequisition.cs": {
+    "mtime": 1783620154.0562305,
+    "ast_hash": "adaefda83242b8ab64372e5d8d1712af",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/WorkOrderRequisitionItem.cs": {
+    "mtime": 1783620154.0642304,
+    "ast_hash": "9f89fc7206e9666f501a8a0ffd6d229b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/WorkOrderReturn.cs": {
+    "mtime": 1783620154.0612307,
+    "ast_hash": "3f2c8c5294fd63633aa78582c5f329de",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Models/WorkOrderReturnItem.cs": {
+    "mtime": 1783620154.0562305,
+    "ast_hash": "dc093d577d206849fbc18ed9272cb5c4",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Permissions.json": {
+    "mtime": 1780769635.126795,
+    "ast_hash": "3d795ba0160afdb5d8768b3aaca9f252",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Program.cs": {
+    "mtime": 1779290447.9723682,
+    "ast_hash": "74b1b0e12058a83d2daa1596d480cff9",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Properties/launchSettings.json": {
+    "mtime": 1779290447.9723682,
+    "ast_hash": "8dd366d6f29afbaf4d8661d96f68caef",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/SeedSource/app_role_claim.json": {
+    "mtime": 1779290447.9723682,
+    "ast_hash": "4dee115addcda61377373f085b6c1310",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/BaseDetailService.cs": {
+    "mtime": 1779290447.9733682,
+    "ast_hash": "77344ec6e96a18bc00eca44855ac86bc",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/BaseService.cs": {
+    "mtime": 1781270034.0999146,
+    "ast_hash": "99f3c034d314c56cac74c5e20a20e6da",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/BomItemService.cs": {
+    "mtime": 1779290447.9733682,
+    "ast_hash": "2124f9ef618100eb89c238b545ada3ba",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/BomService.cs": {
+    "mtime": 1780581759.4453335,
+    "ast_hash": "cc12208a7c475ee15a5b713b27ce9f20",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/BusinessPartnerService.cs": {
+    "mtime": 1780555983.3994107,
+    "ast_hash": "65574903a14a4a898ecccfd03991cee5",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/ConfigurationLoggingService.cs": {
+    "mtime": 1779290447.9733682,
+    "ast_hash": "214578abc709bbb2c4b1a136f1b819e3",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/DocumentNumberService.cs": {
+    "mtime": 1783729936.2561016,
+    "ast_hash": "51979edd6a28c8cd3bf1fd9b1de1d6a0",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/DocumentWatchQueue.cs": {
+    "mtime": 1779727043.1982691,
+    "ast_hash": "30dd2f34133059abfc8830ff851d4901",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/DocumentWatchWorker.cs": {
+    "mtime": 1780588576.891836,
+    "ast_hash": "625bc2c490a6b564ed90daef46d64ccf",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/EmployeeService.cs": {
+    "mtime": 1779290447.9733682,
+    "ast_hash": "963244d51931388d054a20c3dce90d33",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/FileAttachmentService.cs": {
+    "mtime": 1779290447.9733682,
+    "ast_hash": "7b1a716b19cf6ef0fb1f97079d894687",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/GeneralTypesImportService.cs": {
+    "mtime": 1779290447.9733682,
+    "ast_hash": "19e417e535fee1f16f7116f10fa83895",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/GeneralTypesService.cs": {
+    "mtime": 1779290447.9733682,
+    "ast_hash": "7dbf38ef4b4e8c706012e6faaa2942ce",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/IFileStorageService.cs": {
+    "mtime": 1779290447.9733682,
+    "ast_hash": "77fb55cb96a1331fea8580bc47577a4c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/IIqcInspectionService.cs": {
+    "mtime": 1783526189.113057,
+    "ast_hash": "7cf3ab89a94f6112393c6802d429af9c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/IRefreshTokenService.cs": {
+    "mtime": 1779290447.974368,
+    "ast_hash": "2ea89ce4bb8fe1743a82cb5cb7be853e",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/ISqlLogBufferService.cs": {
+    "mtime": 1779290447.974368,
+    "ast_hash": "d7e696c6802454d94fcac9e35c14346c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/ISqlMonitoringConfigService.cs": {
+    "mtime": 1779290447.974368,
+    "ast_hash": "bd93a290c7e7acf4ef9a626451c269c6",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/IWorkOrderRequisitionService.cs": {
+    "mtime": 1783620445.5051446,
+    "ast_hash": "9c144f23795fc1b2642e492d22ed78ee",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/IWorkOrderReturnService.cs": {
+    "mtime": 1783620457.6300585,
+    "ast_hash": "08195018a1975add02bb1822d210036f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/InventoryAdjustmentItemService.cs": {
+    "mtime": 1779290447.974368,
+    "ast_hash": "c7a79402638705374a02087b52ab6f57",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/InventoryAdjustmentService.cs": {
+    "mtime": 1779767686.513887,
+    "ast_hash": "3fad0528aeca696c3c0b596b76e2ed33",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/InventoryLedgerService.cs": {
+    "mtime": 1779588895.6025188,
+    "ast_hash": "42b462c598cfe05106d0eece6054a238",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/InventoryTransferItemService.cs": {
+    "mtime": 1779290447.974368,
+    "ast_hash": "e53dadef006e67016e3c62970c9b3023",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/InventoryTransferService.cs": {
+    "mtime": 1779767705.3798852,
+    "ast_hash": "3aa5ea52bae447a98c8867d902a04c53",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/IqcInspectionService.cs": {
+    "mtime": 1783620120.771472,
+    "ast_hash": "bba48b080162e10d36284bde7cf6a753",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/MachineService.cs": {
+    "mtime": 1779290447.9753683,
+    "ast_hash": "d9c2d8145c739d6cd774f810d5764856",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/MaterialCostRecalculationService.cs": {
+    "mtime": 1781069246.0497386,
+    "ast_hash": "1ae6b8b5a0d9784b9080316baef22cfb",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/MaterialService.cs": {
+    "mtime": 1781624668.2235744,
+    "ast_hash": "c6b907befb136ac5f88a8acdbdf0519d",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/MinioStartupService.cs": {
+    "mtime": 1779290447.9753683,
+    "ast_hash": "6eff0989a46d29ce9f2eca329191d56a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/MinioStorageService.cs": {
+    "mtime": 1779290447.9753683,
+    "ast_hash": "6d4cdd702456056f92284c1059bf0596",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/MoldService.cs": {
+    "mtime": 1781256258.21391,
+    "ast_hash": "ecb5b1aae22a77e36bbdb577b8071944",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/OrderItemService.cs": {
+    "mtime": 1780994470.987641,
+    "ast_hash": "6bd31e74a7e77fa80edd1e75f1079285",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/OrderService.cs": {
+    "mtime": 1780759861.5227568,
+    "ast_hash": "a6324d7a6bf09e5ac6583350d1a002e5",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/PartnerContactService.cs": {
+    "mtime": 1780400162.8175387,
+    "ast_hash": "e32a399aa2ff5f8863d5b5ad29e62dd9",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/PdfGenerationService.cs": {
+    "mtime": 1779290447.9753683,
+    "ast_hash": "38f54abeb1266d03c3a46535f0e4cf0e",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/PermissionService.cs": {
+    "mtime": 1779290447.9753683,
+    "ast_hash": "f02736ac238eed8caafd9b8e99cbac8f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/ProductMoldService.cs": {
+    "mtime": 1779290447.9753683,
+    "ast_hash": "79282d7082f62594d6c1b18e0128c289",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/ProductService.cs": {
+    "mtime": 1780596065.4328344,
+    "ast_hash": "c03e469e1011e34305652bfef9361380",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/ProductionReceiptItemService.cs": {
+    "mtime": 1779290447.9763682,
+    "ast_hash": "8996bf2a8eec9c3c6b2dcf963b4f6802",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/ProductionReceiptService.cs": {
+    "mtime": 1779767737.1368783,
+    "ast_hash": "730727d506265cf5fea41fd89305f194",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/PurchaseOrderItemService.cs": {
+    "mtime": 1781761954.4542558,
+    "ast_hash": "8acf2bf9fdd11ae5a22ee82ca32e1b09",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/PurchaseOrderService.cs": {
+    "mtime": 1783520825.5208685,
+    "ast_hash": "770cd32626463f0d1c6fcfa9a77c6f5f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/PurchaseReceiptItemService.cs": {
+    "mtime": 1783265524.1964114,
+    "ast_hash": "127db7dfc9a482adf8f0f810c38bcc2a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/PurchaseReceiptService.cs": {
+    "mtime": 1783819932.4843507,
+    "ast_hash": "b694fc68efe10ce694301add14fc5005",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/QcReceiptService.cs": {
+    "mtime": 1780326332.1832123,
+    "ast_hash": "7a7419cb89fb619f24b5cbb192961754",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/RefreshTokenService.cs": {
+    "mtime": 1779290447.9763682,
+    "ast_hash": "6e315055b910eba08345b07085d8fb21",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/SalesDeliveryItemService.cs": {
+    "mtime": 1780994456.8554885,
+    "ast_hash": "773a16678a9948c79bd11d2e22f14e4f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/SalesDeliveryService.cs": {
+    "mtime": 1782147629.9042969,
+    "ast_hash": "5fb22f862272f7ba4451d35dbeb50575",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/SqlKata/SqlKataDatabaseService.cs": {
+    "mtime": 1779290447.9763682,
+    "ast_hash": "740cf4bf855e6882dec00b1cdd464165",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/SqlLogBufferService.cs": {
+    "mtime": 1779290447.9763682,
+    "ast_hash": "5149c899f90d4d77ef5e00d9e1bafa4c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/SqlMonitoringConfigService.cs": {
+    "mtime": 1779290447.977368,
+    "ast_hash": "af36296c839de1e6b8fcf7ceed266591",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/SqlMonitoringService.cs": {
+    "mtime": 1779290447.977368,
+    "ast_hash": "d6a34bf56f60fe3c06826babd7d7b0a4",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/StorageService.cs": {
+    "mtime": 1780588619.1009371,
+    "ast_hash": "4ac9ad0338a6eeb33c0ebd9e5484c9bf",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/TokenService.cs": {
+    "mtime": 1779290447.977368,
+    "ast_hash": "b56ba7f93097220ae394cfa11ca91266",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/WorkOrderMaterialService.cs": {
+    "mtime": 1780326383.2703857,
+    "ast_hash": "556585ca7da63ef7f87f745e3f0f0887",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/WorkOrderRequisitionService.cs": {
+    "mtime": 1783785063.0271754,
+    "ast_hash": "470d02672b7e391b80f0628f8fae4156",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/WorkOrderReturnService.cs": {
+    "mtime": 1783755312.639197,
+    "ast_hash": "65e9a16b0b7b27e30882f0910c96f503",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/Services/WorkOrderService.cs": {
+    "mtime": 1783775878.478119,
+    "ast_hash": "3454abd0dfefc3ef8f5f6f65750259a3",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/appsettings.Development.json": {
+    "mtime": 1779736989.3416357,
+    "ast_hash": "2d4e504fe68a2ad20a8d205906b558cf",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/appsettings.Local.json": {
+    "mtime": 1781689922.228766,
+    "ast_hash": "4e0bab5e544df6af889b723f113cce1a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/appsettings.Production.json": {
+    "mtime": 1779290447.977368,
+    "ast_hash": "d5850f370bcc88e3a57c91a6f6eb65e9",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/appsettings.json": {
+    "mtime": 1779290447.978368,
+    "ast_hash": "9a21aab971284cce002a723bcf67664b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/build-release.ps1": {
+    "mtime": 1779290447.978368,
+    "ast_hash": "0f7cbd1135512f339c16f2e413ebee01",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/config/watchable-documents.json": {
+    "mtime": 1779734786.1372297,
+    "ast_hash": "c6caf71ee3a2de2a83a827a1464d7564",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/deploy/dev/minio/data/.minio.sys/format.json": {
+    "mtime": 1776871908.5337996,
+    "ast_hash": "69b2bd3ab2d553378c8be9d968c15ce9",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/deploy/prod/db-backup.sh": {
+    "mtime": 1779295756.2358937,
+    "ast_hash": "4e26bbd1aca8567583079dd91542370d",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/deploy/prod/db-restore.sh": {
+    "mtime": 1779295764.6389241,
+    "ast_hash": "34034f37c2956c897189ba75dab3e405",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/git_projects/dotnet-backend/tests/test_master_data.py": {
+    "mtime": 1779351362.1266978,
+    "ast_hash": "6333490e683d263c1fbe7a4f81c07940",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/mark-migration.sql": {
+    "mtime": 1776084222.8670352,
+    "ast_hash": "242658eb66bc6a5c3891d10b6db39c3c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/reports/ReportCustomerStatement.cs": {
+    "mtime": 1779290447.982368,
+    "ast_hash": "c88dbd403c878f6b1ae141c4a97150e8",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/reports/ReportIqcInspection.cs": {
+    "mtime": 1782454085.3875883,
+    "ast_hash": "8faab93c3320ab0260fde159b6274379",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/reports/ReportNewWorkOrder.cs": {
+    "mtime": 1779290447.982368,
+    "ast_hash": "0c1b1ccc6fa29c443872352d3ad55b6a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/reports/ReportQcConcession.cs": {
+    "mtime": 1782453226.779321,
+    "ast_hash": "af8ea3eebe80e3d0b5100820ae62abcc",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/reports/ReportSalesDelivery.cs": {
+    "mtime": 1779609156.453489,
+    "ast_hash": "f745d6c841769b391473c72b05782c21",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/reports/ReportWorkOrder.cs": {
+    "mtime": 1779290447.9833682,
+    "ast_hash": "c5dd835b45342cb8cf79e9c1dec1995e",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/scripts/demo-migration.sh": {
+    "mtime": 1779290447.9833682,
+    "ast_hash": "f3ac436433f4c43d2b51cbbd83db1eb3",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/scripts/deploy-prod.ps1": {
+    "mtime": 1779290447.9833682,
+    "ast_hash": "26c4641a02fa762860b5b31537095d24",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/scripts/deploy-prod.sh": {
+    "mtime": 1779290447.9833682,
+    "ast_hash": "9fe8b5e695c6908e7ad45e2628af307d",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/scripts/fonts.ps1": {
+    "mtime": 1779290447.9833682,
+    "ast_hash": "8dae8791df6cd8720cb6a73f70b96d3f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/scripts/fonts.sh": {
+    "mtime": 1779290447.9833682,
+    "ast_hash": "2d98dc18a61220018d0b6233bfbce336",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/scripts/generate-generaltypes-sql.ps1": {
+    "mtime": 1779290447.9833682,
+    "ast_hash": "6ee1f2d0d5bbb5a6ec60839f87f89fa0",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/scripts/logs.ps1": {
+    "mtime": 1779290447.9833682,
+    "ast_hash": "6b68d55cb12d321a5549d280635a432a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/scripts/logs.sh": {
+    "mtime": 1779290447.9833682,
+    "ast_hash": "9eae1692c71f395ff66d197d0e97f50a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/scripts/migrate-make.ps1": {
+    "mtime": 1779290447.9833682,
+    "ast_hash": "c40ee60a2700650c2fc3e5d13ef4a8ce",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/scripts/migrate-make.sh": {
+    "mtime": 1783410657.0852075,
+    "ast_hash": "8c543d4950e44e95b8e1482ffed1eaf8",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/scripts/migrate.sh": {
+    "mtime": 1779290447.9833682,
+    "ast_hash": "79709273674bc12257ef89c1befd4137",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/scripts/test.ps1": {
+    "mtime": 1779290447.9833682,
+    "ast_hash": "eafd036021426e296e20317a3163f327",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/scripts/test.sh": {
+    "mtime": 1779290447.9833682,
+    "ast_hash": "01f804002d92a9c378710c1e54000bff",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/scripts/update-version.py": {
+    "mtime": 1779290447.9833682,
+    "ast_hash": "48ef48f41ce9b5df942525ef2f90aeb7",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/temp_scripts/fix_permissions.py": {
+    "mtime": 1779040829.0499918,
+    "ast_hash": "e73fbcca05f8c2f9a3e014058771b706",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/temp_scripts/test_product.py": {
+    "mtime": 1779427351.6962724,
+    "ast_hash": "a5fc6dfd0820c62842301db321a557d6",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/temp_scripts/test_sales_delivery.py": {
+    "mtime": 1779427742.8252823,
+    "ast_hash": "c2c5ab7d7f22988ce97d807739194292",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/temp_scripts/test_undelivered.py": {
+    "mtime": 1779427579.1681283,
+    "ast_hash": "a08eb47a159db03b38f39f1b49b4fe30",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/test_api.sh": {
+    "mtime": 1779044820.147907,
+    "ast_hash": "3eac823e1043acfc652edb68bcee5b42",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/test_profile.js": {
+    "mtime": 1779212500.914927,
+    "ast_hash": "c3516b300c389be429c62a48ca08f61b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/tests/e2e_erp_workflow.py": {
+    "mtime": 1780326790.121018,
+    "ast_hash": "2215aadc7008132985458f7bbe6d3839",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/tests/e2e_inventory.py": {
+    "mtime": 1780326824.4181705,
+    "ast_hash": "23cdda059221c4da01ec3b6a59a2664a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/tests/e2e_master_data.py": {
+    "mtime": 1779290447.984368,
+    "ast_hash": "4de8ce2e2f0d87891b61d8b794f5e5e5",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/tests/generate_full_report.py": {
+    "mtime": 1779290447.984368,
+    "ast_hash": "ce63e59151dca44122d983235af32979",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/tests/run_all.sh": {
+    "mtime": 1779290447.984368,
+    "ast_hash": "d8fb076bf6342b7b0245b3ffdc77cdcc",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/tests/smoke_test_modules.py": {
+    "mtime": 1779290447.984368,
+    "ast_hash": "0dd4d6846fb973c9e21777d4517b2e03",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/tests/test_master_data.py": {
+    "mtime": 1780326739.469796,
+    "ast_hash": "ba6669bc24e0d2c66b0fe4b19a08fc3a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/wwwroot/swagger-authtoken.js": {
+    "mtime": 1779290447.984368,
+    "ast_hash": "1334c10e7556309d5d71f9e32ff33ce7",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/deploy/prod/minio/data/.minio.sys/format.json": {
+    "mtime": 1778771939.0616305,
+    "ast_hash": "3950491d9ce8384093e9ab85e414203b",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/openapi-ts.config.ts": {
+    "mtime": 1778899189.2327867,
+    "ast_hash": "99123cc8f58ac8235760f3bd2f4c7f76",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/package.json": {
+    "mtime": 1783591303.3638906,
+    "ast_hash": "42aad120d4bc6ddfb1348950415174a5",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/patch_button_test.tsx": {
+    "mtime": 1778388482.9553714,
+    "ast_hash": "ba14cb9feb2dd78c79b476dadf46359c",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/scripts/update-version.py": {
+    "mtime": 1779290698.5242405,
+    "ast_hash": "0f4be666425278175d834fec908a4606",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/scripts/update_icons.py": {
+    "mtime": 1778358496.1650093,
+    "ast_hash": "25d665e3e0bbad79394aa2b1957166d2",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/scripts/update_list_ui.py": {
+    "mtime": 1778360930.8111722,
+    "ast_hash": "b106f88d1bb6965240b8906d775065b0",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/App.tsx": {
+    "mtime": 1783436317.3428981,
+    "ast_hash": "edd89445bd920cf91749c09aa20030a2",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/api/client.ts": {
+    "mtime": 1779764052.5209622,
+    "ast_hash": "2228ba46d427faefc3058de876531f7d",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/api/generated/client.gen.ts": {
+    "mtime": 1783820113.307479,
+    "ast_hash": "8930b1ccc1b33ee60452fbb0e927b026",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/api/generated/client/client.gen.ts": {
+    "mtime": 1783820112.6494823,
+    "ast_hash": "ed402d6d848cc2d5aa24cfb7cd9e5f0a",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/api/generated/client/index.ts": {
+    "mtime": 1783820112.6494823,
+    "ast_hash": "085fa1fd702a5ebc1a732eee7e0c501a",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/api/generated/client/types.gen.ts": {
+    "mtime": 1783820112.6494823,
+    "ast_hash": "57d821ee9e5a11a221c9aa5760870cca",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/api/generated/client/utils.gen.ts": {
+    "mtime": 1783820112.6494823,
+    "ast_hash": "1eba6ad602ed1ccca42de9b4d75c120f",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/api/generated/core/auth.gen.ts": {
+    "mtime": 1783820112.6474822,
+    "ast_hash": "459fc28bacac882e19f56f14bf2bf531",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/api/generated/core/bodySerializer.gen.ts": {
+    "mtime": 1783820112.6484823,
+    "ast_hash": "d7654b801ddd8113122f47c930d00ec3",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/api/generated/core/params.gen.ts": {
+    "mtime": 1783820112.6484823,
+    "ast_hash": "d3898af19a49ce8e888c1fa0643404c7",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/api/generated/core/pathSerializer.gen.ts": {
+    "mtime": 1783820112.6484823,
+    "ast_hash": "c686927d1d95b6840504642ddc3137cb",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/api/generated/core/queryKeySerializer.gen.ts": {
+    "mtime": 1783820112.6484823,
+    "ast_hash": "ce0097156a7d185333bdf79cf7ec1df4",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/api/generated/core/serverSentEvents.gen.ts": {
+    "mtime": 1783820112.6484823,
+    "ast_hash": "fcec24e46de6397f84d7afe4eecba7c4",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/api/generated/core/types.gen.ts": {
+    "mtime": 1783820112.6484823,
+    "ast_hash": "b92dd3d74e3a9c41f5c6579f66477b54",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/api/generated/core/utils.gen.ts": {
+    "mtime": 1783820112.6484823,
+    "ast_hash": "a45e542c584ce3086ff4ac18cea3a88a",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/api/generated/index.ts": {
+    "mtime": 1783820113.307479,
+    "ast_hash": "63ccc261cc603c33c4fc6e8855f0bb11",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/api/generated/sdk.gen.ts": {
+    "mtime": 1783820113.307479,
+    "ast_hash": "1b32bd60a65bd614f5886a2d99d0740c",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/api/generated/types.gen.ts": {
+    "mtime": 1783820113.307479,
+    "ast_hash": "f0c8c251e3d7f6f51bb9f380f306aaec",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/api/initApi.ts": {
+    "mtime": 1779764065.9808521,
+    "ast_hash": "21dec652da956ff2c84971660c2d7feb",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/DevBanner.tsx": {
+    "mtime": 1778946480.9165037,
+    "ast_hash": "8402e16e7f022e384e707be9afbe9dd5",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/ErpDrawer.tsx": {
+    "mtime": 1778946480.9155037,
+    "ast_hash": "883a2428648255fab073eede885c41b9",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/FileAttachment/FileAttachmentZone.tsx": {
+    "mtime": 1779208620.4119685,
+    "ast_hash": "261be9c8f7d1d0daeb7d4964f19796ac",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/Form/AsyncSelect.tsx": {
+    "mtime": 1781273104.6082027,
+    "ast_hash": "ec357438f6af9486cc74c28a6a9ad6c5",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/Form/AutoComplete.tsx": {
+    "mtime": 1781694996.893642,
+    "ast_hash": "e6ad3a62588ae8d7c61fd0300f724e42",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/Form/DictLabel.tsx": {
+    "mtime": 1778946480.9185038,
+    "ast_hash": "ba0c9b0b22ea7dba591f37829fc9ae10",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/Form/DictSelect.tsx": {
+    "mtime": 1780589268.2670364,
+    "ast_hash": "64e06b38bec616f774178cb4bcd32c62",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/Form/DictTag.tsx": {
+    "mtime": 1780015625.53663,
+    "ast_hash": "2139712ccd2b0537a03543e8642083a7",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/Form/DrawerTitle.tsx": {
+    "mtime": 1778946480.9175038,
+    "ast_hash": "3e213f51a13ffc127486090db03e1a02",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/Form/DynamicField.tsx": {
+    "mtime": 1780572881.8652887,
+    "ast_hash": "3a76b8eddcd0b3f7febb0a79d1faee61",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/Form/DynamicForm.tsx": {
+    "mtime": 1783744603.96772,
+    "ast_hash": "5cec003bfa081abb478ba173659e6276",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/Form/DynamicSearchForm.tsx": {
+    "mtime": 1780474742.7069678,
+    "ast_hash": "526cacbb02f090236ecc70c49009aff2",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/Form/DynamicSearchTags.tsx": {
+    "mtime": 1778946480.9175038,
+    "ast_hash": "a4876e5550b0988b9ddadc85f3af3461",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/Form/FieldRegistry.tsx": {
+    "mtime": 1781695016.5784872,
+    "ast_hash": "0116a8d70dc985fe45018b3382af68ac",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/Form/JsonEditorField.tsx": {
+    "mtime": 1778946480.9185038,
+    "ast_hash": "e3d0414254fa9315272437e0dbb33342",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/Form/MasterDetailTabs.tsx": {
+    "mtime": 1779545393.7010088,
+    "ast_hash": "e4eb3f040ec8727bbb1cc5a4f0f8af4b",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/Form/types.ts": {
+    "mtime": 1780466019.6895387,
+    "ast_hash": "c347a06a992dea6c3eeabd0b28d96f43",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/Table/ActiveQueryAndSortTags.tsx": {
+    "mtime": 1779514317.9339843,
+    "ast_hash": "668886adc80e369bbf40e68e0d8271dc",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/Table/EllipsisText.tsx": {
+    "mtime": 1778946480.9155037,
+    "ast_hash": "b60421efe1e330ccee1eddd7e12016e3",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/Table/StandardErpTable.tsx": {
+    "mtime": 1780588854.28827,
+    "ast_hash": "376d573f4519e93bf2a4fcd8bfaa40f2",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/common/ActionBar.tsx": {
+    "mtime": 1778946480.9185038,
+    "ast_hash": "e1f6e336050e79a128dc274198bb3ea3",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/common/ActionButton.tsx": {
+    "mtime": 1778946480.9185038,
+    "ast_hash": "d63eb18fecbb4542a8b4dc944da9e5a6",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/common/DocumentLifecycleBanner.tsx": {
+    "mtime": 1779422099.5907638,
+    "ast_hash": "6a57eec7f0c70bd49045b4e721e3e459",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/common/DocumentWatchButton.tsx": {
+    "mtime": 1780017595.8568885,
+    "ast_hash": "7d2bfb26ee0a3da5c9862e8b4c364633",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/components/common/PageCard.tsx": {
+    "mtime": 1779545383.4409075,
+    "ast_hash": "1a48e401e537177e4941cee2395504fd",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/config/autoCompleteRegistry.ts": {
+    "mtime": 1782361263.5104682,
+    "ast_hash": "a1dfe934257e53616731b00d3f4b09ea",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/config/dictionaryRegistry.ts": {
+    "mtime": 1780556122.5611289,
+    "ast_hash": "876dc3526ff14ddd6529d9a7e791cf1e",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/constants/businessPartner.ts": {
+    "mtime": 1780556026.17063,
+    "ast_hash": "6a270cc76fb0f06409bb3cd119067f14",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/constants/index.ts": {
+    "mtime": 1780556034.1866713,
+    "ast_hash": "555d5294c69cd4b85b7a08a79b51b6bc",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/constants/routes.ts": {
+    "mtime": 1779764876.2375295,
+    "ast_hash": "88f0506df1934bfbbf044dea5bbda5f2",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/constants/ui.ts": {
+    "mtime": 1778946480.8745036,
+    "ast_hash": "114220b21949b603a48f17311ee8caec",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/hooks/useDictionary.ts": {
+    "mtime": 1778946480.9025037,
+    "ast_hash": "d326f4e18695759d9d2491a75acd2f3b",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/hooks/useErpListQuery.ts": {
+    "mtime": 1780018207.2335348,
+    "ast_hash": "4a401ce287876b5a4ca4480b82ebc583",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/hooks/useFileDownload.ts": {
+    "mtime": 1778946480.9025037,
+    "ast_hash": "0a0f3971059c4cb5a4286d00db8cf0f3",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/hooks/useSystemVersion.ts": {
+    "mtime": 1778946480.9025037,
+    "ast_hash": "2337afa63d3680a5822bb471ced1a6e0",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/hooks/useUrlQuerySync.ts": {
+    "mtime": 1778946480.9035037,
+    "ast_hash": "8b1fb96dd3a874925eef88ccc7d3d344",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/layouts/AuthLayout.tsx": {
+    "mtime": 1778946480.8755035,
+    "ast_hash": "819535b5144602d4fcfbc688abb5d5ba",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/layouts/MainLayout.tsx": {
+    "mtime": 1783411509.1173308,
+    "ast_hash": "e92ada48bd0ae5b5c3cc31037e841178",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/main.tsx": {
+    "mtime": 1778946480.8735034,
+    "ast_hash": "22352e451472a4f34b79b354db402d8a",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/Dashboard.tsx": {
+    "mtime": 1783435754.1875582,
+    "ast_hash": "dcd931ac589b2211ac1fe2a6774e4e54",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/auth/ActivateAccount.tsx": {
+    "mtime": 1779764465.436672,
+    "ast_hash": "b17fc0045534c5229562695e3dc9f87a",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/auth/ForgetPassword.tsx": {
+    "mtime": 1778946480.8985038,
+    "ast_hash": "9bed86fd1b559074ff1af58405d27a67",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/auth/Login.tsx": {
+    "mtime": 1781076916.6599379,
+    "ast_hash": "6de25c011226824263ddfcf69804d129",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/auth/ResetPassword.tsx": {
+    "mtime": 1778946480.8975036,
+    "ast_hash": "4a5e2f835370fdbeeba52d79e1ee36e7",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/basic/business-partners/BusinessPartnerConfig.tsx": {
+    "mtime": 1782008340.6876454,
+    "ast_hash": "0b9a9e269b6c35721c1b7dbe93209235",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/basic/business-partners/BusinessPartnerList.tsx": {
+    "mtime": 1782008920.3015063,
+    "ast_hash": "f61028d15b990f4bacadfed5a6d37b2c",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/basic/business-partners/ContactConfig.tsx": {
+    "mtime": 1780459014.2253013,
+    "ast_hash": "911f124901c267cce758afa8d6fd17d2",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/basic/business-partners/ContactList.tsx": {
+    "mtime": 1780401809.374827,
+    "ast_hash": "6a85f2c4ce39857d83196839269fab08",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/basic/employees/EmployeeConfig.tsx": {
+    "mtime": 1779358818.5695186,
+    "ast_hash": "cd6284aeba093d718d2f8973c6eab398",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/basic/employees/index.tsx": {
+    "mtime": 1780565664.5023935,
+    "ast_hash": "0d21a46ee495a7bf4baa41da675661a6",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/exception/403.tsx": {
+    "mtime": 1778946480.8935037,
+    "ast_hash": "312563dab582fe57a58aff1ec0e4fbbf",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/exception/404.tsx": {
+    "mtime": 1778946480.8935037,
+    "ast_hash": "58701f13ffd552ee6ef960674b5200c9",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/iqc-inspections/IqcConfig.tsx": {
+    "mtime": 1783589961.844911,
+    "ast_hash": "1786c108e349c34eb2e1cbc89fabf379",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/iqc-inspections/IqcDrawer.tsx": {
+    "mtime": 1783526346.031617,
+    "ast_hash": "e96e07f1bb89b1d5e5bdb2d4e1363e4c",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/iqc-inspections/IqcList.tsx": {
+    "mtime": 1783262496.5522108,
+    "ast_hash": "c51be9246f378efd6c49457908847677",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/iqc-inspections/useIqcQueryStore.ts": {
+    "mtime": 1782322958.4995084,
+    "ast_hash": "15402de0e4e53e3504bfc6b40b945c9e",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/machines/MachineConfig.tsx": {
+    "mtime": 1779358844.031377,
+    "ast_hash": "53176f946cf2749dde075e255491bfea",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/machines/MachineList.tsx": {
+    "mtime": 1779545499.346895,
+    "ast_hash": "c74176755b748cc550f6d1e4db907203",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/molds/MoldConfig.tsx": {
+    "mtime": 1782051631.7673004,
+    "ast_hash": "58e2b177dc6dad96d3b4990699dc08d9",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/molds/MoldList.tsx": {
+    "mtime": 1781259077.8742325,
+    "ast_hash": "f1fb864b28ce0bf9ddfc4e0dd9f05699",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/production-receipts/ProductionReceiptConfig.tsx": {
+    "mtime": 1779767547.2308376,
+    "ast_hash": "307689d4649cf2ffb02547367835ff84",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/production-receipts/ProductionReceiptDrawer.tsx": {
+    "mtime": 1779729073.2982676,
+    "ast_hash": "cf3bc9ce57bb36e1f239175b26bfb2d1",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/production-receipts/ProductionReceiptItemsTab.tsx": {
+    "mtime": 1779547239.7040293,
+    "ast_hash": "1a4f358ac16fccf0f3996fb7547baa77",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/production-receipts/ProductionReceiptsList.tsx": {
+    "mtime": 1779767782.0818605,
+    "ast_hash": "31783452d254ee8e72145aa1686ec801",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/production-receipts/useProductionReceiptQueryStore.ts": {
+    "mtime": 1778946480.8995037,
+    "ast_hash": "1406fe1363e84444e482ae4c283e05f6",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/qc-receipts/QcProductionReceiptSelector.tsx": {
+    "mtime": 1780590213.7383835,
+    "ast_hash": "9c82a627fc535e306366d078daa269b9",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/qc-receipts/QcReceiptConfig.tsx": {
+    "mtime": 1780326468.9526954,
+    "ast_hash": "62d940527cde037e8514700bda99a3bd",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/qc-receipts/QcReceiptDrawer.tsx": {
+    "mtime": 1779503422.080471,
+    "ast_hash": "61bf60bdefa8b4bf34e8480faf0b5a79",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/qc-receipts/QcReceiptItemsTab.tsx": {
+    "mtime": 1780326450.5096269,
+    "ast_hash": "d80cb302679483fe92a31fb737ac55f0",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/qc-receipts/QcReceiptsList.tsx": {
+    "mtime": 1779767748.5178747,
+    "ast_hash": "6884574fc792f747e68313d49b8260be",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/qc-receipts/useQcReceiptQueryStore.ts": {
+    "mtime": 1778946480.9005036,
+    "ast_hash": "a7c117697073e01603279fb25565a93f",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/work-orders/PersonnelWorkingHoursField.tsx": {
+    "mtime": 1780590186.081272,
+    "ast_hash": "e5d6dec0a598bf326427fefc6ef7dc00",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/work-orders/RollSubstitutionPicker.tsx": {
+    "mtime": 1783621883.518682,
+    "ast_hash": "b27b167ac4cc6367b6c0fe38a4145fb5",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/work-orders/WorkOrderConfig.tsx": {
+    "mtime": 1783754966.8442733,
+    "ast_hash": "ce005ca308e0587dc6f17d11c8437e3e",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/work-orders/WorkOrderDrawer.tsx": {
+    "mtime": 1783768779.195701,
+    "ast_hash": "25887877d6781019aeccce896e20285c",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/work-orders/WorkOrderItemsTab.tsx": {
+    "mtime": 1779503422.077471,
+    "ast_hash": "54cc4dcdbb49518582c232205368dcbb",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/work-orders/WorkOrderRequisitionTab.tsx": {
+    "mtime": 1783783039.1929967,
+    "ast_hash": "9fa83bcbae01bb1286f516537ee511b4",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/work-orders/WorkOrderReturnTab.tsx": {
+    "mtime": 1783764618.0892057,
+    "ast_hash": "02b0cfbadcd0a626c31bb71fcaf40c91",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/work-orders/WorkOrdersList.tsx": {
+    "mtime": 1780565919.2795358,
+    "ast_hash": "a38623f34e2f480a45a046198a8354ce",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/production-quality/work-orders/useWorkOrderQueryStore.ts": {
+    "mtime": 1778946480.8895037,
+    "ast_hash": "c1314f323cb6a2bee7919d2d529725e4",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/purchase/orders/PurchaseOrderConfig.tsx": {
+    "mtime": 1783259023.7578385,
+    "ast_hash": "342a1b4941086d17725a77fbce244259",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/purchase/orders/PurchaseOrderDrawer.tsx": {
+    "mtime": 1781521394.6938002,
+    "ast_hash": "e689aa4ab6e4985ba03ee81a7e1b5081",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/purchase/orders/PurchaseOrderItemsTab.tsx": {
+    "mtime": 1781253228.7102966,
+    "ast_hash": "5e7f4490c3905abb8306a9ef1e8b53ef",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/purchase/orders/PurchaseOrdersList.tsx": {
+    "mtime": 1780667551.8270202,
+    "ast_hash": "2dc8eb93f390a26c97e84d76499d376e",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/purchase/orders/usePurchaseOrderQueryStore.ts": {
+    "mtime": 1780663364.7539787,
+    "ast_hash": "43d42f31a66abeb6194729cac330e85f",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/purchase/receipts/PurchaseOrderItemSelector.tsx": {
+    "mtime": 1782220337.7860582,
+    "ast_hash": "f795b84bda547c30f614367a6b7bed73",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/purchase/receipts/PurchaseReceiptConfig.tsx": {
+    "mtime": 1783263126.8502102,
+    "ast_hash": "5c91686b565a27ad7e25507eaf93aab6",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/purchase/receipts/PurchaseReceiptDrawer.tsx": {
+    "mtime": 1781546277.8708134,
+    "ast_hash": "cd70e53e399893ad40350f1302de9642",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/purchase/receipts/PurchaseReceiptItemsTab.tsx": {
+    "mtime": 1781543656.1827226,
+    "ast_hash": "2f56ccd592b58c01c9154e6aad8d7c9b",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/purchase/receipts/PurchaseReceiptsList.tsx": {
+    "mtime": 1781540121.25339,
+    "ast_hash": "ba7a4ad38b4fdaf49cfebe8178d59bd9",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/purchase/receipts/usePurchaseReceiptQueryStore.ts": {
+    "mtime": 1780730139.9880385,
+    "ast_hash": "c4819bfcadf96315c7c60208a8a45f3a",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/sales/orders/OrderConfig.tsx": {
+    "mtime": 1782147152.050679,
+    "ast_hash": "bd416e7f38e8e584769bc5422aa73881",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/sales/orders/OrderDrawer.tsx": {
+    "mtime": 1781521394.6938002,
+    "ast_hash": "4beed6db6341f3452ddfcce6c74455e2",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/sales/orders/OrderItemsTab.tsx": {
+    "mtime": 1780595738.871056,
+    "ast_hash": "e2c384b2c1d025afcf232bacbbc4f7be",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/sales/orders/OrdersList.tsx": {
+    "mtime": 1780015943.0512595,
+    "ast_hash": "1c605b6e73e3615fdb58a714d7a72b27",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/sales/orders/components/ContactSelectWithCreate.tsx": {
+    "mtime": 1780818510.7078724,
+    "ast_hash": "994b84372cc920c95f4d68e30ff03d05",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/sales/orders/components/CustomerProductPickerModal.tsx": {
+    "mtime": 1779413215.319888,
+    "ast_hash": "33ed82a8a68e28489f91657b2be2319e",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/sales/orders/useOrderQueryStore.ts": {
+    "mtime": 1780015924.0201685,
+    "ast_hash": "bb54d29f71a55a93c90b67d5191fbaa6",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/sales/sales-deliveries/SalesDeliveriesList.tsx": {
+    "mtime": 1780565849.9619644,
+    "ast_hash": "e5c7454938dd63245066ab5a60b656ed",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/sales/sales-deliveries/SalesDeliveryConfig.tsx": {
+    "mtime": 1780758690.3550315,
+    "ast_hash": "f50e68ba13dee5ba19b29f8ae3c4712f",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/sales/sales-deliveries/SalesDeliveryDrawer.tsx": {
+    "mtime": 1781521394.6948001,
+    "ast_hash": "02a672fb3f48cc309ad28c127b54df65",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/sales/sales-deliveries/SalesDeliveryItemsTab.tsx": {
+    "mtime": 1780595145.7077725,
+    "ast_hash": "177ab906b47c29361db4aa9c1df74a5e",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/sales/sales-deliveries/components/UndeliveredOrderItemPicker.tsx": {
+    "mtime": 1780326484.9417558,
+    "ast_hash": "c946c6bfc43f21d50745848ac9324463",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/sales/sales-deliveries/useSalesDeliveryQueryStore.ts": {
+    "mtime": 1778946480.8845036,
+    "ast_hash": "d50f1968343d105b0c2c96bc259d3913",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/sales/statements/CustomerStatementConfig.tsx": {
+    "mtime": 1778946480.8855035,
+    "ast_hash": "b3984953213a55567882e4fc23bd056c",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/sales/statements/CustomerStatementList.tsx": {
+    "mtime": 1782148572.1580498,
+    "ast_hash": "af6f033199593d4a90a414dec0ff5469",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/sales/statements/useCustomerStatementQueryStore.ts": {
+    "mtime": 1778946480.8855035,
+    "ast_hash": "a43e17ff550d5712bb2f04bc9ec83b56",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/system/Profile.tsx": {
+    "mtime": 1780565783.1374059,
+    "ast_hash": "d221204beac413028e5e903572db6449",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/system/RoleConfig.tsx": {
+    "mtime": 1778946480.8795035,
+    "ast_hash": "b9c645de2ab72111ab0c3baeed790697",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/system/RoleList.tsx": {
+    "mtime": 1779546146.6072989,
+    "ast_hash": "773a753c9c647114a22cad36725953a9",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/system/SystemMaintenance.tsx": {
+    "mtime": 1778946480.8825035,
+    "ast_hash": "f230602df96fa114546a2b4dd6df8c6a",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/system/UserConfig.tsx": {
+    "mtime": 1778946480.8825035,
+    "ast_hash": "47aeccaf9a7cdfc1ae208ead69f07c6e",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/system/UserList.tsx": {
+    "mtime": 1779546243.337165,
+    "ast_hash": "139c968147cc3f17a961fbbf83d5846c",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/system/general-types/CategoryItemList.tsx": {
+    "mtime": 1779187574.4157884,
+    "ast_hash": "0441de1a6deab28e74ed204ee757aad7",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/system/general-types/CategoryList.tsx": {
+    "mtime": 1779187170.9327376,
+    "ast_hash": "a16a9ede65ed2fe636114c1d9362470a",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/system/general-types/GeneralTypeConfig.tsx": {
+    "mtime": 1778946480.8815036,
+    "ast_hash": "36937d85f184776e5787f653f259158b",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/system/general-types/GeneralTypeLayout.tsx": {
+    "mtime": 1779505964.518055,
+    "ast_hash": "b0ac51ff3be75db9b32123da99bcd41e",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/BrandModels/BrandModelsLayout.tsx": {
+    "mtime": 1779505990.6049058,
+    "ast_hash": "290294d25544ec917000264cafd1c745",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/Products/ProductConfig.tsx": {
+    "mtime": 1780573653.481199,
+    "ast_hash": "4cc55cc98a6c88b28815abf06bc64339",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/Products/ProductsList.tsx": {
+    "mtime": 1781521394.6938002,
+    "ast_hash": "58b54934c09c467e96c5374ff48c5cfa",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/Products/Tabs/BomItemModal.tsx": {
+    "mtime": 1778946480.8775036,
+    "ast_hash": "294d74f355113259116d1b05e584f99f",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/Products/Tabs/ProductAttachments.tsx": {
+    "mtime": 1778946480.8765035,
+    "ast_hash": "60c398af502c771d59501765917a5793",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/Products/Tabs/ProductBom.tsx": {
+    "mtime": 1778946480.8765035,
+    "ast_hash": "da35ae89bad2dec13c86f6ae2f1d0a66",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/Products/Tabs/ProductMolds.tsx": {
+    "mtime": 1780015629.8526533,
+    "ast_hash": "78ca1d9ad94ae5ae6e5c28d7959f1873",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/inventory-adjustments/InventoryAdjustmentConfig.tsx": {
+    "mtime": 1779357963.188242,
+    "ast_hash": "b77dfcf26dc9d6ad0ab243696c161a54",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/inventory-adjustments/InventoryAdjustmentList.tsx": {
+    "mtime": 1779546035.7953784,
+    "ast_hash": "51ec0d4c0909ccd6769119d5d8cc5a21",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/inventory-adjustments/Tabs/InventoryAdjustmentItemsTab.tsx": {
+    "mtime": 1780326716.081695,
+    "ast_hash": "ca0239aeb5074313b60c2fbc361fe85d",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/inventory-movements/StorageTransactionsList.tsx": {
+    "mtime": 1779517742.8949184,
+    "ast_hash": "ac60376b38e5fef2a1fa714e204cc9ed",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/inventory/StorageInventoryConfig.tsx": {
+    "mtime": 1778946480.8755035,
+    "ast_hash": "a47cc51db2749e9f3aa83506f0362ed1",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/inventory/StorageInventoryList.tsx": {
+    "mtime": 1780590141.5360913,
+    "ast_hash": "ec6f9b3482b4ac31c2de54b95f770356",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/material-inventory/MaterialInventoryConfig.tsx": {
+    "mtime": 1783447655.888423,
+    "ast_hash": "bfe76fc541630b00bdf4df2977a35aaf",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/material-inventory/MaterialInventoryList.tsx": {
+    "mtime": 1782473686.5524693,
+    "ast_hash": "940460bb0c6bfd689f43745872c0b71a",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/materials/MaterialConfig.tsx": {
+    "mtime": 1782007890.564596,
+    "ast_hash": "6cb265a0759fc9becda6b52a390b0490",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/materials/MaterialList.tsx": {
+    "mtime": 1781624958.5876324,
+    "ast_hash": "35fdd8869c6a649227b3f0ff6941141e",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/materials/components/BrandSelect.tsx": {
+    "mtime": 1779214220.6357272,
+    "ast_hash": "7db4817fac3aa4d36edb7c990fa7f864",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/materials/components/ModelSelect.tsx": {
+    "mtime": 1779214239.4418356,
+    "ast_hash": "f14f4c7914b98d8d1d711124ffe32aff",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/storages/StorageConfig.tsx": {
+    "mtime": 1780394191.848057,
+    "ast_hash": "5d0cad189dac71cdde0d4c55bf257957",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/pages/warehouse/storages/StorageList.tsx": {
+    "mtime": 1780375164.8353066,
+    "ast_hash": "77aaec88d579f4283933ad557230b438",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/router/index.tsx": {
+    "mtime": 1782323444.9892783,
+    "ast_hash": "753ef54bfd2c8b1c8fb7464d3b8755c1",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/stores/employeeStore.ts": {
+    "mtime": 1778946480.9195037,
+    "ast_hash": "29ef252c23d3303ea9b7c8c4f067d654",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/stores/productionStore.ts": {
+    "mtime": 1778946480.9195037,
+    "ast_hash": "44269ad8ab7588039e96b727ecc2f203",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/stores/purchaseStore.ts": {
+    "mtime": 1778946480.9195037,
+    "ast_hash": "8a25a99f799c0d84fec5ee1f2d93b7cf",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/stores/systemStore.ts": {
+    "mtime": 1778946480.9205039,
+    "ast_hash": "bbab87abf784a6d20c71313827a1b660",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/stores/useAuthStore.ts": {
+    "mtime": 1782323839.1715736,
+    "ast_hash": "5fd51443aa45712bf5d00023c98c9469",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/stores/useDocumentSubscriptionStore.ts": {
+    "mtime": 1780018539.7382627,
+    "ast_hash": "b06fcb5530a176f9318ec1d60a780c93",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/stores/useListQueryStore.ts": {
+    "mtime": 1778946480.9205039,
+    "ast_hash": "be56a85242e52c252f02649114200704",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/stores/useLoadingStore.ts": {
+    "mtime": 1778946480.9195037,
+    "ast_hash": "93ad390f93e913a99ab0a5a79d70dcbb",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/stores/useThemeStore.ts": {
+    "mtime": 1778946480.9195037,
+    "ast_hash": "74f6e152dd000f37461ff67c94e15f2f",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/stores/warehouseStore.ts": {
+    "mtime": 1778946480.9195037,
+    "ast_hash": "99900043a7451d619bcd64451086d57d",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/utils/apiError.ts": {
+    "mtime": 1778946480.9185038,
+    "ast_hash": "6fefdb93d95d72b05f6b68cd1c1b7037",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/utils/tableActions.tsx": {
+    "mtime": 1779734368.4054377,
+    "ast_hash": "debda0ea7e1b1797ae594ade115d5291",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/utils/tableUtils.ts": {
+    "mtime": 1782008339.1346557,
+    "ast_hash": "d050b9b6376d65a035b8edc692955eae",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/utils/zodI18n.ts": {
+    "mtime": 1778946480.9185038,
+    "ast_hash": "80be2128165e111bad62ecaf831308ea",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/src/vite-env.d.ts": {
+    "mtime": 1778946480.9015036,
+    "ast_hash": "62f9f6bc4c280b79695ad10ef416425f",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/temp_scripts/optimize_layouts.py": {
+    "mtime": 1779506865.9316413,
+    "ast_hash": "e0936c104eeb5aab31bfad9bdd605d4b",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/test_antd.tsx": {
+    "mtime": 1778581616.1193662,
+    "ast_hash": "a6f526f57e958eaacb68bbd86b34351e",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/test_permissions.ts": {
+    "mtime": 1778488361.3722522,
+    "ast_hash": "597ef63581c860112cecea8e111333f2",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/test_theme.tsx": {
+    "mtime": 1778388344.2071733,
+    "ast_hash": "25cc4bda8440583b45b2ab1029ffb1c6",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/tsconfig.app.json": {
+    "mtime": 1777654073.4279232,
+    "ast_hash": "9f3d96315a210d5ab2656242e92f8070",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/tsconfig.json": {
+    "mtime": 1777654696.174781,
+    "ast_hash": "5f843da4bd753db74124ae659cda886c",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/vite.config.ts": {
+    "mtime": 1778899189.2347867,
+    "ast_hash": "f16fc51325533c66c1ce38b36e0ad399",
+    "semantic_hash": ""
+  },
+  ".hermes/skills/graphify/SKILL.md": {
+    "mtime": 1783257625.9647975,
+    "ast_hash": "1e48e0226c5b26741c54209a51c94454",
+    "semantic_hash": ""
+  },
+  ".hermes/skills/graphify/references/add-watch.md": {
+    "mtime": 1783257002.8034685,
+    "ast_hash": "d59d027fe449f06aa03905a01184e779",
+    "semantic_hash": ""
+  },
+  ".hermes/skills/graphify/references/exports.md": {
+    "mtime": 1783257002.8044684,
+    "ast_hash": "9da2a2152e60a22f07f05fed5158f287",
+    "semantic_hash": ""
+  },
+  ".hermes/skills/graphify/references/extraction-spec.md": {
+    "mtime": 1783257002.8064682,
+    "ast_hash": "bf895ec4d4e40f5f66f7d31c2a9bd4a7",
+    "semantic_hash": ""
+  },
+  ".hermes/skills/graphify/references/github-and-merge.md": {
+    "mtime": 1783257002.8084683,
+    "ast_hash": "cde13df085e4c492aeb7ba298a996d0d",
+    "semantic_hash": ""
+  },
+  ".hermes/skills/graphify/references/hooks.md": {
+    "mtime": 1783257002.8084683,
+    "ast_hash": "3f545db6ce646650bb9de588f5512a27",
+    "semantic_hash": ""
+  },
+  ".hermes/skills/graphify/references/query.md": {
+    "mtime": 1783257002.8084683,
+    "ast_hash": "3c46f8ad006874260614ed8657d02307",
+    "semantic_hash": ""
+  },
+  ".hermes/skills/graphify/references/transcribe.md": {
+    "mtime": 1783257002.8094683,
+    "ast_hash": "67b6a5fa6c0974e18f60db9f8932fbd8",
+    "semantic_hash": ""
+  },
+  ".hermes/skills/graphify/references/update.md": {
+    "mtime": 1783257002.8094683,
+    "ast_hash": "c698309979460d0f02ba616417844399",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1783257625.9647975,
+    "ast_hash": "6a47d64fcc136324ca395065a707ef76",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/.claude/agents/questpdf-report-optimizer.md": {
+    "mtime": 1779290447.9453685,
+    "ast_hash": "9ad621b45f2e1e6ea102d1d8e5193811",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/.hermes/plans/2026-06-02_120000-business-partner-refactoring.md": {
+    "mtime": 1780398318.795799,
+    "ast_hash": "966b267aa8f3e0925fd2ea0a1b7ea541",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/.hermes/plans/2026-06-26_iqc_report_optimization.md": {
+    "mtime": 1782454061.1499717,
+    "ast_hash": "e748c12b7d07a3c701d2e91939b4c20c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/.specify/000-current-system/architecture.md": {
+    "mtime": 1780676969.0213106,
+    "ast_hash": "25b465d99f790d6c5473f519697f6e01",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/.specify/000-current-system/decisions.md": {
+    "mtime": 1780676958.4819765,
+    "ast_hash": "c65dcd6bba11cabc65e93c802fe0b420",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/.specify/000-current-system/inventory.md": {
+    "mtime": 1780677590.6494555,
+    "ast_hash": "3a91b867180ee40c492874779559a8fd",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/.specify/000-current-system/known-issues.md": {
+    "mtime": 1780676985.0738108,
+    "ast_hash": "2833a3ae83136372783d0d45c8fe09a3",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/.specify/001-purchase-order-validation/plan.md": {
+    "mtime": 1780677001.9723263,
+    "ast_hash": "127033673d9f7047c24ffe3d2ccdb3de",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/.specify/001-purchase-order-validation/spec.md": {
+    "mtime": 1780676993.8300793,
+    "ast_hash": "7f89c6e44de9f84c951d470394f02ac8",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/.specify/001-purchase-order-validation/tasks.md": {
+    "mtime": 1780677010.8715935,
+    "ast_hash": "6c3a0591289a5bc1c8b5b2cc91542e93",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/.specify/002-purchase-receipt-and-lot-tracking/plan.md": {
+    "mtime": 1780718132.0638597,
+    "ast_hash": "56cc306790f4bfd8e56f98303d76eb45",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/.specify/002-purchase-receipt-and-lot-tracking/spec.md": {
+    "mtime": 1780718114.3526344,
+    "ast_hash": "a08a712164881c30fe03054da1e49a9e",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/.specify/002-purchase-receipt-and-lot-tracking/tasks.md": {
+    "mtime": 1780718147.7270555,
+    "ast_hash": "ae6ccfc8d66ec5e45018e1f3c1556c90",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/APPSETTINGS_GUIDE.md": {
+    "mtime": 1779290447.9473684,
+    "ast_hash": "b927790fa51f97a8710c60017ec6923a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/BaseEntity-ForeignKey-NoAction-Summary.md": {
+    "mtime": 1779290447.9483685,
+    "ast_hash": "7b52c368ad1aa53fdcfd9be3430d0919",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/CLAUDE.md": {
+    "mtime": 1779290447.9483685,
+    "ast_hash": "49c887f89c41d4081edd1eb48d453463",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/DbBackup.md": {
+    "mtime": 1779295778.8989756,
+    "ast_hash": "006a52b991608fb7e5793e173f5262be",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/ForeignKey-DeleteBehavior-Unification-Summary.md": {
+    "mtime": 1779290447.9563684,
+    "ast_hash": "107e17bc6b4934824205b3cc8f63f077",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/README.md": {
+    "mtime": 1779290447.9723682,
+    "ast_hash": "8fa6c903485873cae8bdeeebec66dd3d",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/deploy/ENVIRONMENT_COMPARISON.md": {
+    "mtime": 1779290447.978368,
+    "ast_hash": "ac2a4fd114f7811cfc91318414b9b06b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/deploy/FRONTEND_DEPLOYMENT.md": {
+    "mtime": 1779290447.978368,
+    "ast_hash": "cd1901628c78a74fbe02080f88ffde4b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/deploy/dev/docker-compose-dev.yml": {
+    "mtime": 1779290447.978368,
+    "ast_hash": "391cd5848121fcc578645f176deb4ac3",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/deploy/prod/docker-compose.yml": {
+    "mtime": 1779290447.978368,
+    "ast_hash": "dfc04bb7277343de88e1a3dd9f60b4b7",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docker-compose.migration.yml": {
+    "mtime": 1779290447.978368,
+    "ast_hash": "37759c8d2be93da5b6afec1c546ff97b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/architecture/TPH_Architecture_Guide.md": {
+    "mtime": 1779290447.978368,
+    "ast_hash": "56331af9267d0de008bc34c3f2faa26d",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/architecture/architecture_overview.md": {
+    "mtime": 1779290447.978368,
+    "ast_hash": "6e2505a236e8a4380508b3af6c959eb5",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/backend-api.md": {
+    "mtime": 1779290447.9793682,
+    "ast_hash": "504872a6ae40d67fa4a500afcd0b978f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/design/BaseApiController_UML.md": {
+    "mtime": 1779290447.9793682,
+    "ast_hash": "deea71a4a27460f470002531165d26d7",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/design/StorageInventoryCalculation.md": {
+    "mtime": 1779290447.9793682,
+    "ast_hash": "0adf9ce3660d2953c7762b6c4040e9fe",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/design/process_flowcharts.md": {
+    "mtime": 1779290447.9793682,
+    "ast_hash": "15ceb2c9e82960555398f6b6435eb379",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/guides/SalesDelivery_Report_API_Guide.md": {
+    "mtime": 1779290447.9793682,
+    "ast_hash": "00d2571313ce53a18f5c570ccae1a247",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/guides/deployment_guide.md": {
+    "mtime": 1779290447.9793682,
+    "ast_hash": "98c5745a1963868e9cf0541dc4910032",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/guides/fonts-setup.md": {
+    "mtime": 1779290447.9793682,
+    "ast_hash": "416f4b057f710056c6dcd649faac6568",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/guides/pdf-download-guide.md": {
+    "mtime": 1779290447.9793682,
+    "ast_hash": "4cf469c4e3ce811d354a1ec7f5686fdb",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/improvement_plan.md": {
+    "mtime": 1779290447.9793682,
+    "ast_hash": "2261146dfb3cc0db781218975905e223",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/plans/2026-02-27-quantity-shipped-correctness.md": {
+    "mtime": 1779290447.9793682,
+    "ast_hash": "4d84c45e9aa62051369914db195de333",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/plans/2026-02-27-sales-delivery-batch-loading.md": {
+    "mtime": 1779290447.9793682,
+    "ast_hash": "911dfd2fa25ced51ecc11d49f2977ea6",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/plans/2026-02-28-cross-platform-makefile-design.md": {
+    "mtime": 1779290447.9803681,
+    "ast_hash": "3a86a84bede519d557fd35295bd0f484",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/plans/2026-02-28-fonts-check-design.md": {
+    "mtime": 1779290447.9803681,
+    "ast_hash": "3bea30bbf4a0117e330be8ea891a5baa",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/plans/\u6a21\u5207\u696dERP\u7cfb\u7d71\u64cd\u4f5c\u624b\u518a.md": {
+    "mtime": 1780310710.5101764,
+    "ast_hash": "00ea8dc0564a11b65cfdc6f1ec80a4ce",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/plans/\u6a21\u5207\u696d\u96c6\u5718\u7d1a\u63a1\u8cfc\u8207\u591a\u5ee0\u539f\u6599\u5eab\u5b58\u898f\u5283\u8aaa\u660e\u66f8.md": {
+    "mtime": 1779870327.446517,
+    "ast_hash": "b12036539c8781affb8864b547d2bc21",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/refactoring/tph-refactoring-summary.md": {
+    "mtime": 1779290447.9803681,
+    "ast_hash": "8b1e5ba985555ff36e51abb6b330b991",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/report.md": {
+    "mtime": 1779290447.9803681,
+    "ast_hash": "b89f9484e75866d13a1ff7dd27528d8c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/AuthController_UpdateProfile_Optimization_Report.md": {
+    "mtime": 1779290447.9803681,
+    "ast_hash": "bda7a405b34a9964f65f0fe828f5b559",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/BaseApiController_Optimization_Report.md": {
+    "mtime": 1779290447.9803681,
+    "ast_hash": "2f8ec760aae2562872511545df8bd278",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/BaseService_Optimization_Report.md": {
+    "mtime": 1779290447.9803681,
+    "ast_hash": "02c07469be98f84f897ca93588c259ad",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/BusinessPartner_PrimaryContact_Addition_Report.md": {
+    "mtime": 1779290447.9803681,
+    "ast_hash": "18369788d25404e7c5d8020a468633d0",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/BusinessPartner_Refactoring_Report.md": {
+    "mtime": 1779290447.9803681,
+    "ast_hash": "39fd5722ecbd567bef388a19d39eba00",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/DocumentNumberService_AutoNumberDateField_Report.md": {
+    "mtime": 1779290447.9803681,
+    "ast_hash": "bbc136a195e2d654deede4055445321a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/GeneralTypesController_Optimization_Report.md": {
+    "mtime": 1779290447.9803681,
+    "ast_hash": "e89f2f799b1090488711644b3d4bafb2",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/GraphQL_Removal_Report.md": {
+    "mtime": 1779290447.9803681,
+    "ast_hash": "13125d11329893fb8a681cd0914c1696",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/InventoryLedger_Query_Feature_Report.md": {
+    "mtime": 1779290447.9803681,
+    "ast_hash": "b8eda388c2a093863614df4e6b5e3dcb",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/MachineController_Optimization_Report.md": {
+    "mtime": 1779290447.9803681,
+    "ast_hash": "8006cdb2782291330d0581b8a6cc84ec",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/MaterialController_Optimization_Report.md": {
+    "mtime": 1779290447.9803681,
+    "ast_hash": "6250cb9e491a47644a2cb28c61f3254e",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/MoldController_Optimization_Report.md": {
+    "mtime": 1779290447.9803681,
+    "ast_hash": "92a41dc4a3047dc6944f716f7d5f571e",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/Mold_Model_Update_Report.md": {
+    "mtime": 1779290447.9803681,
+    "ast_hash": "eba0a1047bba2b37e0740d9c07de34e3",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/Order_Rules_Implementation_Report.md": {
+    "mtime": 1779290447.981368,
+    "ast_hash": "527f898e1726062e59bb164b271f6c3f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/OrdersController_Optimization_Report.md": {
+    "mtime": 1779290447.981368,
+    "ast_hash": "0050051f8aabf804d4d603efd0167924",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/ProductController_Integration_Report.md": {
+    "mtime": 1779290447.981368,
+    "ast_hash": "c4391ca45a5e9ed13284042eda0f764f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/ProductController_Optimization_Report.md": {
+    "mtime": 1779290447.981368,
+    "ast_hash": "bcbb6991bfb011acc146ed47fe5ab4c2",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/ProductMoldService_Optimization_Report.md": {
+    "mtime": 1779290447.981368,
+    "ast_hash": "d68e2f19033fdd63dc5e8cca33f4ac35",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/ProductMoldService_Refactoring_Report.md": {
+    "mtime": 1779290447.981368,
+    "ast_hash": "562795e43b4c703c5d4ec71b4f165b5b",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/ProductionReceipt_Architecture_Report.md": {
+    "mtime": 1779290447.981368,
+    "ast_hash": "b5e04652a6294ad7ddd65a8c0dd37db5",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/SalesDeliveryItemService_QuantityShipped_Update_Report.md": {
+    "mtime": 1779290447.981368,
+    "ast_hash": "fac58ed31bef503d1bad640e26b79edb",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/SalesDeliveryReportService_Format_Update_Report.md": {
+    "mtime": 1779290447.981368,
+    "ast_hash": "9511c914b21dd5299b0bd04dd2938b77",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/Salesperson_Field_Addition_Report.md": {
+    "mtime": 1779290447.981368,
+    "ast_hash": "1c893eddbe4dea27484b2e0c3a7026de",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/Shipment_Rules_Implementation_Report.md": {
+    "mtime": 1779290447.981368,
+    "ast_hash": "d769627cde454743e5040998803668e4",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/StorageController_Optimization_Report.md": {
+    "mtime": 1779290447.981368,
+    "ast_hash": "c64a1de528e5c107361fdbb84dd4c27c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/Storage_Code_Implementation_Report.md": {
+    "mtime": 1779290447.981368,
+    "ast_hash": "b3ad2438ef759c5cf9bae33f41960e60",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/UserController_CreateUser_Optimization_Report.md": {
+    "mtime": 1779290447.981368,
+    "ast_hash": "409d159ce30e45210c41e2983a547b45",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/UserController_UpdateUser_Optimization_Report.md": {
+    "mtime": 1779290447.981368,
+    "ast_hash": "ad2b7f73a2063a7d7a644eb41569693a",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/UserController_UserDto_Unification_Report.md": {
+    "mtime": 1779290447.981368,
+    "ast_hash": "a3adec7122c4a98a59a1e80f80ca8698",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/WorkOrder_Confirmation_Flow_Report.md": {
+    "mtime": 1779290447.981368,
+    "ast_hash": "cba548f8f889348fb20d120f9935c4d1",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/WorkOrder_Report_Implementation_Report.md": {
+    "mtime": 1779290447.981368,
+    "ast_hash": "19cada839605a84dcebf817c36b30692",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/reports/WorkOrder_Warehousing_Integration_Report.md": {
+    "mtime": 1779290447.982368,
+    "ast_hash": "693f96e231cb9f08451f107bea09483f",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/spec.md": {
+    "mtime": 1779290447.982368,
+    "ast_hash": "3ac77b5a73f4d547ebebfbf3e3c32564",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/sql_monitoring/SqlMonitoring_Example.md": {
+    "mtime": 1779290447.982368,
+    "ast_hash": "86ca28b188dabe71b49b8e862e34846d",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/sql_monitoring/SqlMonitoring_Guide.md": {
+    "mtime": 1779290447.982368,
+    "ast_hash": "04ea9c271a352bd2baf18a2710ee9b70",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/sql_monitoring/SqlMonitoring_Summary.md": {
+    "mtime": 1779290447.982368,
+    "ast_hash": "59d82dbb2ed7cbb900093a07ef1108bd",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/superpowers/plans/2026-03-31-order-generate-work-order-field.md": {
+    "mtime": 1779290447.982368,
+    "ast_hash": "6772e17f85d736437169ff0f89719fe1",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/superpowers/plans/2026-04-05-move-generate-work-order-to-order-item.md": {
+    "mtime": 1779290447.982368,
+    "ast_hash": "e5d5589d4c9c15d5c87dddf7932256d5",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/superpowers/specs/2026-03-31-order-generate-work-order-field-design.md": {
+    "mtime": 1779290447.982368,
+    "ast_hash": "475fe4658d7dfde4437de36cc71263e6",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/superpowers/specs/2026-04-05-order-item-generate-work-order-design.md": {
+    "mtime": 1779290447.982368,
+    "ast_hash": "2a1201546248f809f05bf2734c8b5971",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/todolist.md": {
+    "mtime": 1780393505.5957723,
+    "ast_hash": "1bcc245ba1dccf2c6eab527f1273112c",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/docs/windows-setup.md": {
+    "mtime": 1779290447.982368,
+    "ast_hash": "87d071507d9bba1d52cb1e45c182902e",
+    "semantic_hash": ""
+  },
+  "dotnet-backend/smoke_test_report.md": {
+    "mtime": 1779360857.874247,
+    "ast_hash": "2352ffc003b65834f2f2361f4b39555d",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/.specify/autocomplete_component.md": {
+    "mtime": 1781694931.7581553,
+    "ast_hash": "e3ec94641adf6b340f48fc984a4808bf",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/deploy/prod/compose.yml": {
+    "mtime": 1780024153.6187963,
+    "ast_hash": "e4d8284fbdb74a236eecb43c9534dd3d",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/doc/design-guide.md": {
+    "mtime": 1778195392.947911,
+    "ast_hash": "02d693b0ec806a2064bd5c7849f5adeb",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/docs/FRONTEND_CRUD_SPEC.md": {
+    "mtime": 1779038573.4854052,
+    "ast_hash": "144553c06e98dc3051db2e7a2fc8422d",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/index.html": {
+    "mtime": 1778899189.2327867,
+    "ast_hash": "a3b829012155688e3042c61be7cde03c",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/sketches/form_label_contrast/index.html": {
+    "mtime": 1779398778.4114008,
+    "ast_hash": "a31b4bd13d58d77157623fb8d00329e7",
+    "semantic_hash": ""
+  },
+  "erp-frontend-react/sketches/sales_delivery_merge/index.html": {
+    "mtime": 1779413982.9399662,
+    "ast_hash": "6c5e991720d9275084cf4f189cdf234f",
+    "semantic_hash": ""
+  }
+}

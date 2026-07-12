@@ -10,6 +10,7 @@ export interface AsyncSelectProps extends Omit<SelectProps<any>, 'options' | 'on
   configKey: AutoCompleteKey;
   additionalParams?: any;
   excludeValues?: any[];
+  autoSelectIfSingle?: boolean;
   /** 自訂選項的渲染方式，如果提供將覆蓋預設的 value (label) 顯示 */
   optionRender?: (option: any, info: { index: number }) => React.ReactNode;
 }
@@ -20,6 +21,7 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
   onChange, 
   additionalParams,
   excludeValues = [],
+  autoSelectIfSingle,
   optionRender,
   ...props 
 }) => {
@@ -85,6 +87,24 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
       });
     }
   }, [valueData, config]);
+
+  // 4. 當只有一筆結果時自動帶入
+  useEffect(() => {
+    if (autoSelectIfSingle && searchData && searchData.length === 1 && !value && onChange) {
+      const singleItem = searchData[0];
+      const val = singleItem[config.fieldNames.value];
+      const rawLabel = typeof config.fieldNames.label === 'function' 
+        ? config.fieldNames.label(singleItem) 
+        : singleItem[config.fieldNames.label];
+      
+      // 自動選擇並觸發 onChange
+      onChange(val, { 
+        label: formatLabel(val, rawLabel), 
+        value: val, 
+        originalData: singleItem 
+      });
+    }
+  }, [searchData, value, autoSelectIfSingle, onChange, config]);
 
   // 3. 處理選項對映
   const options = useMemo(() => {
