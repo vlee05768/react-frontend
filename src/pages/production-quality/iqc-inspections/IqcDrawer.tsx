@@ -737,12 +737,12 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
       componentType: "Custom",
       colSpan: 4,
       customRender: () => (
-        <div className="flex items-center h-[32px]">
-          <Text className="text-[var(--ant-color-text)] font-semibold">
-            [{detail?.supplierCode}] {detail?.supplierName}
-          </Text>
-        </div>
-      ),
+        <Input 
+          value={detail?.supplierCode ? `[${detail.supplierCode}] ${detail.supplierName || ''}` : ''} 
+          disabled 
+          className="w-full text-[var(--ant-color-text)] font-semibold"
+        />
+      ),      
     },
     {
       name: 'materialCode',
