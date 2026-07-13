@@ -973,7 +973,7 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
       onClose={handleClose}
       open={open}
       destroyOnClose
-      maskClosable={false} // 💡 UX規範：Drawer禁止點擊背景關閉，防數據遺失
+      maskClosable={isReadOnly} // 💡 UX規範：編輯或錄入狀態下禁止點擊背景關閉（防數據遺失），唯讀/備查模式下允許點擊背景自動關閉
       footer={
         <div className="flex justify-between items-center p-2 bg-[var(--ant-color-bg-container)]">
           <div>
