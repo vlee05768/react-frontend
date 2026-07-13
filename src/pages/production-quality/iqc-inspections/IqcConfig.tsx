@@ -92,6 +92,20 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   },
   { label: '原料名稱', name: 'materialName', width: 180, ellipsis: true },
   { 
+    label: '到貨總量', 
+    name: 'totalQty', 
+    width: 110, 
+    align: 'right',
+    render: (val: number, record: any) => {
+      const unit = record.materialForm === 'R' ? 'M' : 'PCS';
+      return (
+        <span className="font-semibold text-slate-700">
+          {(val || 0).toLocaleString()} {unit}
+        </span>
+      );
+    }
+  },
+  { 
     label: '判定狀態', 
     name: 'inspectionStatus', 
     sortable: { multiple: 3 },
