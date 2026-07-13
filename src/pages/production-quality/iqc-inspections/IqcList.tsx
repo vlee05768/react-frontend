@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useEffect, useState } from 'react';
+import dayjs from 'dayjs';
 import PageCard from '@/components/common/PageCard';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
@@ -49,6 +50,9 @@ export default function IqcList() {
       iqcRecordId: '',
       lotNo: '',
       inspectionStatus: '',
+      materialCode: '',
+      checkDateRange: null,
+      inspectorId: '',
     });
   }, [location.pathname, setParams]);
 
@@ -67,6 +71,14 @@ export default function IqcList() {
         IqcRecordId: params.iqcRecordId || undefined,
         LotNo: params.lotNo || undefined,
         InspectionStatus: params.inspectionStatus || undefined,
+        MaterialCode: params.materialCode || undefined,
+        CheckDateStart: params.checkDateRange && params.checkDateRange[0]
+          ? dayjs(params.checkDateRange[0]).startOf('day').toISOString()
+          : undefined,
+        CheckDateEnd: params.checkDateRange && params.checkDateRange[1]
+          ? dayjs(params.checkDateRange[1]).endOf('day').toISOString()
+          : undefined,
+        InspectorId: params.inspectorId || undefined,
         SortRules: params.SortRules || undefined,
       } as any,
     }),

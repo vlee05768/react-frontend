@@ -31,6 +31,24 @@ export const iqcSearchConfig = (): any[] => [
     },
     colSpan: 2,
   },
+  {
+    name: 'materialCode',
+    label: '物料料號',
+    componentType: 'Input',
+    colSpan: 2,
+  },
+  {
+    name: 'checkDateRange',
+    label: '品檢時間區間',
+    componentType: 'DateRangePicker',
+    colSpan: 2,
+  },
+  {
+    name: 'inspectorId',
+    label: '品檢人員',
+    componentType: 'Input',
+    colSpan: 2,
+  },
 ];
 
 export const getStatusTagProps = (status?: string | null) => {
