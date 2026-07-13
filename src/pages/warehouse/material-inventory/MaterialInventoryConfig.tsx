@@ -83,20 +83,10 @@ export const getLogicalColumns = (): TableColumnConfig<MaterialLogicalInventoryD
       }
 
       const tooltipContent = (
-        <div className="p-1">
-          <div className="font-semibold mb-1 border-b border-white/20 pb-1 text-slate-200">各儲位長度明細：</div>
-          <table className="w-full text-xs text-slate-300">
-            <tbody>
-              {(record.storages || []).map((s: any, idx: number) => (
-                <tr key={idx}>
-                  <td className="pr-4 py-0.5">{s.storageCode || "未指定"}</td>
-                  <td className="text-right py-0.5 font-mono">
-                    {isRoll ? `${formatDecimal(s.length, 2, "0")} M` : `${formatDecimal(length, 0, "-")} mm`}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div style={{ whiteSpace: "pre-line", padding: "2px 4px" }}>
+          {(record.storages || []).map((s: any) => 
+            `${s.storageCode || "未指定"}: ${isRoll ? `${formatDecimal(s.quantity, 4, "0")} SQM` : `${formatDecimal(s.quantity, 0, "0")} pcs`}`
+          ).join('\n')}
         </div>
       );
 
@@ -119,20 +109,10 @@ export const getLogicalColumns = (): TableColumnConfig<MaterialLogicalInventoryD
         : `${formatDecimal(val, 0, "0")} pcs`;
 
       const tooltipContent = (
-        <div className="p-1">
-          <div className="font-semibold mb-1 border-b border-white/20 pb-1 text-slate-200">各儲位可用量明細：</div>
-          <table className="w-full text-xs text-slate-300">
-            <tbody>
-              {(record.storages || []).map((s: any, idx: number) => (
-                <tr key={idx}>
-                  <td className="pr-4 py-0.5">{s.storageCode || "未指定"}</td>
-                  <td className="text-right py-0.5 font-mono">
-                    {isRoll ? `${formatDecimal(s.quantity, 4, "0")} SQM` : `${formatDecimal(s.quantity, 0, "0")} pcs`}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div style={{ whiteSpace: "pre-line", padding: "2px 4px" }}>
+          {(record.storages || []).map((s: any) => 
+            `${s.storageCode || "未指定"}: ${isRoll ? `${formatDecimal(s.quantity, 4, "0")} SQM` : `${formatDecimal(s.quantity, 0, "0")} pcs`}`
+          ).join('\n')}
         </div>
       );
 
@@ -155,20 +135,10 @@ export const getLogicalColumns = (): TableColumnConfig<MaterialLogicalInventoryD
         : `${formatDecimal(val, 0, "0")} pcs`;
 
       const tooltipContent = (
-        <div className="p-1">
-          <div className="font-semibold mb-1 border-b border-white/20 pb-1 text-slate-200">各儲位待驗量明細：</div>
-          <table className="w-full text-xs text-slate-300">
-            <tbody>
-              {(record.storages || []).map((s: any, idx: number) => (
-                <tr key={idx}>
-                  <td className="pr-4 py-0.5">{s.storageCode || "未指定"}</td>
-                  <td className="text-right py-0.5 font-mono">
-                    {isRoll ? `${formatDecimal(s.frozenQuantity, 4, "0")} SQM` : `${formatDecimal(s.frozenQuantity, 0, "0")} pcs`}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div style={{ whiteSpace: "pre-line", padding: "2px 4px" }}>
+          {(record.storages || []).map((s: any) => 
+            `${s.storageCode || "未指定"}: ${isRoll ? `${formatDecimal(s.frozenQuantity, 4, "0")} SQM` : `${formatDecimal(s.frozenQuantity, 0, "0")} pcs`}`
+          ).join('\n')}
         </div>
       );
 
