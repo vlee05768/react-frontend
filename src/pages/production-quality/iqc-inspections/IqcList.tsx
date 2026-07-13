@@ -81,6 +81,7 @@ export default function IqcList() {
     key: 'actions',
     fixed: 'right' as const,
     width: 120,
+    align: 'center' as const, // 💡 UX/UI 優化：強制置中對齊，讓表頭「操作」與內容圖標完美垂直居中對齊
     render: (_: any, record: any) => {
       const isPending = record.inspectionStatus === 'Pending' || record.inspectionStatus === 'FullInspecting';
       const isCompleted = record.inspectionStatus === 'AllPass' || record.inspectionStatus === 'ConcessionApproved' || record.inspectionStatus === 'Partial';

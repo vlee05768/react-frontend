@@ -99,7 +99,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     render: (val: number, record: any) => {
       const unit = record.materialForm === 'R' ? 'M' : 'PCS';
       return (
-        <span className="font-semibold text-slate-700">
+        <span className="font-bold text-emerald-600">
           {(val || 0).toLocaleString()} {unit}
         </span>
       );

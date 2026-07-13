@@ -840,6 +840,19 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
       editable: 'never',
       colSpan: 6,
     },
+    {
+      name: 'totalActualQty',
+      label: isRollMaterial ? '到貨總長度' : '到貨總張數',
+      componentType: 'Custom',
+      colSpan: 6,
+      customRender: () => (
+        <div className="flex items-center h-[32px] bg-emerald-50/60 px-2 py-1 rounded border border-emerald-200">
+          <Text className="text-emerald-600 font-bold text-base">
+            {totalLength.toLocaleString()} {isRollMaterial ? 'M' : 'PCS'}
+          </Text>
+        </div>
+      ),
+    },
   ];
 
   const defaultValues = {
@@ -956,18 +969,7 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
     <Drawer
       title={
         <div className="flex justify-between items-center w-full pr-8">
-          <span>
-            {isReadOnly ? '品質檢驗記錄單備查' : 'IQC 抽樣進料檢驗錄入'}
-            {detail?.rolls && detail.rolls.length > 0 && (
-              <span className="ml-4 text-sm text-slate-500 font-normal">
-                ({detail.materialForm === 'R' ? '總長度' : '總張數'}:{' '}
-                <strong className="text-blue-600">
-                  {totalLength.toLocaleString()}
-                </strong>{' '}
-                {detail.materialForm === 'R' ? 'M' : 'PCS'})
-              </span>
-            )}
-          </span>
+          <span>{isReadOnly ? '品質檢驗記錄單備查' : 'IQC 抽樣進料檢驗錄入'}</span>
           {detail?.inspectionStatus && (
             <Tag color={
               detail.inspectionStatus === 'AllPass' ? 'success' : 
