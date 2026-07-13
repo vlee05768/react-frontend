@@ -1125,10 +1125,36 @@ export default function IqcDrawer({
             optionType="button"
             buttonStyle="solid"
           >
-            <Radio.Button value={true} className="px-3">
+            <Radio.Button 
+              value={true} 
+              className="px-3"
+              style={
+                record.isOk === true
+                  ? {
+                      backgroundColor: "#52c41a",
+                      borderColor: "#52c41a",
+                      color: "#fff",
+                      opacity: isReadOnly ? 0.65 : 1,
+                    }
+                  : undefined
+              }
+            >
               合格 (G)
             </Radio.Button>
-            <Radio.Button value={false} className="px-3 hover:bg-red-50">
+            <Radio.Button 
+              value={false} 
+              className="px-3"
+              style={
+                record.isOk === false
+                  ? {
+                      backgroundColor: "#ff4d4f",
+                      borderColor: "#ff4d4f",
+                      color: "#fff",
+                      opacity: isReadOnly ? 0.65 : 1,
+                    }
+                  : undefined
+              }
+            >
               異常 (R)
             </Radio.Button>
           </Radio.Group>
