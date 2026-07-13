@@ -846,11 +846,11 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
       componentType: 'Custom',
       colSpan: 6,
       customRender: () => (
-        <div className="flex items-center h-[32px] bg-emerald-50/60 px-2 py-1 rounded border border-emerald-200">
-          <Text className="text-emerald-600 font-bold text-base">
-            {totalLength.toLocaleString()} {isRollMaterial ? 'M' : 'PCS'}
-          </Text>
-        </div>
+        <Input 
+          value={`${totalLength.toLocaleString()} ${isRollMaterial ? 'M' : 'PCS'}`} 
+          disabled 
+          className="w-full text-[var(--ant-color-text)] font-semibold"
+        />
       ),
     },
   ];
