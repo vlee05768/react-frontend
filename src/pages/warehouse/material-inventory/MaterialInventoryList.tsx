@@ -41,19 +41,69 @@ export default function MaterialInventoryList() {
   });
 
   const { data: logicalData, isFetching: logicalLoading, refetch: refetchLogical } = useQuery({
-    queryKey: ['material-inventory-logical', logicalParams],
+    queryKey: ['material-inventory-logical', logicalParams.MaterialCode, logicalParams.StorageCode],
     queryFn: async () => {
       const res = await getApiV1MaterialInventoryLogical({
         query: {
           MaterialCode: logicalParams.MaterialCode || undefined,
           StorageCode: logicalParams.StorageCode || undefined,
-          pageNumber: logicalParams.pageNumber,
-          pageSize: logicalParams.pageSize,
+          pageNumber: 1,
+          pageSize: -1, // 🟢 獲取全量以在前端完成 100% 精確的邏輯分組與聚合！
         }
       });
       return res.data?.data;
     }
   });
+
+  // 🟢 內存聚合分組
+  const groupedLogicalList = useMemo(() => {
+    const rawList = logicalData?.data || [];
+    const groups: { [key: string]: any } = {};
+    
+    rawList.forEach((item: any) => {
+      // 💡 以「原料品編」+「寬度」作為分組鍵 (相同品編但不同寬度的捲材分開統計)
+      const key = `${item.materialCode}_${item.widthMm || 0}`;
+      
+      if (!groups[key]) {
+        groups[key] = {
+          materialCode: item.materialCode,
+          materialName: item.materialName,
+          materialForm: item.materialForm,
+          widthMm: item.widthMm,
+          lengthMm: item.lengthMm,
+          quantity: 0,
+          frozenQuantity: 0,
+          storages: []
+        };
+      }
+      
+      const g = groups[key];
+      g.quantity += item.quantity || 0;
+      g.frozenQuantity += item.frozenQuantity || 0;
+      
+      // 計算長度
+      let itemLength = item.lengthMm || 0;
+      if (item.materialForm === "R" && (item.widthMm || 0) > 0) {
+        itemLength = ((item.quantity || 0) * 1000) / item.widthMm; // SQM to M
+      }
+      
+      g.storages.push({
+        storageCode: item.storageCode,
+        quantity: item.quantity || 0,
+        frozenQuantity: item.frozenQuantity || 0,
+        length: itemLength
+      });
+    });
+    
+    return Object.values(groups);
+  }, [logicalData?.data]);
+
+  // 🟢 本地前端分頁數據
+  const paginatedLogicalData = useMemo(() => {
+    const start = (logicalParams.pageNumber - 1) * logicalParams.pageSize;
+    const end = logicalParams.pageNumber * logicalParams.pageSize;
+    return groupedLogicalList.slice(start, end);
+  }, [groupedLogicalList, logicalParams.pageNumber, logicalParams.pageSize]);
 
   const handleLogicalSearch = (values: any) => {
     setLogicalParams((prev: any) => ({
@@ -309,14 +359,14 @@ export default function MaterialInventoryList() {
                     {/* Tab 1 Table */}
                     <div className="flex-1 min-h-0 flex flex-col">
                       <StandardErpTable
-                        rowKey={(record: any) => `${record.materialCode}_${record.storageCode}`}
+                        rowKey={(record: any) => `${record.materialCode}_${record.widthMm || 0}`}
                         loading={logicalLoading}
-                        dataSource={logicalData?.data || []}
+                        dataSource={paginatedLogicalData}
                         columns={logicalColumns as any}
                         pagination={{
                           current: logicalParams.pageNumber,
                           pageSize: logicalParams.pageSize,
-                          total: logicalData?.totalRecords || 0,
+                          total: groupedLogicalList.length,
                           onChange: (page, size) => {
                             setLogicalParams((prev: any) => ({ ...prev, pageNumber: page, pageSize: size }));
                           },

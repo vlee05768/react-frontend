@@ -4,7 +4,7 @@ import type {
   MaterialRollDto, 
   MaterialInventoryTransactionDto 
 } from "@/api/generated/types.gen";
-import { Tag } from "antd";
+import { Tag, Tooltip } from "antd";
 import dayjs from "dayjs";
 
 // 輔助函式：安全格式化小數，防範 string 或 null 造成 toFixed 崩潰
@@ -66,39 +66,81 @@ export const getLogicalColumns = (): TableColumnConfig<MaterialLogicalInventoryD
     name: "lengthMm",
     width: 180,
     align: "right",
-    render: (_, record) => {
+    render: (_, record: any) => {
       const area = record.quantity || 0;
       const width = record.widthMm || 0;
       const length = record.lengthMm || 0;
       const isRoll = record.materialForm === "R";
 
+      let displayText = "-";
       if (isRoll) {
-        if (width === 0) return "-";
-        // 捲材：計算可用長度 = 面積 * 1000 / 寬度
-        const lengthM = (area * 1000) / width;
-        return `${formatDecimal(lengthM, 2, "0")} M`;
+        if (width > 0) {
+          const lengthM = (area * 1000) / width;
+          displayText = `${formatDecimal(lengthM, 2, "0")} M`;
+        }
       } else {
-        // 片材：顯示單片規格長度
-        return length > 0 ? `${formatDecimal(length, 0, "-")} mm` : "-";
+        displayText = length > 0 ? `${formatDecimal(length, 0, "-")} mm` : "-";
       }
+
+      const tooltipContent = (
+        <div className="p-1">
+          <div className="font-semibold mb-1 border-b border-white/20 pb-1 text-slate-200">各儲位長度明細：</div>
+          <table className="w-full text-xs text-slate-300">
+            <tbody>
+              {(record.storages || []).map((s: any, idx: number) => (
+                <tr key={idx}>
+                  <td className="pr-4 py-0.5">{s.storageCode || "未指定"}</td>
+                  <td className="text-right py-0.5 font-mono">
+                    {isRoll ? `${formatDecimal(s.length, 2, "0")} M` : `${formatDecimal(length, 0, "-")} mm`}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+
+      return (
+        <Tooltip title={tooltipContent} placement="topLeft" color="rgba(15, 23, 42, 0.95)">
+          <span className="cursor-help border-b border-dashed border-slate-400 select-all">{displayText}</span>
+        </Tooltip>
+      );
     },
-  },
-  {
-    label: "儲位編碼",
-    name: "storageCode",
-    width: 140,
-    sortable: { multiple: 2 },
   },
   {
     label: "在庫可用量",
     name: "quantity",
     width: 160,
     align: "right",
-    render: (val: any, record) => {
+    render: (val: any, record: any) => {
       const isRoll = record.materialForm === "R";
-      return isRoll 
+      const displayText = isRoll 
         ? `${formatDecimal(val, 4, "0")} SQM` 
         : `${formatDecimal(val, 0, "0")} pcs`;
+
+      const tooltipContent = (
+        <div className="p-1">
+          <div className="font-semibold mb-1 border-b border-white/20 pb-1 text-slate-200">各儲位可用量明細：</div>
+          <table className="w-full text-xs text-slate-300">
+            <tbody>
+              {(record.storages || []).map((s: any, idx: number) => (
+                <tr key={idx}>
+                  <td className="pr-4 py-0.5">{s.storageCode || "未指定"}</td>
+                  <td className="text-right py-0.5 font-mono">
+                    {isRoll ? `${formatDecimal(s.quantity, 4, "0")} SQM` : `${formatDecimal(s.quantity, 0, "0")} pcs`}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+
+      return (
+        <Tooltip title={tooltipContent} placement="topLeft" color="rgba(15, 23, 42, 0.95)">
+          <span className="cursor-help border-b border-dashed border-blue-400 font-semibold text-blue-600 dark:text-blue-400 select-all">{displayText}</span>
+        </Tooltip>
+      );
     },
   },
   {
@@ -106,11 +148,35 @@ export const getLogicalColumns = (): TableColumnConfig<MaterialLogicalInventoryD
     name: "frozenQuantity",
     width: 160,
     align: "right",
-    render: (val: any, record) => {
+    render: (val: any, record: any) => {
       const isRoll = record.materialForm === "R";
-      return isRoll 
+      const displayText = isRoll 
         ? `${formatDecimal(val, 4, "0")} SQM` 
         : `${formatDecimal(val, 0, "0")} pcs`;
+
+      const tooltipContent = (
+        <div className="p-1">
+          <div className="font-semibold mb-1 border-b border-white/20 pb-1 text-slate-200">各儲位待驗量明細：</div>
+          <table className="w-full text-xs text-slate-300">
+            <tbody>
+              {(record.storages || []).map((s: any, idx: number) => (
+                <tr key={idx}>
+                  <td className="pr-4 py-0.5">{s.storageCode || "未指定"}</td>
+                  <td className="text-right py-0.5 font-mono">
+                    {isRoll ? `${formatDecimal(s.frozenQuantity, 4, "0")} SQM` : `${formatDecimal(s.frozenQuantity, 0, "0")} pcs`}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+
+      return (
+        <Tooltip title={tooltipContent} placement="topLeft" color="rgba(15, 23, 42, 0.95)">
+          <span className="cursor-help border-b border-dashed border-amber-400 font-semibold text-amber-600 dark:text-amber-400 select-all">{displayText}</span>
+        </Tooltip>
+      );
     },
   },
   {
