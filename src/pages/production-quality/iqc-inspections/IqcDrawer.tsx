@@ -947,11 +947,27 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
     ];
   }, [templateItems, isReadOnly, isReadOnlyPermanent, handleMeasuredItemValueChange, handleStatusChange, detail?.sampleSize, handlePrintSingleLabelPdf]);
 
+  const totalLength = useMemo(() => {
+    if (!detail?.rolls) return 0;
+    return detail.rolls.reduce((sum, r) => sum + (r.actualQtyAux || 0), 0);
+  }, [detail?.rolls]);
+
   return (
     <Drawer
       title={
         <div className="flex justify-between items-center w-full pr-8">
-          <span>{isReadOnly ? '品質檢驗記錄單備查' : 'IQC 抽樣進料檢驗錄入'}</span>
+          <span>
+            {isReadOnly ? '品質檢驗記錄單備查' : 'IQC 抽樣進料檢驗錄入'}
+            {detail?.rolls && detail.rolls.length > 0 && (
+              <span className="ml-4 text-sm text-slate-500 font-normal">
+                ({detail.materialForm === 'R' ? '總長度' : '總張數'}:{' '}
+                <strong className="text-blue-600">
+                  {totalLength.toLocaleString()}
+                </strong>{' '}
+                {detail.materialForm === 'R' ? 'M' : 'PCS'})
+              </span>
+            )}
+          </span>
           {detail?.inspectionStatus && (
             <Tag color={
               detail.inspectionStatus === 'AllPass' ? 'success' : 
@@ -974,6 +990,7 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
       open={open}
       destroyOnClose
       maskClosable={isReadOnly} // 💡 UX規範：編輯或錄入狀態下禁止點擊背景關閉（防數據遺失），唯讀/備查模式下允許點擊背景自動關閉
+      styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' } }}
       footer={
         <div className="flex justify-between items-center p-2 bg-[var(--ant-color-bg-container)]">
           <div>
@@ -1067,7 +1084,8 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
           actions={getActionBarActions()}
         />
         {detail && (
-          <div className="space-y-6">
+          <div className="p-6 overflow-y-auto flex-1 bg-[var(--ant-color-bg-container)]" style={{ height: 'calc(100vh - 180px)' }}>
+            <div className="space-y-6">
             {/* 上半部：基本資料單頭 */}
             <Card bordered={false} className="bg-[var(--ant-color-bg-layout)] border border-[var(--ant-color-border-secondary)] rounded-lg">
               <DynamicForm
@@ -1369,6 +1387,7 @@ export default function IqcDrawer({ iqcRecordId, open, onClose, onSuccess }: Iqc
                 </Row>
               </div>
             </Modal>
+          </div>
           </div>
         )}
       </Spin>
