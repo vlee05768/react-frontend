@@ -223,7 +223,7 @@ export default function IqcDrawer({
   const isReadOnly = isReadOnlyPermanent || !isEditing;
   const isRollMaterial = detail?.materialForm === "R"; // R=捲材, S=片材
 
-  const sampleCount = isReadOnly
+  const sampleCount = isReadOnlyPermanent
     ? detail?.sampleSize || rolls.length
     : currentStatus === "FullInspecting"
       ? detail?.rollCount
@@ -718,7 +718,7 @@ export default function IqcDrawer({
     );
   };
 
-  const displayedRolls = isReadOnly ? rolls : rolls.slice(0, sampleCount);
+  const displayedRolls = isReadOnlyPermanent ? rolls : rolls.slice(0, sampleCount);
 
   const validateIqcFields = (): boolean => {
     if (!inspectorId) {
