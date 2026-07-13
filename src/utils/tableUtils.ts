@@ -81,7 +81,11 @@ export function generateTableColumns<TValues>(
         const originalRender = render;
         render = (value: any, record: any, index: number) => {
           const content = originalRender ? originalRender(value, record, index) : value;
-          return React.createElement(EllipsisText, { text: content, maxWidth: tableProps.width ? (typeof tableProps.width === 'number' ? tableProps.width - 32 : 300) : 300 });
+          return React.createElement(EllipsisText, { 
+            text: content, 
+            maxWidth: tableProps.width ? (typeof tableProps.width === 'number' ? tableProps.width - 32 : 300) : 300,
+            showHint: !!tableProps.showHint
+          });
         };
       }
 
@@ -223,7 +227,11 @@ export function buildTableColumns<TValues>(
       render = (value: any, record: TValues, index: number) => {
         // 如果原本就有提供 render，先取得它的結果，否則直接使用 value
         const content = originalRender ? originalRender(value, record, index) : value;
-        return React.createElement(EllipsisText, { text: content, maxWidth: config.width ? (typeof config.width === 'number' ? config.width - 32 : 300) : 300 });
+        return React.createElement(EllipsisText, { 
+          text: content, 
+          maxWidth: config.width ? (typeof config.width === 'number' ? config.width - 32 : 300) : 300,
+          showHint: !!config.showHint
+        });
       };
     }
 

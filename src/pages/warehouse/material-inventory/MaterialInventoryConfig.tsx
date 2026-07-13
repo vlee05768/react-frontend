@@ -66,6 +66,7 @@ export const getLogicalColumns = (): TableColumnConfig<MaterialLogicalInventoryD
     name: "lengthMm",
     width: 180,
     align: "right",
+    showHint: false, // 💡 隱藏系統預設的提示（不顯示長度總量 3,600 M 的 Tooltip），但保留自訂的儲位明細提示
     render: (_, record: any) => {
       const area = record.quantity || 0;
       const width = record.widthMm || 0;
@@ -148,18 +149,6 @@ export const getLogicalColumns = (): TableColumnConfig<MaterialLogicalInventoryD
         </Tooltip>
       );
     },
-  },
-  {
-    label: "最後更新時間",
-    name: "updatedAt",
-    width: 180,
-    render: (val: string) => val ? dayjs(val).format("YYYY-MM-DD HH:mm:ss") : "-",
-  },
-  {
-    label: "更新者",
-    name: "updatedBy",
-    width: 120,
-    render: (val: string) => val || "-",
   }
 ];
 
