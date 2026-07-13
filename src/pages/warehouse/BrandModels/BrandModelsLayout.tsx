@@ -501,15 +501,16 @@ export default function BrandModelsLayout() {
             label="型號代碼"
             rules={[
               { required: true, message: '請輸入型號代碼' },
-              { pattern: /^[A-Za-z0-9\-_]+$/, message: '型號代碼不可輸入中文，僅限英數字與符號' }
+              { pattern: /^[A-Za-z0-9_]+$/, message: '型號代碼不可輸入中文或連字號 (-)，僅限英數字與底線 (_)' }
             ]}
-            extra="儲存時英文將自動轉大寫。"
+            extra="儲存時英文將自動轉大寫，且不允許包含連字號 (-)。"
           >
             <Input 
               placeholder="例如：467MP, 9448A" 
               disabled={!!editingModel}
               onChange={(e) => {
-                 const val = e.target.value.replace(/[\u4e00-\u9fa5]/g, '').toUpperCase();
+                 // 💡 UX 防呆：同時過濾掉中文與連字號 (-)，讓使用者根本無法打入 '-' 符號
+                 const val = e.target.value.replace(/[\u4e00-\u9fa5\-]/g, '').toUpperCase();
                  modelForm.setFieldValue('code', val);
               }}
             />
