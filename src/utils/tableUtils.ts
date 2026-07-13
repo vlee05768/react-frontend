@@ -25,7 +25,15 @@ export function generateTableColumns<TValues>(
       const tableProps = typeof config.table === 'object' ? config.table : {} as TableColumnConfig<TValues>;
       
       // 動態 Label 解析，在 Table header 通常只取純字串 (傳入空物件當 context)
-      const title = typeof config.label === 'function' ? config.label({ values: {} as TValues }) : config.label;
+      const rawTitle = typeof config.label === 'function' ? config.label({ values: {} as TValues }) : config.label;
+      
+      // 如果支援排序且啟用 showHint，則包裝表頭 Title 加上 Tooltip 提示
+      const title = (tableProps.sortable && tableProps.showHint) ? (
+        React.createElement(Tooltip, {
+          title: "點擊可排序，按住 Shift 鍵可啟用多欄位排序",
+          placement: "top"
+        }, React.createElement('span', { style: { cursor: 'pointer', textDecoration: 'underline dotted var(--ant-color-text-quaternary, #bfbfbf)', textUnderlineOffset: '4px' } }, rawTitle))
+      ) : rawTitle;
       
       // 根據型別設定預設對齊 (數字預設靠右，其餘靠左)
       let defaultAlign: 'left' | 'center' | 'right' = 'left';
@@ -222,8 +230,8 @@ export function buildTableColumns<TValues>(
     // 判斷當前此欄位的受控 sortOrder
     const currentSortOrder = sortMap[config.name] || null;
 
-    // 如果支援排序，則包裝表頭 Title 加上 Tooltip 提示
-    const title = config.sortable ? (
+    // 如果支援排序且啟用 showHint，則包裝表頭 Title 加上 Tooltip 提示
+    const title = (config.sortable && config.showHint) ? (
       React.createElement(Tooltip, {
         title: "點擊可排序，按住 Shift 鍵可啟用多欄位排序",
         placement: "top"
