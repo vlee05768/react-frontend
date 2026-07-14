@@ -2,7 +2,6 @@ import { DictSelect } from "@/components/Form/DictSelect";
 import type { TableColumnConfig } from "@/components/Form/types";
 import { Tag, Space, Button } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { DictTag } from "@/components/Form/DictTag";
 import dayjs from "dayjs";
 import { z } from "zod";
 import { ContactSelectWithCreate } from "@/pages/sales/orders/components/ContactSelectWithCreate";
@@ -242,13 +241,19 @@ export const mainFormConfig = (): any[] => [
     editable: "never",
     colSpan: 4,
   },
-
+  {
+    name: "paymentTerms",
+    label: "付款條件",
+    componentType: "Input",
+    editable: "never",
+    colSpan: 4,
+  },
   {
     name: "subTotal",
     label: "小計 (未稅)",
     componentType: "InputNumber",
     editable: "never",
-    colSpan: 3,
+    colSpan: 4,
     componentProps: {
       formatter: (value: any) =>
         value != null ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "",
@@ -262,7 +267,7 @@ export const mainFormConfig = (): any[] => [
     label: "稅額",
     componentType: "InputNumber",
     editable: "never",
-    colSpan: 3,
+    colSpan: 4,
     componentProps: {
       formatter: (value: any) =>
         value != null ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "",
@@ -276,7 +281,7 @@ export const mainFormConfig = (): any[] => [
     label: "含稅小計 (總金額)",
     componentType: "InputNumber",
     editable: "never",
-    colSpan: 3,
+    colSpan: 4,
     componentProps: {
       formatter: (value: any) =>
         value != null ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "",
@@ -285,13 +290,7 @@ export const mainFormConfig = (): any[] => [
       controls: false,
     },
   },
-  {
-    name: "paymentTerms",
-    label: "付款條件",
-    componentType: "Input",
-    editable: "never",
-    colSpan: 3,
-  },
+
   {
     name: "notes",
     label: "備註",
@@ -304,7 +303,6 @@ export const mainFormConfig = (): any[] => [
 
 export const itemTableColumns = (): TableColumnConfig[] => [
   { label: "項次", name: "lineNumber", width: 80 },
-  { label: "採購明細編號", name: "referenceNumber", width: 150 },
   { label: "原料編碼", name: "materialCode", width: 140 },
   { label: "原料名稱", name: "materialName", width: 180 },
   {
@@ -335,17 +333,9 @@ export const itemTableColumns = (): TableColumnConfig[] => [
     render: (val: number) =>
       val != null ? Number(val.toFixed(2)).toLocaleString() : "0",
   },
-  {
-    label: "目的儲位",
-    name: "targetStorageCode",
-    width: 120,
-    render: (v: string) => v || "TW-QC-GEN",
-  },
   { label: "拆卷數", name: "rollCount", width: 90, align: "right" },
   { label: "規格寬度 (mm)", name: "width", width: 120, align: "right" },
   { label: "規格長度 (M)", name: "length", width: 120, align: "right" },
-  { label: "到貨廠牌", name: "brand", width: 120 },
-  { label: "到貨型號", name: "modelNo", width: 120 },
 ];
 
 export const getItemColumns = (
@@ -356,7 +346,6 @@ export const getItemColumns = (
 ): any[] => {
   let columns = [
     { title: "項次", dataIndex: "serialNumber", width: 70 },
-    { title: "採購明細編號", dataIndex: "referenceNumber", width: 140, ellipsis: true },
     { 
       title: isMold ? "模具編碼" : "原料編碼", 
       dataIndex: "materialCode", 
@@ -399,9 +388,12 @@ export const getItemColumns = (
       dataIndex: "quantity",
       width: 100,
       align: "right" as const,
-      render: (val: number) => (
+      render: (val: number, record: any) => (
         <span className="font-semibold text-[var(--ant-color-success)]">
           {val != null ? Number(val.toFixed(4)).toLocaleString("zh-TW") : "0"}
+          <span className="text-xs text-gray-500 ml-1 font-normal">
+            {isMold ? " pcs" : (record.isRoll ? " m²" : " pcs")}
+          </span>
         </span>
       ),
     },
@@ -412,13 +404,6 @@ export const getItemColumns = (
       align: "right" as const,
       render: (val: number) =>
         val != null ? Number(val).toLocaleString("zh-TW") : "0",
-    },
-    {
-      title: "目的儲位",
-      dataIndex: "targetStorageCode",
-      width: 120,
-      align: "center" as const,
-      render: (v: string) => (v ? <DictTag dictKey="STORAGE" value={v} /> : "-"),
     },
     {
       title: "卷/包",
@@ -472,7 +457,6 @@ export const getItemColumns = (
   if (isMold) {
     columns = columns.filter(
       col =>
-        col.title !== "目的儲位" &&
         col.title !== "規格寬度 (mm)" &&
         col.title !== "規格長度 (M)"
     );
@@ -523,6 +507,20 @@ export const getItemFormConfig = (isMold?: boolean): any[] => {
       validation: z.string().min(1, "請選擇目的儲位"),
     },
     {
+      name: "unitPrice",
+      label: "單價",
+      componentType: "InputNumber",
+      editable: "always",
+      colSpan: 3,
+      componentProps: {
+        min: 0,
+        precision: 4,
+        controls: false,
+        allowClear: false,
+      },
+      validation: z.number().min(0, "單價不能小於 0"),
+    },
+    {
       name: "rollCount",
       label: "拆卷數",
       componentType: "InputNumber",
@@ -563,34 +561,6 @@ export const getItemFormConfig = (isMold?: boolean): any[] => {
         allowClear: false,
       },
       validation: z.number().min(1, "長度必須大於 0"),
-    },
-    {
-      name: "unitPrice",
-      label: "單價",
-      componentType: "InputNumber",
-      editable: "always",
-      colSpan: 3,
-      componentProps: {
-        min: 0,
-        precision: 4,
-        controls: false,
-        allowClear: false,
-      },
-      validation: z.number().min(0, "單價不能小於 0"),
-    },
-    {
-      name: "brand",
-      label: "到貨廠牌",
-      componentType: "Input",
-      editable: "always",
-      colSpan: 3,
-    },
-    {
-      name: "modelNo",
-      label: "到貨型號",
-      componentType: "Input",
-      editable: "always",
-      colSpan: 3,
     },
     {
       name: "notes",

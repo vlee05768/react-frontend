@@ -22,7 +22,7 @@ export const iqcSearchConfig = (): any[] => [
     componentProps: {
       options: [
         { label: '待檢驗 (Pending)', value: 'Pending' },
-        { label: '加嚴全檢中 (FullInspecting)', value: 'FullInspecting' },
+        { label: '檢驗中 (FullInspecting)', value: 'FullInspecting' },
         { label: '全部通過 (AllPass)', value: 'AllPass' },
         { label: '部分入庫 (Partial)', value: 'Partial' },
         { label: '全部退回 (Reject)', value: 'Reject' },
@@ -57,7 +57,7 @@ export const getStatusTagProps = (status?: string | null) => {
     case "ALLPASS":
       return { color: "success", text: "全部通過" };
     case "CONCESSIONPENDING":
-      return { color: "gold", text: "特採審核中" };
+      return { color: "error", text: "特採審核中" };
     case "CONCESSIONAPPROVED":
       return { color: "cyan", text: "特採核准入庫" };
     case "PARTIAL":
@@ -65,7 +65,7 @@ export const getStatusTagProps = (status?: string | null) => {
     case "REJECT":
       return { color: "error", text: "全部退回" };
     case "FULLINSPECTING":
-      return { color: "processing", text: "加嚴全檢中" };
+      return { color: "processing", text: "檢驗中" };
     case "PENDING":
     default:
       return { color: "warning", text: "待檢驗" };

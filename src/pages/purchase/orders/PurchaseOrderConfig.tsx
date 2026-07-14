@@ -737,7 +737,7 @@ export const getItemFormConfig = (): any[] => [
     name: "quantity",
     label: (context: any) => {
       const isRoll = context?.values?.purchaseOrderType === "Material" && context?.values?.materialForm === "R";
-      return isRoll ? "m2" : "數量";
+      return isRoll ? "m²" : "數量";
     },
     componentType: "InputNumber",
     colSpan: 4,

@@ -292,8 +292,6 @@ export default function PurchaseOrderItemSelector({
         isRoll: row.isRoll,
         amount: amountVal,
         targetStorageCode: "TW-QC-GEN", // Default waiting for IQC storage
-        brand: "",
-        modelNo: "",
         notes: "",
       };
     });
