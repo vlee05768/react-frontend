@@ -1136,7 +1136,7 @@ export default function IqcDrawer({
         align: "center" as const,
         render: (seq: number, record: any) => {
           const isAutoApproved =
-            isReadOnly && detail?.sampleSize && record.seq > detail.sampleSize;
+            !!(isReadOnly && detail?.sampleSize && record.seq > detail.sampleSize);
           return (
             <Space>
               <Badge
