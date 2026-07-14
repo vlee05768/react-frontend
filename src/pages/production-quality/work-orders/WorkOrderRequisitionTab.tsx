@@ -1,6 +1,24 @@
-import { useState, useEffect, useRef } from "react";
-import { Card, Table, Tag, Space, Button, Empty, App, Spin, Modal, InputNumber, Tooltip } from "antd";
-import { PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined, SyncOutlined } from "@ant-design/icons";
+import { useState, useEffect } from "react";
+import {
+  Card,
+  Table,
+  Tag,
+  Space,
+  Button,
+  Empty,
+  App,
+  Spin,
+  Modal,
+  InputNumber,
+  Tooltip,
+} from "antd";
+import {
+  PlusOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  SaveOutlined,
+  SyncOutlined,
+} from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getApiV1WorkOrderRequisitionWoByWorkOrderNumber,
@@ -10,13 +28,16 @@ import {
   deleteApiV1WorkOrderRequisitionByDocumentNumber,
   getApiV1WorkOrderRequisitionSelectableRolls,
   getApiV1MaterialInventoryLogical,
-  getApiV1WorkOrderRequisitionFifo
+  getApiV1WorkOrderRequisitionFifo,
 } from "@/api/generated/sdk.gen";
 import { getApiErrorMessage } from "@/utils/apiError";
 import dayjs from "dayjs";
 import type { WorkOrderDto } from "@/api/generated/types.gen";
 import { DynamicForm } from "@/components/Form/DynamicForm";
-import { requisitionHeaderFormConfig, requisitionItemFormConfig } from "./WorkOrderConfig";
+import {
+  requisitionHeaderFormConfig,
+  requisitionItemFormConfig,
+} from "./WorkOrderConfig";
 
 interface WorkOrderRequisitionTabProps {
   masterData: WorkOrderDto;
@@ -30,7 +51,6 @@ export function WorkOrderRequisitionTab({
 
   const [isCreating, setIsCreating] = useState(false);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
-  const justCreatedRef = useRef(false);
 
   // 領料主檔表頭編輯狀態
   const [docDate, setDocDate] = useState<dayjs.Dayjs>(dayjs());
@@ -54,16 +74,19 @@ export function WorkOrderRequisitionTab({
       message.warning("BOM 組成原料清單為空，無法進行自動配料！");
       return;
     }
-    
+
     setIsAutoAllocating(true);
-    const hide = message.loading("正在為整張領料單進行智慧 FIFO 自動配料中...", 0);
-    
+    const hide = message.loading(
+      "正在為整張領料單進行智慧 FIFO 自動配料中...",
+      0,
+    );
+
     try {
       const updatedItems: any[] = [];
-      
+
       for (const m of materialsList) {
         const isRoll = m.materialForm === "R";
-        
+
         if (isRoll) {
           // 1. Roll (捲材) ➡️ FIFO 自動選配 rolls
           const res = await getApiV1WorkOrderRequisitionFifo({
@@ -71,14 +94,20 @@ export function WorkOrderRequisitionTab({
               materialCode: m.materialCode,
               requiredLength: m.requiredQuantity,
               requiredWidth: m.widthMm || undefined,
-            } as any
+            } as any,
           });
-          
+
           const allocatedRolls = (res?.data as any)?.data || [];
           if (allocatedRolls.length > 0) {
-            const totalLen = allocatedRolls.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
-            const totalArea = allocatedRolls.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
-            
+            const totalLen = allocatedRolls.reduce(
+              (sum: number, r: any) => sum + r.qtyAux,
+              0,
+            );
+            const totalArea = allocatedRolls.reduce(
+              (sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000),
+              0,
+            );
+
             updatedItems.push({
               materialCode: m.materialCode,
               materialName: m.materialName || "",
@@ -87,7 +116,10 @@ export function WorkOrderRequisitionTab({
               referenceQuantity1: parseFloat(totalArea.toFixed(4)),
               sourceStorageCode: null,
               extra: allocatedRolls.map((r: any) => {
-                const scrapArea = Math.max(0, r.qtyAux * (r.widthMm - (m.widthMm || 0)) / 1000);
+                const scrapArea = Math.max(
+                  0,
+                  (r.qtyAux * (r.widthMm - (m.widthMm || 0))) / 1000,
+                );
                 const scrapCost = (r.costPerSqm || 0) * scrapArea;
                 return {
                   rollNo: r.rollNo,
@@ -106,17 +138,17 @@ export function WorkOrderRequisitionTab({
             query: {
               materialCode: m.materialCode,
               pageSize: 100,
-            } as any
+            } as any,
           });
-          
+
           const stockLines = (res?.data as any)?.list || [];
           let accumulated = 0;
           const selectedSpecs: any[] = [];
           const initialQtys: Record<string, number> = {};
-          
+
           for (const line of stockLines) {
             if (accumulated >= m.requiredQuantity) break;
-            
+
             const needed = m.requiredQuantity - accumulated;
             const take = Math.min(line.quantity || 0, needed);
             if (take > 0) {
@@ -130,7 +162,7 @@ export function WorkOrderRequisitionTab({
               accumulated += take;
             }
           }
-          
+
           if (selectedSpecs.length > 0) {
             let totalArea = 0;
             selectedSpecs.forEach((spec) => {
@@ -138,7 +170,7 @@ export function WorkOrderRequisitionTab({
               const qty = initialQtys[key] || 0;
               totalArea += qty * (spec.widthMm / 1000) * (spec.lengthMm / 1000);
             });
-            
+
             updatedItems.push({
               materialCode: m.materialCode,
               materialName: m.materialName || "",
@@ -151,13 +183,15 @@ export function WorkOrderRequisitionTab({
           }
         }
       }
-      
+
       if (updatedItems.length === 0) {
         message.warning("現有庫存不足以配出任何物料，配料完成但無新增項目！");
       } else {
         setItems(updatedItems);
         saveItemsDirectly(updatedItems);
-        message.success(`⚡ 一鍵智慧配料完成！自動配出 ${updatedItems.length} 種物料。`);
+        message.success(
+          `⚡ 一鍵智慧配料完成！自動配出 ${updatedItems.length} 種物料。`,
+        );
       }
     } catch (err: any) {
       message.error("一鍵配料失敗：" + (err?.message || err));
@@ -168,21 +202,34 @@ export function WorkOrderRequisitionTab({
   };
 
   // 1. 取得該製令的領料單列表 (1對1，此處拿第一筆)
-  const { data: requisitionsResponse, isLoading: listLoading, refetch: refetchList } = useQuery({
+  const {
+    data: requisitionsResponse,
+    isLoading: listLoading,
+    refetch: refetchList,
+  } = useQuery({
     queryKey: ["requisitions", masterData.workOrderNumber],
-    queryFn: () => getApiV1WorkOrderRequisitionWoByWorkOrderNumber({
-      path: { workOrderNumber: masterData.workOrderNumber! },
-    }),
+    queryFn: () =>
+      getApiV1WorkOrderRequisitionWoByWorkOrderNumber({
+        path: { workOrderNumber: masterData.workOrderNumber! },
+      }),
     enabled: !!masterData.workOrderNumber,
   });
 
   const requisitionList = (requisitionsResponse?.data as any)?.data || [];
-  const activeDocNo = requisitionList.length > 0 ? requisitionList[0].documentNumber : null;
+  const activeDocNo =
+    requisitionList.length > 0 ? requisitionList[0].documentNumber : null;
 
   // 2. 取得單據詳情
-  const { data: detailResponse, isLoading: detailLoading, refetch: refetchDetail } = useQuery({
+  const {
+    data: detailResponse,
+    isLoading: detailLoading,
+    refetch: refetchDetail,
+  } = useQuery({
     queryKey: ["requisition", activeDocNo],
-    queryFn: () => getApiV1WorkOrderRequisitionByDocumentNumber({ path: { documentNumber: activeDocNo! } }),
+    queryFn: () =>
+      getApiV1WorkOrderRequisitionByDocumentNumber({
+        path: { documentNumber: activeDocNo! },
+      }),
     enabled: !!activeDocNo,
   });
 
@@ -193,13 +240,8 @@ export function WorkOrderRequisitionTab({
     if (activeRecord) {
       setDocDate(dayjs(activeRecord.documentDate));
       setDocNotes(activeRecord.notes || "");
-      
-      if (justCreatedRef.current) {
-        setIsHeaderEditing(true);
-        justCreatedRef.current = false;
-      } else {
-        setIsHeaderEditing(false);
-      }
+
+      setIsHeaderEditing(false);
 
       const mappedItems = (activeRecord.items || []).map((it: any) => {
         let extra = [];
@@ -227,45 +269,70 @@ export function WorkOrderRequisitionTab({
 
   // 3. Mutations
   const createMutation = useMutation({
-    mutationFn: (values: any) => postApiV1WorkOrderRequisition({ body: values }),
+    mutationFn: (values: any) =>
+      postApiV1WorkOrderRequisition({ body: values }),
     onSuccess: () => {
       message.success("領料單建立成功！");
-      queryClient.invalidateQueries({ queryKey: ["requisitions", masterData.workOrderNumber] });
-      justCreatedRef.current = true; // 💡 標記為剛建立，保留編輯狀態
+      queryClient.invalidateQueries({
+        queryKey: ["requisitions", masterData.workOrderNumber],
+      });
       setIsCreating(false);
-      setIsHeaderEditing(true); // 💡 建立成功後，自動進入編輯狀態，以便新增明細
+      setIsHeaderEditing(false); // 💡 建立成功後進入唯讀狀態，開啟明細編輯權限
       refetchList();
     },
     onError: (error) => {
-      modal.error({ title: "建立失敗", content: getApiErrorMessage(error), centered: true });
+      modal.error({
+        title: "建立失敗",
+        content: getApiErrorMessage(error),
+        centered: true,
+      });
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: (values: any) => putApiV1WorkOrderRequisitionByDocumentNumber({ path: { documentNumber: activeDocNo! }, body: values }),
+    mutationFn: (values: any) =>
+      putApiV1WorkOrderRequisitionByDocumentNumber({
+        path: { documentNumber: activeDocNo! },
+        body: values,
+      }),
     onSuccess: () => {
       message.success("儲存修改成功！");
       queryClient.invalidateQueries({ queryKey: ["requisition", activeDocNo] });
-      queryClient.invalidateQueries({ queryKey: ["requisitions", masterData.workOrderNumber] });
+      queryClient.invalidateQueries({
+        queryKey: ["requisitions", masterData.workOrderNumber],
+      });
       setIsHeaderEditing(false);
       refetchDetail();
       refetchList();
     },
     onError: (error) => {
-      modal.error({ title: "儲存失敗", content: getApiErrorMessage(error), centered: true });
+      modal.error({
+        title: "儲存失敗",
+        content: getApiErrorMessage(error),
+        centered: true,
+      });
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => deleteApiV1WorkOrderRequisitionByDocumentNumber({ path: { documentNumber: activeDocNo! } }),
+    mutationFn: () =>
+      deleteApiV1WorkOrderRequisitionByDocumentNumber({
+        path: { documentNumber: activeDocNo! },
+      }),
     onSuccess: () => {
       message.success("領料單刪除成功");
-      queryClient.invalidateQueries({ queryKey: ["requisitions", masterData.workOrderNumber] });
+      queryClient.invalidateQueries({
+        queryKey: ["requisitions", masterData.workOrderNumber],
+      });
       setIsCreating(false);
       refetchList();
     },
     onError: (error) => {
-      modal.error({ title: "刪除失敗", content: getApiErrorMessage(error), centered: true });
+      modal.error({
+        title: "刪除失敗",
+        content: getApiErrorMessage(error),
+        centered: true,
+      });
     },
   });
 
@@ -289,7 +356,9 @@ export function WorkOrderRequisitionTab({
       }
     }
 
-    const savedDate = formValues.documentDate ? dayjs(formValues.documentDate) : docDate;
+    const savedDate = formValues.documentDate
+      ? dayjs(formValues.documentDate)
+      : docDate;
     const savedNotes = formValues.notes || "";
 
     const postData = {
@@ -311,8 +380,6 @@ export function WorkOrderRequisitionTab({
     }
   };
 
-
-
   const handleAddNewItemClick = () => {
     setEditingItemIndex(null);
     setModalFormValues({
@@ -330,7 +397,9 @@ export function WorkOrderRequisitionTab({
   const handleEditItemClick = (index: number) => {
     const it = items[index];
     setEditingItemIndex(index);
-    const matched = materialsList.find((x) => x.materialCode === it.materialCode);
+    const matched = materialsList.find(
+      (x) => x.materialCode === it.materialCode,
+    );
     setModalFormValues({
       materialCode: it.materialCode,
       sourceStorageCode: it.sourceStorageCode,
@@ -339,7 +408,7 @@ export function WorkOrderRequisitionTab({
       bomRequiredWidth: matched?.widthMm || 0,
     });
     setModalExtra(it.extra || []);
-    
+
     // 💡 If sheet material, initialize sheetDrawQty with the existing quantity!
     const isRoll = matched ? matched.materialForm === "R" : it.unit === "M";
     if (!isRoll && it.extra && it.extra.length > 0) {
@@ -382,13 +451,9 @@ export function WorkOrderRequisitionTab({
         updated.splice(index, 1);
         setItems(updated);
         saveItemsDirectly(updated);
-      }
+      },
     });
   };
-
-
-
-
 
   const handleModalSave = () => {
     if (!modalFormValues.materialCode) {
@@ -400,22 +465,29 @@ export function WorkOrderRequisitionTab({
       return;
     }
 
-    const matched = materialsList.find((x) => x.materialCode === modalFormValues.materialCode);
+    const matched = materialsList.find(
+      (x) => x.materialCode === modalFormValues.materialCode,
+    );
     const requiredQty = matched ? matched.requiredQuantity : 0;
     if (modalFormValues.quantity < requiredQty) {
-      message.warning(`提醒：目前選擇/輸入的領用數量 (${modalFormValues.quantity}) 低於 BOM 計算後的需求量 (${requiredQty})。已為您儲存，但最後「備料確認」前必須補足。`);
+      message.warning(
+        `提醒：目前選擇/輸入的領用數量 (${modalFormValues.quantity}) 低於 BOM 計算後的需求量 (${requiredQty})。已為您儲存，但最後「備料確認」前必須補足。`,
+      );
     }
 
-    const mappedExtra = modalExtra.length > 0
-      ? modalExtra.map((el) => ({
-          ...el,
-          estimatedUnitPrice: modalFormValues.estimatedUnitPrice || 0,
-          estimatedTotalCost: modalFormValues.estimatedTotalCost || 0,
-        }))
-      : [{
-          estimatedUnitPrice: modalFormValues.estimatedUnitPrice || 0,
-          estimatedTotalCost: modalFormValues.estimatedTotalCost || 0,
-        }];
+    const mappedExtra =
+      modalExtra.length > 0
+        ? modalExtra.map((el) => ({
+            ...el,
+            estimatedUnitPrice: modalFormValues.estimatedUnitPrice || 0,
+            estimatedTotalCost: modalFormValues.estimatedTotalCost || 0,
+          }))
+        : [
+            {
+              estimatedUnitPrice: modalFormValues.estimatedUnitPrice || 0,
+              estimatedTotalCost: modalFormValues.estimatedTotalCost || 0,
+            },
+          ];
 
     const newItem = {
       materialCode: modalFormValues.materialCode,
@@ -423,7 +495,11 @@ export function WorkOrderRequisitionTab({
       unit: matched?.materialForm === "R" ? "M" : "PCS",
       quantity: modalFormValues.quantity,
       referenceQuantity1: modalFormValues.referenceQuantity1,
-      sourceStorageCode: (matched?.materialForm === "R" || (matched?.materialCode || "").startsWith("R-")) ? null : "TW-MAT-GEN",
+      sourceStorageCode:
+        matched?.materialForm === "R" ||
+        (matched?.materialCode || "").startsWith("R-")
+          ? null
+          : "TW-MAT-GEN",
       extra: mappedExtra,
     };
 
@@ -450,31 +526,56 @@ export function WorkOrderRequisitionTab({
           materialName: x.materialName,
           materialForm: form,
           widthMm: x.materialWidth,
-          requiredQuantity: form === "R" ? (x.totalLength || 0) : (x.requiredAmount || 0),
+          requiredQuantity:
+            form === "R" ? x.totalLength || 0 : x.requiredAmount || 0,
         };
       })
     : [];
 
   // 💡 判斷是否所有 BOM 原料都已經在領料明細中
   const availableBomMaterials = materialsList.filter(
-    (bm) => !items.some((item) => item.materialCode === bm.materialCode)
+    (bm) => !items.some((item) => item.materialCode === bm.materialCode),
   );
   const isAllBomRequisitioned = availableBomMaterials.length === 0;
 
   // 💡 計算所有明細項目的「預估生產成本」總和，並依此計算表頭的「單位生產成本」
   const totalRequisitionUtilizedCost = items.reduce((sum, item) => {
-    const matched = materialsList.find((x) => x.materialCode === item.materialCode);
-    const itemUtilizedCost = item.extra?.reduce((itemSum: number, r: any) => {
-      const bomWidth = matched?.widthMm || 0;
-      const utilizedArea = r.qtyAux * (bomWidth / 1000);
-      const utilizedCost = (r.costPerSqm || 0) * utilizedArea;
-      return itemSum + utilizedCost;
-    }, 0) || 0;
+    const matched = materialsList.find(
+      (x) => x.materialCode === item.materialCode,
+    );
+    const itemUtilizedCost =
+      item.extra?.reduce((itemSum: number, r: any) => {
+        const bomWidth = matched?.widthMm || 0;
+        const utilizedArea = r.qtyAux * (bomWidth / 1000);
+        const utilizedCost = (r.costPerSqm || 0) * utilizedArea;
+        return itemSum + utilizedCost;
+      }, 0) || 0;
     return sum + itemUtilizedCost;
   }, 0);
 
-  const plannedQty = masterData.plannedQuantity || 1;
-  const unitProductionCost = totalRequisitionUtilizedCost / plannedQty;
+
+
+  // 💡 計算所有明細項目的「總報廢成本」
+  const totalRequisitionScrapCost = items.reduce((sum, item) => {
+    const itemScrapCost = item.extra?.reduce((itemSum: number, r: any) => {
+      return itemSum + (r.scrapCost || 0);
+    }, 0) || 0;
+    return sum + itemScrapCost;
+  }, 0);
+
+  const localTotalMaterialCost = Math.round(totalRequisitionUtilizedCost + totalRequisitionScrapCost);
+
+  let dbTotalMaterialCost = undefined;
+  if (activeRecord?.extraDataJson) {
+    try {
+      const parsed = JSON.parse(activeRecord.extraDataJson);
+      dbTotalMaterialCost = parsed.totalMaterialCost;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  const displayTotalMaterialCost = dbTotalMaterialCost !== undefined ? dbTotalMaterialCost : localTotalMaterialCost;
 
   const showHeaderForm = isCreating || !!activeDocNo;
   const isEditable = isCreating || isHeaderEditing;
@@ -511,64 +612,138 @@ export function WorkOrderRequisitionTab({
         );
       },
     },
-    { title: "原料料號", dataIndex: "materialCode", key: "materialCode", width: 160 },
-    { title: "原料名稱", dataIndex: "materialName", key: "materialName", width: 220 },
+    {
+      title: "原料料號",
+      dataIndex: "materialCode",
+      key: "materialCode",
+      width: 200,
+      ellipsis: true,
+    },
+    {
+      title: "原料名稱",
+      dataIndex: "materialName",
+      key: "materialName",
+      width: 200,
+      ellipsis: true,
+    },
     {
       title: "寬度規格 (mm)",
       key: "widthMm",
       width: 120,
       render: (_: any, record: any) => {
-        const matched = materialsList.find((x) => x.materialCode === record.materialCode);
-        return matched?.widthMm ? `${matched.widthMm.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} mm` : "-";
-      }
+        const matched = materialsList.find(
+          (x) => x.materialCode === record.materialCode,
+        );
+        return matched?.widthMm
+          ? `${matched.widthMm.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} mm`
+          : "-";
+      },
     },
     { title: "單位", dataIndex: "unit", key: "unit", width: 80 },
-    { title: "領用數量", dataIndex: "quantity", key: "quantity", width: 120, render: (v: number) => <strong>{v?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}</strong> },
-    { title: "領用面積(SQM)", dataIndex: "referenceQuantity1", key: "referenceQuantity1", width: 140, render: (v: number) => v != null ? v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "-" },
+    {
+      title: "領用數量",
+      dataIndex: "quantity",
+      key: "quantity",
+      width: 120,
+      render: (v: number) => (
+        <strong>
+          {v?.toLocaleString(undefined, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 4,
+          })}
+        </strong>
+      ),
+    },
+    {
+      title: "領用面積(SQM)",
+      dataIndex: "referenceQuantity1",
+      key: "referenceQuantity1",
+      width: 140,
+      render: (v: number) =>
+        v != null
+          ? v.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
+          : "-",
+    },
     {
       title: "總報廢面積",
       key: "totalScrapArea",
       width: 120,
       render: (_: any, record: any) => {
-        const totalScrapArea = record.extra?.reduce((sum: number, r: any) => sum + (r.scrapAreaSqm || 0), 0) || 0;
-        return totalScrapArea > 0 ? `${totalScrapArea.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SQM` : "-";
-      }
+        const totalScrapArea =
+          record.extra?.reduce(
+            (sum: number, r: any) => sum + (r.scrapAreaSqm || 0),
+            0,
+          ) || 0;
+        return totalScrapArea > 0
+          ? `${totalScrapArea.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SQM`
+          : "-";
+      },
     },
     {
       title: "總報廢成本",
       key: "totalScrapCost",
       width: 120,
       render: (_: any, record: any) => {
-        const totalScrapCost = record.extra?.reduce((sum: number, r: any) => sum + (r.scrapCost || 0), 0) || 0;
+        const totalScrapCost =
+          record.extra?.reduce(
+            (sum: number, r: any) => sum + (r.scrapCost || 0),
+            0,
+          ) || 0;
         return totalScrapCost > 0 ? (
-          <span className="text-red-500 font-bold">${totalScrapCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-        ) : "-";
-      }
+          <span className="text-red-500 font-bold">
+            $
+            {totalScrapCost.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
+        ) : (
+          "-"
+        );
+      },
     },
     {
       title: "預估生產成本",
       key: "totalUtilizedCost",
       width: 130,
       render: (_: any, record: any) => {
-        const matched = materialsList.find((x) => x.materialCode === record.materialCode);
-        const totalUtilizedCost = record.extra?.reduce((sum: number, r: any) => {
-          const bomWidth = matched?.widthMm || 0;
-          const utilizedArea = r.qtyAux * (bomWidth / 1000);
-          const utilizedCost = (r.costPerSqm || 0) * utilizedArea;
-          return sum + utilizedCost;
-        }, 0) || 0;
+        const matched = materialsList.find(
+          (x) => x.materialCode === record.materialCode,
+        );
+        const totalUtilizedCost =
+          record.extra?.reduce((sum: number, r: any) => {
+            const bomWidth = matched?.widthMm || 0;
+            const utilizedArea = r.qtyAux * (bomWidth / 1000);
+            const utilizedCost = (r.costPerSqm || 0) * utilizedArea;
+            return sum + utilizedCost;
+          }, 0) || 0;
         return totalUtilizedCost > 0 ? (
-          <span className="text-green-600 font-bold">${totalUtilizedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-        ) : "-";
-      }
+          <span className="text-green-600 font-bold">
+            $
+            {totalUtilizedCost.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
+        ) : (
+          "-"
+        );
+      },
     },
     {
       title: "實物卡追溯 / 片材規格",
       key: "details",
       width: 250,
       render: (_: any, record: any) => {
-        const matched = materialsList.find((x) => x.materialCode === record.materialCode);
-        const isRoll = matched ? matched.materialForm === "R" : record.unit === "M";
+        const matched = materialsList.find(
+          (x) => x.materialCode === record.materialCode,
+        );
+        const isRoll = matched
+          ? matched.materialForm === "R"
+          : record.unit === "M";
         if (isRoll) {
           const hasExtra = record.extra && record.extra.length > 0;
           const tooltipContent = hasExtra ? (
@@ -578,7 +753,9 @@ export function WorkOrderRequisitionTab({
               </div>
               {record.extra.map((r: any, idx: number) => (
                 <div key={idx} className="text-xs">
-                  {idx + 1}. <strong className="text-blue-400">{r.rollNo}</strong> : {r.qtyAux} M ({r.widthMm} mm)
+                  {idx + 1}.{" "}
+                  <strong className="text-blue-400">{r.rollNo}</strong> :{" "}
+                  {r.qtyAux} M ({r.widthMm} mm)
                 </div>
               ))}
             </div>
@@ -589,7 +766,9 @@ export function WorkOrderRequisitionTab({
               <div style={{ cursor: hasExtra ? "pointer" : "default" }}>
                 <Tag color="cyan">捲材</Tag>
                 {hasExtra ? (
-                  <span className="text-xs text-blue-400 underline">已選 {record.extra.length} 卷 LPN (懸停查看)</span>
+                  <span className="text-xs text-blue-400 underline">
+                    已選 {record.extra.length} 卷 LPN
+                  </span>
                 ) : (
                   <span className="text-xs text-red-400">尚未選擇任何卷卡</span>
                 )}
@@ -602,7 +781,8 @@ export function WorkOrderRequisitionTab({
             <div>
               <Tag color="purple">片材</Tag>
               <span className="text-xs text-gray-400">
-                規格: {spec.widthMm || 0}x{spec.lengthMm || 0}mm (厚: {spec.thicknessMm || 0}mm)
+                規格: {spec.widthMm || 0}x{spec.lengthMm || 0}mm (厚:{" "}
+                {spec.thicknessMm || 0}mm)
               </span>
             </div>
           );
@@ -611,43 +791,54 @@ export function WorkOrderRequisitionTab({
     },
   ];
 
-  const matchedMaterial = materialsList.find((x) => x.materialCode === modalFormValues.materialCode);
-  const modalIsRoll = matchedMaterial ? matchedMaterial.materialForm === "R" : modalFormValues.unit === "M";
+  const matchedMaterial = materialsList.find(
+    (x) => x.materialCode === modalFormValues.materialCode,
+  );
+  const modalIsRoll = matchedMaterial
+    ? matchedMaterial.materialForm === "R"
+    : modalFormValues.unit === "M";
 
-  const { data: selectableRollsResponse, isLoading: selectableRollsLoading } = useQuery({
-    queryKey: ["selectable-rolls-modal", modalFormValues.materialCode, matchedMaterial?.widthMm],
-    queryFn: () => getApiV1WorkOrderRequisitionSelectableRolls({
-      query: {
-        materialCode: modalFormValues.materialCode,
-        requiredWidth: matchedMaterial?.widthMm || undefined,
-      } as any
-    }),
-    enabled: itemModalOpen && modalIsRoll && !!modalFormValues.materialCode,
-  });
+  const { data: selectableRollsResponse, isLoading: selectableRollsLoading } =
+    useQuery({
+      queryKey: [
+        "selectable-rolls-modal",
+        modalFormValues.materialCode,
+        matchedMaterial?.widthMm,
+      ],
+      queryFn: () =>
+        getApiV1WorkOrderRequisitionSelectableRolls({
+          query: {
+            materialCode: modalFormValues.materialCode,
+            requiredWidth: matchedMaterial?.widthMm || undefined,
+          } as any,
+        }),
+      enabled: itemModalOpen && modalIsRoll && !!modalFormValues.materialCode,
+    });
 
-  const selectableRollsList = (selectableRollsResponse?.data as any)?.data || [];
+  const selectableRollsList =
+    (selectableRollsResponse?.data as any)?.data || [];
 
-  const { data: logicalInventoryResponse, isLoading: logicalInventoryLoading } = useQuery({
-    queryKey: ["logical-inventory-modal", modalFormValues.materialCode],
-    queryFn: () => getApiV1MaterialInventoryLogical({
-      query: {
-        materialCode: modalFormValues.materialCode,
-        pageSize: 100,
-      } as any
-    }),
-    enabled: itemModalOpen && !modalIsRoll && !!modalFormValues.materialCode,
-  });
+  const { data: logicalInventoryResponse, isLoading: logicalInventoryLoading } =
+    useQuery({
+      queryKey: ["logical-inventory-modal", modalFormValues.materialCode],
+      queryFn: () =>
+        getApiV1MaterialInventoryLogical({
+          query: {
+            materialCode: modalFormValues.materialCode,
+            pageSize: 100,
+          } as any,
+        }),
+      enabled: itemModalOpen && !modalIsRoll && !!modalFormValues.materialCode,
+    });
 
-  const logicalInventoryList = (logicalInventoryResponse?.data as any)?.list || [];
+  const logicalInventoryList =
+    (logicalInventoryResponse?.data as any)?.list || [];
 
   return (
     <div className="flex flex-col gap-4">
       <Spin spinning={listLoading || detailLoading}>
         {!showHeaderForm ? (
-          <Empty
-            description="尚未建立領料表"
-            className="mt-10"
-          >
+          <Empty description="尚未建立領料表" className="mt-10">
             <Button type="primary" onClick={handleCreateNewClick}>
               產生領料單
             </Button>
@@ -660,30 +851,46 @@ export function WorkOrderRequisitionTab({
               styles={{ body: { padding: "8px 12px" } }}
               title={
                 <Space size="middle">
-                  <strong>{isCreating ? "新增領料單" : `📄 領料單 - ${activeDocNo}`}</strong>
-                  {activeRecord && (
-                    activeRecord.confirmDate ? (
+                  <strong>
+                    {isCreating ? "新增領料單" : `📄 領料單 - ${activeDocNo}`}
+                  </strong>
+                  {activeRecord &&
+                    (activeRecord.confirmDate ? (
                       <Tag color="success">🟢 已確認過帳</Tag>
                     ) : (
                       <Tag color="default">⚪ 草稿 (Draft)</Tag>
-                    )
-                  )}
-                  {/* 💡 單位生產成本展示 */}
-                  {totalRequisitionUtilizedCost > 0 && (
-                    <Tag color="cyan">
-                      🎯 單位生產成本: <strong style={{ fontFamily: "monospace" }}>${unitProductionCost.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</strong> / PCS
-                    </Tag>
-                  )}
+                    ))}
                 </Space>
               }
               extra={
                 <Space>
                   {isEditable ? (
                     <>
-                      <Button type="primary" size="small" icon={<SaveOutlined />} onClick={() => (document.getElementById("requisitionHeaderForm") as HTMLFormElement)?.requestSubmit()} loading={createMutation.isPending || updateMutation.isPending}>
+                      <Button
+                        type="primary"
+                        size="small"
+                        icon={<SaveOutlined />}
+                        onClick={() =>
+                          (
+                            document.getElementById(
+                              "requisitionHeaderForm",
+                            ) as HTMLFormElement
+                          )?.requestSubmit()
+                        }
+                        loading={
+                          createMutation.isPending || updateMutation.isPending
+                        }
+                      >
                         儲存
                       </Button>
-                      <Button size="small" onClick={() => (isCreating ? setIsCreating(false) : setIsHeaderEditing(false))}>
+                      <Button
+                        size="small"
+                        onClick={() =>
+                          isCreating
+                            ? setIsCreating(false)
+                            : setIsHeaderEditing(false)
+                        }
+                      >
                         取消
                       </Button>
                     </>
@@ -691,17 +898,29 @@ export function WorkOrderRequisitionTab({
                     <>
                       {!isPosted && (
                         <>
-                          <Button type="primary" size="small" icon={<EditOutlined />} onClick={() => setIsHeaderEditing(true)}>
+                          <Button
+                            type="primary"
+                            size="small"
+                            icon={<EditOutlined />}
+                            onClick={() => setIsHeaderEditing(true)}
+                          >
                             編輯
                           </Button>
-                          <Button danger size="small" icon={<DeleteOutlined />} onClick={() => {
-                            modal.confirm({
-                              title: "刪除確認",
-                              content: "確定要刪除這張領料單草稿嗎？此操作不可逆。",
-                              centered: true,
-                              onOk: () => deleteMutation.mutate(),
-                            });
-                          }} loading={deleteMutation.isPending}>
+                          <Button
+                            danger
+                            size="small"
+                            icon={<DeleteOutlined />}
+                            onClick={() => {
+                              modal.confirm({
+                                title: "刪除確認",
+                                content:
+                                  "確定要刪除這張領料單草稿嗎？此操作不可逆。",
+                                centered: true,
+                                onOk: () => deleteMutation.mutate(),
+                              });
+                            }}
+                            loading={deleteMutation.isPending}
+                          >
                             刪除
                           </Button>
                         </>
@@ -719,6 +938,7 @@ export function WorkOrderRequisitionTab({
                   plannedQuantity: masterData.plannedQuantity || 0,
                   documentDate: docDate as any,
                   notes: docNotes,
+                  totalMaterialCost: displayTotalMaterialCost,
                 }}
                 onSubmit={handleSave}
                 isViewMode={!isEditable}
@@ -732,7 +952,8 @@ export function WorkOrderRequisitionTab({
               styles={{ body: { padding: "8px 12px" } }}
               title={<strong>📋 領料物料明細</strong>}
               extra={
-                !isPosted && activeDocNo && (
+                !isPosted &&
+                activeDocNo && (
                   <Space>
                     <Button
                       type="default"
@@ -749,8 +970,14 @@ export function WorkOrderRequisitionTab({
                       size="small"
                       icon={<PlusOutlined />}
                       onClick={handleAddNewItemClick}
-                      disabled={isAllBomRequisitioned || isHeaderEditing || isCreating}
-                      title={isAllBomRequisitioned ? "所有 BOM 原料均已加入領料明細，無法重複新增" : undefined}
+                      disabled={
+                        isAllBomRequisitioned || isHeaderEditing || isCreating
+                      }
+                      title={
+                        isAllBomRequisitioned
+                          ? "所有 BOM 原料均已加入領料明細，無法重複新增"
+                          : undefined
+                      }
                     >
                       新增領用物料
                     </Button>
@@ -763,12 +990,12 @@ export function WorkOrderRequisitionTab({
                 dataSource={items}
                 columns={itemColumns}
                 pagination={false}
-                scroll={{ x: 1000 }}
+                scroll={{ x: "max-content", y: 350 }}
                 rowKey="materialCode"
                 locale={{
                   emptyText: !activeDocNo
                     ? "⚠️ 請先點擊右上方「儲存」保存表頭，即可開始新增領用物料明細。"
-                    : "尚未加入任何領用物料項目，請點選右上方新增項目。"
+                    : "尚未加入任何領用物料項目，請點選右上方新增項目。",
                 }}
               />
             </Card>
@@ -792,7 +1019,7 @@ export function WorkOrderRequisitionTab({
               overflowY: "hidden",
               overflowX: "hidden",
               paddingRight: "4px",
-            }
+            },
           }}
           destroyOnClose
         >
@@ -800,23 +1027,31 @@ export function WorkOrderRequisitionTab({
             {/* 💡 計算後需求量展示區 */}
             {matchedMaterial && (
               <div className="text-sm text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-950/30 p-3 rounded-md border border-blue-200 dark:border-blue-900/50">
-                💡 計算後原料需求量：{matchedMaterial.requiredQuantity} {matchedMaterial.materialForm === 'R' ? 'M' : 'PCS'}
+                💡 計算後原料需求量：{matchedMaterial.requiredQuantity}{" "}
+                {matchedMaterial.materialForm === "R" ? "M" : "PCS"}
               </div>
             )}
 
             <DynamicForm
               formId="requisitionItemForm"
-              fields={requisitionItemFormConfig(
-                editingItemIndex !== null
-                  ? materialsList
-                  : materialsList.filter((m) => !items.some((item) => item.materialCode === m.materialCode))
-              ).map((f) => {
-                // 💡 Lock quantity from being manually typed for BOTH rolls and sheets!
-                if (f.name === "quantity") {
-                  return { ...f, editable: "never" };
-                }
-                return f;
-              }) as any}
+              fields={
+                requisitionItemFormConfig(
+                  editingItemIndex !== null
+                    ? materialsList
+                    : materialsList.filter(
+                        (m) =>
+                          !items.some(
+                            (item) => item.materialCode === m.materialCode,
+                          ),
+                      ),
+                ).map((f) => {
+                  // 💡 Lock quantity from being manually typed for BOTH rolls and sheets!
+                  if (f.name === "quantity") {
+                    return { ...f, editable: "never" };
+                  }
+                  return f;
+                }) as any
+              }
               defaultValues={{
                 materialCode: modalFormValues.materialCode,
                 quantity: modalFormValues.quantity,
@@ -828,7 +1063,9 @@ export function WorkOrderRequisitionTab({
                 // 💡 僅需監聽手動選取的原料料號 (materialCode) 變化
                 // 唯讀欄位 (quantity / referenceQuantity1) 是由 Parent 狀態向下單向驅動同步的，不需重複向上反饋
                 if (values.materialCode !== modalFormValues.materialCode) {
-                  const matched = materialsList.find((x) => x.materialCode === values.materialCode);
+                  const matched = materialsList.find(
+                    (x) => x.materialCode === values.materialCode,
+                  );
                   const updatedValues = {
                     ...modalFormValues,
                     materialCode: values.materialCode,
@@ -851,7 +1088,8 @@ export function WorkOrderRequisitionTab({
               <div className="bg-[var(--ant-color-fill-alter)] p-4 rounded-md mt-4 border border-[var(--ant-color-border-secondary)] requisition-modal-table">
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-xs font-bold text-[var(--ant-color-text-secondary)]">
-                    🌀 捲材實體卡候選清單 (已選 {modalExtra?.length || 0} 卷，總長度: {modalFormValues.quantity || 0} M)
+                    🌀 捲材實體卡候選清單 (已選 {modalExtra?.length || 0}{" "}
+                    卷，總長度: {modalFormValues.quantity || 0} M)
                   </span>
                   <Button
                     type="primary"
@@ -860,20 +1098,28 @@ export function WorkOrderRequisitionTab({
                     icon={<SyncOutlined spin={isAutoAllocating} />}
                     onClick={async () => {
                       if (!modalFormValues.materialCode) return;
-                      const hide = message.loading("正在進行智慧 FIFO 自動配料...", 0);
+                      const hide = message.loading(
+                        "正在進行智慧 FIFO 自動配料...",
+                        0,
+                      );
                       try {
                         const res = await getApiV1WorkOrderRequisitionFifo({
                           query: {
                             materialCode: modalFormValues.materialCode,
-                            requiredLength: matchedMaterial?.requiredQuantity || 0,
-                            requiredWidth: matchedMaterial?.widthMm || undefined,
-                          } as any
+                            requiredLength:
+                              matchedMaterial?.requiredQuantity || 0,
+                            requiredWidth:
+                              matchedMaterial?.widthMm || undefined,
+                          } as any,
                         });
                         const allocatedRolls = (res?.data as any)?.data || [];
                         if (allocatedRolls.length > 0) {
                           const bomWidth = matchedMaterial?.widthMm || 0;
                           const mappedExtra = allocatedRolls.map((r: any) => {
-                            const scrapArea = Math.max(0, r.qtyAux * (r.widthMm - bomWidth) / 1000);
+                            const scrapArea = Math.max(
+                              0,
+                              (r.qtyAux * (r.widthMm - bomWidth)) / 1000,
+                            );
                             const scrapCost = (r.costPerSqm || 0) * scrapArea;
                             return {
                               rollNo: r.rollNo,
@@ -885,17 +1131,30 @@ export function WorkOrderRequisitionTab({
                             };
                           });
                           setModalExtra(mappedExtra);
-                          const totalLen = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
-                          const totalArea = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
-                          
+                          const totalLen = mappedExtra.reduce(
+                            (sum: number, r: any) => sum + r.qtyAux,
+                            0,
+                          );
+                          const totalArea = mappedExtra.reduce(
+                            (sum: number, r: any) =>
+                              sum + r.qtyAux * (r.widthMm / 1000),
+                            0,
+                          );
+
                           setModalFormValues((prev: any) => ({
                             ...prev,
                             quantity: parseFloat(totalLen.toFixed(4)),
-                            referenceQuantity1: parseFloat(totalArea.toFixed(4)),
+                            referenceQuantity1: parseFloat(
+                              totalArea.toFixed(4),
+                            ),
                           }));
-                          message.success(`智慧配料完成！自動選取 ${allocatedRolls.length} 卷物料滿足生產需求。`);
+                          message.success(
+                            `智慧配料完成！自動選取 ${allocatedRolls.length} 卷物料滿足生產需求。`,
+                          );
                         } else {
-                          message.warning("現有 LPN 庫存不足，無法配出足夠物料！");
+                          message.warning(
+                            "現有 LPN 庫存不足，無法配出足夠物料！",
+                          );
                         }
                       } catch (err: any) {
                         message.error("自動配料失敗：" + (err?.message || err));
@@ -926,13 +1185,18 @@ export function WorkOrderRequisitionTab({
                           validKeys.push(row.rollNo);
                           validRows.push(row);
                         } else {
-                          message.warning(`物料卡 ${row.rollNo} 寬度不足，無法領用！`);
+                          message.warning(
+                            `物料卡 ${row.rollNo} 寬度不足，無法領用！`,
+                          );
                         }
                       });
-                      
+
                       const bomWidth = matchedMaterial?.widthMm || 0;
                       const mappedExtra = validRows.map((r) => {
-                        const scrapArea = Math.max(0, r.currentQtyAux * (r.widthMm - bomWidth) / 1000);
+                        const scrapArea = Math.max(
+                          0,
+                          (r.currentQtyAux * (r.widthMm - bomWidth)) / 1000,
+                        );
                         const scrapCost = (r.costPerSqm || 0) * scrapArea;
                         return {
                           rollNo: r.rollNo,
@@ -944,35 +1208,82 @@ export function WorkOrderRequisitionTab({
                         };
                       });
                       setModalExtra(mappedExtra);
-                      const totalLen = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
-                      const totalArea = mappedExtra.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
-                      
+                      const totalLen = mappedExtra.reduce(
+                        (sum: number, r: any) => sum + r.qtyAux,
+                        0,
+                      );
+                      const totalArea = mappedExtra.reduce(
+                        (sum: number, r: any) =>
+                          sum + r.qtyAux * (r.widthMm / 1000),
+                        0,
+                      );
+
                       setModalFormValues((prev: any) => ({
                         ...prev,
                         quantity: parseFloat(totalLen.toFixed(4)),
                         referenceQuantity1: parseFloat(totalArea.toFixed(4)),
                       }));
-                    }
+                    },
                   }}
                   rowKey="rollNo"
                   pagination={false}
-                  scroll={selectableRollsList.length > 5 ? { y: 250 } : undefined}
+                  scroll={
+                    selectableRollsList.length > 5 ? { y: 250 } : undefined
+                  }
                   columns={[
-                    { title: "物料卡號 (LPN)", dataIndex: "rollNo", key: "rollNo", width: 160 },
-                    { title: "批次號", dataIndex: "lotNo", key: "lotNo", width: 110 },
-                    { title: "剩餘長度 (M)", dataIndex: "currentQtyAux", key: "currentQtyAux", width: 100, render: (v) => <strong>{v} M</strong> },
-                    { title: "寬度 (mm)", dataIndex: "widthMm", key: "widthMm", width: 90, render: (v) => `${v} mm` },
-                    { title: "厚度 (mm)", dataIndex: "measuredThicknessMm", key: "measuredThicknessMm", width: 90, render: (v) => v != null ? `${v} mm` : "-" },
-                    { title: "入庫時間", dataIndex: "checkDate", key: "checkDate", width: 140, render: (v) => v ? dayjs(v).format("YYYY-MM-DD HH:mm") : "-" },
+                    {
+                      title: "物料卡號 (LPN)",
+                      dataIndex: "rollNo",
+                      key: "rollNo",
+                      width: 160,
+                    },
+                    {
+                      title: "批次號",
+                      dataIndex: "lotNo",
+                      key: "lotNo",
+                      width: 110,
+                    },
+                    {
+                      title: "剩餘長度 (M)",
+                      dataIndex: "currentQtyAux",
+                      key: "currentQtyAux",
+                      width: 100,
+                      render: (v) => <strong>{v} M</strong>,
+                    },
+                    {
+                      title: "寬度 (mm)",
+                      dataIndex: "widthMm",
+                      key: "widthMm",
+                      width: 90,
+                      render: (v) => `${v} mm`,
+                    },
+                    {
+                      title: "厚度 (mm)",
+                      dataIndex: "measuredThicknessMm",
+                      key: "measuredThicknessMm",
+                      width: 90,
+                      render: (v) => (v != null ? `${v} mm` : "-"),
+                    },
+                    {
+                      title: "入庫時間",
+                      dataIndex: "checkDate",
+                      key: "checkDate",
+                      width: 140,
+                      render: (v) =>
+                        v ? dayjs(v).format("YYYY-MM-DD HH:mm") : "-",
+                    },
                     {
                       title: "報廢面積 (SQM)",
                       key: "scrapAreaSqm",
                       width: 130,
                       render: (_, r: any) => {
                         const bomWidth = matchedMaterial?.widthMm || 0;
-                        const scrapArea = Math.max(0, r.currentQtyAux * (r.widthMm - bomWidth) / 1000);
+                        const scrapArea = Math.max(
+                          0,
+                          (r.currentQtyAux * (r.widthMm - bomWidth)) / 1000,
+                        );
                         return <strong>{scrapArea.toFixed(2)} SQM</strong>;
-                      }
+                      },
                     },
                     {
                       title: "報廢成本 (NTD)",
@@ -980,10 +1291,17 @@ export function WorkOrderRequisitionTab({
                       width: 130,
                       render: (_, r: any) => {
                         const bomWidth = matchedMaterial?.widthMm || 0;
-                        const scrapArea = Math.max(0, r.currentQtyAux * (r.widthMm - bomWidth) / 1000);
+                        const scrapArea = Math.max(
+                          0,
+                          (r.currentQtyAux * (r.widthMm - bomWidth)) / 1000,
+                        );
                         const scrapCost = (r.costPerSqm || 0) * scrapArea;
-                        return <span className="text-red-500 font-bold">${scrapCost.toFixed(2)}</span>;
-                      }
+                        return (
+                          <span className="text-red-500 font-bold">
+                            ${scrapCost.toFixed(2)}
+                          </span>
+                        );
+                      },
                     },
                     {
                       title: "匹配判定",
@@ -1010,7 +1328,8 @@ export function WorkOrderRequisitionTab({
               <div className="bg-[var(--ant-color-fill-alter)] p-4 rounded-md mt-4 border border-[var(--ant-color-border-secondary)] requisition-modal-table">
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-xs font-bold text-[var(--ant-color-text-secondary)]">
-                    🔮 片材庫存規格清單 (已選規格 {modalExtra?.length || 0} 筆，總數量: {modalFormValues.quantity || 0} PCS)
+                    🔮 片材庫存規格清單 (已選規格 {modalExtra?.length || 0}{" "}
+                    筆，總數量: {modalFormValues.quantity || 0} PCS)
                   </span>
                   <Button
                     type="primary"
@@ -1027,11 +1346,11 @@ export function WorkOrderRequisitionTab({
                         message.warning("需求量為 0，無需進行配料！");
                         return;
                       }
-                      
+
                       let accumulated = 0;
                       const selectedSpecs: any[] = [];
                       const updatedDrawQty = { ...sheetDrawQty };
-                      
+
                       for (const record of logicalInventoryList) {
                         if (accumulated >= targetQty) break;
                         const key = `${record.widthMm}-${record.lengthMm || 0}`;
@@ -1048,29 +1367,34 @@ export function WorkOrderRequisitionTab({
                           accumulated += take;
                         }
                       }
-                      
+
                       setSheetDrawQty(updatedDrawQty);
                       setModalExtra(selectedSpecs);
-                      
+
                       let totalQty = 0;
                       let totalArea = 0;
                       selectedSpecs.forEach((spec) => {
                         const key = `${spec.widthMm}-${spec.lengthMm}`;
                         const qty = updatedDrawQty[key] || 0;
                         totalQty += qty;
-                        totalArea += qty * (spec.widthMm / 1000) * (spec.lengthMm / 1000);
+                        totalArea +=
+                          qty * (spec.widthMm / 1000) * (spec.lengthMm / 1000);
                       });
-                      
+
                       setModalFormValues((prev: any) => ({
                         ...prev,
                         quantity: totalQty,
                         referenceQuantity1: parseFloat(totalArea.toFixed(4)),
                       }));
-                      
+
                       if (accumulated >= targetQty) {
-                        message.success(`智慧配料完成！自動選取 ${selectedSpecs.length} 個規格行以滿足生產需求。`);
+                        message.success(
+                          `智慧配料完成！自動選取 ${selectedSpecs.length} 個規格行以滿足生產需求。`,
+                        );
                       } else {
-                        message.warning(`現有庫存不足！自動配出 ${accumulated} PCS，尚缺 ${targetQty - accumulated} PCS！`);
+                        message.warning(
+                          `現有庫存不足！自動配出 ${accumulated} PCS，尚缺 ${targetQty - accumulated} PCS！`,
+                        );
                       }
                     }}
                   >
@@ -1083,7 +1407,9 @@ export function WorkOrderRequisitionTab({
                   dataSource={logicalInventoryList}
                   rowSelection={{
                     type: "checkbox",
-                    selectedRowKeys: modalExtra.map((x: any) => `${x.widthMm}-${x.lengthMm}`),
+                    selectedRowKeys: modalExtra.map(
+                      (x: any) => `${x.widthMm}-${x.lengthMm}`,
+                    ),
                     onChange: (_, selectedRows: any[]) => {
                       const mappedExtra = selectedRows.map((r) => ({
                         widthMm: r.widthMm,
@@ -1091,30 +1417,50 @@ export function WorkOrderRequisitionTab({
                         thicknessMm: 0,
                       }));
                       setModalExtra(mappedExtra);
-                      
+
                       let totalQty = 0;
                       let totalArea = 0;
                       mappedExtra.forEach((spec) => {
                         const key = `${spec.widthMm}-${spec.lengthMm}`;
                         const qty = sheetDrawQty[key] || 0;
                         totalQty += qty;
-                        totalArea += qty * (spec.widthMm / 1000) * (spec.lengthMm / 1000);
+                        totalArea +=
+                          qty * (spec.widthMm / 1000) * (spec.lengthMm / 1000);
                       });
-                      
+
                       setModalFormValues((prev: any) => ({
                         ...prev,
                         quantity: totalQty,
                         referenceQuantity1: parseFloat(totalArea.toFixed(4)),
                       }));
-                    }
+                    },
                   }}
-                  rowKey={(record: any) => `${record.widthMm}-${record.lengthMm}`}
+                  rowKey={(record: any) =>
+                    `${record.widthMm}-${record.lengthMm}`
+                  }
                   pagination={false}
-                  scroll={logicalInventoryList.length > 5 ? { y: 250 } : undefined}
+                  scroll={
+                    logicalInventoryList.length > 5 ? { y: 250 } : undefined
+                  }
                   columns={[
-                    { title: "寬度 (mm)", dataIndex: "widthMm", key: "widthMm", render: (v) => `${v} mm` },
-                    { title: "長度 (mm)", dataIndex: "lengthMm", key: "lengthMm", render: (v) => v ? `${v} mm` : "-" },
-                    { title: "現有庫存量", dataIndex: "quantity", key: "quantity", render: (v) => <strong>{v?.toLocaleString()} PCS</strong> },
+                    {
+                      title: "寬度 (mm)",
+                      dataIndex: "widthMm",
+                      key: "widthMm",
+                      render: (v) => `${v} mm`,
+                    },
+                    {
+                      title: "長度 (mm)",
+                      dataIndex: "lengthMm",
+                      key: "lengthMm",
+                      render: (v) => (v ? `${v} mm` : "-"),
+                    },
+                    {
+                      title: "現有庫存量",
+                      dataIndex: "quantity",
+                      key: "quantity",
+                      render: (v) => <strong>{v?.toLocaleString()} PCS</strong>,
+                    },
                     {
                       title: "領用數量 (PCS)",
                       key: "drawQty",
@@ -1129,11 +1475,18 @@ export function WorkOrderRequisitionTab({
                             value={sheetDrawQty[key] || 0}
                             onChange={(val) => {
                               const qty = val || 0;
-                              const updatedDrawQty = { ...sheetDrawQty, [key]: qty };
+                              const updatedDrawQty = {
+                                ...sheetDrawQty,
+                                [key]: qty,
+                              };
                               setSheetDrawQty(updatedDrawQty);
-                              
+
                               let updatedExtra = [...modalExtra];
-                              const exists = updatedExtra.some((x: any) => x.widthMm === record.widthMm && x.lengthMm === record.lengthMm);
+                              const exists = updatedExtra.some(
+                                (x: any) =>
+                                  x.widthMm === record.widthMm &&
+                                  x.lengthMm === record.lengthMm,
+                              );
                               if (qty > 0 && !exists) {
                                 updatedExtra.push({
                                   widthMm: record.widthMm,
@@ -1142,29 +1495,40 @@ export function WorkOrderRequisitionTab({
                                 });
                                 setModalExtra(updatedExtra);
                               } else if (qty === 0 && exists) {
-                                updatedExtra = updatedExtra.filter((x: any) => !(x.widthMm === record.widthMm && x.lengthMm === record.lengthMm));
+                                updatedExtra = updatedExtra.filter(
+                                  (x: any) =>
+                                    !(
+                                      x.widthMm === record.widthMm &&
+                                      x.lengthMm === record.lengthMm
+                                    ),
+                                );
                                 setModalExtra(updatedExtra);
                               }
-                              
+
                               let totalQty = 0;
                               let totalArea = 0;
                               updatedExtra.forEach((spec) => {
                                 const specKey = `${spec.widthMm}-${spec.lengthMm}`;
                                 const dQty = updatedDrawQty[specKey] || 0;
                                 totalQty += dQty;
-                                totalArea += dQty * (spec.widthMm / 1000) * (spec.lengthMm / 1000);
+                                totalArea +=
+                                  dQty *
+                                  (spec.widthMm / 1000) *
+                                  (spec.lengthMm / 1000);
                               });
-                              
+
                               setModalFormValues((prev: any) => ({
                                 ...prev,
                                 quantity: totalQty,
-                                referenceQuantity1: parseFloat(totalArea.toFixed(4)),
+                                referenceQuantity1: parseFloat(
+                                  totalArea.toFixed(4),
+                                ),
                               }));
                             }}
                           />
                         );
-                      }
-                    }
+                      },
+                    },
                   ]}
                 />
               </div>

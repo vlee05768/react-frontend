@@ -781,16 +781,24 @@ export const requisitionHeaderFormConfig = (): FormFieldConfig<any>[] => [
     name: "documentDate",
     label: "單據日期",
     componentType: "DatePicker",
-    colSpan: 2,
+    colSpan: 3,
     editable: "always",
     validation: z.any().refine(val => !!val, { message: "單據日期為必填" }),
   },
   {
     name: "plannedQuantity",
-    label: "製令預計產量 (僅參考)",
+    label: "預計生產量",
     componentType: "InputNumber",
-    colSpan: 2,
+    colSpan: 3,
     editable: "never"
+  },
+  {
+    name: "totalMaterialCost",
+    label: "總領料成本",
+    componentType: "InputNumber",
+    colSpan: 3,
+    editable: "never",
+    componentProps: { className: "w-full", precision: 0 }
   },
   {
     name: "notes",

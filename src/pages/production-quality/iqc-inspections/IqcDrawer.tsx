@@ -144,6 +144,7 @@ export default function IqcDrawer({
   const [notes, setNotes] = useState("");
   const [responsibleParty, setResponsibleParty] = useState("");
   const [incomingStorageCode, setIncomingStorageCode] = useState("");
+  const [headerCoreDia, setHeaderCoreDia] = useState<number | null>(76.2);
   const [samplingPercent, setSamplingPercent] = useState<number>(30); // 預設 30%
   const [isCustomPercent, setIsCustomPercent] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -253,19 +254,29 @@ export default function IqcDrawer({
     if (detail?.rolls) {
       setLocalStatus(null); // 💡 清除本地 overrides 狀態
       setIsEditing(false); // 💡 回到唯讀檢視模式
-      const initialRolls = detail.rolls.map((r: any) => ({
-        ...r,
-        actualQtyAux: r.actualQtyAux,
-        isOk: r.isOk, // 💡 嚴格讀取資料庫狀態，不判定預設 true！未檢驗時為 null
-        measuredThicknessMm:
-          r.measuredThicknessMm ?? detail.standardThickness ?? 0.05,
-        measuredCoreDiaMm:
-          r.measuredCoreDiaMm ?? (isRollMaterial ? 76.2 : null),
-        lengthMm: r.lengthMm ?? (isRollMaterial ? null : detail.standardLength),
-        disposition: r.disposition || "Concession",
-        responsibleParty: r.responsibleParty || detail.supplierCode,
-        inspectionItems: r.inspectionItems || [],
-      }));
+      const dbCoreDia = detail.measuredCoreDiaMm ?? (isRollMaterial ? 76.2 : null);
+      setHeaderCoreDia(dbCoreDia);
+
+      const initialRolls = detail.rolls.map((r: any) => {
+        const rollCoreDia = r.measuredCoreDiaMm ?? dbCoreDia;
+        return {
+          ...r,
+          actualQtyAux: r.actualQtyAux,
+          isOk: r.isOk, // 💡 嚴格讀取資料庫狀態，不判定預設 true！未檢驗時為 null
+          measuredThicknessMm:
+            r.measuredThicknessMm ?? detail.standardThickness ?? 0.05,
+          measuredCoreDiaMm: rollCoreDia,
+          lengthMm: r.lengthMm ?? (isRollMaterial ? null : detail.standardLength),
+          disposition: r.disposition || "Concession",
+          responsibleParty: r.responsibleParty || detail.supplierCode,
+          inspectionItems: (r.inspectionItems || []).map((item: any) => {
+            if (item.itemCode === "core_dia" && (item.measuredValue === null || item.measuredValue === undefined || item.measuredValue === "")) {
+              return { ...item, measuredValue: rollCoreDia !== null ? String(rollCoreDia) : "" };
+            }
+            return item;
+          }),
+        };
+      });
       setRolls(initialRolls);
 
       const defaultInspector =
@@ -275,7 +286,11 @@ export default function IqcDrawer({
       setInspectorId(defaultInspector);
 
       if (detail.inspectionStatus !== "Pending") {
-        const pct = getSamplingPercentFromCount(detail.rolls.length, detail.rollCount, isRollMaterial);
+        const pct = getSamplingPercentFromCount(
+          detail.sampleSize ?? detail.rolls.length,
+          detail.rollCount,
+          isRollMaterial,
+        );
         setSamplingPercent(pct);
         setIsCustomPercent(![10, 20, 30, 50, 100, 1, 2, 3, 4, 5].includes(pct));
       } else {
@@ -333,22 +348,25 @@ export default function IqcDrawer({
           actualQtyAux: isRollMaterial ? detail.standardLength : 1, // 片材單張樣品為 1 pcs
           isOk: true, // 💡 預設通過
           measuredThicknessMm: templateRoll.measuredThicknessMm,
-          measuredCoreDiaMm: templateRoll.measuredCoreDiaMm,
+          measuredCoreDiaMm: headerCoreDia, // ⬅️ 從表頭帶過來
           lengthMm: templateRoll.lengthMm,
           disposition: templateRoll.disposition,
           responsibleParty: templateRoll.responsibleParty,
           inspectionItems: (templateRoll.inspectionItems || []).map(
-            (item: any) => ({
-              ...item,
-              measuredValue: item.measuredValue || "",
-              isOk: true, // 💡 預設項目通過
-            }),
+            (item: any) => {
+              const isCoreItem = item.itemCode === "core_dia";
+              return {
+                ...item,
+                measuredValue: isCoreItem && headerCoreDia !== null ? String(headerCoreDia) : (item.measuredValue || ""),
+                isOk: true, // 💡 預設項目通過
+              };
+            },
           ),
         });
       }
       setRolls(newRolls);
     }
-  }, [sampleCount, detail, isRollMaterial, rolls.length, isReadOnly]);
+  }, [sampleCount, detail, isRollMaterial, rolls.length, isReadOnly, headerCoreDia]);
 
   // 2. 升級加嚴 100% 全檢之 Mutation
   const escalateMutation = useMutation({
@@ -384,9 +402,11 @@ export default function IqcDrawer({
       } else {
         message.success("品質檢驗過帳完成！良品已正式產生 LPN 卷卡入庫。");
       }
+      setIsEditing(false); // 💡 結案後回到唯讀狀態
+      setLocalStatus(overallResult === "Concession" ? "Concession" : "AllPass"); // 💡 立即變更本地狀態
       queryClient.invalidateQueries({ queryKey: ["iqc-detail", iqcRecordId] });
       queryClient.invalidateQueries({ queryKey: ["iqc-inspections"] });
-      onSuccess();
+      refetch();
     },
     onError: (err: any) =>
       message.error(err.response?.data?.message || "過帳失敗，請重試"),
@@ -404,9 +424,11 @@ export default function IqcDrawer({
       message.success(
         "特採核准過帳成功！全數卷料已正式建立 LPN 庫存卡並過帳至正式原料倉。",
       );
+      setIsEditing(false); // 💡 回到唯讀狀態
+      setLocalStatus("AllPass"); // 💡 特採核准過帳後狀態變為 AllPass
       queryClient.invalidateQueries({ queryKey: ["iqc-detail", iqcRecordId] });
       queryClient.invalidateQueries({ queryKey: ["iqc-inspections"] });
-      onSuccess();
+      refetch();
     },
     onError: (err: any) =>
       message.error(err.response?.data?.message || "核准特採失敗"),
@@ -423,9 +445,11 @@ export default function IqcDrawer({
       message.success(
         "特採申請已被拒絕！此批到貨全數退回拒收，採購量已完成全額回彈扣減。",
       );
+      setIsEditing(false); // 💡 回到唯讀狀態
+      setLocalStatus("Reject"); // 💡 特採拒絕後狀態變為 Reject
       queryClient.invalidateQueries({ queryKey: ["iqc-detail", iqcRecordId] });
       queryClient.invalidateQueries({ queryKey: ["iqc-inspections"] });
-      onSuccess();
+      refetch();
     },
     onError: (err: any) =>
       message.error(err.response?.data?.message || "拒絕特採失敗"),
@@ -460,6 +484,7 @@ export default function IqcDrawer({
     const payload = {
       inspectorId,
       incomingStorageCode: incomingStorageCode || null,
+      measuredCoreDiaMm: headerCoreDia || null,
       rolls: targetRolls.map((r: any) => ({
         seq: r.seq,
         rollNo: r.rollNo,
@@ -496,7 +521,18 @@ export default function IqcDrawer({
               }
               return i;
             });
-            return { ...r, inspectionItems: updatedItems };
+
+            // 💡 同步更新最上端實體屬性，確保 DTO/API 儲存與物理卷卡建立之屬性 100% 正確
+            const extraUpdates: any = {};
+            if (itemCode === "core_dia") {
+              const numVal = parseFloat(value);
+              extraUpdates.measuredCoreDiaMm = isNaN(numVal) ? null : numVal;
+            } else if (itemCode === "thickness") {
+              const numVal = parseFloat(value);
+              extraUpdates.measuredThicknessMm = isNaN(numVal) ? 0.05 : numVal;
+            }
+
+            return { ...r, inspectionItems: updatedItems, ...extraUpdates };
           }
           return r;
         }),
@@ -580,10 +616,10 @@ export default function IqcDrawer({
         "已成功取消此品檢單過帳判定，並順利註銷 LPN 與還原庫存量！",
       );
       setLocalStatus("Pending");
+      setIsEditing(true); // 💡 取消過帳後，直接轉為編輯模式，免去手動再次點擊「編輯」
       queryClient.invalidateQueries({ queryKey: ["iqc-detail", iqcRecordId] });
       queryClient.invalidateQueries({ queryKey: ["iqc-inspections"] });
       refetch();
-      if (onSuccess) onSuccess();
     },
     onError: (err: any) => {
       const errMsg =
@@ -882,6 +918,7 @@ export default function IqcDrawer({
       notes,
       incomingStorageCode: incomingStorageCode || undefined,
       sampleSize: sampleCount, // 💡 同步將計算出的抽樣數回寫至資料庫
+      measuredCoreDiaMm: headerCoreDia || undefined,
       rolls: displayedRolls.map((r) => ({
         seq: r.seq,
         rollNo: r.rollNo,
@@ -906,11 +943,16 @@ export default function IqcDrawer({
   };
 
   // 5. 數據與看板計算
-  const totalInspected = displayedRolls.filter(
+  const isReadOnlyMode = isReadOnly || isReadOnlyPermanent;
+  const iqcSampleSize = (isReadOnlyMode && detail?.sampleSize) ? detail.sampleSize : sampleCount;
+
+  const inspectedRolls = displayedRolls.filter((r) => r.seq <= iqcSampleSize);
+
+  const totalInspected = inspectedRolls.filter(
     (r) => r.isOk !== null && r.isOk !== undefined,
   ).length;
-  const okCount = displayedRolls.filter((r) => r.isOk === true).length;
-  const ngCount = displayedRolls.filter((r) => r.isOk === false).length;
+  const okCount = inspectedRolls.filter((r) => r.isOk === true).length;
+  const ngCount = inspectedRolls.filter((r) => r.isOk === false).length;
 
   const fields = [
     {
@@ -993,19 +1035,6 @@ export default function IqcDrawer({
       ),
     },
     {
-      name: "materialForm",
-      label: "材料型態",
-      componentType: "Select",
-      editable: "never",
-      colSpan: 6,
-      componentProps: {
-        options: [
-          { label: "捲材 (Coil)", value: "R" },
-          { label: "片材 (Sheet)", value: "S" },
-        ],
-      },
-    },
-    {
       name: "standardThickness",
       label: "標準厚度 (mm)",
       componentType: "InputNumber",
@@ -1059,6 +1088,56 @@ export default function IqcDrawer({
       ),
     },
     {
+      name: "measuredCoreDiaMm",
+      label: "管芯內外徑 (mm)",
+      componentType: "Custom",
+      colSpan: 6,
+      customRender: (props: any) => (
+        <InputNumber
+          value={props.value !== undefined ? props.value : headerCoreDia}
+          disabled={isReadOnly || !isRollMaterial}
+          precision={1}
+          style={{ width: "100%" }}
+          className="w-full text-right"
+          onChange={(val) => {
+            const numVal = val != null ? Number(val) : null;
+            setHeaderCoreDia(numVal);
+            props.onChange(numVal);
+            
+            // 💡 當使用者更改表頭管芯徑時，連動更新所有明細行中尚未修改的 core_dia 項目值！
+            setRolls((prevRolls) =>
+              prevRolls.map((r) => {
+                const updatedItems = r.inspectionItems.map((i: any) => {
+                  if (i.itemCode === "core_dia") {
+                    return { ...i, measuredValue: numVal !== null ? String(numVal) : "" };
+                  }
+                  return i;
+                });
+                return {
+                  ...r,
+                  measuredCoreDiaMm: numVal,
+                  inspectionItems: updatedItems,
+                };
+              }),
+            );
+          }}
+        />
+      ),
+    },
+    {
+      name: "materialForm",
+      label: "材料型態",
+      componentType: "Select",
+      editable: "never",
+      colSpan: 6,
+      componentProps: {
+        options: [
+          { label: "捲材 (Coil)", value: "R" },
+          { label: "片材 (Sheet)", value: "S" },
+        ],
+      },
+    },    
+    {
       name: "incomingStorageCode",
       label: "入庫儲位",
       componentType: "Custom",
@@ -1096,6 +1175,7 @@ export default function IqcDrawer({
     standardLength: detail?.standardLength,
     poLineNumber: detail?.poLineNumber,
     incomingStorageCode: incomingStorageCode,
+    measuredCoreDiaMm: headerCoreDia,
   };
 
   // 💡 動態依範本產生檢驗項目欄位，將實測值直接行內顯示 (不帶 OK/NG 按鈕，按鈕獨立在檢驗判定列)
@@ -1133,7 +1213,7 @@ export default function IqcDrawer({
         dataIndex: "seq",
         key: "seq",
         width: 100,
-        align: "center" as const,
+        align: "left" as const,
         render: (seq: number, record: any) => {
           const isAutoApproved =
             !!(isReadOnly && detail?.sampleSize && record.seq > detail.sampleSize);

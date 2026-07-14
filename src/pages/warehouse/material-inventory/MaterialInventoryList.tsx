@@ -136,15 +136,20 @@ export default function MaterialInventoryList() {
     RollNo: '',
     MaterialCode: '',
     StorageCode: undefined,
-    RollStatus: 'INSTOCK' // 預設只顯示在庫的卷卡，方便查庫存
+    RollStatus: ['INSTOCK'] // 預設只顯示在庫的卷卡，方便查庫存
   });
 
-  const rollForm = useForm({
+  const rollForm = useForm<{
+    RollNo: string;
+    MaterialCode: string;
+    StorageCode: string | undefined;
+    RollStatus: string[];
+  }>({
     defaultValues: {
       RollNo: '',
       MaterialCode: '',
       StorageCode: undefined,
-      RollStatus: 'INSTOCK'
+      RollStatus: ['INSTOCK']
     }
   });
 
@@ -156,7 +161,9 @@ export default function MaterialInventoryList() {
           RollNo: rollParams.RollNo || undefined,
           MaterialCode: rollParams.MaterialCode || undefined,
           StorageCode: rollParams.StorageCode || undefined,
-          RollStatus: rollParams.RollStatus || undefined,
+          RollStatus: Array.isArray(rollParams.RollStatus)
+            ? (rollParams.RollStatus.length > 0 ? rollParams.RollStatus.join(',') : undefined)
+            : rollParams.RollStatus || undefined,
           pageNumber: rollParams.pageNumber,
           pageSize: rollParams.pageSize,
         }
@@ -176,12 +183,16 @@ export default function MaterialInventoryList() {
     }));
   };
 
+  const handleSelectAllStatuses = () => {
+    rollForm.setValue('RollStatus', rollStateOptions.map(opt => opt.value));
+  };
+
   const handleRollClear = () => {
     rollForm.reset({
       RollNo: '',
       MaterialCode: '',
       StorageCode: undefined,
-      RollStatus: 'INSTOCK'
+      RollStatus: []
     });
     setRollParams({
       pageNumber: 1,
@@ -189,19 +200,20 @@ export default function MaterialInventoryList() {
       RollNo: '',
       MaterialCode: '',
       StorageCode: undefined,
-      RollStatus: 'INSTOCK'
+      RollStatus: []
     });
   };
 
   // 點擊母卷條碼時，自動追溯查詢
   const handleSelectParentBarcode = (parentBarcode: string) => {
+    const allStatuses = rollStateOptions.map(opt => opt.value);
     rollForm.setValue('RollNo', parentBarcode);
-    rollForm.setValue('RollStatus', ''); // 清除狀態限制，因為母卷可能已被消耗
+    rollForm.setValue('RollStatus', allStatuses); // 清除狀態限制，因為母卷可能已被消耗，故全選所有狀態
     setRollParams((prev: any) => ({
       ...prev,
       pageNumber: 1,
       RollNo: parentBarcode,
-      RollStatus: undefined
+      RollStatus: allStatuses
     }));
   };
 
@@ -330,29 +342,28 @@ export default function MaterialInventoryList() {
                     {/* Tab 1 Form */}
                     <Form 
                       layout="inline" 
-                      className="mb-4 pb-4 border-b border-[#f0f0f0]" 
+                      className="mb-4 pb-4 border-b border-slate-200 dark:border-slate-800 flex !flex-row !flex-nowrap items-center gap-x-4 gap-y-0 shrink-0 overflow-x-auto overflow-y-hidden" 
                       onFinish={logicalForm.handleSubmit(handleLogicalSearch)}
-                      style={{ flexShrink: 0 }}
                     >
+                      <Form.Item>
+                        <Space>
+                          <Button type="primary" htmlType="submit" icon={<SearchOutlined />} loading={logicalLoading}>查詢</Button>
+                          <Button onClick={handleLogicalClear} icon={<ClearOutlined />}>清除</Button>
+                        </Space>
+                      </Form.Item>
                       <Form.Item label="原料品編">
                         <Controller 
                           name="MaterialCode" 
                           control={logicalForm.control} 
-                          render={({field}: any) => <Input {...field} placeholder="請輸入原料編號" allowClear style={{ width: 180 }} />} 
+                          render={({field}: any) => <Input {...field} placeholder="原料品編" allowClear className="w-36 min-w-[140px] shrink-0" />} 
                         />
                       </Form.Item>
                       <Form.Item label="儲位">
                         <Controller 
                           name="StorageCode" 
                           control={logicalForm.control} 
-                          render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" placeholder="請選擇儲位" style={{ width: 200 }} allowClear />} 
+                          render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" optionsFilter={(opt: any) => opt.type === 'MAT'} placeholder="選擇儲位" className="w-48 min-w-[240px] shrink-0" allowClear />} 
                         />
-                      </Form.Item>
-                      <Form.Item>
-                        <Space>
-                          <Button type="primary" htmlType="submit" icon={<SearchOutlined />} loading={logicalLoading}>查詢</Button>
-                          <Button onClick={handleLogicalClear} icon={<ClearOutlined />}>清除</Button>
-                        </Space>
                       </Form.Item>
                     </Form>
 
@@ -386,51 +397,55 @@ export default function MaterialInventoryList() {
                     {/* Tab 2 Form */}
                     <Form 
                       layout="inline" 
-                      className="mb-4 pb-4 border-b border-[#f0f0f0]" 
+                      className="mb-4 pb-4 border-b border-slate-200 dark:border-slate-800 flex !flex-row !flex-nowrap items-center gap-x-2 gap-y-0 shrink-0 overflow-x-auto overflow-y-hidden" 
                       onFinish={rollForm.handleSubmit(handleRollSearch)}
-                      style={{ flexShrink: 0 }}
                     >
-                      <Form.Item label="卷卡條碼">
+                      <Form.Item>
+                        <Space>
+                          <Button type="primary" htmlType="submit" icon={<SearchOutlined />} loading={rollLoading}>查詢</Button>
+                          <Button onClick={handleRollClear} icon={<ClearOutlined />}>清除</Button>
+                        </Space>
+                      </Form.Item>
+                      <Form.Item label="卷卡號">
                         <Controller 
                           name="RollNo" 
                           control={rollForm.control} 
-                          render={({field}: any) => <Input {...field} placeholder="請輸入卷卡號/LPN" allowClear style={{ width: 180 }} />} 
+                          render={({field}: any) => <Input {...field} placeholder="LPN 條碼" allowClear className="w-32 min-w-[120px] shrink-0" />} 
                         />
                       </Form.Item>
-                      <Form.Item label="原料品編">
+                      <Form.Item label="品編">
                         <Controller 
                           name="MaterialCode" 
                           control={rollForm.control} 
-                          render={({field}: any) => <Input {...field} placeholder="請輸入原料品編" allowClear style={{ width: 160 }} />} 
+                          render={({field}: any) => <Input {...field} placeholder="原料品編" allowClear className="w-28 min-w-[110px] shrink-0" />} 
                         />
                       </Form.Item>
                       <Form.Item label="儲位">
                         <Controller 
                           name="StorageCode" 
                           control={rollForm.control} 
-                          render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" placeholder="請選擇儲位" style={{ width: 180 }} allowClear />} 
+                          render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" optionsFilter={(opt: any) => opt.type === 'MAT'} placeholder="儲位" className="w-48 min-w-[240px] shrink-0" allowClear />} 
                         />
                       </Form.Item>
-                      <Form.Item label="在庫狀態">
-                        <Controller 
-                          name="RollStatus" 
-                          control={rollForm.control} 
-                          render={({field}: any) => (
-                            <Select 
-                              {...field} 
-                              placeholder="全部" 
-                              allowClear 
-                              style={{ width: 150 }} 
-                              options={rollStateOptions} 
-                            />
-                          )} 
-                        />
-                      </Form.Item>
-                      <Form.Item>
-                        <Space>
-                          <Button type="primary" htmlType="submit" icon={<SearchOutlined />} loading={rollLoading}>查詢</Button>
-                          <Button onClick={handleRollClear} icon={<ClearOutlined />}>清除</Button>
-                        </Space>
+                      <Form.Item label="狀態">
+                        <Space.Compact className="w-auto">
+                          <Controller 
+                            name="RollStatus" 
+                            control={rollForm.control} 
+                            render={({field}: any) => (
+                              <Select 
+                                {...field} 
+                                mode="multiple"
+                                placeholder="全部狀態" 
+                                allowClear
+                                className="w-32 min-w-[120px] shrink-0" 
+                                options={rollStateOptions} 
+                                maxTagCount={1}
+                              />
+                            )} 
+                          />
+                          <Button onClick={handleSelectAllStatuses}>全選</Button>
+                        </Space.Compact>
                       </Form.Item>
                     </Form>
 
@@ -464,36 +479,34 @@ export default function MaterialInventoryList() {
                     {/* Tab 3 Form */}
                     <Form 
                       layout="inline" 
-                      className="mb-4 pb-4 border-b border-[#f0f0f0]" 
+                      className="mb-4 pb-4 border-b border-slate-200 dark:border-slate-800 flex !flex-row !flex-nowrap items-center gap-x-4 gap-y-0 shrink-0 overflow-x-auto overflow-y-hidden" 
                       onFinish={txForm.handleSubmit(handleTxSearch)}
-                      style={{ flexShrink: 0 }}
                     >
+                      <Form.Item>
+                        <Space>
+                          <Button type="primary" htmlType="submit" icon={<SearchOutlined />} loading={txLoading}>查詢</Button>
+                          <Button onClick={handleTxClear} icon={<ClearOutlined />}>清除</Button>
+                        </Space>
+                      </Form.Item>
                       <Form.Item label="原料品編">
                         <Controller 
                           name="MaterialCode" 
                           control={txForm.control} 
-                          render={({field}: any) => <Input {...field} placeholder="請輸入原料品編" allowClear style={{ width: 160 }} />} 
+                          render={({field}: any) => <Input {...field} placeholder="原料品編" allowClear className="w-32 min-w-[120px] shrink-0" />} 
                         />
                       </Form.Item>
                       <Form.Item label="卷卡條碼">
                         <Controller 
                           name="LotNo" 
                           control={txForm.control} 
-                          render={({field}: any) => <Input {...field} placeholder="請輸入卷卡條碼" allowClear style={{ width: 180 }} />} 
+                          render={({field}: any) => <Input {...field} placeholder="卷卡號" allowClear className="w-36 min-w-[110px] shrink-0" />} 
                         />
                       </Form.Item>
                       <Form.Item label="異動儲位">
                         <Controller 
                           name="StorageCode" 
                           control={txForm.control} 
-                          render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" placeholder="請選擇儲位" style={{ width: 180 }} allowClear />} 
-                        />
-                      </Form.Item>
-                      <Form.Item label="來源單號">
-                        <Controller 
-                          name="SourceDocCode" 
-                          control={txForm.control} 
-                          render={({field}: any) => <Input {...field} placeholder="請輸入來源單號" allowClear style={{ width: 160 }} />} 
+                          render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" optionsFilter={(opt: any) => opt.type === 'MAT'} placeholder="選擇儲位" className="w-48 min-w-[240px] shrink-0" allowClear />} 
                         />
                       </Form.Item>
                       <Form.Item label="交易類型">
@@ -503,19 +516,13 @@ export default function MaterialInventoryList() {
                           render={({field}: any) => (
                             <Select 
                               {...field} 
-                              placeholder="全部" 
+                              placeholder="交易類型" 
                               allowClear 
-                              style={{ width: 180 }} 
+                              className="w-32 min-w-[180px] shrink-0" 
                               options={transactionTypeOptions} 
                             />
                           )} 
                         />
-                      </Form.Item>
-                      <Form.Item>
-                        <Space>
-                          <Button type="primary" htmlType="submit" icon={<SearchOutlined />} loading={txLoading}>查詢</Button>
-                          <Button onClick={handleTxClear} icon={<ClearOutlined />}>清除</Button>
-                        </Space>
                       </Form.Item>
                     </Form>
 

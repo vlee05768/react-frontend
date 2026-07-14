@@ -28,8 +28,8 @@ export const logicalSearchFields: SearchFieldConfig[] = [
   {
     name: "StorageCode",
     label: "儲位編碼",
-    componentType: "AsyncSelect",
-    componentProps: { configKey: "STORAGE" },
+    componentType: "DictSelect",
+    componentProps: { dictKey: "STORAGE", optionsFilter: (opt: any) => opt.type === "MAT" },
     colSpan: 2,
   }
 ];
@@ -179,8 +179,8 @@ export const rollSearchFields: SearchFieldConfig[] = [
   {
     name: "StorageCode",
     label: "目前儲位",
-    componentType: "AsyncSelect",
-    componentProps: { configKey: "STORAGE" },
+    componentType: "DictSelect",
+    componentProps: { dictKey: "STORAGE", optionsFilter: (opt: any) => opt.type === "MAT" },
     colSpan: 2,
   },
   {
@@ -234,7 +234,7 @@ export const getRollColumns = (
   {
     label: "實體寬度 (mm)",
     name: "widthMm",
-    width: 120,
+    width: 110,
     align: "right",
     render: (val: any) => formatDecimal(val, 4, "-"),
   },
@@ -249,14 +249,14 @@ export const getRollColumns = (
   {
     label: "剩餘面積 (m²)",
     name: "currentAreaSqm",
-    width: 130,
+    width: 110,
     align: "right",
     render: (val: any) => <span className="font-semibold text-blue-600 dark:text-blue-400">{formatDecimal(val, 4, "0")}</span>,
   },
   {
     label: "每平米成本",
     name: "costPerSqm",
-    width: 120,
+    width: 110,
     align: "right",
     render: (val: any) => formatDecimal(val, 2, "-"),
   },
@@ -288,8 +288,14 @@ export const getRollColumns = (
     width: 150,
   },
   {
-    label: "入庫時間",
+    label: "建檔時間",
     name: "createdAt",
+    width: 180,
+    render: (val: string) => val ? dayjs(val).format("YYYY-MM-DD HH:mm:ss") : "-",
+  },
+  {
+    label: "最後異動時間",
+    name: "updatedAt",
     width: 180,
     render: (val: string) => val ? dayjs(val).format("YYYY-MM-DD HH:mm:ss") : "-",
   }
@@ -338,8 +344,8 @@ export const txSearchFields: SearchFieldConfig[] = [
   {
     name: "StorageCode",
     label: "異動儲位",
-    componentType: "AsyncSelect",
-    componentProps: { configKey: "STORAGE" },
+    componentType: "DictSelect",
+    componentProps: { dictKey: "STORAGE", optionsFilter: (opt: any) => opt.type === "MAT" },
     colSpan: 2,
   },
   {

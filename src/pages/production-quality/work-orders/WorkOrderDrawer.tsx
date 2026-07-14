@@ -288,7 +288,13 @@ export function WorkOrderDrawer({
                 content: '確定要確認備料完成嗎？系統將自動對關聯的領料單進行確認過帳，並進入貼合程序。',
                 centered: true, 
                 width: 400,
-                onOk: () => preparationConfirmMut.mutateAsync({}),
+                onOk: async () => {
+                  try {
+                    await preparationConfirmMut.mutateAsync({});
+                  } catch (e) {
+                    // Error is already shown by mutation onError
+                  }
+                },
               });
             }}
           >
@@ -307,7 +313,13 @@ export function WorkOrderDrawer({
                 title: '貼合確認',
                 content: '確定要確認貼合程序嗎？確認後可以開始生產。',
                 centered: true, width: 400,
-                onOk: () => laminationConfirmMut.mutateAsync({}),
+                onOk: async () => {
+                  try {
+                    await laminationConfirmMut.mutateAsync({});
+                  } catch (e) {
+                    // Error is already shown by mutation onError
+                  }
+                },
               })}}
             >
               貼合確認
@@ -321,7 +333,13 @@ export function WorkOrderDrawer({
                 title: '取消備料確認',
                 content: '確定要取消備料確認嗎？取消後將回到新單據狀態。',
                 centered: true, width: 400,
-                onOk: () => preparationCancelMut.mutateAsync({}),
+                onOk: async () => {
+                  try {
+                    await preparationCancelMut.mutateAsync({});
+                  } catch (e) {
+                    // Error is already shown by mutation onError
+                  }
+                },
               })}}
             >
               取消備料確認
@@ -349,7 +367,13 @@ export function WorkOrderDrawer({
                 title: '取消貼合確認',
                 content: '確定要取消貼合程序確認嗎？取消後將回到備料確認狀態。',
                 centered: true, width: 400,
-                onOk: () => laminationCancelMut.mutateAsync({}),
+                onOk: async () => {
+                  try {
+                    await laminationCancelMut.mutateAsync({});
+                  } catch (e) {
+                    // Error is already shown by mutation onError
+                  }
+                },
               })}}
             >
               取消貼合確認
@@ -368,7 +392,13 @@ export function WorkOrderDrawer({
                 title: '入庫完成',
                 content: '確定要確認入庫完成嗎？確認後製令將完成所有流程。',
                 centered: true, width: 400,
-                onOk: () => warehousingCompleteMut.mutateAsync({}),
+                onOk: async () => {
+                  try {
+                    await warehousingCompleteMut.mutateAsync({});
+                  } catch (e) {
+                    // Error is already shown by mutation onError
+                  }
+                },
               })}}
             >
               入庫完成
@@ -382,7 +412,13 @@ export function WorkOrderDrawer({
                 title: '取消生產完成',
                 content: '確定要取消生產完成確認嗎？取消後將回到貼合確認狀態。',
                 centered: true, width: 400,
-                onOk: () => productionCancelMut.mutateAsync({}),
+                onOk: async () => {
+                  try {
+                    await productionCancelMut.mutateAsync({});
+                  } catch (e) {
+                    // Error is already shown by mutation onError
+                  }
+                },
               })}}
             >
               取消生產完成
@@ -401,7 +437,13 @@ export function WorkOrderDrawer({
                 title: '取消入庫完成',
                 content: '確定要取消入庫完成確認嗎？取消後將回到生產完成狀態。',
                 centered: true, width: 400,
-                onOk: () => warehousingCancelMut.mutateAsync({}),
+                onOk: async () => {
+                  try {
+                    await warehousingCancelMut.mutateAsync({});
+                  } catch (e) {
+                    // Error is already shown by mutation onError
+                  }
+                },
               })}}
             >
               取消入庫完成

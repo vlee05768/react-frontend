@@ -71,6 +71,10 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
   // 輔助函數：格式化成 value (label) 或者只有 value
   const formatLabel = (val: string, lbl?: string) => {
     if (!lbl || lbl.trim() === '') return val;
+    // 💡 避免重複顯示編碼：若說明的文字中已經包含了編碼本身，則直接顯示該說明即可，防止雙重嵌套與編碼重疊
+    if (lbl.includes(val) || lbl.toLowerCase().includes(val.toLowerCase())) {
+      return lbl;
+    }
     return `${val} (${lbl})`;
   };
 

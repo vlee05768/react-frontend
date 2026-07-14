@@ -84,7 +84,9 @@ export const FIELD_REGISTRY: Record<string, FieldRenderer> = {
       // 編輯模式下，若無指定自訂 formatter，則自動套用千分位格式化與對應的 parser (防呆與高可讀性)
       inputNumberProps.formatter = (val: any) => {
         if (val === null || val === undefined || val === '') return '';
-        return `${val}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        const parts = `${val}`.split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return parts.join('.');
       };
       inputNumberProps.parser = (val: any) => {
         if (val === null || val === undefined || val === '') return '';
