@@ -86,7 +86,7 @@ export const getLogicalColumns = (): TableColumnConfig<MaterialLogicalInventoryD
       const tooltipContent = (
         <div style={{ whiteSpace: "pre-line", padding: "2px 4px" }}>
           {(record.storages || []).map((s: any) => 
-            `${s.storageCode || "未指定"}: ${isRoll ? `${formatDecimal(s.quantity, 4, "0")} SQM` : `${formatDecimal(s.quantity, 0, "0")} pcs`}`
+            `${s.storageCode || "未指定"}: ${isRoll ? `${formatDecimal(s.length, 2, "0")} M` : `${s.length > 0 ? `${formatDecimal(s.length, 0, "0")} mm` : "-"}`}`
           ).join('\n')}
         </div>
       );
