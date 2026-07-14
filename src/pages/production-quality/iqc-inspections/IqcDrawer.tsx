@@ -94,9 +94,10 @@ const MeasuredInput = React.memo(
       <Input
         id={`iqc_input_${rollNo}_${itemCode}`}
         placeholder="實測值"
+        size="small"
         value={val}
         disabled={isReadOnly}
-        className={`${isText ? "w-full min-w-[180px] text-left px-3" : "w-32 text-center"} focus:ring-2 focus:ring-blue-400 focus:outline-none rounded`}
+        className={`${isText ? "w-full min-w-[180px] text-left px-2" : "w-32 text-center"} focus:ring-2 focus:ring-blue-400 focus:outline-none rounded`}
         onFocus={(e) => e.target.select()}
         onChange={(e) => setVal(e.target.value)}
         onBlur={handleBlur}
@@ -106,6 +107,19 @@ const MeasuredInput = React.memo(
   },
 );
 MeasuredInput.displayName = "MeasuredInput";
+
+const getSamplingPercentFromCount = (count: number, total: number, isRoll: boolean): number => {
+  if (total <= 0) return isRoll ? 30 : 1;
+  if (count >= total) return 100;
+  
+  const standardOpts = isRoll ? [10, 20, 30, 50] : [1, 2, 3, 4, 5];
+  for (const opt of standardOpts) {
+    if (Math.ceil((total * opt) / 100) === count) {
+      return opt;
+    }
+  }
+  return Math.round((count / total) * 100);
+};
 
 interface IqcDrawerProps {
   iqcRecordId: string | null;
@@ -225,23 +239,20 @@ export default function IqcDrawer({
 
   const sampleCount = isReadOnlyPermanent
     ? detail?.sampleSize || rolls.length
-    : currentStatus === "FullInspecting"
-      ? detail?.rollCount
-      : Math.min(
-          detail?.rollCount || 1,
-          Math.max(
-            1,
-            Math.ceil(((detail?.rollCount || 0) * samplingPercent) / 100),
-          ),
-        );
+    : Math.min(
+        detail?.rollCount || 1,
+        Math.max(
+          1,
+          Math.ceil(((detail?.rollCount || 0) * samplingPercent) / 100),
+        ),
+      );
 
   const unitLabel = isRollMaterial ? "卷" : "pcs";
 
-  // 當資料載入時，初始化 rolls
-  useEffect(() => {
+  const resetFormStates = useCallback(() => {
     if (detail?.rolls) {
-      setLocalStatus(null); // 💡 當資料載入時，清除本地 overrides 狀態
-      setIsEditing(false); // 💡 預設開啟時為唯讀檢視模式，點擊編輯按鈕後才可編輯
+      setLocalStatus(null); // 💡 清除本地 overrides 狀態
+      setIsEditing(false); // 💡 回到唯讀檢視模式
       const initialRolls = detail.rolls.map((r: any) => ({
         ...r,
         actualQtyAux: r.actualQtyAux,
@@ -263,18 +274,13 @@ export default function IqcDrawer({
           : detail.inspectorId;
       setInspectorId(defaultInspector);
 
-      if (detail.inspectionStatus === "FullInspecting") {
-        setSamplingPercent(100);
-        setIsCustomPercent(false);
+      if (detail.inspectionStatus !== "Pending") {
+        const pct = getSamplingPercentFromCount(detail.rolls.length, detail.rollCount, isRollMaterial);
+        setSamplingPercent(pct);
+        setIsCustomPercent(![10, 20, 30, 50, 100, 1, 2, 3, 4, 5].includes(pct));
       } else {
-        if (detail.inspectionStatus !== "Pending") {
-          const pct = Math.round(
-            (detail.rolls.length / detail.rollCount) * 100,
-          );
-          setSamplingPercent(pct);
-        } else {
-          setSamplingPercent(isRollMaterial ? 30 : 1);
-        }
+        setSamplingPercent(isRollMaterial ? 30 : 1);
+        setIsCustomPercent(false);
       }
 
       setNotes(detail.notes || "");
@@ -292,6 +298,11 @@ export default function IqcDrawer({
       setOverallResult(defResult);
     }
   }, [detail, isRollMaterial, user]);
+
+  // 當資料載入時，初始化 rolls
+  useEffect(() => {
+    resetFormStates();
+  }, [resetFormStates]);
 
   // 💡 確保片材/捲材的 rolls 狀態長度至少與當前算出的 sampleCount 一致 (不足則進行動態 Pad 填充明細行)
   useEffect(() => {
@@ -445,10 +456,11 @@ export default function IqcDrawer({
       return;
     }
 
+    const targetRolls = isReadOnlyPermanent ? rolls : rolls.slice(0, sampleCount);
     const payload = {
       inspectorId,
       incomingStorageCode: incomingStorageCode || null,
-      rolls: rolls.map((r: any) => ({
+      rolls: targetRolls.map((r: any) => ({
         seq: r.seq,
         rollNo: r.rollNo,
         actualQtyAux: r.actualQtyAux,
@@ -694,7 +706,9 @@ export default function IqcDrawer({
           <Button
             key="cancel-edit"
             size="large"
-            onClick={() => setIsEditing(false)}
+            onClick={() => {
+              resetFormStates();
+            }}
             className="rounded-md"
           >
             取消編輯
@@ -714,6 +728,38 @@ export default function IqcDrawer({
             進行品質判定與過帳
           </Button>
         )}
+
+        {detail?.inspectionStatus === "ConcessionPending" && (
+          <Button
+            key="concession-post"
+            type="primary"
+            size="large"
+            icon={<AuditOutlined />}
+            className="bg-amber-600 hover:bg-amber-500 rounded-md text-white px-6 border-none font-bold"
+            onClick={() => setIsReviewModalOpen(true)}
+          >
+            進行特採會簽與過帳
+          </Button>
+        )}
+
+        {isReadOnly &&
+          (detail?.inspectionStatus === "AllPass" ||
+            detail?.inspectionStatus === "Reject" ||
+            detail?.inspectionStatus === "ConcessionApproved" ||
+            detail?.inspectionStatus === "ConcessionPending") && (
+            <Button
+              key="cancel-posting"
+              danger
+              type="primary"
+              size="large"
+              icon={<WarningOutlined />}
+              onClick={handleCancelPosting}
+              loading={cancelMutation.isPending}
+              className="rounded-md font-bold"
+            >
+              取消過帳 (還原庫存並重置)
+            </Button>
+          )}
       </Space>
     );
   };
@@ -1124,6 +1170,7 @@ export default function IqcDrawer({
             onChange={(e) => handleStatusChange(record.rollNo, e.target.value)}
             optionType="button"
             buttonStyle="solid"
+            size="small"
           >
             <Radio.Button 
               value={true} 
@@ -1312,36 +1359,7 @@ export default function IqcDrawer({
               </Button>
             )}
 
-            {detail?.inspectionStatus === "ConcessionPending" && (
-              <Button
-                type="primary"
-                size="large"
-                icon={<AuditOutlined />}
-                className="bg-amber-600 hover:bg-amber-500 rounded-md text-white px-8 border-none font-bold"
-                onClick={() => setIsReviewModalOpen(true)}
-              >
-                進行特採會簽與過帳
-              </Button>
-            )}
 
-            {/* 💡 撤銷與取消過帳按鈕 (唯讀/已結案狀態下展示，具有剛性庫存還原能力) */}
-            {isReadOnly &&
-              (detail?.inspectionStatus === "AllPass" ||
-                detail?.inspectionStatus === "Reject" ||
-                detail?.inspectionStatus === "ConcessionApproved" ||
-                detail?.inspectionStatus === "ConcessionPending") && (
-                <Button
-                  danger
-                  type="primary"
-                  icon={<WarningOutlined />}
-                  onClick={handleCancelPosting}
-                  loading={cancelMutation.isPending}
-                  size="large"
-                  className="rounded-md font-bold"
-                >
-                  取消過帳 (還原庫存並重置)
-                </Button>
-              )}
           </div>
         </div>
       }
@@ -1356,14 +1374,14 @@ export default function IqcDrawer({
         />
         {detail && (
           <div
-            className="p-6 overflow-y-auto flex-1 bg-[var(--ant-color-bg-container)]"
+            className="p-4 overflow-y-auto flex-1 bg-[var(--ant-color-bg-container)]"
             style={{ height: "calc(100vh - 180px)" }}
           >
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* 上半部：基本資料單頭 */}
               <Card
                 bordered={false}
-                className="bg-[var(--ant-color-bg-layout)] border border-[var(--ant-color-border-secondary)] rounded-lg"
+                className="bg-[var(--ant-color-bg-container)] border border-[var(--ant-color-border-secondary)] rounded-lg shadow-sm"
               >
                 <DynamicForm
                   formId="iqcBasicForm"
@@ -1382,14 +1400,17 @@ export default function IqcDrawer({
               </Card>
 
               {/* 下半部：品質檢驗抽樣與實測量表 (24 滿欄顯示，提供最寬敞流暢的輸入視界) */}
-              <Card bordered={false} className="shadow-sm rounded-lg">
+              <Card
+                bordered={false}
+                className="bg-[var(--ant-color-bg-container)] border border-[var(--ant-color-border-secondary)] rounded-lg shadow-sm"
+              >
                 <div className="mb-3 flex justify-between items-center bg-[var(--ant-color-bg-layout)] px-3 py-2 rounded border border-[var(--ant-color-border-secondary)]">
                   <Space size="middle">
                     <Text strong className="text-slate-800 text-sm">
                       品質檢驗抽樣與實測量表
                     </Text>
                     <Divider type="vertical" className="border-slate-300" />
-                    {!isReadOnly && detail?.inspectionStatus === "Pending" ? (
+                    {!isReadOnly && (detail?.inspectionStatus === "Pending" || detail?.inspectionStatus === "FullInspecting") ? (
                       <Space size="small">
                         <Text type="secondary" className="text-xs">
                           抽樣比例:
@@ -1476,6 +1497,8 @@ export default function IqcDrawer({
                   columns={columns}
                   rowKey="rollNo"
                   pagination={false}
+                  size="small"
+                  scroll={{ y: "calc(100vh - 530px)" }}
                   className="border border-[var(--ant-color-border-secondary)] rounded-md overflow-hidden"
                   rowClassName={(record) =>
                     record.isOk
