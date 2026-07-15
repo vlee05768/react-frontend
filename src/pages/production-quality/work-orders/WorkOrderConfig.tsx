@@ -74,6 +74,21 @@ export const searchConfig: SearchFieldConfig[] = [
     },
   },
   {
+    name: "returnStatus",
+    label: "車間退料狀態",
+    componentType: "Select",
+    colSpan: 2,
+    componentProps: {
+      options: [
+        { label: "全部", value: "" },
+        { label: "WIP 有剩料 (滯留)", value: "Pending" },
+        { label: "已完全清退", value: "Cleared" },
+        { label: "無需退料", value: "None" },
+      ],
+      style: { minWidth: "120px" },
+    },
+  },
+  {
     name: "workOrderDate",
     label: "製令日期",
     componentType: "DateRangePicker",
@@ -119,6 +134,25 @@ export const tableColumns: TableColumnConfig[] = [
     width: 110,
     align: "center",
     render: (val) => getStatusTag(val),
+  },
+  {
+    name: "returnStatus",
+    label: "車間退料狀態",
+    width: 140,
+    align: "center",
+    render: (_: any, record: any) => {
+      if (record.returnStatus === "Pending") {
+        return (
+          <Tag color="warning" style={{ margin: 0 }}>
+            ⚠️ WIP滯留 ({record.pendingWipRollsCount}卷)
+          </Tag>
+        );
+      }
+      if (record.returnStatus === "Cleared") {
+        return <Tag color="success" style={{ margin: 0 }}>🟢 已完全清退</Tag>;
+      }
+      return <Tag color="default" style={{ margin: 0 }}>⚪ 無需退料</Tag>;
+    }
   },
   {
     name: "orderNumber",

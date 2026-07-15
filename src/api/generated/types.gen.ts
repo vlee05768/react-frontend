@@ -545,6 +545,10 @@ export type CompleteIqcDto = {
      */
     sampleSize?: number | null;
     /**
+     * 實測紙芯外徑/管芯內外徑 (mm)
+     */
+    measuredCoreDiaMm?: number | null;
+    /**
      * 💡 提交的所有抽驗/全檢實測明細列表
      */
     rolls?: Array<CompleteSampleRollDto> | null;
@@ -1676,14 +1680,6 @@ export type CreatePurchaseReceiptItemDto = {
      * 長度 M
      */
     length?: number;
-    /**
-     * 到貨廠牌
-     */
-    brand?: string | null;
-    /**
-     * 到貨型號
-     */
-    modelNo?: string | null;
     /**
      * 進貨量
      */
@@ -3561,6 +3557,26 @@ export type IqcDetailDto = {
      */
     incomingStorageCode?: string | null;
     /**
+     * 實測紙芯外徑/管芯內外徑 (mm)
+     */
+    measuredCoreDiaMm?: number | null;
+    /**
+     * 建立者
+     */
+    createdBy?: string | null;
+    /**
+     * 建立時間
+     */
+    createdAt?: string | null;
+    /**
+     * 更新者
+     */
+    updatedBy?: string | null;
+    /**
+     * 更新時間
+     */
+    updatedAt?: string | null;
+    /**
      * 💡 前端預設載入與品檢時填寫的卷/包列表
      * 未進行 IQC 時，此列表根據進貨明細的 RollCount 動態分配出來
      */
@@ -3697,6 +3713,10 @@ export type IqcListDto = {
      * 關聯進貨單號
      */
     sourceDocNumber?: string | null;
+    /**
+     * 總長度 / 總數量
+     */
+    totalQty?: number;
 };
 
 /**
@@ -4119,34 +4139,6 @@ export type MaterialInventoryTransactionDtoPagedResultApiResponse = {
  * 原料邏輯庫存列表 DTO
  */
 export type MaterialLogicalInventoryDto = {
-    /**
-     * 建立者ID
-     */
-    createdById?: number | null;
-    /**
-     * 更新者ID
-     */
-    updatedById?: number | null;
-    /**
-     * 建立時間
-     */
-    createdAt?: string;
-    /**
-     * 更新時間
-     */
-    updatedAt?: string;
-    /**
-     * 是否已刪除
-     */
-    isDeleted?: boolean;
-    /**
-     * 建立者名稱
-     */
-    createdBy?: string | null;
-    /**
-     * 更新者名稱
-     */
-    updatedBy?: string | null;
     /**
      * 儲位編碼
      */
@@ -6392,14 +6384,6 @@ export type PurchaseReceiptItemDto = {
      */
     length?: number;
     /**
-     * 到貨廠牌
-     */
-    brand?: string | null;
-    /**
-     * 到貨型號
-     */
-    modelNo?: string | null;
-    /**
      * 是否為卷料
      */
     isRoll?: boolean;
@@ -6731,6 +6715,18 @@ export type ReturnRollDetailDto = {
      * 退回剩餘長度 (M)
      */
     qtyAux?: number;
+    /**
+     * 原料實測厚度 (mm)
+     */
+    thicknessMm?: number;
+    /**
+     * 捲料紙芯/紙管外徑 (mm)
+     */
+    coreDiaMm?: number;
+    /**
+     * 原始到貨長度 (M)
+     */
+    originalQtyAux?: number;
 };
 
 export type ReturnRollDetailDtoListApiResponse = {
@@ -7211,6 +7207,10 @@ export type SaveIqcDraftDto = {
      * 入庫儲位編碼
      */
     incomingStorageCode?: string | null;
+    /**
+     * 實測紙芯外徑/管芯內外徑 (mm)
+     */
+    measuredCoreDiaMm?: number | null;
     /**
      * 提交的抽驗/全檢實測明細列表
      */
@@ -8812,14 +8812,6 @@ export type UpdatePurchaseReceiptItemDto = {
      */
     length?: number | null;
     /**
-     * 到貨廠牌
-     */
-    brand?: string | null;
-    /**
-     * 到貨型號
-     */
-    modelNo?: string | null;
-    /**
      * 進貨量
      */
     quantity?: number | null;
@@ -9334,6 +9326,22 @@ export type UserDtoPagedResultApiResponse = {
  * 製令主檔 DTO
  */
 export type WorkOrderDto = {
+    /**
+     * 車間現場仍滯留(WIP 狀態)的原料卷卡數
+     */
+    pendingWipRollsCount: number;
+    /**
+     * 車間退料追蹤狀態 (None:無需退料, Pending:待清退, Cleared:已清退)
+     */
+    returnStatus: string | null;
+    /**
+     * 最近一次退料確認的時間
+     */
+    latestReturnDate?: string | null;
+    /**
+     * 最近一次退料確認的人員
+     */
+    latestReturnUser?: string | null;
     /**
      * 建立者ID
      */
@@ -11438,14 +11446,6 @@ export type PurchaseReceiptItemDtoWritable = {
      * 長度 M
      */
     length?: number;
-    /**
-     * 到貨廠牌
-     */
-    brand?: string | null;
-    /**
-     * 到貨型號
-     */
-    modelNo?: string | null;
     /**
      * 是否為卷料
      */
@@ -14703,6 +14703,22 @@ export type GetApiV1IqcInspectionData = {
          */
         InspectionStatus?: string;
         /**
+         * 物料料號
+         */
+        MaterialCode?: string;
+        /**
+         * 品檢時間區間起
+         */
+        CheckDateStart?: string;
+        /**
+         * 品檢時間區間止
+         */
+        CheckDateEnd?: string;
+        /**
+         * 品檢人員
+         */
+        InspectorId?: string;
+        /**
          * 頁碼
          */
         pageNumber?: number;
@@ -14907,6 +14923,42 @@ export type GetApiV1IqcInspectionByIqcRecordIdPdfResponses = {
 };
 
 export type GetApiV1IqcInspectionByIqcRecordIdPdfResponse = GetApiV1IqcInspectionByIqcRecordIdPdfResponses[keyof GetApiV1IqcInspectionByIqcRecordIdPdfResponses];
+
+export type GetApiV1IqcInspectionByIqcRecordIdLabelsPdfData = {
+    body?: never;
+    path: {
+        iqcRecordId: string;
+    };
+    query?: never;
+    url: '/api/v1/IqcInspection/{iqcRecordId}/labels-pdf';
+};
+
+export type GetApiV1IqcInspectionByIqcRecordIdLabelsPdfResponses = {
+    /**
+     * OK
+     */
+    200: Blob | File;
+};
+
+export type GetApiV1IqcInspectionByIqcRecordIdLabelsPdfResponse = GetApiV1IqcInspectionByIqcRecordIdLabelsPdfResponses[keyof GetApiV1IqcInspectionByIqcRecordIdLabelsPdfResponses];
+
+export type GetApiV1IqcInspectionRollsByRollNoLabelPdfData = {
+    body?: never;
+    path: {
+        rollNo: string;
+    };
+    query?: never;
+    url: '/api/v1/IqcInspection/rolls/{rollNo}/label-pdf';
+};
+
+export type GetApiV1IqcInspectionRollsByRollNoLabelPdfResponses = {
+    /**
+     * OK
+     */
+    200: Blob | File;
+};
+
+export type GetApiV1IqcInspectionRollsByRollNoLabelPdfResponse = GetApiV1IqcInspectionRollsByRollNoLabelPdfResponses[keyof GetApiV1IqcInspectionRollsByRollNoLabelPdfResponses];
 
 export type GetApiV1MachineData = {
     body?: never;

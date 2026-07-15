@@ -546,6 +546,16 @@ export function WorkOrderDrawer({
         status: !record.warehousingCompleteDate ? 'wait' : 'finish',
         date: record.warehousingCompleteDate,
         user: record.warehousingCompleteUser ? `入庫: ${record.warehousingCompleteUser}` : null,
+      },
+      {
+        title: '車間退料',
+        status: !record.warehousingCompleteDate 
+          ? 'wait' 
+          : (record.pendingWipRollsCount > 0 ? 'process' : 'finish'),
+        date: record.latestReturnDate || null,
+        user: record.warehousingCompleteDate && record.pendingWipRollsCount > 0
+          ? `待清退 (${record.pendingWipRollsCount}卷)`
+          : record.latestReturnUser ? `退料: ${record.latestReturnUser}` : null,
       }
     ];
   }

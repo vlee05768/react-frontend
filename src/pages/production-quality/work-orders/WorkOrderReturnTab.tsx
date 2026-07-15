@@ -10,6 +10,7 @@ import {
   Spin,
   Modal,
   InputNumber,
+  Input,
 } from "antd";
 import {
   PlusOutlined,
@@ -67,6 +68,19 @@ export function WorkOrderReturnTab({ masterData }: WorkOrderReturnTabProps) {
   const [modalExtra, setModalExtra] = useState<any[]>([]);
   const [wipRolls, setWipRolls] = useState<any[]>([]);
   const [wipLoading, setWipLoading] = useState(false);
+
+  // 💡 新增掃描與直徑反算狀態及 Ref
+  const scanInputRef = useRef<any>(null);
+  const diaInputRef = useRef<any>(null);
+  const [scanRollNo, setScanRollNo] = useState("");
+  const [measuredDia, setMeasuredDia] = useState<number | null>(null);
+  const [activeScanRoll, setActiveScanRoll] = useState<any | null>(null);
+  const [calcResult, setCalcResult] = useState<{
+    returnedLen: number;
+    returnedArea: number;
+    consumedLen: number;
+    consumedPercent: number;
+  } | null>(null);
 
   // 1. 取得該製令的退料單列表 (1對1，拿第一筆)
   const {
@@ -394,6 +408,103 @@ export function WorkOrderReturnTab({ masterData }: WorkOrderReturnTabProps) {
     }
   };
 
+  // 💡 掃描器自動勾選並修改該卷長度，連帶更新 Modal 總量表頭
+  const handleWipRollQtyUpdate = (rollNo: string, qty: number, width: number) => {
+    let updatedExtra = [...modalExtra];
+    const idx = updatedExtra.findIndex((x: any) => x.rollNo === rollNo);
+    
+    if (idx >= 0) {
+      updatedExtra[idx].qtyAux = qty;
+    } else {
+      updatedExtra.push({ rollNo, widthMm: width, qtyAux: qty });
+    }
+    
+    setModalExtra(updatedExtra);
+    
+    const totalLen = updatedExtra.reduce(
+      (sum: number, r: any) => sum + r.qtyAux,
+      0,
+    );
+    const totalArea = updatedExtra.reduce(
+      (sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000),
+      0,
+    );
+    
+    setModalFormValues((prev: any) => ({
+      ...prev,
+      quantity: parseFloat(totalLen.toFixed(4)),
+      referenceQuantity1: parseFloat(totalArea.toFixed(4)),
+    }));
+  };
+
+  const handleScanRollConfirm = () => {
+    if (!scanRollNo) return;
+    
+    const match = wipRolls.find((x: any) => x.rollNo.toUpperCase() === scanRollNo.toUpperCase().trim());
+    if (!match) {
+      message.error(`警告：卷號「${scanRollNo}」不在此製令的車間 WIP 列表中！`);
+      setScanRollNo("");
+      scanInputRef.current?.focus();
+      return;
+    }
+    
+    setActiveScanRoll(match);
+    setMeasuredDia(null);
+    setCalcResult(null);
+    
+    // 自動焦點轉移至「直徑輸入框」
+    setTimeout(() => {
+      diaInputRef.current?.focus();
+    }, 100);
+  };
+
+  const handleDiameterCalcConfirm = () => {
+    if (!activeScanRoll || !measuredDia) return;
+    
+    const Do = measuredDia; // 實測外徑
+    const Di = Number(activeScanRoll.coreDiaMm || 76.2); // 紙芯外徑
+    const t = Number(activeScanRoll.thicknessMm || 0.05); // 厚度 (mm)
+    
+    if (Do < Di) {
+      message.error(`輸入直徑 (${Do}mm) 低於紙芯外徑 (${Di}mm)，請重新測量！`);
+      return;
+    }
+    
+    // 💡 核心物理公式反算長度 (M)
+    const calculatedLength = (Math.PI * (Do * Do - Di * Di)) / (4000 * t);
+    
+    // 限制長度上限不可超過該卷卡在 WIP 的最大殘留量 (防呆)
+    const maxWipQty = Number(activeScanRoll.qtyAux);
+    const finalQty = Math.max(0, Math.min(maxWipQty, parseFloat(calculatedLength.toFixed(2))));
+    
+    const finalArea = parseFloat(((finalQty * Number(activeScanRoll.widthMm)) / 1000).toFixed(2));
+    
+    // 💡 自動計算該製令在這一卷上的「實質耗用量」
+    const originalQty = Number(activeScanRoll.originalQtyAux || maxWipQty);
+    const consumedQty = parseFloat((maxWipQty - finalQty).toFixed(2));
+    const consumedPct = parseFloat(((consumedQty / originalQty) * 100).toFixed(1));
+    
+    setCalcResult({
+      returnedLen: finalQty,
+      returnedArea: finalArea,
+      consumedLen: consumedQty,
+      consumedPercent: consumedPct
+    });
+    
+    // 自動更新至勾選退料明細中
+    handleWipRollQtyUpdate(activeScanRoll.rollNo, finalQty, activeScanRoll.widthMm);
+    message.success(`卷卡 ${activeScanRoll.rollNo} 自動計算完成：退回 ${finalQty}M，本次耗用 ${consumedQty}M (${consumedPct}%)`);
+    
+    // 重置掃描面板並自動 Refocus 準備掃描下一卷
+    setTimeout(() => {
+      setScanRollNo("");
+      setActiveScanRoll(null);
+      setMeasuredDia(null);
+      setCalcResult(null);
+      scanInputRef.current?.focus(); // 自動聚焦回掃描框
+    }, 1200);
+  };
+
   const handleWipRollCheck = (
     rollNo: string,
     checked: boolean,
@@ -603,6 +714,24 @@ export function WorkOrderReturnTab({ masterData }: WorkOrderReturnTabProps) {
 
   return (
     <div className="flex flex-col gap-4">
+      {masterData.pendingWipRollsCount > 0 ? (
+        <div className="p-3 bg-orange-50 border border-orange-200 rounded dark:bg-orange-950/20 dark:border-orange-900/50 flex justify-between items-center">
+          <span className="text-xs text-orange-600 dark:text-orange-400">
+            ⚠️ <strong>警告：</strong>本製令雖已生產完工，但車間（WIP 倉）現場目前仍滯留 <strong>{masterData.pendingWipRollsCount}</strong> 卷原料卷卡未辦理退料/消耗核帳！
+          </span>
+          {!showHeaderForm && (
+            <Button type="primary" size="small" ghost onClick={handleCreateNewClick}>
+              立即辦理退料
+            </Button>
+          )}
+        </div>
+      ) : (masterData.pendingWipRollsCount === 0 && masterData.warehousingCompleteDate ? (
+        <div className="p-3 bg-green-50 border border-green-200 rounded dark:bg-green-950/20 dark:border-green-900/50">
+          <span className="text-xs text-green-600 dark:text-green-400">
+            🎉 <strong>恭喜：</strong>車間物料已完全清退結案，現場無任何殘留 WIP 卷卡。
+          </span>
+        </div>
+      ) : null)}
       <Spin spinning={listLoading || detailLoading}>
         {!showHeaderForm ? (
           <Empty description="尚未建立退料表" className="mt-10">
@@ -824,6 +953,77 @@ export function WorkOrderReturnTab({ masterData }: WorkOrderReturnTabProps) {
               isViewMode={false}
               hideDefaultFooter={true}
             />
+
+            {/* 📱 掃描卷卡與直徑反算快捷控制台 */}
+            {modalFormValues.materialCode && (
+              <div className="p-4 bg-slate-900 text-slate-100 rounded-lg shadow-inner border border-slate-700">
+                <div className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                  📱 模切捲料「掃描條碼 ➔ 實測外徑」快速退料過帳系統
+                </div>
+                
+                <div className="grid grid-cols-12 gap-3 items-center">
+                  <div className="col-span-5 flex flex-col gap-1">
+                    <span className="text-[11px] text-slate-400 font-medium">第一步：掃描原料二維碼/條碼</span>
+                    <Input
+                      ref={scanInputRef}
+                      placeholder="請掃描卷卡條碼 (Roll No)..."
+                      value={scanRollNo}
+                      onChange={e => setScanRollNo(e.target.value)}
+                      onPressEnter={handleScanRollConfirm}
+                      className="bg-slate-800 text-slate-100 border-slate-600 focus:border-blue-500 font-mono text-xs h-9"
+                    />
+                  </div>
+
+                  <div className="col-span-4 flex flex-col gap-1">
+                    <span className="text-[11px] text-slate-400 font-medium">第二步：使用卡尺量測目前直徑</span>
+                    <InputNumber
+                      ref={diaInputRef}
+                      placeholder="實測直徑 (OD)"
+                      value={measuredDia}
+                      disabled={!activeScanRoll}
+                      min={0}
+                      addonAfter="mm"
+                      onChange={val => setMeasuredDia(val)}
+                      onPressEnter={handleDiameterCalcConfirm}
+                      className="bg-slate-800 text-slate-100 border-slate-600 focus:border-blue-500 font-mono text-xs w-full h-9"
+                    />
+                  </div>
+
+                  <div className="col-span-3 pt-5">
+                    <Button 
+                      type="primary" 
+                      className="w-full h-9 font-medium bg-blue-600 hover:bg-blue-500 border-blue-600"
+                      disabled={!activeScanRoll || !measuredDia}
+                      onClick={handleDiameterCalcConfirm}
+                    >
+                      確認並加入退料
+                    </Button>
+                  </div>
+                </div>
+
+                {activeScanRoll && (
+                  <div className="mt-4 p-3 bg-slate-800 rounded border border-slate-700 grid grid-cols-2 gap-4 text-xs font-mono">
+                    <div className="border-r border-slate-700 pr-4 space-y-1 text-slate-300">
+                      <div>🔍 <strong>選中卷卡：</strong> <span className="text-blue-400">{activeScanRoll.rollNo}</span></div>
+                      <div>📐 <strong>物理參數：</strong> 厚度 {activeScanRoll.thicknessMm}mm | 紙管 {activeScanRoll.coreDiaMm}mm</div>
+                      <div>📦 <strong>車間 WIP：</strong> {activeScanRoll.qtyAux} M ({((activeScanRoll.qtyAux * activeScanRoll.widthMm)/1000).toFixed(2)} SQM)</div>
+                    </div>
+                    
+                    <div className="flex flex-col justify-center pl-2 space-y-1">
+                      {calcResult ? (
+                        <>
+                          <div className="text-green-400 font-bold">✓ 計算退回庫存量: {calcResult.returnedLen} M ({calcResult.returnedArea} SQM)</div>
+                          <div className="text-orange-400">📊 本次製令消耗量: {calcResult.consumedLen} M ({calcResult.consumedPercent}%)</div>
+                        </>
+                      ) : (
+                        <div className="text-slate-500 italic animate-pulse">⏳ 請輸入當前直徑並按下 Enter...</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* 選擇車間現場正在 WIP 狀態的 LPN 列表 */}
             {modalFormValues.materialCode && (
