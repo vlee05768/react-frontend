@@ -116,7 +116,7 @@ export const tableColumns: TableColumnConfig[] = [
   {
     name: "status",
     label: "狀態",
-    width: 90,
+    width: 110,
     align: "center",
     render: (val) => getStatusTag(val),
   },
