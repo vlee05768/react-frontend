@@ -29,7 +29,7 @@ interface LocalPricingParams {
   laborHours: number;         // 預估生產總工時
   laborRatePerHour: number;   // 每工時人工成本
   totalFreightCost: number;   // 總運輸物流費 (整批)
-  otherCost: number;          // 其他製造雜費 (每單位)
+  totalOtherCost: number;     // 總其他製造雜費 (整批)
   marginType: "markup" | "gross"; // markup: 成本加成, gross: 毛利率
   markupRate: number;         // 預期成本加成率 %
   grossMarginRate: number;    // 預期目標毛利率 %
@@ -40,7 +40,7 @@ const DEFAULT_PARAMS: LocalPricingParams = {
   laborHours: 8,
   laborRatePerHour: 180,
   totalFreightCost: 1500,
-  otherCost: 0,
+  totalOtherCost: 500,
   marginType: "markup",
   markupRate: 20,
   grossMarginRate: 16.67
@@ -60,7 +60,7 @@ export default function ProductPricingList() {
   const [laborHours, setLaborHours] = useState<number>(8);
   const [laborRatePerHour, setLaborRatePerHour] = useState<number>(180);
   const [totalFreightCost, setTotalFreightCost] = useState<number>(1500);
-  const [otherCost, setOtherCost] = useState<number>(0);
+  const [totalOtherCost, setTotalOtherCost] = useState<number>(500);
   const [marginType, setMarginType] = useState<"markup" | "gross">("markup");
   const [markupRate, setMarkupRate] = useState<number>(20);
   const [grossMarginRate, setGrossMarginRate] = useState<number>(16.67);
@@ -165,7 +165,7 @@ export default function ProductPricingList() {
           setLaborHours(parsed.laborHours ?? 8);
           setLaborRatePerHour(parsed.laborRatePerHour ?? 180);
           setTotalFreightCost(parsed.totalFreightCost ?? 1500);
-          setOtherCost(parsed.otherCost ?? 0);
+          setTotalOtherCost(parsed.totalOtherCost ?? 500);
           setMarginType(parsed.marginType ?? "markup");
           
           const mRate = parsed.markupRate ?? 20;
@@ -181,7 +181,7 @@ export default function ProductPricingList() {
         setLaborHours(DEFAULT_PARAMS.laborHours);
         setLaborRatePerHour(DEFAULT_PARAMS.laborRatePerHour);
         setTotalFreightCost(DEFAULT_PARAMS.totalFreightCost);
-        setOtherCost(DEFAULT_PARAMS.otherCost);
+        setTotalOtherCost(DEFAULT_PARAMS.totalOtherCost);
         setMarginType(DEFAULT_PARAMS.marginType);
         setMarkupRate(DEFAULT_PARAMS.markupRate);
         setGrossMarginRate(DEFAULT_PARAMS.grossMarginRate);
@@ -239,8 +239,8 @@ export default function ProductPricingList() {
     // 3. Total Freight & Logistics Cost (Direct from state)
     const totalBatchFreightCost = totalFreightCost;
 
-    // 4. Total Other Overheads = otherCost * Quantity
-    const totalBatchOtherCost = otherCost * qty;
+    // 4. Total Other Overheads (Direct from state - converted to batch-level total)
+    const totalBatchOtherCost = totalOtherCost;
 
     // 5. Total Production Cost (Batch) = sum of all totals
     const totalBatchCost = totalBatchMaterialCost + totalBatchLaborCost + totalBatchFreightCost + totalBatchOtherCost;
@@ -248,9 +248,10 @@ export default function ProductPricingList() {
     // 6. Unit Cost
     const totalUnitCost = totalBatchCost / qty;
 
-    // 7. Calculate Unit Labor & Freight for helper hints
+    // 7. Amortized unit costs for helper hints
     const unitLaborCost = totalBatchLaborCost / qty;
     const unitFreightCost = totalBatchFreightCost / qty;
+    const unitOtherCost = totalBatchOtherCost / qty;
 
     let trialPrice = 0;
     const activeRate = marginType === "markup" ? markupRate : grossMarginRate;
@@ -274,6 +275,7 @@ export default function ProductPricingList() {
     return {
       unitLaborCost,
       unitFreightCost,
+      unitOtherCost,
       totalUnitCost,
       trialPrice: Math.max(0, trialPrice),
       priceDiff,
@@ -286,7 +288,7 @@ export default function ProductPricingList() {
       totalBatchRevenue,
       totalBatchProfit
     };
-  }, [standardMaterialCost, simulatedQty, laborHours, laborRatePerHour, totalFreightCost, otherCost, marginType, markupRate, grossMarginRate, currentUnitPrice]);
+  }, [standardMaterialCost, simulatedQty, laborHours, laborRatePerHour, totalFreightCost, totalOtherCost, marginType, markupRate, grossMarginRate, currentUnitPrice]);
 
   // Mutation to save price to DB
   const updatePriceMutation = useMutation({
@@ -309,7 +311,7 @@ export default function ProductPricingList() {
           laborHours,
           laborRatePerHour,
           totalFreightCost,
-          otherCost,
+          totalOtherCost,
           marginType,
           markupRate,
           grossMarginRate
@@ -373,7 +375,7 @@ export default function ProductPricingList() {
     setLaborHours(DEFAULT_PARAMS.laborHours);
     setLaborRatePerHour(DEFAULT_PARAMS.laborRatePerHour);
     setTotalFreightCost(DEFAULT_PARAMS.totalFreightCost);
-    setOtherCost(DEFAULT_PARAMS.otherCost);
+    setTotalOtherCost(DEFAULT_PARAMS.totalOtherCost);
     setMarginType(DEFAULT_PARAMS.marginType);
     setMarkupRate(DEFAULT_PARAMS.markupRate);
     setGrossMarginRate(DEFAULT_PARAMS.grossMarginRate);
@@ -632,22 +634,30 @@ export default function ProductPricingList() {
                             </span>
                           </Col>
 
-                          {/* 4. Other Cost */}
+                          {/* 4. Total Other Cost (Merged to batch) */}
                           <Col span={24}>
                             <Form.Item 
-                              label={<span className="text-[11px] font-semibold text-slate-500">其他製造雜費 (每單位)</span>}
-                              style={{ marginBottom: 4 }}
+                              label={<span className="text-[11px] font-semibold text-slate-500">整批總其他製造雜費</span>}
+                              tooltip="輸入這批模擬銷售數量所對應的整體其他雜費與製造耗損準備金，系統會自動按批量進行單位平攤。"
+                              style={{ marginBottom: 2 }}
                             >
                               <InputNumber
                                 style={{ width: "100%" }}
-                                value={otherCost}
-                                onChange={(val) => setOtherCost(val || 0)}
+                                value={totalOtherCost}
+                                onChange={(val) => setTotalOtherCost(val || 0)}
                                 min={0}
-                                precision={4}
-                                addonAfter="元"
+                                precision={2}
+                                addonAfter="元 (整批)"
                                 className="font-mono text-right-align-input"
                               />
                             </Form.Item>
+                          </Col>
+
+                          {/* Unit Other Cost Hint */}
+                          <Col span={24} className="text-right mb-1">
+                            <span className="text-[10px] font-mono text-slate-400 block pr-1">
+                              ↳ 單位其他雜費: {formatCurrency(calculatedResults.unitOtherCost)} / PCS
+                            </span>
                           </Col>
                         </Row>
                       </Form>
