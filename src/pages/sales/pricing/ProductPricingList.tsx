@@ -239,7 +239,7 @@ export default function ProductPricingList() {
     // 3. Total Freight & Logistics Cost (Direct from state)
     const totalBatchFreightCost = totalFreightCost;
 
-    // 4. Total Other Overheads (Direct from state - converted to batch-level total)
+    // 4. Total Other Overheads (Direct from state)
     const totalBatchOtherCost = totalOtherCost;
 
     // 5. Total Production Cost (Batch) = sum of all totals
@@ -247,11 +247,6 @@ export default function ProductPricingList() {
 
     // 6. Unit Cost
     const totalUnitCost = totalBatchCost / qty;
-
-    // 7. Amortized unit costs for helper hints
-    const unitLaborCost = totalBatchLaborCost / qty;
-    const unitFreightCost = totalBatchFreightCost / qty;
-    const unitOtherCost = totalBatchOtherCost / qty;
 
     let trialPrice = 0;
     const activeRate = marginType === "markup" ? markupRate : grossMarginRate;
@@ -273,9 +268,6 @@ export default function ProductPricingList() {
     const totalBatchProfit = (trialPrice - totalUnitCost) * qty;
 
     return {
-      unitLaborCost,
-      unitFreightCost,
-      unitOtherCost,
       totalUnitCost,
       trialPrice: Math.max(0, trialPrice),
       priceDiff,
@@ -470,8 +462,8 @@ export default function ProductPricingList() {
               {pricingBase ? (
                 <Row gutter={[8, 8]}>
                   
-                  {/* Column 1: Base Data (Product Info & BOM list) */}
-                  <Col xs={24} lg={8} className="space-y-2 text-left">
+                  {/* Column 1: Base Data (Product Info & BOM list) - Widened to lg={10} */}
+                  <Col xs={24} lg={10} className="space-y-2 text-left">
                     
                     {/* A. Product Info Card */}
                     <Card size="small" className={`shadow-sm ${isDarkMode ? "bg-slate-900 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
@@ -492,7 +484,7 @@ export default function ProductPricingList() {
                       </Descriptions>
                     </Card>
 
-                    {/* A2. BOM Material List Card (Highly compact scroll window) */}
+                    {/* A2. BOM Material List Card (Highly compact scroll window - added width column) */}
                     {bomData && bomData.items && bomData.items.length > 0 && (
                       <Card 
                         size="small" 
@@ -506,26 +498,38 @@ export default function ProductPricingList() {
                               title: "原料編號",
                               dataIndex: "materialCode",
                               key: "materialCode",
+                              width: "20%",
                               render: (val: string) => <span className="font-mono text-[11px] font-semibold text-slate-700 dark:text-slate-300">{val}</span>
                             },
                             {
                               title: "原料名稱",
                               dataIndex: "materialName",
                               key: "materialName",
+                              width: "25%",
                               ellipsis: true,
                               render: (val: string) => <span className="text-[11px] text-slate-700 dark:text-slate-300">{val}</span>
+                            },
+                            {
+                              title: "幅寬(mm)",
+                              dataIndex: "width",
+                              key: "width",
+                              align: "right" as const,
+                              width: "15%",
+                              render: (val: number) => <span className="font-mono text-[11px]">{val != null ? val : "-"}</span>
                             },
                             {
                               title: "單位用量",
                               dataIndex: "quantity",
                               key: "quantity",
                               align: "right" as const,
+                              width: "20%",
                               render: (val: number) => <span className="font-mono text-[11px]">{val != null ? Number(val.toFixed(4)).toLocaleString() : "-"}</span>
                             },
                             {
                               title: "整批需求",
                               key: "totalRequired",
                               align: "right" as const,
+                              width: "20%",
                               render: (_: any, record: any) => {
                                 const totalReq = (record.quantity || 0) * simulatedQty;
                                 return <span className="font-mono text-[11px] font-bold text-blue-600 dark:text-blue-400">{Number(totalReq.toFixed(4)).toLocaleString()}</span>;
@@ -542,8 +546,8 @@ export default function ProductPricingList() {
                     )}
                   </Col>
 
-                  {/* Column 2: Simulation Parameters Inputs */}
-                  <Col xs={24} lg={8} className="space-y-2 text-left">
+                  {/* Column 2: Simulation Parameters Inputs - Tightened to lg={7} and removed unit cost subtexts */}
+                  <Col xs={24} lg={7} className="space-y-2 text-left">
                     
                     {/* B. Manual Fee Parameters Inputs */}
                     <Card size="small" title={<span className="font-bold text-slate-800 dark:text-slate-200 text-xs">輸入模擬與費用參數</span>} className="shadow-sm">
@@ -572,7 +576,7 @@ export default function ProductPricingList() {
                           <Col span={12}>
                             <Form.Item 
                               label={<span className="text-[11px] font-semibold text-slate-500">預估總工時</span>}
-                              style={{ marginBottom: 2 }}
+                              style={{ marginBottom: 4 }}
                             >
                               <InputNumber
                                 style={{ width: "100%" }}
@@ -588,7 +592,7 @@ export default function ProductPricingList() {
                           <Col span={12}>
                             <Form.Item 
                               label={<span className="text-[11px] font-semibold text-slate-500">每工時工資</span>}
-                              style={{ marginBottom: 2 }}
+                              style={{ marginBottom: 4 }}
                             >
                               <InputNumber
                                 style={{ width: "100%" }}
@@ -601,19 +605,12 @@ export default function ProductPricingList() {
                               />
                             </Form.Item>
                           </Col>
-                          
-                          {/* Unit Labor Cost Hint */}
-                          <Col span={24} className="text-right mb-1">
-                            <span className="text-[10px] font-mono text-slate-400 block pr-1">
-                              ↳ 單位人工費: {formatCurrency(calculatedResults.unitLaborCost)} / PCS
-                            </span>
-                          </Col>
 
                           {/* 3. Merged Freight */}
                           <Col span={24}>
                             <Form.Item 
                               label={<span className="text-[11px] font-semibold text-slate-500">整批總運輸物流費</span>}
-                              style={{ marginBottom: 2 }}
+                              style={{ marginBottom: 4 }}
                             >
                               <InputNumber
                                 style={{ width: "100%" }}
@@ -627,19 +624,12 @@ export default function ProductPricingList() {
                             </Form.Item>
                           </Col>
 
-                          {/* Unit Freight Hint */}
-                          <Col span={24} className="text-right mb-1">
-                            <span className="text-[10px] font-mono text-slate-400 block pr-1">
-                              ↳ 單位物流費: {formatCurrency(calculatedResults.unitFreightCost)} / PCS
-                            </span>
-                          </Col>
-
                           {/* 4. Total Other Cost (Merged to batch) */}
                           <Col span={24}>
                             <Form.Item 
                               label={<span className="text-[11px] font-semibold text-slate-500">整批總其他製造雜費</span>}
                               tooltip="輸入這批模擬銷售數量所對應的整體其他雜費與製造耗損準備金，系統會自動按批量進行單位平攤。"
-                              style={{ marginBottom: 2 }}
+                              style={{ marginBottom: 4 }}
                             >
                               <InputNumber
                                 style={{ width: "100%" }}
@@ -647,17 +637,10 @@ export default function ProductPricingList() {
                                 onChange={(val) => setTotalOtherCost(val || 0)}
                                 min={0}
                                 precision={2}
-                                addonAfter="元 (整批)"
+                                addonAfter="元"
                                 className="font-mono text-right-align-input"
                               />
                             </Form.Item>
-                          </Col>
-
-                          {/* Unit Other Cost Hint */}
-                          <Col span={24} className="text-right mb-1">
-                            <span className="text-[10px] font-mono text-slate-400 block pr-1">
-                              ↳ 單位其他雜費: {formatCurrency(calculatedResults.unitOtherCost)} / PCS
-                            </span>
                           </Col>
                         </Row>
                       </Form>
@@ -735,8 +718,8 @@ export default function ProductPricingList() {
                     </Card>
                   </Col>
 
-                  {/* Column 3: Output Results Display & Save Actions */}
-                  <Col xs={24} lg={8} className="space-y-2 text-left">
+                  {/* Column 3: Output Results Display & Save Actions - Tightened to lg={7} */}
+                  <Col xs={24} lg={7} className="space-y-2 text-left">
                     
                     {/* D. Output Results Display Card */}
                     <Card 
