@@ -355,7 +355,7 @@ export default function MaterialList() {
       </Modal>
 
       <Drawer
-        styles={{ body: { padding: 0 } }}
+        styles={{ body: { padding: 0, overflow: 'hidden' } }}
         title={
           <DrawerTitle
             moduleName="原料管理"
@@ -402,6 +402,7 @@ export default function MaterialList() {
           />
           <div className="p-6">
             <MasterDetailTabs
+              heightOffset={160}
               activeTab={activeTab}
               onTabChange={setActiveTab}
               isCreateMode={isCreateDrawerOpen}
