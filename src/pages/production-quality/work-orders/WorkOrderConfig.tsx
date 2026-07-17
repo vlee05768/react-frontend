@@ -742,13 +742,6 @@ export const itemColumns: TableColumnConfig[] = [
     align: "left",
     ellipsis: true,
   },
-  {
-    name: "lotNumber",
-    label: "批號",
-    width: 150,
-    align: "left",
-    ellipsis: true,
-  },
 ];
 
 export const itemFormConfig: FormFieldConfig<WorkOrderMaterialDto>[] = [
@@ -888,21 +881,28 @@ export const returnHeaderFormConfig = (): FormFieldConfig<any>[] => [
     name: "documentDate",
     label: "單據日期",
     componentType: "DatePicker",
-    colSpan: 1,
+    colSpan: 2,
     editable: "always",
     validation: z.any().refine(val => !!val, { message: "單據日期為必填" }),
   },
   {
-    name: "notes",
-    label: "退料原因 / 備註",
-    componentType: "Input",
+    name: "totalRemainingMaterialCost",
+    label: "餘料總成本",
+    componentType: "InputNumber",
     colSpan: 2,
+    editable: "never",
+  },
+  {
+    name: "notes",
+    label: "備註",
+    componentType: "TextArea",
+    colSpan: 1,
     editable: "always",
     validation: z.string().optional().nullable(),
-  }
+  },
 ];
 
-export const returnItemFormConfig = (materials: any[]): FormFieldConfig<any>[] => [
+export const returnItemFormConfig = (materials: any[], onMaterialChange?: (val: string, setValue: any) => void): FormFieldConfig<any>[] => [
   {
     name: "materialCode",
     label: "原料料號",
@@ -913,16 +913,17 @@ export const returnItemFormConfig = (materials: any[]): FormFieldConfig<any>[] =
     colSpan: 1,
     editable: "always",
     validation: z.string().min(1, "必填"),
+    onChange: (val, _context, setValue) => {
+      if (onMaterialChange) {
+        onMaterialChange(val, setValue);
+      }
+    }
   },
   {
     name: "targetStorageCode",
     label: "退回目的儲位",
-    componentType: "Select",
-    componentProps: {
-      options: [
-        { label: "原料主倉 (TW-MAT-GEN)", value: "TW-MAT-GEN" }
-      ]
-    },
+    componentType: "AsyncSelect",
+    componentProps: { configKey: "STORAGE" },
     colSpan: 1,
     editable: "always",
     validation: z.string().min(1, "必填"),

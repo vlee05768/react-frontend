@@ -177,7 +177,7 @@ export function WorkOrderRequisitionTab({
               unit: "PCS",
               quantity: accumulated,
               referenceQuantity1: parseFloat(totalArea.toFixed(4)),
-              sourceStorageCode: "TW-MAT-GEN",
+              sourceStorageCode: stockLines[0]?.storageCode || "",
               extra: selectedSpecs,
             });
           }
@@ -258,7 +258,7 @@ export function WorkOrderRequisitionTab({
           unit: it.unit,
           quantity: it.quantity,
           referenceQuantity1: it.referenceQuantity1,
-          sourceStorageCode: it.sourceStorageCode || "TW-MAT-GEN",
+          sourceStorageCode: it.sourceStorageCode || "",
           notes: it.notes || "",
           extra,
         };
@@ -384,7 +384,7 @@ export function WorkOrderRequisitionTab({
     setEditingItemIndex(null);
     setModalFormValues({
       materialCode: "",
-      sourceStorageCode: "TW-MAT-GEN",
+      sourceStorageCode: "",
       quantity: 0,
       referenceQuantity1: 0,
       bomRequiredWidth: 0,
@@ -499,7 +499,7 @@ export function WorkOrderRequisitionTab({
         matched?.materialForm === "R" ||
         (matched?.materialCode || "").startsWith("R-")
           ? null
-          : "TW-MAT-GEN",
+          : modalFormValues.sourceStorageCode,
       extra: mappedExtra,
     };
 

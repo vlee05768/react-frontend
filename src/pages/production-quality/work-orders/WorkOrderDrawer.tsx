@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Space, Button, App, Drawer, Spin, Empty } from "antd";
+import { Space, Button, App, Drawer, Spin, Empty, Tooltip } from "antd";
 import { CheckCircleOutlined, SyncOutlined, LockOutlined } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
@@ -210,7 +210,8 @@ export function WorkOrderDrawer({
   // Status transitions
   const useStatusMutation = (
     mutationFn: (args: any) => Promise<any>,
-    successMessage: string
+    successMessage: string,
+    onSuccessCallback?: () => void
   ) => useMutation({
     mutationFn,
     onSuccess: () => {
@@ -219,6 +220,9 @@ export function WorkOrderDrawer({
       queryClient.invalidateQueries({ queryKey: ["workorders"] });
       queryClient.invalidateQueries({ queryKey: ["requisitions", id] });
       queryClient.invalidateQueries({ queryKey: ["requisition"] });
+      if (onSuccessCallback) {
+        onSuccessCallback();
+      }
     },
     onError: (error) => {
       modal.error({ title: "作業失敗", content: getApiErrorMessage(error), centered: true });
@@ -258,7 +262,10 @@ export function WorkOrderDrawer({
   );
   const warehousingCancelMut = useStatusMutation(
     () => postApiV1WorkOrderByWorkOrderNumberWarehousingCompleteCancel({ path: { workOrderNumber: id! } }),
-    "取消入庫完成成功"
+    "取消入庫完成成功",
+    () => {
+      window.location.reload();
+    }
   );
 
   
@@ -427,28 +434,30 @@ export function WorkOrderDrawer({
         )}
 
         {isWarehousingCompleted && (
-          <>
-            <ActionButton 
-              key="cancel-warehousing"
-              intent="warning" 
-              icon={<SyncOutlined />} 
-              disabled={isDetailEditing}
-              onClick={(e) => { e.preventDefault(); modal.confirm({
-                title: '取消入庫完成',
-                content: '確定要取消入庫完成確認嗎？取消後將回到生產完成狀態。',
-                centered: true, width: 400,
-                onOk: async () => {
-                  try {
-                    await warehousingCancelMut.mutateAsync({});
-                  } catch (e) {
-                    // Error is already shown by mutation onError
-                  }
-                },
-              })}}
-            >
-              取消入庫完成
-            </ActionButton>
-          </>
+          <Tooltip title={record?.latestReturnDate ? "該製令單已有確認過帳的車間退料記錄，不可再取消入庫完成！" : ""}>
+            <span>
+              <ActionButton 
+                key="cancel-warehousing"
+                intent="warning" 
+                icon={<SyncOutlined />} 
+                disabled={isDetailEditing || !!record?.latestReturnDate}
+                onClick={(e) => { e.preventDefault(); modal.confirm({
+                  title: '取消入庫完成',
+                  content: '確定要取消入庫完成確認嗎？取消後將回到生產完成狀態。',
+                  centered: true, width: 400,
+                  onOk: async () => {
+                    try {
+                      await warehousingCancelMut.mutateAsync({});
+                    } catch (e) {
+                      // Error is already shown by mutation onError
+                    }
+                  },
+                })}}
+              >
+                取消入庫完成
+              </ActionButton>
+            </span>
+          </Tooltip>
         )}
       </Space>
     );
@@ -626,6 +635,7 @@ export function WorkOrderDrawer({
             {
               key: "returns",
               label: "製令退料記錄",
+              disabled: record?.status !== 'WarehousingCompleted',
               children: record ? (
                 <WorkOrderReturnTab masterData={record} />
               ) : <Empty description="請先儲存製令主檔" />

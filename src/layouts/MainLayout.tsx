@@ -248,12 +248,12 @@ export default function MainLayout() {
                 if (idx !== -1) {
                   children.splice(idx + 1, 0, {
                     key: '/warehouse/material-inventory',
-                    label: '原料 LPN 卷卡追溯',
+                    label: '原料庫存與卷卡號追溯',
                   });
                 } else {
                   children.push({
                     key: '/warehouse/material-inventory',
-                    label: '原料 LPN 卷卡追溯',
+                    label: '原料庫存與卷卡號追溯',
                   });
                 }
               }

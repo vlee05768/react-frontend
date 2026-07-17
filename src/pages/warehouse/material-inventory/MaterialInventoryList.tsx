@@ -1,13 +1,14 @@
 import { useState, useMemo } from 'react';
-import { Tabs, Button, Space, Form, Input, Select } from 'antd';
-import { SyncOutlined, SearchOutlined, ClearOutlined } from '@ant-design/icons';
+import { Tabs, Button, Space, Form, Input, Select, App } from 'antd';
+import { SyncOutlined, SearchOutlined, ClearOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { PageCard } from '@/components/common/PageCard';
 import { useQuery } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { 
   getApiV1MaterialInventoryLogical, 
   getApiV1MaterialInventoryRolls, 
-  getApiV1MaterialInventoryTransactions 
+  getApiV1MaterialInventoryTransactions,
+  postApiV1MaterialInventoryRollScrap
 } from '@/api/generated/sdk.gen';
 import { 
   getLogicalColumns, 
@@ -21,6 +22,7 @@ import { DictSelect } from '@/components/Form/DictSelect';
 import { buildTableColumns } from '@/utils/tableUtils';
 
 export default function MaterialInventoryList() {
+  const { modal, message } = App.useApp();
   const [activeTab, setActiveTab] = useState<string>('1');
 
   // ============================================================================
@@ -81,17 +83,20 @@ export default function MaterialInventoryList() {
       g.quantity += item.quantity || 0;
       g.frozenQuantity += item.frozenQuantity || 0;
       
-      // 計算長度
+      // 計算長度 (可用長度與凍結長度)
       let itemLength = item.lengthMm || 0;
+      let itemFrozenLength = item.lengthMm || 0;
       if (item.materialForm === "R" && (item.widthMm || 0) > 0) {
         itemLength = ((item.quantity || 0) * 1000) / item.widthMm; // SQM to M
+        itemFrozenLength = ((item.frozenQuantity || 0) * 1000) / item.widthMm; // SQM to M
       }
       
       g.storages.push({
         storageCode: item.storageCode,
         quantity: item.quantity || 0,
         frozenQuantity: item.frozenQuantity || 0,
-        length: itemLength
+        length: itemLength,
+        frozenLength: itemFrozenLength
       });
     });
     
@@ -289,6 +294,52 @@ export default function MaterialInventoryList() {
     });
   };
 
+  // 🌀 手動報廢/作廢實體卷卡
+  const handleScrapRoll = (record: any) => {
+    let scrapNotes = "";
+    modal.confirm({
+      title: "確定要報廢此原料卷卡嗎？",
+      icon: <ExclamationCircleOutlined className="text-red-500" />,
+      content: (
+        <div className="mt-2 space-y-2">
+          <p className="text-sm text-slate-500">卷卡號 (LPN): <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{record.rollNo}</span></p>
+          <p className="text-sm text-slate-500">剩餘數量/長度: <span className="font-semibold text-slate-800 dark:text-slate-200">{record.currentQtyAux} M</span></p>
+          <p className="text-sm text-red-500 font-semibold">⚠️ 警告：報廢後將自動扣除此卷卡在該儲位的可用/凍結邏輯庫存，且此操作不可逆！</p>
+          <div className="pt-2">
+            <span className="text-sm text-slate-600 block mb-1">報廢備註：</span>
+            <Input 
+              placeholder="請輸入報廢原因或批註 (選填)" 
+              onChange={(e) => { scrapNotes = e.target.value; }} 
+            />
+          </div>
+        </div>
+      ),
+      okText: "確認報廢",
+      okType: "danger",
+      cancelText: "取消",
+      onOk: async () => {
+        try {
+          const res = await postApiV1MaterialInventoryRollScrap({
+            query: {
+              rollNo: record.rollNo,
+              notes: scrapNotes
+            }
+          });
+          if (res.data?.success) {
+            message.success("卷卡報廢成功！已自動重算同步對應規格之邏輯儲位庫存。");
+            refetchLogical();
+            refetchRolls();
+            refetchTx();
+          } else {
+            message.error(res.data?.message || "報廢失敗");
+          }
+        } catch (err: any) {
+          message.error(err.message || "報廢失敗，請聯絡系統管理員");
+        }
+      }
+    });
+  };
+
   // ============================================================================
   // Tab 切換與更新
   // ============================================================================
@@ -300,15 +351,15 @@ export default function MaterialInventoryList() {
 
   const isFetchingActiveTab = logicalLoading || rollLoading || txLoading;
 
-  // 實體卷卡列表 Columns 注入母卷追溯事件
-  const rollColumns = useMemo(() => buildTableColumns(getRollColumns(handleSelectParentBarcode)), []);
+  // 實體卷卡列表 Columns 注入母卷追溯事件與手動報廢事件
+  const rollColumns = useMemo(() => buildTableColumns(getRollColumns(handleSelectParentBarcode, handleScrapRoll)), [handleSelectParentBarcode]);
   const logicalColumns = useMemo(() => buildTableColumns(getLogicalColumns()), []);
   const txColumns = useMemo(() => buildTableColumns(getTxColumns()), []);
 
   return (
     <div className="p-4 pb-0 flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
       <PageCard
-        title="原料庫存與 WIP 卷卡追溯"
+        title="原料庫存與卷卡號追溯"
         extra={
           <Button 
             icon={<SyncOutlined />} 
@@ -336,7 +387,7 @@ export default function MaterialInventoryList() {
             items={[
               {
                 key: '1',
-                label: '邏輯總量庫存',
+                label: '原料邏輯庫存總量',
                 children: (
                   <div className="flex-1 flex flex-col overflow-hidden">
                     {/* Tab 1 Form */}
@@ -391,7 +442,7 @@ export default function MaterialInventoryList() {
               },
               {
                 key: '2',
-                label: '一卷一卡 LPN WIP 追溯',
+                label: '原料卷卡號',
                 children: (
                   <div className="flex-1 flex flex-col overflow-hidden">
                     {/* Tab 2 Form */}

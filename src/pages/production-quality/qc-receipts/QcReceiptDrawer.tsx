@@ -41,6 +41,8 @@ export default function QcReceiptDrawer() {
   const hasAutoSwitchedRef = useRef(false);
 
   useEffect(() => {
+    setIsEditing(id === 'create');
+    setActiveTab('master_info');
     hasAutoSwitchedRef.current = false;
   }, [id]);
 

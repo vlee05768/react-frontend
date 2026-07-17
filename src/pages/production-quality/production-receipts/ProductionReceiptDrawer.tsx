@@ -40,6 +40,8 @@ export default function ProductionReceiptDrawer() {
   const hasAutoSwitchedRef = useRef(false);
 
   useEffect(() => {
+    setIsEditing(id === 'create');
+    setActiveTab('master_info');
     hasAutoSwitchedRef.current = false;
   }, [id]);
 

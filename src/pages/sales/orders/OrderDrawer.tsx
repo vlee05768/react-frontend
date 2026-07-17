@@ -55,6 +55,8 @@ export default function OrderDrawer() {
   const hasAutoSwitchedRef = useRef(false);
 
   useEffect(() => {
+    setIsEditing(id === 'create');
+    setActiveTab('master_info');
     hasAutoSwitchedRef.current = false;
   }, [id]);
   

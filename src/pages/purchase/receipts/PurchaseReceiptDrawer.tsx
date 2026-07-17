@@ -55,6 +55,8 @@ export default function PurchaseReceiptDrawer() {
   const hasAutoSwitchedRef = useRef(false);
 
   useEffect(() => {
+    setIsEditing(id === 'create');
+    setActiveTab('master_info');
     hasAutoSwitchedRef.current = false;
   }, [id]);
   

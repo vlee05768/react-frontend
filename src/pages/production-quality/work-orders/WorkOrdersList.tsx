@@ -59,6 +59,7 @@ export const WorkOrdersList: React.FC = () => {
           WorkOrderDate: searchParams.workOrderDate || undefined,
           ProductionDate: searchParams.productionDate || undefined,
           Status: searchParams.status || undefined,
+          ReturnStatus: searchParams.returnStatus || undefined,
           Others: searchParams.others || undefined,
           pageNumber: pagination.page,
           pageSize: pagination.pageSize,

@@ -6704,6 +6704,10 @@ export type ResetPasswordDto = {
  */
 export type ReturnRollDetailDto = {
     /**
+     * 原物料代碼
+     */
+    materialCode?: string | null;
+    /**
      * 實物卷號/LPN
      */
     rollNo?: string | null;
@@ -6727,6 +6731,26 @@ export type ReturnRollDetailDto = {
      * 原始到貨長度 (M)
      */
     originalQtyAux?: number;
+    /**
+     * 領料時現場剩餘長度 (M)
+     */
+    wipQtyAux?: number | null;
+    /**
+     * 每平方米成本
+     */
+    costPerSqm?: number;
+    /**
+     * 餘料成本
+     */
+    remainingMaterialCost?: number;
+    /**
+     * 儲位編號
+     */
+    storageCode?: string | null;
+    /**
+     * 實測外徑 (mm)
+     */
+    measuredDiaMm?: number | null;
 };
 
 export type ReturnRollDetailDtoListApiResponse = {
@@ -9327,22 +9351,6 @@ export type UserDtoPagedResultApiResponse = {
  */
 export type WorkOrderDto = {
     /**
-     * 車間現場仍滯留(WIP 狀態)的原料卷卡數
-     */
-    pendingWipRollsCount: number;
-    /**
-     * 車間退料追蹤狀態 (None:無需退料, Pending:待清退, Cleared:已清退)
-     */
-    returnStatus: string | null;
-    /**
-     * 最近一次退料確認的時間
-     */
-    latestReturnDate?: string | null;
-    /**
-     * 最近一次退料確認的人員
-     */
-    latestReturnUser?: string | null;
-    /**
      * 建立者ID
      */
     createdById?: number | null;
@@ -9527,6 +9535,22 @@ export type WorkOrderDto = {
      */
     warehousingCompleteUser?: string | null;
     /**
+     * 車間現場仍滯留(WIP 狀態)的原料卷卡數
+     */
+    pendingWipRollsCount?: number;
+    /**
+     * 車間退料追蹤狀態 (None:無需退料, Pending:待清退, Cleared:已清退)
+     */
+    returnStatus?: string | null;
+    /**
+     * 最近一次退料確認的時間
+     */
+    latestReturnDate?: string | null;
+    /**
+     * 最近一次退料確認的人員
+     */
+    latestReturnUser?: string | null;
+    /**
      * 入庫單號
      */
     referenceNumber?: string | null;
@@ -9654,10 +9678,6 @@ export type WorkOrderMaterialDto = {
      * 儲位編號
      */
     storageCode?: string | null;
-    /**
-     * 批號
-     */
-    lotNumber?: string | null;
 };
 
 export type WorkOrderMaterialDtoApiResponse = {
@@ -9879,6 +9899,10 @@ export type WorkOrderReturnDto = {
      */
     updatedBy?: string | null;
     /**
+     * 餘料總成本
+     */
+    totalRemainingMaterialCost?: number;
+    /**
      * 退料明細項目
      */
     items?: Array<WorkOrderReturnItemDto> | null;
@@ -9948,6 +9972,10 @@ export type WorkOrderReturnItemDto = {
      * 萬用 JSONB 封裝資料 (Rolls 退回清單)
      */
     extraDataJson?: string | null;
+    /**
+     * 餘料成本
+     */
+    remainingMaterialCost?: number;
 };
 
 /**
@@ -12121,6 +12149,22 @@ export type WorkOrderDtoWritable = {
      */
     warehousingCompleteUser?: string | null;
     /**
+     * 車間現場仍滯留(WIP 狀態)的原料卷卡數
+     */
+    pendingWipRollsCount?: number;
+    /**
+     * 車間退料追蹤狀態 (None:無需退料, Pending:待清退, Cleared:已清退)
+     */
+    returnStatus?: string | null;
+    /**
+     * 最近一次退料確認的時間
+     */
+    latestReturnDate?: string | null;
+    /**
+     * 最近一次退料確認的人員
+     */
+    latestReturnUser?: string | null;
+    /**
      * 入庫單號
      */
     referenceNumber?: string | null;
@@ -12244,10 +12288,6 @@ export type WorkOrderMaterialDtoWritable = {
      * 儲位編號
      */
     storageCode?: string | null;
-    /**
-     * 批號
-     */
-    lotNumber?: string | null;
 };
 
 export type WorkOrderMaterialDtoApiResponseWritable = {
@@ -15549,6 +15589,25 @@ export type GetApiV1MaterialInventoryTransactionsResponses = {
 };
 
 export type GetApiV1MaterialInventoryTransactionsResponse = GetApiV1MaterialInventoryTransactionsResponses[keyof GetApiV1MaterialInventoryTransactionsResponses];
+
+export type PostApiV1MaterialInventoryRollScrapData = {
+    body?: never;
+    path?: never;
+    query?: {
+        rollNo?: string;
+        notes?: string;
+    };
+    url: '/api/v1/MaterialInventory/roll/scrap';
+};
+
+export type PostApiV1MaterialInventoryRollScrapResponses = {
+    /**
+     * OK
+     */
+    200: BooleanApiResponse;
+};
+
+export type PostApiV1MaterialInventoryRollScrapResponse = PostApiV1MaterialInventoryRollScrapResponses[keyof PostApiV1MaterialInventoryRollScrapResponses];
 
 export type GetApiV1MaterialSuppliersData = {
     body?: never;
@@ -20042,6 +20101,42 @@ export type PostApiV1SystemMaintenanceSyncSequenceRulesResponses = {
     200: unknown;
 };
 
+export type PostApiV1SystemMaintenanceRebuildMaterialInventoryData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * 特定原料品編 (選填，若為空則執行全量重算重建)
+         */
+        materialCode?: string;
+    };
+    url: '/api/v1/SystemMaintenance/rebuild-material-inventory';
+};
+
+export type PostApiV1SystemMaintenanceRebuildMaterialInventoryErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ProblemDetails;
+    /**
+     * Forbidden
+     */
+    403: ProblemDetails;
+    /**
+     * Internal Server Error
+     */
+    500: unknown;
+};
+
+export type PostApiV1SystemMaintenanceRebuildMaterialInventoryError = PostApiV1SystemMaintenanceRebuildMaterialInventoryErrors[keyof PostApiV1SystemMaintenanceRebuildMaterialInventoryErrors];
+
+export type PostApiV1SystemMaintenanceRebuildMaterialInventoryResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
 export type GetApiV1ToolingSuppliersData = {
     body?: never;
     path?: never;
@@ -20330,6 +20425,10 @@ export type GetApiV1WorkOrderData = {
          * 製令狀態
          */
         Status?: string;
+        /**
+         * 車間退料狀態
+         */
+        ReturnStatus?: string;
         /**
          * 其他搜尋條件
          */
