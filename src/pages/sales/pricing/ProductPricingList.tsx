@@ -604,6 +604,7 @@ export default function ProductPricingList() {
                                 precision={0}
                                 addonAfter="PCS"
                                 className="font-mono text-right-align-input"
+                                onFocus={(e) => e.target.select()}
                               />
                             </Form.Item>
                           </Col>
@@ -622,6 +623,7 @@ export default function ProductPricingList() {
                                 precision={2}
                                 addonAfter="H"
                                 className="font-mono text-right-align-input"
+                                onFocus={(e) => e.target.select()}
                               />
                             </Form.Item>
                           </Col>
@@ -638,6 +640,7 @@ export default function ProductPricingList() {
                                 precision={2}
                                 addonAfter="元"
                                 className="font-mono text-right-align-input"
+                                onFocus={(e) => e.target.select()}
                               />
                             </Form.Item>
                           </Col>
@@ -656,6 +659,7 @@ export default function ProductPricingList() {
                                 precision={2}
                                 addonAfter="元"
                                 className="font-mono text-right-align-input"
+                                onFocus={(e) => e.target.select()}
                               />
                             </Form.Item>
                           </Col>
@@ -675,6 +679,7 @@ export default function ProductPricingList() {
                                 precision={2}
                                 addonAfter="元"
                                 className="font-mono text-right-align-input"
+                                onFocus={(e) => e.target.select()}
                               />
                             </Form.Item>
                           </Col>
@@ -726,6 +731,7 @@ export default function ProductPricingList() {
                                 precision={2}
                                 addonAfter="%"
                                 className={`font-mono text-right-align-input ${marginType !== "markup" ? "bg-slate-100 text-slate-400" : ""}`}
+                                onFocus={(e) => e.target.select()}
                               />
                             </Form.Item>
                           </Col>
@@ -746,6 +752,7 @@ export default function ProductPricingList() {
                                 precision={2}
                                 addonAfter="%"
                                 className={`font-mono text-right-align-input ${marginType !== "gross" ? "bg-slate-100 text-slate-400" : ""}`}
+                                onFocus={(e) => e.target.select()}
                               />
                             </Form.Item>
                           </Col>
