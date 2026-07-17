@@ -4,7 +4,7 @@ import {
   App, Empty, Form, Row, Col, Select, Descriptions, Table
 } from "antd";
 import { 
-  SyncOutlined, CheckCircleOutlined, InfoCircleOutlined 
+  SyncOutlined, CheckCircleOutlined 
 } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageCard } from "@/components/common/PageCard";
@@ -15,7 +15,7 @@ import { useThemeStore } from "@/stores/useThemeStore";
 import { AutoCompleteField } from "@/components/Form/AutoComplete";
 import { BusinessPartnerRoleTypes } from "@/constants";
 
-const { Paragraph, Text } = Typography;
+const { Text } = Typography;
 
 // Helper function to safely format numbers as TWD currency
 const formatCurrency = (val: any) => {
@@ -386,7 +386,7 @@ export default function ProductPricingList() {
   };
 
   return (
-    <div className="p-3 flex flex-col h-full" style={{ minHeight: "calc(100vh - 64px)" }}>
+    <div className="p-2 flex flex-col h-full overflow-y-auto" style={{ minHeight: "calc(100vh - 64px)" }}>
       <PageCard
         title="產品銷售輔助定價管理"
         extra={
@@ -404,8 +404,8 @@ export default function ProductPricingList() {
         }
       >
         {/* Step-by-Step Search Bar Flow */}
-        <div className="mb-2.5 bg-slate-50 dark:bg-slate-900 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800">
-          <Row gutter={[12, 8]} align="middle">
+        <div className="mb-2 bg-slate-50 dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-800">
+          <Row gutter={[8, 8]} align="middle">
             {/* 1. Customer Autocomplete */}
             <Col xs={24} md={11} className="text-left">
               <div className="flex flex-col space-y-1">
@@ -461,39 +461,40 @@ export default function ProductPricingList() {
           </Row>
         </div>
 
-        {/* Pricing Workspace Area */}
-        <div className="flex-1 min-h-[450px]">
+        {/* Pricing Workspace Area (Symmetric 3-Column Layout: Fits completely on any screen!) */}
+        <div className="flex-1">
           {selectedProductCode && bomData ? (
             <Spin spinning={isPricingBaseLoading || isBomLoading} tip="產品資料重算中...">
               {pricingBase ? (
-                <Row gutter={[12, 12]}>
-                  {/* Left Column: Cost Input Parameters & Methods */}
-                  <Col xs={24} lg={15} className="space-y-2 text-left">
+                <Row gutter={[8, 8]}>
+                  
+                  {/* Column 1: Base Data (Product Info & BOM list) */}
+                  <Col xs={24} lg={8} className="space-y-2 text-left">
                     
                     {/* A. Product Info Card */}
                     <Card size="small" className={`shadow-sm ${isDarkMode ? "bg-slate-900 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
                       <DescriptionsTitle title="成品基礎資訊 (BOM 動態滾算)" />
-                      <Descriptions size="small" column={{ xs: 1, sm: 2 }} className="mt-1 font-semibold">
-                        <Descriptions.Item label={<span className="text-slate-400">成品品號</span>}>
-                          <span className="font-mono font-bold text-slate-800 dark:text-slate-100">{pricingBase.productCode}</span>
+                      <Descriptions size="small" column={1} className="mt-1 font-semibold compact-descriptions">
+                        <Descriptions.Item label={<span className="text-slate-400 text-xs">成品品號</span>}>
+                          <span className="font-mono font-bold text-xs text-slate-800 dark:text-slate-100">{pricingBase.productCode}</span>
                         </Descriptions.Item>
-                        <Descriptions.Item label={<span className="text-slate-400">成品名稱</span>}>
-                          <span className="text-slate-800 dark:text-slate-100">{pricingBase.productName}</span>
+                        <Descriptions.Item label={<span className="text-slate-400 text-xs">成品名稱</span>}>
+                          <span className="text-xs text-slate-800 dark:text-slate-100 ellipsis-line">{pricingBase.productName}</span>
                         </Descriptions.Item>
-                        <Descriptions.Item label={<span className="text-slate-400">目前銷售單價</span>}>
-                          <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{formatCurrency(currentUnitPrice)}</span>
+                        <Descriptions.Item label={<span className="text-slate-400 text-xs">目前單價</span>}>
+                          <span className="font-mono font-bold text-xs text-slate-700 dark:text-slate-300">{formatCurrency(currentUnitPrice)}</span>
                         </Descriptions.Item>
-                        <Descriptions.Item label={<span className="text-slate-400">BOM 標準材料成本 (單位)</span>}>
-                          <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{formatCurrency(standardMaterialCost)}</span>
+                        <Descriptions.Item label={<span className="text-slate-400 text-xs">材料成本</span>}>
+                          <span className="font-mono font-bold text-xs text-blue-600 dark:text-blue-400">{formatCurrency(standardMaterialCost)}</span>
                         </Descriptions.Item>
                       </Descriptions>
                     </Card>
 
-                    {/* A2. BOM Material List Card (Highly compact density) */}
+                    {/* A2. BOM Material List Card (Highly compact scroll window) */}
                     {bomData && bomData.items && bomData.items.length > 0 && (
                       <Card 
                         size="small" 
-                        title={<span className="font-bold text-slate-800 dark:text-slate-200 text-xs">BOM 結構用料與整批需求用量清單</span>} 
+                        title={<span className="font-bold text-slate-800 dark:text-slate-200 text-xs">BOM 用料與整批需求用量清單</span>} 
                         className="shadow-sm"
                       >
                         <Table
@@ -503,55 +504,54 @@ export default function ProductPricingList() {
                               title: "原料編號",
                               dataIndex: "materialCode",
                               key: "materialCode",
-                              width: "25%",
-                              render: (val: string) => <span className="font-mono text-xs font-semibold text-slate-700 dark:text-slate-300">{val}</span>
+                              render: (val: string) => <span className="font-mono text-[11px] font-semibold text-slate-700 dark:text-slate-300">{val}</span>
                             },
                             {
                               title: "原料名稱",
                               dataIndex: "materialName",
                               key: "materialName",
-                              width: "35%",
                               ellipsis: true,
-                              render: (val: string) => <span className="text-xs text-slate-700 dark:text-slate-300">{val}</span>
+                              render: (val: string) => <span className="text-[11px] text-slate-700 dark:text-slate-300">{val}</span>
                             },
                             {
                               title: "單位用量",
                               dataIndex: "quantity",
                               key: "quantity",
                               align: "right" as const,
-                              width: "20%",
-                              render: (val: number) => <span className="font-mono text-xs">{val != null ? Number(val.toFixed(4)).toLocaleString() : "-"}</span>
+                              render: (val: number) => <span className="font-mono text-[11px]">{val != null ? Number(val.toFixed(4)).toLocaleString() : "-"}</span>
                             },
                             {
-                              title: "整批需求量",
+                              title: "整批需求",
                               key: "totalRequired",
                               align: "right" as const,
-                              width: "20%",
                               render: (_: any, record: any) => {
                                 const totalReq = (record.quantity || 0) * simulatedQty;
-                                return <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">{Number(totalReq.toFixed(4)).toLocaleString()}</span>;
+                                return <span className="font-mono text-[11px] font-bold text-blue-600 dark:text-blue-400">{Number(totalReq.toFixed(4)).toLocaleString()}</span>;
                               }
                             }
                           ]}
                           dataSource={bomData.items}
                           rowKey="materialCode"
                           pagination={false}
-                          scroll={{ y: 150 }}
+                          scroll={{ y: 95 }}
                           className="high-density-compact-table"
                         />
                       </Card>
                     )}
+                  </Col>
 
-                    {/* B. Manual Fee Parameters Inputs (Compact Spacing) */}
-                    <Card size="small" title={<span className="font-bold text-slate-800 dark:text-slate-200 text-sm">輸入模擬與費用參數</span>} className="shadow-sm">
+                  {/* Column 2: Simulation Parameters Inputs */}
+                  <Col xs={24} lg={8} className="space-y-2 text-left">
+                    
+                    {/* B. Manual Fee Parameters Inputs */}
+                    <Card size="small" title={<span className="font-bold text-slate-800 dark:text-slate-200 text-xs">輸入模擬與費用參數</span>} className="shadow-sm">
                       <Form layout="vertical" size="small">
-                        <Row gutter={8}>
+                        <Row gutter={4}>
                           {/* 1. Simulated Qty */}
                           <Col span={24}>
                             <Form.Item 
-                              label={<span className="text-xs font-bold text-slate-500">模擬銷售/生產總量 (PCS)</span>}
-                              tooltip="模切業屬於客製化生產，設定這批訂單的整體銷售數量，用來分攤整批性費用與人工工時成本。"
-                              style={{ marginBottom: 6 }}
+                              label={<span className="text-[11px] font-bold text-slate-500">模擬銷售數量 (PCS)</span>}
+                              style={{ marginBottom: 4 }}
                             >
                               <InputNumber
                                 ref={firstInputRef}
@@ -569,8 +569,8 @@ export default function ProductPricingList() {
                           {/* 2. Labor Hours & Rate */}
                           <Col span={12}>
                             <Form.Item 
-                              label={<span className="text-xs font-semibold text-slate-500">預估生產總工時</span>}
-                              style={{ marginBottom: 4 }}
+                              label={<span className="text-[11px] font-semibold text-slate-500">預估總工時</span>}
+                              style={{ marginBottom: 2 }}
                             >
                               <InputNumber
                                 style={{ width: "100%" }}
@@ -578,15 +578,15 @@ export default function ProductPricingList() {
                                 onChange={(val) => setLaborHours(val || 0)}
                                 min={0}
                                 precision={2}
-                                addonAfter="小時 (H)"
+                                addonAfter="H"
                                 className="font-mono text-right-align-input"
                               />
                             </Form.Item>
                           </Col>
                           <Col span={12}>
                             <Form.Item 
-                              label={<span className="text-xs font-semibold text-slate-500">每工時人工成本</span>}
-                              style={{ marginBottom: 4 }}
+                              label={<span className="text-[11px] font-semibold text-slate-500">每工時工資</span>}
+                              style={{ marginBottom: 2 }}
                             >
                               <InputNumber
                                 style={{ width: "100%" }}
@@ -594,25 +594,24 @@ export default function ProductPricingList() {
                                 onChange={(val) => setLaborRatePerHour(val || 0)}
                                 min={0}
                                 precision={2}
-                                addonAfter="元 / 小時"
+                                addonAfter="元"
                                 className="font-mono text-right-align-input"
                               />
                             </Form.Item>
                           </Col>
                           
                           {/* Unit Labor Cost Hint */}
-                          <Col span={24} className="text-right mb-1.5">
-                            <span className="text-[11px] font-mono text-slate-400 block pr-2">
-                              ↳ 攤算單位人工費: {formatCurrency(calculatedResults.unitLaborCost)} / PCS
+                          <Col span={24} className="text-right mb-1">
+                            <span className="text-[10px] font-mono text-slate-400 block pr-1">
+                              ↳ 單位人工費: {formatCurrency(calculatedResults.unitLaborCost)} / PCS
                             </span>
                           </Col>
 
-                          {/* 3. Merged Transportation & Logistics */}
+                          {/* 3. Merged Freight */}
                           <Col span={24}>
                             <Form.Item 
-                              label={<span className="text-xs font-semibold text-slate-500">整批總運輸與物流費</span>}
-                              tooltip="將整批貨物的運輸費、倉儲費、物流報關費用合併為一個欄位，在此輸入這批訂單的所有運輸物流費用總和。"
-                              style={{ marginBottom: 4 }}
+                              label={<span className="text-[11px] font-semibold text-slate-500">整批總運輸物流費</span>}
+                              style={{ marginBottom: 2 }}
                             >
                               <InputNumber
                                 style={{ width: "100%" }}
@@ -620,23 +619,23 @@ export default function ProductPricingList() {
                                 onChange={(val) => setTotalFreightCost(val || 0)}
                                 min={0}
                                 precision={2}
-                                addonAfter="元 (整批)"
+                                addonAfter="元"
                                 className="font-mono text-right-align-input"
                               />
                             </Form.Item>
                           </Col>
 
                           {/* Unit Freight Hint */}
-                          <Col span={24} className="text-right mb-1.5">
-                            <span className="text-[11px] font-mono text-slate-400 block pr-2">
-                              ↳ 攤算單位運輸物流費: {formatCurrency(calculatedResults.unitFreightCost)} / PCS
+                          <Col span={24} className="text-right mb-1">
+                            <span className="text-[10px] font-mono text-slate-400 block pr-1">
+                              ↳ 單位物流費: {formatCurrency(calculatedResults.unitFreightCost)} / PCS
                             </span>
                           </Col>
 
                           {/* 4. Other Cost */}
                           <Col span={24}>
                             <Form.Item 
-                              label={<span className="text-xs font-semibold text-slate-500">其他製造雜費 (每單位 / Unit Overheads)</span>}
+                              label={<span className="text-[11px] font-semibold text-slate-500">其他製造雜費 (每單位)</span>}
                               style={{ marginBottom: 4 }}
                             >
                               <InputNumber
@@ -654,13 +653,13 @@ export default function ProductPricingList() {
                       </Form>
                     </Card>
 
-                    {/* C. Pricing Method Config (Compact margin-bottoms) */}
-                    <Card size="small" title={<span className="font-bold text-slate-800 dark:text-slate-200 text-sm">定價方法與利潤率參數</span>} className="shadow-sm">
+                    {/* C. Pricing Method Config */}
+                    <Card size="small" title={<span className="font-bold text-slate-800 dark:text-slate-200 text-xs">定價方法與利潤率參數</span>} className="shadow-sm">
                       <Form layout="vertical" size="small">
                         {/* Selected Leading Model */}
                         <Form.Item 
-                          label={<span className="text-xs font-bold text-slate-500">定價主導方法</span>}
-                          style={{ marginBottom: 6 }}
+                          label={<span className="text-[11px] font-bold text-slate-500">定價主導方法</span>}
+                          style={{ marginBottom: 4 }}
                         >
                           <Radio.Group 
                             value={marginType} 
@@ -668,36 +667,25 @@ export default function ProductPricingList() {
                             optionType="button"
                             buttonStyle="solid"
                             className="w-full text-center flex"
+                            size="small"
                           >
-                            <Radio.Button value="markup" className="flex-1">成本加成法 (Cost Plus)</Radio.Button>
-                            <Radio.Button value="gross" className="flex-1">預期毛利率法 (Gross Margin)</Radio.Button>
+                            <Radio.Button value="markup" className="flex-1 text-[11px]">成本加成法 (Cost Plus)</Radio.Button>
+                            <Radio.Button value="gross" className="flex-1 text-[11px]">毛利率法 (Gross Margin)</Radio.Button>
                           </Radio.Group>
                         </Form.Item>
 
-                        <div className="bg-slate-50 dark:bg-slate-900 p-1.5 rounded border border-dashed border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 space-y-1 mb-2">
-                          <div className="flex items-center space-x-1 font-bold text-slate-600 dark:text-slate-300">
-                            <InfoCircleOutlined className="text-blue-500" />
-                            <span>當前公式模型：</span>
-                          </div>
-                          {marginType === "markup" ? (
-                            <Paragraph className="mb-0 font-mono text-slate-700 dark:text-slate-300">
-                              試算單價 = (材料成本 + 單位人工成本 + 單位運輸物流成本 + 其他雜費) × (1 + 預期加成率%)
-                            </Paragraph>
-                          ) : (
-                            <Paragraph className="mb-0 font-mono text-slate-700 dark:text-slate-300">
-                              試算單價 = (材料成本 + 單位人工成本 + 單位運輸物流成本 + 其他雜費) ÷ (1 - 預期毛利率%)
-                            </Paragraph>
-                          )}
+                        <div className="bg-slate-50 dark:bg-slate-900 p-1 rounded border border-dashed border-slate-200 dark:border-slate-800 text-[10px] text-slate-500 mb-2">
+                          <span className="font-bold">當前公式：</span>
+                          {marginType === "markup" ? "成本總和 × (1 + 加成率%)" : "成本總和 ÷ (1 - 毛利率%)"}
                         </div>
 
-                        {/* Display both inputs with 6px bottoms */}
-                        <Row gutter={8}>
+                        {/* Display both inputs with tight margins */}
+                        <Row gutter={4}>
                           {/* Cost Plus Markup Input */}
                           <Col span={12}>
                             <Form.Item 
-                              label={<span className={`text-xs font-semibold ${marginType === "markup" ? "text-blue-600 font-bold" : "text-slate-400"}`}>預期成本加成率 (%)</span>}
-                              tooltip="以生產成本為基準，按比例加上利潤額。若選取為非主導方法，則欄位轉為唯讀並按公式自動逆推。"
-                              style={{ marginBottom: 4 }}
+                              label={<span className={`text-[11px] font-semibold ${marginType === "markup" ? "text-blue-600 font-bold" : "text-slate-400"}`}>預期加成率 (%)</span>}
+                              style={{ marginBottom: 2 }}
                             >
                               <InputNumber
                                 style={{ width: "100%" }}
@@ -716,9 +704,8 @@ export default function ProductPricingList() {
                           {/* Gross Margin Input */}
                           <Col span={12}>
                             <Form.Item 
-                              label={<span className={`text-xs font-semibold ${marginType === "gross" ? "text-blue-600 font-bold" : "text-slate-400"}`}>預期目標毛利率 (%)</span>}
-                              tooltip="以銷售價格為基準，預期留存的毛利率額。若選取為非主導方法，則欄位轉為唯讀並按公式自動逆推。"
-                              style={{ marginBottom: 4 }}
+                              label={<span className={`text-[11px] font-semibold ${marginType === "gross" ? "text-blue-600 font-bold" : "text-slate-400"}`}>預期毛利率 (%)</span>}
+                              style={{ marginBottom: 2 }}
                             >
                               <InputNumber
                                 style={{ width: "100%" }}
@@ -738,48 +725,48 @@ export default function ProductPricingList() {
                     </Card>
                   </Col>
 
-                  {/* Right Column: Calculations Simulator & Action Triggers */}
-                  <Col xs={24} lg={9} className="space-y-2 text-left">
+                  {/* Column 3: Output Results Display & Save Actions */}
+                  <Col xs={24} lg={8} className="space-y-2 text-left">
                     
                     {/* D. Output Results Display Card */}
                     <Card 
                       size="small" 
-                      title={<span className="font-bold text-slate-800 dark:text-slate-100">定價試算模擬結果</span>} 
+                      title={<span className="font-bold text-slate-800 dark:text-slate-100 text-xs">定價試算模擬結果</span>} 
                       className={`shadow border-2 ${isDarkMode ? "bg-slate-900 border-slate-800" : "bg-amber-50/10 border-amber-200"}`}
                     >
-                      <div className="space-y-2.5 py-1 text-xs text-slate-700 dark:text-slate-200">
+                      <div className="space-y-2 py-0.5 text-xs text-slate-700 dark:text-slate-200">
                         {/* Summary of simulated batch */}
-                        <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800 p-1.5 rounded font-bold mb-1.5">
+                        <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800 p-1 rounded font-bold mb-1">
                           <span className="text-slate-500">整體模擬銷售總量：</span>
                           <span className="font-mono text-slate-800 dark:text-slate-100">{simulatedQty.toLocaleString()} PCS</span>
                         </div>
 
                         {/* Cost breakdown showing ORIGINAL TOTAL COSTS (非單位成本) */}
-                        <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-1.5">
+                        <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-1">
                           <span className="font-semibold text-slate-500">1. BOM 材料總成本 (整批)：</span>
                           <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatCurrency(calculatedResults.totalBatchMaterialCost)}</span>
                         </div>
-                        <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-1.5">
+                        <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-1">
                           <span className="font-semibold text-slate-500">2. 預估生產總人工費 (整批)：</span>
                           <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatCurrency(calculatedResults.totalBatchLaborCost)}</span>
                         </div>
-                        <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-1.5">
+                        <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-1">
                           <span className="font-semibold text-slate-500">3. 整批總運輸物流費 (整批)：</span>
                           <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatCurrency(calculatedResults.totalBatchFreightCost)}</span>
                         </div>
-                        <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-1.5">
+                        <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-1">
                           <span className="font-semibold text-slate-500">4. 其他製造總雜費 (整批)：</span>
                           <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatCurrency(calculatedResults.totalBatchOtherCost)}</span>
                         </div>
                         
                         {/* Overall Original Total Production Cost */}
-                        <div className="flex justify-between items-center border-b-2 border-slate-300 dark:border-slate-700 pb-1.5 pt-0.5">
+                        <div className="flex justify-between items-center border-b-2 border-slate-300 dark:border-slate-700 pb-1 pt-0.5">
                           <span className="font-bold text-slate-700 dark:text-slate-200">💡 預估生產總成本 (整批)：</span>
-                          <span className="font-mono font-extrabold text-sm text-slate-900 dark:text-slate-50">{formatCurrency(calculatedResults.totalBatchCost)}</span>
+                          <span className="font-mono font-extrabold text-[13px] text-slate-900 dark:text-slate-50">{formatCurrency(calculatedResults.totalBatchCost)}</span>
                         </div>
 
                         {/* Batch metrics for ERP decision support */}
-                        <div className="bg-slate-50 dark:bg-slate-950 p-2 rounded border border-slate-200 dark:border-slate-800 space-y-1 text-[11px]">
+                        <div className="bg-slate-50 dark:bg-slate-950 p-1.5 rounded border border-slate-200 dark:border-slate-800 space-y-1 text-[10px]">
                           <div className="flex justify-between items-center">
                             <span className="text-slate-400">產品生產單位成本 (PCS)：</span>
                             <span className="font-mono font-bold text-slate-600 dark:text-slate-400">{formatCurrency(calculatedResults.totalUnitCost)}</span>
@@ -795,18 +782,18 @@ export default function ProductPricingList() {
                         </div>
                         
                         {/* Simulated Suggestive Selling Unit Price (Highly prominent) */}
-                        <div className="pt-2 flex flex-col justify-between items-stretch">
+                        <div className="pt-1.5 flex flex-col justify-between items-stretch">
                           <div className="flex justify-between items-center">
-                            <span className="font-bold text-xs text-slate-800 dark:text-slate-100">💡 建議銷售單價 (每單位)：</span>
+                            <span className="font-bold text-[11px] text-slate-800 dark:text-slate-100">💡 建議銷售單價 (每單位)：</span>
                             <div className="text-right">
-                              <span className="font-mono font-extrabold text-2xl text-emerald-600 dark:text-emerald-400">
+                              <span className="font-mono font-extrabold text-xl text-emerald-600 dark:text-emerald-400">
                                 {formatCurrency(calculatedResults.trialPrice)}
                               </span>
                             </div>
                           </div>
                           
                           {calculatedResults.trialPrice > 0 && currentUnitPrice > 0 && (
-                            <div className="bg-white dark:bg-slate-950 p-1.5 rounded border border-slate-100 dark:border-slate-800 text-[10px] mt-2 flex justify-between items-center font-semibold">
+                            <div className="bg-white dark:bg-slate-950 p-1 rounded border border-slate-100 dark:border-slate-800 text-[10px] mt-1.5 flex justify-between items-center font-semibold">
                               <span className="text-slate-400">與原銷售單價相比：</span>
                               {calculatedResults.priceDiff >= 0 ? (
                                 <Text className="text-emerald-500">+{formatCurrency(calculatedResults.priceDiff)} (+{calculatedResults.priceDiffPercent.toFixed(2)}%)</Text>
@@ -821,8 +808,8 @@ export default function ProductPricingList() {
 
                     {/* E. Control Actions Card (Save(L) / Cancel(R)) */}
                     <Card size="small" className="shadow-sm">
-                      <div className="flex flex-col space-y-2">
-                        <div className="text-[10px] text-slate-400">
+                      <div className="flex flex-col space-y-1.5">
+                        <div className="text-[10px] text-slate-400 leading-tight">
                           * 點擊儲存後，此建議售價將直接寫入成品主檔中的 UnitPrice，對未來的報價/銷貨單即刻生效。
                         </div>
                         <div className="flex justify-between items-center w-full">
@@ -832,7 +819,7 @@ export default function ProductPricingList() {
                             icon={<CheckCircleOutlined />}
                             onClick={handleSavePrice}
                             loading={updatePriceMutation.isPending}
-                            className="bg-emerald-600 hover:bg-emerald-500 border-none px-5 text-xs"
+                            className="bg-emerald-600 hover:bg-emerald-500 border-none px-4 text-[11px]"
                             size="small"
                           >
                             儲存主檔
@@ -842,7 +829,7 @@ export default function ProductPricingList() {
                             onClick={handleResetSimulator} 
                             danger
                             type="dashed"
-                            className="px-5 text-xs"
+                            className="px-4 text-[11px]"
                             size="small"
                           >
                             重置費用
@@ -862,11 +849,11 @@ export default function ProductPricingList() {
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                 description={
                   <div className="text-slate-400 space-y-1">
-                    <p className="font-semibold text-slate-500">銷售輔助定價工作區</p>
-                    <p className="text-xs">請選擇上方客戶並選取成品品號，系統將自動重算 BOM 材料成本並開啟試算工作區。</p>
+                    <p className="font-semibold text-slate-500 text-xs">銷售輔助定價工作區</p>
+                    <p className="text-[11px]">請選擇上方客戶並選取成品品號，系統將自動重算 BOM 材料成本並開啟試算工作區。</p>
                   </div>
                 } 
-                className="py-12"
+                className="py-8"
               />
             </div>
           )}
@@ -879,9 +866,9 @@ export default function ProductPricingList() {
 // Descriptions Sub-Component helper
 function DescriptionsTitle({ title }: { title: string }) {
   return (
-    <div className="flex items-center space-x-1.5 border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1.5">
-      <div className="w-1 h-3 bg-blue-600 rounded"></div>
-      <span className="font-bold text-xs text-slate-800 dark:text-slate-200 uppercase tracking-wider">{title}</span>
+    <div className="flex items-center space-x-1 border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">
+      <div className="w-1 h-2.5 bg-blue-600 rounded"></div>
+      <span className="font-bold text-[10px] text-slate-800 dark:text-slate-200 uppercase tracking-wider">{title}</span>
     </div>
   );
 }
