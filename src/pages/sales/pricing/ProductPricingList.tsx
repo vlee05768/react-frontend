@@ -48,7 +48,6 @@ export default function ProductPricingList() {
 
   // Search/Flow states
   const [customerCode, setCustomerCode] = useState("");
-  const [hasValidCustomer, setHasValidCustomer] = useState(false);
   const [selectedProductCode, setSelectedProductCode] = useState<string | null>(null);
 
   // Form states for manual simulation inputs
@@ -62,17 +61,22 @@ export default function ProductPricingList() {
   // Ref for focus when a product is loaded
   const firstInputRef = useRef<any>(null);
 
-  // 1. Fetch products belonging to the selected customer
+  // Determine if the customer code input is sufficient for query
+  const isCustomerValidInput = useMemo(() => {
+    return customerCode && customerCode.trim().length >= 2;
+  }, [customerCode]);
+
+  // 1. Fetch products belonging to the selected customer (whenever customerCode is inputted)
   const { data: customerProductsResponse, isFetching: isProductsLoading } = useQuery({
-    queryKey: ["customer-products-pricing", customerCode],
+    queryKey: ["customer-products-pricing-main", customerCode],
     queryFn: () => 
       getApiV1Product({
         query: {
-          Customer: customerCode,
-          pageSize: 500 // Safe bulk page size
+          Customer: customerCode.trim(),
+          pageSize: -1 // Use -1 to retrieve all records without pagination, allowed by backend
         }
       }),
-    enabled: !!customerCode && hasValidCustomer
+    enabled: !!isCustomerValidInput
   });
 
   const productOptions = useMemo(() => {
@@ -100,16 +104,9 @@ export default function ProductPricingList() {
   const currentUnitPrice = pricingBase?.currentUnitPrice || 0;
 
   // Handle Customer Selection and Input Change
-  const handleCustomerChange = (val: string, option?: any) => {
+  const handleCustomerChange = (val: string) => {
     setCustomerCode(val);
-    if (option) {
-      setHasValidCustomer(true);
-    } else {
-      if (!val) {
-        setHasValidCustomer(false);
-      }
-    }
-    setSelectedProductCode(null); // Clear product selection when customer changes
+    setSelectedProductCode(null); // Clear selected product when customer changes
   };
 
   // Load and save pricing simulation parameters from LocalStorage when selected product changes
@@ -200,7 +197,7 @@ export default function ProductPricingList() {
 
         // Invalidate queries to sync state
         queryClient.invalidateQueries({ queryKey: ["product-pricing-base-main", selectedProductCode] });
-        queryClient.invalidateQueries({ queryKey: ["customer-products-pricing", customerCode] });
+        queryClient.invalidateQueries({ queryKey: ["customer-products-pricing-main", customerCode] });
       } else {
         message.error(responseData?.message || "回寫定價失敗");
       }
@@ -262,7 +259,6 @@ export default function ProductPricingList() {
 
   const handleFullClear = () => {
     setCustomerCode("");
-    setHasValidCustomer(false);
     setSelectedProductCode(null);
   };
 
@@ -275,7 +271,7 @@ export default function ProductPricingList() {
             icon={<SyncOutlined />} 
             onClick={() => {
               if (selectedProductCode) refetchPricingBase();
-              if (customerCode && hasValidCustomer) queryClient.invalidateQueries({ queryKey: ["customer-products-pricing", customerCode] });
+              if (isCustomerValidInput) queryClient.invalidateQueries({ queryKey: ["customer-products-pricing-main", customerCode] });
             }} 
             loading={isPricingBaseLoading || isProductsLoading}
             size="small"
@@ -295,7 +291,7 @@ export default function ProductPricingList() {
                   configKey={BusinessPartnerRoleTypes.CUSTOMER}
                   value={customerCode}
                   onChange={handleCustomerChange}
-                  placeholder="請輸入客戶名稱或代號進行搜尋..."
+                  placeholder="請輸入客戶名稱或代號進行搜尋 (如: C0008)..."
                 />
               </div>
             </Col>
@@ -307,8 +303,8 @@ export default function ProductPricingList() {
                 <Select
                   showSearch
                   placeholder={
-                    !hasValidCustomer 
-                      ? "⬅️ 請先選擇客戶" 
+                    !isCustomerValidInput 
+                      ? "⬅️ 請先輸入或搜尋選擇客戶" 
                       : isProductsLoading 
                         ? "成品清單讀取中..." 
                         : productOptions.length === 0 
@@ -317,7 +313,7 @@ export default function ProductPricingList() {
                   }
                   value={selectedProductCode}
                   onChange={(val) => setSelectedProductCode(val)}
-                  disabled={!hasValidCustomer || isProductsLoading}
+                  disabled={!isCustomerValidInput || isProductsLoading}
                   options={productOptions}
                   filterOption={(input, option) =>
                     (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
