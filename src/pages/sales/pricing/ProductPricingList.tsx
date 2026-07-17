@@ -534,14 +534,14 @@ export default function ProductPricingList() {
                               title: "原料編號",
                               dataIndex: "materialCode",
                               key: "materialCode",
-                              width: "20%",
+                              width: "30%",
                               render: (val: string) => <span className="font-mono text-[11px] font-semibold text-slate-700 dark:text-slate-300">{val}</span>
                             },
                             {
                               title: "原料名稱",
                               dataIndex: "materialName",
                               key: "materialName",
-                              width: "25%",
+                              width: "30%",
                               ellipsis: true,
                               render: (val: string) => <span className="text-[11px] text-slate-700 dark:text-slate-300">{val}</span>
                             },
@@ -558,14 +558,14 @@ export default function ProductPricingList() {
                               dataIndex: "quantity",
                               key: "quantity",
                               align: "right" as const,
-                              width: "20%",
+                              width: "15%",
                               render: (val: number) => <span className="font-mono text-[11px]">{val != null ? Number(val.toFixed(4)).toLocaleString() : "-"}</span>
                             },
                             {
                               title: "整批需求",
                               key: "totalRequired",
                               align: "right" as const,
-                              width: "20%",
+                              width: "15%",
                               render: (_: any, record: any) => {
                                 const totalReq = (record.quantity || 0) * simulatedQty;
                                 return <span className="font-mono text-[11px] font-bold text-blue-600 dark:text-blue-400">{Number(totalReq.toFixed(4)).toLocaleString()}</span>;
