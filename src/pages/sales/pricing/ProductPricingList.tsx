@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { 
   Button, Card, Spin, InputNumber, Radio, Typography, 
-  App, Empty, Form, Row, Col, Select, Descriptions, Table, Input
+  App, Empty, Form, Row, Col, Select, Descriptions, Table
 } from "antd";
 import { 
   SyncOutlined, CheckCircleOutlined 
@@ -10,8 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageCard } from "@/components/common/PageCard";
 import { 
   getApiV1Product, 
-  getApiV1BomByProductCode,
-  getApiV1BusinessPartnersByCode
+  getApiV1BomByProductCode
 } from "@/api/generated/sdk.gen";
 import { client } from "@/api/generated/client.gen";
 import { useThemeStore } from "@/stores/useThemeStore";
@@ -74,37 +73,33 @@ export default function ProductPricingList() {
   // Ref to prevent saving default values before state loading is completed
   const isLoadedRef = useRef<string | null>(null);
 
-  // Determine if the customer code input is sufficient for query
-  const isCustomerValidInput = useMemo(() => {
-    return customerCode && customerCode.trim().length >= 2;
+  // Extract clean customer code from code+name string, e.g. "C0008 (茂迪股份有限公司)" -> "C0008"
+  const cleanCustomerCode = useMemo(() => {
+    if (!customerCode) return "";
+    const trimmed = customerCode.trim();
+    if (trimmed.includes(" ")) {
+      return trimmed.split(" ")[0].trim();
+    }
+    if (trimmed.includes("(")) {
+      return trimmed.split("(")[0].trim();
+    }
+    return trimmed;
   }, [customerCode]);
 
-  // 1a. Fetch customer details to get the customer name
-  const { data: customerDetailsResponse } = useQuery({
-    queryKey: ["customer-details-pricing", customerCode],
-    queryFn: async () => {
-      try {
-        const res = await getApiV1BusinessPartnersByCode({ path: { code: customerCode.trim() } });
-        return res.data?.data || res.data;
-      } catch (e) {
-        return null;
-      }
-    },
-    enabled: !!isCustomerValidInput
-  });
+  // Determine if the customer code input is sufficient for query
+  const isCustomerValidInput = useMemo(() => {
+    return cleanCustomerCode && cleanCustomerCode.length >= 2;
+  }, [cleanCustomerCode]);
 
-  const customerName = useMemo(() => {
-    const rawData = customerDetailsResponse as any;
-    return rawData?.name || rawData?.data?.name || "";
-  }, [customerDetailsResponse]);
+
 
   // 1b. Fetch products belonging to the selected customer (whenever customerCode is inputted)
   const { data: customerProductsResponse, isFetching: isProductsLoading } = useQuery({
-    queryKey: ["customer-products-pricing-main", customerCode],
+    queryKey: ["customer-products-pricing-main", cleanCustomerCode],
     queryFn: () => 
       getApiV1Product({
         query: {
-          Customer: customerCode.trim(),
+          Customer: cleanCustomerCode,
           pageSize: -1 // Use -1 to retrieve all records without pagination, allowed by backend
         }
       }),
@@ -173,9 +168,15 @@ export default function ProductPricingList() {
     }
   }, [selectedProductCode, bomData, isBomLoading, modal]);
 
-  // Handle Customer Selection and Input Change
-  const handleCustomerChange = (val: string) => {
-    setCustomerCode(val);
+  // Handle Customer Selection and Input Change (Code + Name display combined)
+  const handleCustomerChange = (val: string, option?: any) => {
+    if (option) {
+      // The user selected an option from the autocomplete list. Store the full "Code (Name)" string!
+      setCustomerCode(option.label);
+    } else {
+      // The user is typing manually
+      setCustomerCode(val);
+    }
     setSelectedProductCode(null); // Clear selected product when customer changes
   };
 
@@ -370,7 +371,7 @@ export default function ProductPricingList() {
 
         // Invalidate queries to sync state
         queryClient.invalidateQueries({ queryKey: ["product-pricing-base-main", selectedProductCode] });
-        queryClient.invalidateQueries({ queryKey: ["customer-products-pricing-main", customerCode] });
+        queryClient.invalidateQueries({ queryKey: ["customer-products-pricing-main", cleanCustomerCode] });
       } else {
         message.error(responseData?.message || "回寫定價失敗");
       }
@@ -446,7 +447,7 @@ export default function ProductPricingList() {
             icon={<SyncOutlined />} 
             onClick={() => {
               if (selectedProductCode) refetchPricingBase();
-              if (isCustomerValidInput) queryClient.invalidateQueries({ queryKey: ["customer-products-pricing-main", customerCode] });
+              if (isCustomerValidInput) queryClient.invalidateQueries({ queryKey: ["customer-products-pricing-main", cleanCustomerCode] });
             }} 
             loading={isPricingBaseLoading || isProductsLoading || isBomLoading}
             size="small"
@@ -455,42 +456,24 @@ export default function ProductPricingList() {
           </Button>
         }
       >
-        {/* Step-by-Step Search Bar Flow with Customer Name Display */}
+        {/* Step-by-Step Search Bar Flow (Removed customerName column, merged display into customer input) */}
         <div className="mb-2 bg-slate-50 dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-800">
           <Row gutter={[8, 8]} align="middle">
-            {/* 1. Customer Autocomplete (Col 6) */}
-            <Col xs={24} md={6} className="text-left">
+            {/* 1. Customer Autocomplete (Col 10 - wide enough to display "C0008 (茂迪股份有限公司)" beautifully) */}
+            <Col xs={24} md={10} className="text-left">
               <div className="flex flex-col space-y-1">
-                <span className="text-xs font-bold text-slate-500 block">第一步：客戶代號</span>
+                <span className="text-xs font-bold text-slate-500 block">第一步：請搜尋並選擇客戶</span>
                 <AutoCompleteField
                   configKey={BusinessPartnerRoleTypes.CUSTOMER}
                   value={customerCode}
                   onChange={handleCustomerChange}
-                  placeholder="請輸入客戶名稱或代號..."
+                  placeholder="請輸入客戶代號或名稱進行搜尋 (如: C0008)..."
                 />
               </div>
             </Col>
 
-            {/* 1.1 Customer Name (Display-only, non-editable) (Col 7) */}
-            <Col xs={24} md={7} className="text-left">
-              <div className="flex flex-col space-y-1">
-                <span className="text-xs font-bold text-slate-500 block">客戶名稱 (唯讀)</span>
-                <Input
-                  value={customerName || "尚未選擇客戶"}
-                  readOnly
-                  disabled
-                  placeholder="尚未選擇客戶"
-                  className="font-bold bg-slate-100 dark:bg-slate-950/60 border-slate-200 dark:border-slate-850 text-slate-700 dark:text-slate-300"
-                  style={{ 
-                    cursor: "not-allowed",
-                    fontWeight: 700
-                  }}
-                />
-              </div>
-            </Col>
-
-            {/* 2. Product Dropdown Select (Col 9) */}
-            <Col xs={24} md={9} className="text-left">
+            {/* 2. Product Dropdown Select (Col 12) */}
+            <Col xs={24} md={12} className="text-left">
               <div className="flex flex-col space-y-1">
                 <span className="text-xs font-bold text-slate-500 block">第二步：選擇該客戶的成品</span>
                 <Select
