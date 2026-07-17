@@ -1,7 +1,7 @@
 {
   "name": "erp-frontend-react",
   "private": true,
-  "version": "1.7.17.2359",
+  "version": "1.7.18.0007",
   "type": "module",
   "scripts": {
     "dev": "vite",
