@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Space, Button, App, Drawer, Spin, Empty, Tooltip } from "antd";
+import { Space, Button, App, Drawer, Spin, Empty } from "antd";
 import { CheckCircleOutlined, SyncOutlined, LockOutlined } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
@@ -14,7 +14,10 @@ import {
   postApiV1WorkOrderByWorkOrderNumberProductionCompleteCancel,
   postApiV1WorkOrderByWorkOrderNumberWarehousingComplete,
   postApiV1WorkOrderByWorkOrderNumberWarehousingCompleteCancel,
-  getApiV1WorkOrderRequisitionWoByWorkOrderNumber
+  getApiV1WorkOrderRequisitionWoByWorkOrderNumber,
+  getApiV1WorkOrderReturnWoByWorkOrderNumber,
+  getApiV1WorkOrderReturnByDocumentNumber,
+  postApiV1WorkOrderReturnByDocumentNumberConfirm
 } from "@/api/generated/sdk.gen";
 import { getApiErrorMessage } from "@/utils/apiError";
 import dayjs from "dayjs";
@@ -275,6 +278,54 @@ export function WorkOrderDrawer({
   const isProdCompleted = record && !!record.productionCompleteDate && !record.warehousingCompleteDate;
   const isWarehousingCompleted = record && !!record.warehousingCompleteDate;
 
+  // Query returns for the work order
+  const { data: returnsResponse } = useQuery({
+    queryKey: ["returns", id],
+    queryFn: () =>
+      getApiV1WorkOrderReturnWoByWorkOrderNumber({
+        path: { workOrderNumber: id! },
+      }),
+    enabled: !!id && !isCreateMode && !!isWarehousingCompleted,
+  });
+
+  const returnList = (returnsResponse?.data as any)?.data || [];
+  const activeDocNo = returnList.length > 0 ? returnList[0].documentNumber : null;
+
+  // Query detail for the return document
+  const { data: detailResponse } = useQuery({
+    queryKey: ["return", activeDocNo],
+    queryFn: () =>
+      getApiV1WorkOrderReturnByDocumentNumber({
+        path: { documentNumber: activeDocNo! },
+      }),
+    enabled: !!activeDocNo && !!isWarehousingCompleted,
+  });
+
+  const activeReturnRecord = (detailResponse?.data as any)?.data;
+  const isReturnPosted = activeReturnRecord && !!activeReturnRecord.confirmDate;
+
+  const confirmReturnMutation = useMutation({
+    mutationFn: () =>
+      postApiV1WorkOrderReturnByDocumentNumberConfirm({
+        path: { documentNumber: activeDocNo! },
+      }),
+    onSuccess: () => {
+      message.success("還料入庫過帳成功！剩餘卷料已還原至倉庫可用狀態");
+      queryClient.invalidateQueries({ queryKey: ["return", activeDocNo] });
+      queryClient.invalidateQueries({ queryKey: ["returns", id] });
+      queryClient.invalidateQueries({ queryKey: ["wipRollsAll", id] });
+      queryClient.invalidateQueries({ queryKey: ["workorder", id] });
+      queryClient.invalidateQueries({ queryKey: ["workorders"] });
+    },
+    onError: (error) => {
+      modal.error({
+        title: "還料過帳失敗",
+        content: getApiErrorMessage(error),
+        centered: true,
+      });
+    },
+  });
+
   const getHeaderActions = () => {
     if (isCreateMode || isEditing) return null;
     if (!record) return null;
@@ -282,6 +333,37 @@ export function WorkOrderDrawer({
     return (
       <Space>
         <DocumentWatchButton documentType="WorkOrder" documentKey={record?.workOrderNumber} />
+        {isWarehousingCompleted && activeDocNo && !isReturnPosted && (
+          <ActionButton
+            key="confirm-return-header"
+            intent="success"
+            icon={<CheckCircleOutlined />}
+            disabled={isDetailEditing}
+            loading={confirmReturnMutation.isPending}
+            onClick={(e) => {
+              e.preventDefault();
+              const returnItems = activeReturnRecord?.items || [];
+              if (returnItems.length === 0) {
+                message.warning(
+                  "此退料單尚無任何明細項目，請先編輯並點選下方「新增退回物料」加入項目！"
+                );
+                return;
+              }
+              modal.confirm({
+                title: "確認還料入庫",
+                content: "確定要執行此還料入庫過帳確認嗎？此操作將使剩餘卷料還原至倉庫可用狀態，且此單據將無法再修改。",
+                okText: "確定",
+                cancelText: "取消",
+                centered: true,
+                onOk: () => {
+                  confirmReturnMutation.mutate();
+                },
+              });
+            }}
+          >
+            還料入庫
+          </ActionButton>
+        )}
         {isDraft && (
           <ActionButton 
             key="prepare-confirm"
@@ -434,30 +516,26 @@ export function WorkOrderDrawer({
         )}
 
         {isWarehousingCompleted && (
-          <Tooltip title={record?.latestReturnDate ? "該製令單已有確認過帳的車間退料記錄，不可再取消入庫完成！" : ""}>
-            <span>
-              <ActionButton 
-                key="cancel-warehousing"
-                intent="warning" 
-                icon={<SyncOutlined />} 
-                disabled={isDetailEditing || !!record?.latestReturnDate}
-                onClick={(e) => { e.preventDefault(); modal.confirm({
-                  title: '取消入庫完成',
-                  content: '確定要取消入庫完成確認嗎？取消後將回到生產完成狀態。',
-                  centered: true, width: 400,
-                  onOk: async () => {
-                    try {
-                      await warehousingCancelMut.mutateAsync({});
-                    } catch (e) {
-                      // Error is already shown by mutation onError
-                    }
-                  },
-                })}}
-              >
-                取消入庫完成
-              </ActionButton>
-            </span>
-          </Tooltip>
+          <ActionButton 
+            key="cancel-warehousing"
+            intent="warning" 
+            icon={<SyncOutlined />} 
+            disabled={isDetailEditing}
+            onClick={(e) => { e.preventDefault(); modal.confirm({
+              title: '取消入庫完成',
+              content: '確定要取消入庫完成確認嗎？取消後將回到生產完成狀態。',
+              centered: true, width: 400,
+              onOk: async () => {
+                try {
+                  await warehousingCancelMut.mutateAsync({});
+                } catch (e) {
+                  // Error is already shown by mutation onError
+                }
+              },
+            })}}
+          >
+            取消入庫完成
+          </ActionButton>
         )}
       </Space>
     );
@@ -637,7 +715,7 @@ export function WorkOrderDrawer({
               label: "製令退料記錄",
               disabled: record?.status !== 'WarehousingCompleted',
               children: record ? (
-                <WorkOrderReturnTab masterData={record} />
+                <WorkOrderReturnTab masterData={record} onEditingChange={setIsDetailEditing} />
               ) : <Empty description="請先儲存製令主檔" />
             }
           ]}

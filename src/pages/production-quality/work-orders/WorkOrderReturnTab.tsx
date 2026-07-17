@@ -19,7 +19,6 @@ import {
   DeleteOutlined,
   EditOutlined,
   SaveOutlined,
-  CheckCircleOutlined,
   SyncOutlined,
 } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -28,7 +27,6 @@ import {
   getApiV1WorkOrderReturnByDocumentNumber,
   postApiV1WorkOrderReturn,
   putApiV1WorkOrderReturnByDocumentNumber,
-  postApiV1WorkOrderReturnByDocumentNumberConfirm,
   postApiV1WorkOrderReturnByDocumentNumberCancel,
   deleteApiV1WorkOrderReturnByDocumentNumber,
   getApiV1WorkOrderReturnWipRolls,
@@ -43,9 +41,10 @@ import { returnHeaderFormConfig } from "./WorkOrderConfig";
 
 interface WorkOrderReturnTabProps {
   masterData: WorkOrderDto;
+  onEditingChange?: (editing: boolean) => void;
 }
 
-export function WorkOrderReturnTab({ masterData }: WorkOrderReturnTabProps) {
+export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderReturnTabProps) {
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
 
@@ -233,6 +232,10 @@ export function WorkOrderReturnTab({ masterData }: WorkOrderReturnTabProps) {
     }
   }, [activeRecord]);
 
+  useEffect(() => {
+    onEditingChange?.(isCreating || isHeaderEditing);
+  }, [isCreating, isHeaderEditing, onEditingChange]);
+
   // 3. Mutations
   const createMutation = useMutation({
     mutationFn: (values: any) => postApiV1WorkOrderReturn({ body: values }),
@@ -315,35 +318,7 @@ export function WorkOrderReturnTab({ masterData }: WorkOrderReturnTabProps) {
     },
   });
 
-  const confirmMutation = useMutation({
-    mutationFn: () =>
-      postApiV1WorkOrderReturnByDocumentNumberConfirm({
-        path: { documentNumber: activeDocNo! },
-      }),
-    onSuccess: () => {
-      message.success("退料確認過帳成功！剩餘卷料已還原至倉庫可用狀態");
-      queryClient.invalidateQueries({ queryKey: ["return", activeDocNo] });
-      queryClient.invalidateQueries({
-        queryKey: ["returns", masterData.workOrderNumber],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["wipRollsAll", masterData.workOrderNumber],
-      });
-      queryClient.invalidateQueries({ queryKey: ["workorders"] });
-      if (masterData?.workOrderNumber) {
-        queryClient.invalidateQueries({ queryKey: ["workorder", masterData.workOrderNumber] });
-      }
-      refetchDetail();
-      refetchList();
-    },
-    onError: (error) => {
-      modal.error({
-        title: "退料過帳失敗",
-        content: getApiErrorMessage(error),
-        centered: true,
-      });
-    },
-  });
+  // confirmMutation was moved to WorkOrderDrawer header action "還料入庫"
 
   const cancelMutation = useMutation({
     mutationFn: () =>
@@ -375,24 +350,7 @@ export function WorkOrderReturnTab({ masterData }: WorkOrderReturnTabProps) {
     },
   });
 
-  const handleConfirmPost = () => {
-    if (items.length === 0) {
-      message.warning(
-        "此退料單尚無任何明細項目，請先編輯並點選下方「新增退回物料」加入項目！",
-      );
-      return;
-    }
-    modal.confirm({
-      title: "確認退料過帳",
-      content: "確定要執行此退料單過帳確認嗎？此操作將使剩餘卷料還原至倉庫可用狀態，且此單據將無法再修改。",
-      okText: "確定",
-      cancelText: "取消",
-      centered: true,
-      onOk: () => {
-        confirmMutation.mutate();
-      },
-    });
-  };
+  // handleConfirmPost was moved to WorkOrderDrawer header action "還料入庫"
 
   const handleCreateNewClick = () => {
     setIsCreating(true);
@@ -971,16 +929,6 @@ export function WorkOrderReturnTab({ masterData }: WorkOrderReturnTabProps) {
                             onClick={() => setIsHeaderEditing(true)}
                           >
                             編輯
-                          </Button>
-                          <Button
-                            type="primary"
-                            size="small"
-                            className="bg-green-600 hover:bg-green-700 border-green-600"
-                            icon={<CheckCircleOutlined />}
-                            onClick={handleConfirmPost}
-                            loading={confirmMutation.isPending}
-                          >
-                            確認退料
                           </Button>
                           <Button
                             danger
