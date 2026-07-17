@@ -180,6 +180,13 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   { label: "厚度(mm)", name: "thickness", width: 100 },
   { label: "財務單位", name: "baseUOM", width: 100 },
   { label: "輔助單位", name: "auxUOM", width: 100 },
+  { 
+    label: "標準成本(元/㎡)", 
+    name: "unitPrice", 
+    width: 140, 
+    align: "right",
+    render: (v) => v != null ? `$ ${Number(v).toFixed(2)}` : "-"
+  },
   {
     label: "供應商",
     name: "supplierCode",
@@ -324,6 +331,19 @@ export const mainFormConfig = (): FormFieldConfig[] => [
     editable: "never",
     componentProps: { disabled: true },
   },  
+  {
+    name: "unitPrice",
+    label: "標準成本 (元/㎡)",
+    componentType: "InputNumber",
+    colSpan: 6,
+    editable: "never",
+    componentProps: { 
+      disabled: true, 
+      style: { width: "100%" },
+      formatter: (value: any) => value != null ? `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "",
+      parser: (value: any) => value ? value.replace(/\$\s?|(,*)/g, "") : "",
+    },
+  },
 
   {
     name: "supplierCode",
