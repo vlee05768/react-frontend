@@ -563,7 +563,7 @@ export default function ProductPricingList() {
                               title: "原料編號",
                               dataIndex: "materialCode",
                               key: "materialCode",
-                              width: "20%",
+                              width: "18%",
                               render: (val: string) => (
                                 <a 
                                   href={`/warehouse/materials/${val}`} 
@@ -579,7 +579,7 @@ export default function ProductPricingList() {
                               title: "原料名稱",
                               dataIndex: "materialName",
                               key: "materialName",
-                              width: "25%",
+                              width: "18%",
                               ellipsis: true,
                               render: (val: string) => <span className="text-[11px] text-slate-700 dark:text-slate-300">{val}</span>
                             },
@@ -588,7 +588,7 @@ export default function ProductPricingList() {
                               dataIndex: "width",
                               key: "width",
                               align: "right" as const,
-                              width: "15%",
+                              width: "10%",
                               render: (val: number) => <span className="font-mono text-[11px]">{val != null ? val : "-"}</span>
                             },
                             {
@@ -596,14 +596,46 @@ export default function ProductPricingList() {
                               dataIndex: "quantity",
                               key: "quantity",
                               align: "right" as const,
-                              width: "20%",
+                              width: "14%",
                               render: (val: number) => <span className="font-mono text-[11px]">{val != null ? Number(val.toFixed(4)).toLocaleString() : "-"}</span>
+                            },
+                            {
+                              title: "單價(㎡)",
+                              key: "materialUnitPrice",
+                              align: "right" as const,
+                              width: "13%",
+                              render: (_: any, record: any) => (
+                                <span className="font-mono text-[11px] text-amber-600 dark:text-amber-400 font-semibold">
+                                  {record.materialUnitPrice != null ? `$${record.materialUnitPrice.toFixed(2)}` : "-"}
+                                </span>
+                              )
+                            },
+                            {
+                              title: "成本(PCS)",
+                              key: "pcsCost",
+                              align: "right" as const,
+                              width: "14%",
+                              render: (_: any, record: any) => {
+                                const scrapPercentage = record.scrapPercentage || 0;
+                                const width = record.width || 0;
+                                const quantity = record.quantity || 0;
+                                const standardSqm = width > 0 
+                                  ? quantity * (width / 1000) * (1 + scrapPercentage)
+                                  : quantity * (1 + scrapPercentage);
+                                const costPerSqm = record.materialUnitPrice || 0;
+                                const itemCost = standardSqm * costPerSqm;
+                                return (
+                                  <span className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                                    {`$${itemCost.toFixed(4)}`}
+                                  </span>
+                                );
+                              }
                             },
                             {
                               title: "整批需求",
                               key: "totalRequired",
                               align: "right" as const,
-                              width: "20%",
+                              width: "13%",
                               render: (_: any, record: any) => {
                                 const totalReq = (record.quantity || 0) * simulatedQty;
                                 return <span className="font-mono text-[11px] font-bold text-blue-600 dark:text-blue-400">{Number(totalReq.toFixed(4)).toLocaleString()}</span>;

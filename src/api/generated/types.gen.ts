@@ -239,6 +239,10 @@ export type BomItemDto = {
      */
     materialName?: string | null;
     /**
+     * 原料每平方米標準成本 (UnitPrice)
+     */
+    materialUnitPrice?: number | null;
+    /**
      * 需求用量
      */
     quantity?: number;
