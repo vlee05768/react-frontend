@@ -30,7 +30,8 @@ interface LocalPricingParams {
   totalFreightCost: number;   // 總運輸物流費 (整批)
   otherCost: number;          // 其他製造雜費 (每單位)
   marginType: "markup" | "gross"; // markup: 成本加成, gross: 毛利率
-  marginRate: number;         // 預期利潤率 %
+  markupRate: number;         // 預期成本加成率 %
+  grossMarginRate: number;    // 預期目標毛利率 %
 }
 
 const DEFAULT_PARAMS: LocalPricingParams = {
@@ -40,7 +41,8 @@ const DEFAULT_PARAMS: LocalPricingParams = {
   totalFreightCost: 1500,
   otherCost: 0,
   marginType: "markup",
-  marginRate: 20
+  markupRate: 20,
+  grossMarginRate: 16.67
 };
 
 export default function ProductPricingList() {
@@ -59,7 +61,8 @@ export default function ProductPricingList() {
   const [totalFreightCost, setTotalFreightCost] = useState<number>(1500);
   const [otherCost, setOtherCost] = useState<number>(0);
   const [marginType, setMarginType] = useState<"markup" | "gross">("markup");
-  const [marginRate, setMarginRate] = useState<number>(20);
+  const [markupRate, setMarkupRate] = useState<number>(20);
+  const [grossMarginRate, setGrossMarginRate] = useState<number>(16.67);
 
   // Ref for focus when a product is loaded
   const firstInputRef = useRef<any>(null);
@@ -125,7 +128,11 @@ export default function ProductPricingList() {
           setTotalFreightCost(parsed.totalFreightCost ?? 1500);
           setOtherCost(parsed.otherCost ?? 0);
           setMarginType(parsed.marginType ?? "markup");
-          setMarginRate(parsed.marginRate ?? 20);
+          
+          const mRate = parsed.markupRate ?? 20;
+          const gRate = parsed.grossMarginRate ?? 16.67;
+          setMarkupRate(mRate);
+          setGrossMarginRate(gRate);
         } catch (e) {
           console.error("Error parsing stored pricing parameters", e);
         }
@@ -137,7 +144,8 @@ export default function ProductPricingList() {
         setTotalFreightCost(DEFAULT_PARAMS.totalFreightCost);
         setOtherCost(DEFAULT_PARAMS.otherCost);
         setMarginType(DEFAULT_PARAMS.marginType);
-        setMarginRate(DEFAULT_PARAMS.marginRate);
+        setMarkupRate(DEFAULT_PARAMS.markupRate);
+        setGrossMarginRate(DEFAULT_PARAMS.grossMarginRate);
       }
 
       // Auto focus on opening
@@ -149,26 +157,71 @@ export default function ProductPricingList() {
     }
   }, [selectedProductCode]);
 
+  // Real-time double-sync for cost markup & gross margin rates
+  const handleMarkupChange = (val: number | null) => {
+    const rate = val || 0;
+    setMarkupRate(rate);
+    if (marginType === "markup") {
+      const syncedGross = (rate / (100 + rate)) * 100;
+      setGrossMarginRate(Math.round(syncedGross * 100) / 100);
+    }
+  };
+
+  const handleGrossChange = (val: number | null) => {
+    const rate = val || 0;
+    setGrossMarginRate(rate);
+    if (marginType === "gross") {
+      const syncedMarkup = rate < 100 ? (rate / (100 - rate)) * 100 : 0;
+      setMarkupRate(Math.round(syncedMarkup * 100) / 100);
+    }
+  };
+
+  // Synchronize when the pricing method changes
+  useEffect(() => {
+    if (marginType === "markup") {
+      const syncedGross = (markupRate / (100 + markupRate)) * 100;
+      setGrossMarginRate(Math.round(syncedGross * 100) / 100);
+    } else {
+      const syncedMarkup = grossMarginRate < 100 ? (grossMarginRate / (100 - grossMarginRate)) * 100 : 0;
+      setMarkupRate(Math.round(syncedMarkup * 100) / 100);
+    }
+  }, [marginType]);
+
   // Real-time calculations
   const calculatedResults = useMemo(() => {
     const qty = Math.max(1, simulatedQty); // Avoid division by zero
 
-    // 1. Calculate Unit Labor Cost = (Hours * Hourly Rate) / Quantity
-    const unitLaborCost = (laborHours * laborRatePerHour) / qty;
+    // 1. Total Material Cost (BOM) = standardMaterialCost * Quantity
+    const totalBatchMaterialCost = Number(standardMaterialCost) * qty;
 
-    // 2. Calculate Unit Freight Cost = Total Freight / Quantity
-    const unitFreightCost = totalFreightCost / qty;
+    // 2. Total Labor Cost = Hours * Hourly Rate
+    const totalBatchLaborCost = laborHours * laborRatePerHour;
 
-    // 3. Total Production Cost per unit = BOM Material + Unit Labor + Unit Freight + Unit Other Overheads
-    const totalUnitCost = Number(standardMaterialCost) + unitLaborCost + unitFreightCost + otherCost;
+    // 3. Total Freight & Logistics Cost (Direct from state)
+    const totalBatchFreightCost = totalFreightCost;
+
+    // 4. Total Other Overheads = otherCost * Quantity
+    const totalBatchOtherCost = otherCost * qty;
+
+    // 5. Total Production Cost (Batch) = sum of all totals
+    const totalBatchCost = totalBatchMaterialCost + totalBatchLaborCost + totalBatchFreightCost + totalBatchOtherCost;
+
+    // 6. Unit Cost
+    const totalUnitCost = totalBatchCost / qty;
+
+    // 7. Calculate Unit Labor & Freight for helper hints
+    const unitLaborCost = totalBatchLaborCost / qty;
+    const unitFreightCost = totalBatchFreightCost / qty;
 
     let trialPrice = 0;
+    const activeRate = marginType === "markup" ? markupRate : grossMarginRate;
+
     if (marginType === "markup") {
-      // Cost Plus: Trial Price = Cost * (1 + Margin%)
-      trialPrice = totalUnitCost * (1 + marginRate / 100);
+      // Cost Plus: Trial Price = Cost * (1 + Markup%)
+      trialPrice = totalUnitCost * (1 + activeRate / 100);
     } else {
       // Gross Margin: Trial Price = Cost / (1 - Margin%)
-      const rateFactor = 1 - marginRate / 100;
+      const rateFactor = 1 - activeRate / 100;
       trialPrice = rateFactor > 0 ? totalUnitCost / rateFactor : 0;
     }
 
@@ -176,7 +229,6 @@ export default function ProductPricingList() {
     const priceDiffPercent = currentUnitPrice > 0 ? (priceDiff / currentUnitPrice) * 100 : 0;
 
     // Batch level totals for ERP decision support
-    const totalBatchCost = totalUnitCost * qty;
     const totalBatchRevenue = trialPrice * qty;
     const totalBatchProfit = (trialPrice - totalUnitCost) * qty;
 
@@ -187,11 +239,15 @@ export default function ProductPricingList() {
       trialPrice: Math.max(0, trialPrice),
       priceDiff,
       priceDiffPercent,
+      totalBatchMaterialCost,
+      totalBatchLaborCost,
+      totalBatchFreightCost,
+      totalBatchOtherCost,
       totalBatchCost,
       totalBatchRevenue,
       totalBatchProfit
     };
-  }, [standardMaterialCost, simulatedQty, laborHours, laborRatePerHour, totalFreightCost, otherCost, marginType, marginRate, currentUnitPrice]);
+  }, [standardMaterialCost, simulatedQty, laborHours, laborRatePerHour, totalFreightCost, otherCost, marginType, markupRate, grossMarginRate, currentUnitPrice]);
 
   // Mutation to save price to DB
   const updatePriceMutation = useMutation({
@@ -216,7 +272,8 @@ export default function ProductPricingList() {
           totalFreightCost,
           otherCost,
           marginType,
-          marginRate
+          markupRate,
+          grossMarginRate
         };
         localStorage.setItem(`pricing_params_${selectedProductCode}`, JSON.stringify(paramsToStore));
 
@@ -279,7 +336,8 @@ export default function ProductPricingList() {
     setTotalFreightCost(DEFAULT_PARAMS.totalFreightCost);
     setOtherCost(DEFAULT_PARAMS.otherCost);
     setMarginType(DEFAULT_PARAMS.marginType);
-    setMarginRate(DEFAULT_PARAMS.marginRate);
+    setMarkupRate(DEFAULT_PARAMS.markupRate);
+    setGrossMarginRate(DEFAULT_PARAMS.grossMarginRate);
     message.info("已重置所有試算費用參數為預設值。");
   };
 
@@ -386,7 +444,7 @@ export default function ProductPricingList() {
                         <Descriptions.Item label={<span className="text-slate-400">目前銷售單價</span>}>
                           <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{formatCurrency(currentUnitPrice)}</span>
                         </Descriptions.Item>
-                        <Descriptions.Item label={<span className="text-slate-400">BOM 標準材料成本</span>}>
+                        <Descriptions.Item label={<span className="text-slate-400">BOM 標準材料成本 (單位)</span>}>
                           <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{formatCurrency(standardMaterialCost)}</span>
                         </Descriptions.Item>
                       </Descriptions>
@@ -496,7 +554,8 @@ export default function ProductPricingList() {
                     {/* C. Pricing Method Config */}
                     <Card size="small" title={<span className="font-bold text-slate-800 dark:text-slate-200 text-sm">定價方法與利潤率參數</span>} className="shadow-sm">
                       <Form layout="vertical" size="small">
-                        <Form.Item label={<span className="text-xs font-semibold text-slate-500">計算公式模型</span>}>
+                        {/* Selected Leading Model */}
+                        <Form.Item label={<span className="text-xs font-bold text-slate-500">定價主導方法</span>}>
                           <Radio.Group 
                             value={marginType} 
                             onChange={(e) => setMarginType(e.target.value)}
@@ -525,18 +584,48 @@ export default function ProductPricingList() {
                           )}
                         </div>
 
-                        <Form.Item label={<span className="text-xs font-semibold text-slate-500">{marginType === "markup" ? "預期成本加成率 (%)" : "預期毛利率 (%)"}</span>}>
-                          <InputNumber
-                            style={{ width: "100%" }}
-                            value={marginRate}
-                            onChange={(val) => setMarginRate(val || 0)}
-                            min={0}
-                            max={marginType === "gross" ? 99 : 999}
-                            precision={2}
-                            addonAfter="%"
-                            className="font-mono text-right-align-input"
-                          />
-                        </Form.Item>
+                        {/* Always display both percentage inputs and synchronize them dynamically */}
+                        <Row gutter={12}>
+                          {/* Cost Plus Markup Input */}
+                          <Col span={12}>
+                            <Form.Item 
+                              label={<span className={`text-xs font-semibold ${marginType === "markup" ? "text-blue-600 font-bold" : "text-slate-400"}`}>預期成本加成率 (%)</span>}
+                              tooltip="以生產成本為基準，按比例加上利潤額。若選取為非主導方法，則欄位轉為唯讀並按公式自動逆推。"
+                            >
+                              <InputNumber
+                                style={{ width: "100%" }}
+                                value={markupRate}
+                                onChange={handleMarkupChange}
+                                disabled={marginType !== "markup"}
+                                min={0}
+                                max={999}
+                                precision={2}
+                                addonAfter="%"
+                                className={`font-mono text-right-align-input ${marginType !== "markup" ? "bg-slate-100 text-slate-400" : ""}`}
+                              />
+                            </Form.Item>
+                          </Col>
+
+                          {/* Gross Margin Input */}
+                          <Col span={12}>
+                            <Form.Item 
+                              label={<span className={`text-xs font-semibold ${marginType === "gross" ? "text-blue-600 font-bold" : "text-slate-400"}`}>預期目標毛利率 (%)</span>}
+                              tooltip="以銷售價格為基準，預期留存的毛利率額。若選取為非主導方法，則欄位轉為唯讀並按公式自動逆推。"
+                            >
+                              <InputNumber
+                                style={{ width: "100%" }}
+                                value={grossMarginRate}
+                                onChange={handleGrossChange}
+                                disabled={marginType !== "gross"}
+                                min={0}
+                                max={99}
+                                precision={2}
+                                addonAfter="%"
+                                className={`font-mono text-right-align-input ${marginType !== "gross" ? "bg-slate-100 text-slate-400" : ""}`}
+                              />
+                            </Form.Item>
+                          </Col>
+                        </Row>
                       </Form>
                     </Card>
                   </Col>
@@ -548,56 +637,59 @@ export default function ProductPricingList() {
                     <Card 
                       size="small" 
                       title={<span className="font-bold text-slate-800 dark:text-slate-100">定價試算模擬結果</span>} 
-                      className={`shadow border-2 ${isDarkMode ? "bg-slate-900 border-slate-800" : "bg-emerald-50/40 border-emerald-200"}`}
+                      className={`shadow border-2 ${isDarkMode ? "bg-slate-900 border-slate-800" : "bg-amber-50/10 border-amber-200"}`}
                     >
                       <div className="space-y-3.5 py-1 text-sm text-slate-700 dark:text-slate-200">
                         {/* Summary of simulated batch */}
                         <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800 p-2 rounded text-xs font-semibold mb-2">
-                          <span className="text-slate-500">整體模擬產量：</span>
+                          <span className="text-slate-500">整體模擬銷售總量：</span>
                           <span className="font-mono text-slate-800 dark:text-slate-100">{simulatedQty.toLocaleString()} PCS</span>
                         </div>
 
-                        {/* Cost breakdown per unit */}
+                        {/* Cost breakdown showing ORIGINAL TOTAL COSTS (非單位成本) */}
                         <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-2">
-                          <span className="font-semibold text-slate-500">1. BOM 材料成本 (單位)：</span>
-                          <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatCurrency(standardMaterialCost)}</span>
+                          <span className="font-semibold text-slate-500">1. BOM 材料總成本 (整批)：</span>
+                          <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatCurrency(calculatedResults.totalBatchMaterialCost)}</span>
                         </div>
                         <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-2">
-                          <span className="font-semibold text-slate-500">2. 攤算人工成本 (單位)：</span>
-                          <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatCurrency(calculatedResults.unitLaborCost)}</span>
+                          <span className="font-semibold text-slate-500">2. 預估生產總人工費 (整批)：</span>
+                          <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatCurrency(calculatedResults.totalBatchLaborCost)}</span>
                         </div>
                         <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-2">
-                          <span className="font-semibold text-slate-500">3. 攤算運輸物流費 (單位)：</span>
-                          <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatCurrency(calculatedResults.unitFreightCost)}</span>
+                          <span className="font-semibold text-slate-500">3. 整批總運輸物流費 (整批)：</span>
+                          <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatCurrency(calculatedResults.totalBatchFreightCost)}</span>
                         </div>
                         <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-2">
-                          <span className="font-semibold text-slate-500">4. 其他製造雜費 (單位)：</span>
-                          <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatCurrency(otherCost)}</span>
+                          <span className="font-semibold text-slate-500">4. 其他製造總雜費 (整批)：</span>
+                          <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatCurrency(calculatedResults.totalBatchOtherCost)}</span>
                         </div>
-                        <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-2">
-                          <span className="font-bold text-slate-600 dark:text-slate-300">💡 產品生產單位總成本：</span>
-                          <span className="font-mono font-bold text-slate-800 dark:text-slate-100">{formatCurrency(calculatedResults.totalUnitCost)}</span>
+                        
+                        {/* Overall Original Total Production Cost */}
+                        <div className="flex justify-between items-center border-b-2 border-slate-300 dark:border-slate-700 pb-2 pt-1">
+                          <span className="font-bold text-slate-700 dark:text-slate-200">💡 預估生產總成本 (整批)：</span>
+                          <span className="font-mono font-extrabold text-lg text-slate-900 dark:text-slate-50">{formatCurrency(calculatedResults.totalBatchCost)}</span>
                         </div>
 
                         {/* Batch metrics for ERP decision support */}
                         <div className="bg-slate-50 dark:bg-slate-950 p-2.5 rounded border border-slate-200 dark:border-slate-800 space-y-1.5 text-xs">
                           <div className="flex justify-between items-center">
-                            <span className="text-slate-400">這批訂單預估總成本：</span>
-                            <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{formatCurrency(calculatedResults.totalBatchCost)}</span>
+                            <span className="text-slate-400">產品生產單位成本 (PCS)：</span>
+                            <span className="font-mono font-bold text-slate-600 dark:text-slate-400">{formatCurrency(calculatedResults.totalUnitCost)}</span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-slate-400">這批訂單預估總銷售額：</span>
+                            <span className="text-slate-400">預估整批總銷售額：</span>
                             <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{formatCurrency(calculatedResults.totalBatchRevenue)}</span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-slate-400">這批訂單預估總利潤：</span>
+                            <span className="text-slate-400">預估整批總利潤：</span>
                             <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(calculatedResults.totalBatchProfit)}</span>
                           </div>
                         </div>
                         
+                        {/* Simulated Suggestive Selling Unit Price (Highly prominent) */}
                         <div className="pt-3 flex flex-col justify-between items-stretch">
                           <div className="flex justify-between items-center">
-                            <span className="font-bold text-base text-slate-800 dark:text-slate-100">💡 建議銷售單價：</span>
+                            <span className="font-bold text-base text-slate-800 dark:text-slate-100">💡 建議銷售單價 (每單位)：</span>
                             <div className="text-right">
                               <span className="font-mono font-extrabold text-3xl text-emerald-600 dark:text-emerald-400">
                                 {formatCurrency(calculatedResults.trialPrice)}
