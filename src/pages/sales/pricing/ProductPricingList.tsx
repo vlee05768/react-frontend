@@ -91,9 +91,7 @@ export default function ProductPricingList() {
     return cleanCustomerCode && cleanCustomerCode.length >= 2;
   }, [cleanCustomerCode]);
 
-
-
-  // 1b. Fetch products belonging to the selected customer (whenever customerCode is inputted)
+  // Fetch products belonging to the selected customer (whenever customerCode is inputted)
   const { data: customerProductsResponse, isFetching: isProductsLoading } = useQuery({
     queryKey: ["customer-products-pricing-main", cleanCustomerCode],
     queryFn: () => 
@@ -114,7 +112,7 @@ export default function ProductPricingList() {
     }));
   }, [customerProductsResponse]);
 
-  // 2. Fetch specific product's pricing base data (containing BOM standard cost)
+  // Fetch specific product's pricing base data (containing BOM standard cost)
   const { data: pricingBaseResponse, isFetching: isPricingBaseLoading, refetch: refetchPricingBase } = useQuery({
     queryKey: ["product-pricing-base-main", selectedProductCode],
     queryFn: async () => {
@@ -130,7 +128,7 @@ export default function ProductPricingList() {
   const standardMaterialCost = pricingBase?.standardMaterialCost || 0;
   const currentUnitPrice = pricingBase?.currentUnitPrice || 0;
 
-  // 3. Fetch product's BOM table to check availability and list materials
+  // Fetch product's BOM table to check availability and list materials
   const { data: bomData, isFetching: isBomLoading } = useQuery({
     queryKey: ["product-pricing-bom", selectedProductCode],
     queryFn: async () => {
@@ -456,7 +454,7 @@ export default function ProductPricingList() {
           </Button>
         }
       >
-        {/* Step-by-Step Search Bar Flow (Removed customerName column, merged display into customer input) */}
+        {/* Step-by-Step Search Bar Flow */}
         <div className="mb-2 bg-slate-50 dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-800">
           <Row gutter={[8, 8]} align="middle">
             {/* 1. Customer Autocomplete (Col 10 - wide enough to display "C0008 (茂迪股份有限公司)" beautifully) */}
@@ -529,7 +527,15 @@ export default function ProductPricingList() {
                       <DescriptionsTitle title="成品基礎資訊 (BOM 動態滾算)" />
                       <Descriptions size="small" column={1} className="mt-1 font-semibold compact-descriptions">
                         <Descriptions.Item label={<span className="text-slate-400 text-xs">成品品號</span>}>
-                          <span className="font-mono font-bold text-xs text-slate-800 dark:text-slate-100">{pricingBase.productCode}</span>
+                          {/* Drills down to warehouse/products/:code in a new tab */}
+                          <a 
+                            href={`/warehouse/products/${pricingBase.productCode}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="font-mono font-bold text-xs text-blue-500 hover:text-blue-400 hover:underline cursor-pointer transition-colors"
+                          >
+                            {pricingBase.productCode}
+                          </a>
                         </Descriptions.Item>
                         <Descriptions.Item label={<span className="text-slate-400 text-xs">成品名稱</span>}>
                           <span className="text-xs text-slate-800 dark:text-slate-100 ellipsis-line">{pricingBase.productName}</span>
@@ -558,7 +564,16 @@ export default function ProductPricingList() {
                               dataIndex: "materialCode",
                               key: "materialCode",
                               width: "20%",
-                              render: (val: string) => <span className="font-mono text-[11px] font-semibold text-slate-700 dark:text-slate-300">{val}</span>
+                              render: (val: string) => (
+                                <a 
+                                  href={`/warehouse/materials/${val}`} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="font-mono text-[11px] font-bold text-blue-500 hover:text-blue-400 hover:underline cursor-pointer transition-colors"
+                                >
+                                  {val}
+                                </a>
+                              )
                             },
                             {
                               title: "原料名稱",
