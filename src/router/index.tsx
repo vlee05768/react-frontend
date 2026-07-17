@@ -52,6 +52,7 @@ const PurchaseReceiptDrawer = withSuspense(lazy(() => import('@/pages/purchase/r
 const SalesDeliveriesList = withSuspense(lazy(() => import('@/pages/sales/sales-deliveries/SalesDeliveriesList')));
 const SalesDeliveryDrawer = withSuspense(lazy(() => import('@/pages/sales/sales-deliveries/SalesDeliveryDrawer')));
 const CustomerStatementList = withSuspense(lazy(() => import('@/pages/sales/statements/CustomerStatementList')));
+const ProductPricingList = withSuspense(lazy(() => import('@/pages/sales/pricing/ProductPricingList')));
 const OrderDrawer = withSuspense(lazy(() => import('@/pages/sales/orders/OrderDrawer')));
 const MaterialList = withSuspense(lazy(() => import('@/pages/warehouse/materials/MaterialList')));
 const MoldList = withSuspense(lazy(() => import('@/pages/production-quality/molds/MoldList')));
@@ -130,6 +131,7 @@ export const router = createBrowserRouter([
       { path: 'sales/sales-deliveries', element: <SalesDeliveriesList /> },
       { path: 'sales/sales-deliveries/:id', element: <><SalesDeliveriesList /><SalesDeliveryDrawer /></> },
       { path: 'sales/statements', element: <CustomerStatementList /> },
+      { path: 'sales/pricing', element: <ProductPricingList /> },
 
       { path: 'purchase/orders', element: <PurchaseOrdersList /> },
       { path: 'purchase/orders/:id', element: <><PurchaseOrdersList /><PurchaseOrderDrawer /></> },
