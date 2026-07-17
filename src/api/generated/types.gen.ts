@@ -1013,6 +1013,10 @@ export type CreateMaterialDto = {
      */
     auxUOM?: string | null;
     /**
+     * 每平方米標準成本 (元/SQM)
+     */
+    unitPrice?: number;
+    /**
      * 標記
      */
     tag?: string | null;
@@ -3943,6 +3947,10 @@ export type MaterialDto = {
      * 現場輔助計量單位 (M / PCS)
      */
     auxUOM?: string | null;
+    /**
+     * 每平方米標準成本 (元/SQM)
+     */
+    unitPrice?: number;
     /**
      * 是否啟用
      */
@@ -8176,6 +8184,10 @@ export type UpdateMaterialDto = {
      */
     auxUOM?: string | null;
     /**
+     * 每平方米標準成本 (元/SQM)
+     */
+    unitPrice?: number | null;
+    /**
      * 標記
      */
     tag?: string | null;
@@ -8527,6 +8539,20 @@ export type UpdateProductMoldDto = {
      * 備註
      */
     notes?: string | null;
+};
+
+/**
+ * 產品定價更新資料傳輸物件
+ */
+export type UpdateProductPriceDto = {
+    /**
+     * 產品編碼
+     */
+    productCode: string;
+    /**
+     * 最終決定銷售單價
+     */
+    unitPrice: number;
 };
 
 /**
@@ -9459,6 +9485,14 @@ export type WorkOrderDto = {
      */
     goodQuantity?: number;
     /**
+     * 實際直接材料總成本 (NTD)
+     */
+    actualMaterialCost?: number;
+    /**
+     * 實際單位直接材料成本 (NTD/PCS)
+     */
+    unitMaterialCost?: number;
+    /**
      * 人員工時清單
      */
     personnelWorkingHours?: Array<WorkOrderPersonnelHourDto> | null;
@@ -9550,6 +9584,14 @@ export type WorkOrderDto = {
      * 最近一次退料確認的人員
      */
     latestReturnUser?: string | null;
+    /**
+     * 關聯車間退料單號
+     */
+    associatedReturnNumber?: string | null;
+    /**
+     * 關聯車間退料單狀態 (Unconfirmed, Confirmed, Closed)
+     */
+    associatedReturnStatus?: string | null;
     /**
      * 入庫單號
      */
@@ -12073,6 +12115,14 @@ export type WorkOrderDtoWritable = {
      */
     goodQuantity?: number;
     /**
+     * 實際直接材料總成本 (NTD)
+     */
+    actualMaterialCost?: number;
+    /**
+     * 實際單位直接材料成本 (NTD/PCS)
+     */
+    unitMaterialCost?: number;
+    /**
      * 人員工時清單
      */
     personnelWorkingHours?: Array<WorkOrderPersonnelHourDto> | null;
@@ -12164,6 +12214,14 @@ export type WorkOrderDtoWritable = {
      * 最近一次退料確認的人員
      */
     latestReturnUser?: string | null;
+    /**
+     * 關聯車間退料單號
+     */
+    associatedReturnNumber?: string | null;
+    /**
+     * 關聯車間退料單狀態 (Unconfirmed, Confirmed, Closed)
+     */
+    associatedReturnStatus?: string | null;
     /**
      * 入庫單號
      */
@@ -17257,6 +17315,102 @@ export type PostApiV1ProductByProductCodeMoldsBatchResponses = {
 };
 
 export type PostApiV1ProductByProductCodeMoldsBatchResponse = PostApiV1ProductByProductCodeMoldsBatchResponses[keyof PostApiV1ProductByProductCodeMoldsBatchResponses];
+
+export type PostApiV1ProductCostRollupByProductCodeData = {
+    body?: never;
+    path: {
+        /**
+         * 成品品號
+         */
+        productCode: string;
+    };
+    query?: never;
+    url: '/api/v1/ProductCost/rollup/{productCode}';
+};
+
+export type PostApiV1ProductCostRollupByProductCodeErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type PostApiV1ProductCostRollupByProductCodeError = PostApiV1ProductCostRollupByProductCodeErrors[keyof PostApiV1ProductCostRollupByProductCodeErrors];
+
+export type PostApiV1ProductCostRollupByProductCodeResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiV1ProductCostRollupAllData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/ProductCost/rollup-all';
+};
+
+export type PostApiV1ProductCostRollupAllResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type GetApiV1ProductCostPricingBaseByProductCodeData = {
+    body?: never;
+    path: {
+        /**
+         * 成品品號
+         */
+        productCode: string;
+    };
+    query?: never;
+    url: '/api/v1/ProductCost/pricing-base/{productCode}';
+};
+
+export type GetApiV1ProductCostPricingBaseByProductCodeErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type GetApiV1ProductCostPricingBaseByProductCodeError = GetApiV1ProductCostPricingBaseByProductCodeErrors[keyof GetApiV1ProductCostPricingBaseByProductCodeErrors];
+
+export type GetApiV1ProductCostPricingBaseByProductCodeResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiV1ProductCostUpdatePriceData = {
+    /**
+     * 定價更新資訊
+     */
+    body?: UpdateProductPriceDto;
+    path?: never;
+    query?: never;
+    url: '/api/v1/ProductCost/update-price';
+};
+
+export type PostApiV1ProductCostUpdatePriceErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type PostApiV1ProductCostUpdatePriceError = PostApiV1ProductCostUpdatePriceErrors[keyof PostApiV1ProductCostUpdatePriceErrors];
+
+export type PostApiV1ProductCostUpdatePriceResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type GetApiV1ProductionReceiptData = {
     body?: never;
