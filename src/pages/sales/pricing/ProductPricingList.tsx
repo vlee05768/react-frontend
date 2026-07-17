@@ -68,6 +68,9 @@ export default function ProductPricingList() {
   // Ref for focus when a product is loaded
   const firstInputRef = useRef<any>(null);
 
+  // Ref to prevent saving default values before state loading is completed
+  const isLoadedRef = useRef<string | null>(null);
+
   // Determine if the customer code input is sufficient for query
   const isCustomerValidInput = useMemo(() => {
     return customerCode && customerCode.trim().length >= 2;
@@ -154,9 +157,10 @@ export default function ProductPricingList() {
     setSelectedProductCode(null); // Clear selected product when customer changes
   };
 
-  // Load and save pricing simulation parameters from LocalStorage when selected product changes
+  // Load pricing simulation parameters from LocalStorage when selected product changes
   useEffect(() => {
     if (selectedProductCode) {
+      isLoadedRef.current = null; // Mark as loading
       const stored = localStorage.getItem(`pricing_params_${selectedProductCode}`);
       if (stored) {
         try {
@@ -187,12 +191,17 @@ export default function ProductPricingList() {
         setGrossMarginRate(DEFAULT_PARAMS.grossMarginRate);
       }
 
+      // Mark as fully loaded for this specific product code
+      isLoadedRef.current = selectedProductCode;
+
       // Auto focus on opening
       setTimeout(() => {
         if (firstInputRef.current) {
           firstInputRef.current.focus();
         }
       }, 150);
+    } else {
+      isLoadedRef.current = null;
     }
   }, [selectedProductCode]);
 
@@ -225,6 +234,33 @@ export default function ProductPricingList() {
       setMarkupRate(Math.round(syncedMarkup * 100) / 100);
     }
   }, [marginType]);
+
+  // Automatically save current simulation parameters to LocalStorage in real-time as they edit!
+  useEffect(() => {
+    if (selectedProductCode && isLoadedRef.current === selectedProductCode) {
+      const paramsToStore: LocalPricingParams = {
+        simulatedQty,
+        laborHours,
+        laborRatePerHour,
+        totalFreightCost,
+        totalOtherCost,
+        marginType,
+        markupRate,
+        grossMarginRate
+      };
+      localStorage.setItem(`pricing_params_${selectedProductCode}`, JSON.stringify(paramsToStore));
+    }
+  }, [
+    selectedProductCode,
+    simulatedQty,
+    laborHours,
+    laborRatePerHour,
+    totalFreightCost,
+    totalOtherCost,
+    marginType,
+    markupRate,
+    grossMarginRate
+  ]);
 
   // Real-time calculations
   const calculatedResults = useMemo(() => {
@@ -297,7 +333,7 @@ export default function ProductPricingList() {
       if (responseData?.success || res.status === 200) {
         message.success(responseData?.message || "銷售定價回寫成功！");
         
-        // Save current simulation parameters to LocalStorage as well
+        // Ensure final state is written to LocalStorage as well
         const paramsToStore: LocalPricingParams = {
           simulatedQty,
           laborHours,
@@ -546,7 +582,7 @@ export default function ProductPricingList() {
                     )}
                   </Col>
 
-                  {/* Column 2: Simulation Parameters Inputs - Tightened to lg={7} and removed unit cost subtexts */}
+                  {/* Column 2: Simulation Parameters Inputs - Tightened to lg={7} and auto-saves to LocalStorage */}
                   <Col xs={24} lg={7} className="space-y-2 text-left">
                     
                     {/* B. Manual Fee Parameters Inputs */}
