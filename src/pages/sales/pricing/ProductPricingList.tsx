@@ -22,20 +22,22 @@ const formatCurrency = (val: any) => {
   return new Intl.NumberFormat("zh-TW", { style: "currency", currency: "TWD", minimumFractionDigits: 2, maximumFractionDigits: 4 }).format(val);
 };
 
-// Pricing parameters stored in LocalStorage
+// Pricing parameters stored in LocalStorage for persistence
 interface LocalPricingParams {
-  laborCost: number;
-  transportCost: number;
-  logisticsCost: number;
-  otherCost: number;
+  simulatedQty: number;       // 模擬銷售數量
+  laborHours: number;         // 預估生產總工時
+  laborRatePerHour: number;   // 每工時人工成本
+  totalFreightCost: number;   // 總運輸物流費 (整批)
+  otherCost: number;          // 其他製造雜費 (每單位)
   marginType: "markup" | "gross"; // markup: 成本加成, gross: 毛利率
-  marginRate: number; // in percent, e.g. 20 for 20%
+  marginRate: number;         // 預期利潤率 %
 }
 
 const DEFAULT_PARAMS: LocalPricingParams = {
-  laborCost: 0,
-  transportCost: 0,
-  logisticsCost: 0,
+  simulatedQty: 1000,
+  laborHours: 8,
+  laborRatePerHour: 180,
+  totalFreightCost: 1500,
   otherCost: 0,
   marginType: "markup",
   marginRate: 20
@@ -51,9 +53,10 @@ export default function ProductPricingList() {
   const [selectedProductCode, setSelectedProductCode] = useState<string | null>(null);
 
   // Form states for manual simulation inputs
-  const [laborCost, setLaborCost] = useState<number>(0);
-  const [transportCost, setTransportCost] = useState<number>(0);
-  const [logisticsCost, setLogisticsCost] = useState<number>(0);
+  const [simulatedQty, setSimulatedQty] = useState<number>(1000);
+  const [laborHours, setLaborHours] = useState<number>(8);
+  const [laborRatePerHour, setLaborRatePerHour] = useState<number>(180);
+  const [totalFreightCost, setTotalFreightCost] = useState<number>(1500);
   const [otherCost, setOtherCost] = useState<number>(0);
   const [marginType, setMarginType] = useState<"markup" | "gross">("markup");
   const [marginRate, setMarginRate] = useState<number>(20);
@@ -116,9 +119,10 @@ export default function ProductPricingList() {
       if (stored) {
         try {
           const parsed = JSON.parse(stored) as LocalPricingParams;
-          setLaborCost(parsed.laborCost ?? 0);
-          setTransportCost(parsed.transportCost ?? 0);
-          setLogisticsCost(parsed.logisticsCost ?? 0);
+          setSimulatedQty(parsed.simulatedQty ?? 1000);
+          setLaborHours(parsed.laborHours ?? 8);
+          setLaborRatePerHour(parsed.laborRatePerHour ?? 180);
+          setTotalFreightCost(parsed.totalFreightCost ?? 1500);
           setOtherCost(parsed.otherCost ?? 0);
           setMarginType(parsed.marginType ?? "markup");
           setMarginRate(parsed.marginRate ?? 20);
@@ -127,9 +131,10 @@ export default function ProductPricingList() {
         }
       } else {
         // Reset to defaults
-        setLaborCost(DEFAULT_PARAMS.laborCost);
-        setTransportCost(DEFAULT_PARAMS.transportCost);
-        setLogisticsCost(DEFAULT_PARAMS.logisticsCost);
+        setSimulatedQty(DEFAULT_PARAMS.simulatedQty);
+        setLaborHours(DEFAULT_PARAMS.laborHours);
+        setLaborRatePerHour(DEFAULT_PARAMS.laborRatePerHour);
+        setTotalFreightCost(DEFAULT_PARAMS.totalFreightCost);
         setOtherCost(DEFAULT_PARAMS.otherCost);
         setMarginType(DEFAULT_PARAMS.marginType);
         setMarginRate(DEFAULT_PARAMS.marginRate);
@@ -146,28 +151,47 @@ export default function ProductPricingList() {
 
   // Real-time calculations
   const calculatedResults = useMemo(() => {
-    const totalCost = Number(standardMaterialCost) + laborCost + transportCost + logisticsCost + otherCost;
-    let trialPrice = 0;
+    const qty = Math.max(1, simulatedQty); // Avoid division by zero
 
+    // 1. Calculate Unit Labor Cost = (Hours * Hourly Rate) / Quantity
+    const unitLaborCost = (laborHours * laborRatePerHour) / qty;
+
+    // 2. Calculate Unit Freight Cost = Total Freight / Quantity
+    const unitFreightCost = totalFreightCost / qty;
+
+    // 3. Total Production Cost per unit = BOM Material + Unit Labor + Unit Freight + Unit Other Overheads
+    const totalUnitCost = Number(standardMaterialCost) + unitLaborCost + unitFreightCost + otherCost;
+
+    let trialPrice = 0;
     if (marginType === "markup") {
       // Cost Plus: Trial Price = Cost * (1 + Margin%)
-      trialPrice = totalCost * (1 + marginRate / 100);
+      trialPrice = totalUnitCost * (1 + marginRate / 100);
     } else {
       // Gross Margin: Trial Price = Cost / (1 - Margin%)
       const rateFactor = 1 - marginRate / 100;
-      trialPrice = rateFactor > 0 ? totalCost / rateFactor : 0;
+      trialPrice = rateFactor > 0 ? totalUnitCost / rateFactor : 0;
     }
 
     const priceDiff = trialPrice - currentUnitPrice;
     const priceDiffPercent = currentUnitPrice > 0 ? (priceDiff / currentUnitPrice) * 100 : 0;
 
+    // Batch level totals for ERP decision support
+    const totalBatchCost = totalUnitCost * qty;
+    const totalBatchRevenue = trialPrice * qty;
+    const totalBatchProfit = (trialPrice - totalUnitCost) * qty;
+
     return {
-      totalCost,
+      unitLaborCost,
+      unitFreightCost,
+      totalUnitCost,
       trialPrice: Math.max(0, trialPrice),
       priceDiff,
-      priceDiffPercent
+      priceDiffPercent,
+      totalBatchCost,
+      totalBatchRevenue,
+      totalBatchProfit
     };
-  }, [standardMaterialCost, laborCost, transportCost, logisticsCost, otherCost, marginType, marginRate, currentUnitPrice]);
+  }, [standardMaterialCost, simulatedQty, laborHours, laborRatePerHour, totalFreightCost, otherCost, marginType, marginRate, currentUnitPrice]);
 
   // Mutation to save price to DB
   const updatePriceMutation = useMutation({
@@ -186,9 +210,10 @@ export default function ProductPricingList() {
         
         // Save current simulation parameters to LocalStorage as well
         const paramsToStore: LocalPricingParams = {
-          laborCost,
-          transportCost,
-          logisticsCost,
+          simulatedQty,
+          laborHours,
+          laborRatePerHour,
+          totalFreightCost,
           otherCost,
           marginType,
           marginRate
@@ -248,9 +273,10 @@ export default function ProductPricingList() {
   };
 
   const handleResetSimulator = () => {
-    setLaborCost(DEFAULT_PARAMS.laborCost);
-    setTransportCost(DEFAULT_PARAMS.transportCost);
-    setLogisticsCost(DEFAULT_PARAMS.logisticsCost);
+    setSimulatedQty(DEFAULT_PARAMS.simulatedQty);
+    setLaborHours(DEFAULT_PARAMS.laborHours);
+    setLaborRatePerHour(DEFAULT_PARAMS.laborRatePerHour);
+    setTotalFreightCost(DEFAULT_PARAMS.totalFreightCost);
     setOtherCost(DEFAULT_PARAMS.otherCost);
     setMarginType(DEFAULT_PARAMS.marginType);
     setMarginRate(DEFAULT_PARAMS.marginRate);
@@ -338,7 +364,7 @@ export default function ProductPricingList() {
           </Row>
         </div>
 
-        {/* Pricing Workspace Area (Replaces the bottom Table) */}
+        {/* Pricing Workspace Area */}
         <div className="flex-1 min-h-[450px]">
           {selectedProductCode ? (
             <Spin spinning={isPricingBaseLoading} tip="產品 BOM 標準材料成本重算中...">
@@ -367,51 +393,91 @@ export default function ProductPricingList() {
                     </Card>
 
                     {/* B. Manual Fee Parameters Inputs */}
-                    <Card size="small" title={<span className="font-bold text-slate-800 dark:text-slate-200 text-sm">輸入系統未包含之費用參數</span>} className="shadow-sm">
+                    <Card size="small" title={<span className="font-bold text-slate-800 dark:text-slate-200 text-sm">輸入模擬與費用參數</span>} className="shadow-sm">
                       <Form layout="vertical" size="small">
                         <Row gutter={12}>
-                          <Col span={12}>
-                            <Form.Item label={<span className="text-xs font-semibold text-slate-500">直接人工費 (Unit)</span>}>
+                          {/* 1. Simulated Qty */}
+                          <Col span={24} className="mb-2">
+                            <Form.Item 
+                              label={<span className="text-xs font-bold text-slate-500">模擬銷售/生產總量 (PCS)</span>}
+                              tooltip="模切業屬於客製化生產，設定這批訂單的整體銷售數量，用來分攤整批性費用與人工工時成本。"
+                            >
                               <InputNumber
                                 ref={firstInputRef}
                                 style={{ width: "100%" }}
-                                value={laborCost}
-                                onChange={(val) => setLaborCost(val || 0)}
-                                min={0}
-                                precision={4}
-                                addonAfter="元"
+                                value={simulatedQty}
+                                onChange={(val) => setSimulatedQty(Math.max(1, val || 1))}
+                                min={1}
+                                precision={0}
+                                addonAfter="PCS"
                                 className="font-mono text-right-align-input"
                               />
                             </Form.Item>
                           </Col>
+
+                          {/* 2. Labor Hours & Rate */}
                           <Col span={12}>
-                            <Form.Item label={<span className="text-xs font-semibold text-slate-500">產品運輸費 (Unit)</span>}>
+                            <Form.Item label={<span className="text-xs font-semibold text-slate-500">預估生產總工時</span>}>
                               <InputNumber
                                 style={{ width: "100%" }}
-                                value={transportCost}
-                                onChange={(val) => setTransportCost(val || 0)}
+                                value={laborHours}
+                                onChange={(val) => setLaborHours(val || 0)}
                                 min={0}
-                                precision={4}
-                                addonAfter="元"
+                                precision={2}
+                                addonAfter="小時 (H)"
                                 className="font-mono text-right-align-input"
                               />
                             </Form.Item>
                           </Col>
                           <Col span={12}>
-                            <Form.Item label={<span className="text-xs font-semibold text-slate-500">倉儲物流費 (Unit)</span>}>
+                            <Form.Item label={<span className="text-xs font-semibold text-slate-500">每工時人工成本</span>}>
                               <InputNumber
                                 style={{ width: "100%" }}
-                                value={logisticsCost}
-                                onChange={(val) => setLogisticsCost(val || 0)}
+                                value={laborRatePerHour}
+                                onChange={(val) => setLaborRatePerHour(val || 0)}
                                 min={0}
-                                precision={4}
-                                addonAfter="元"
+                                precision={2}
+                                addonAfter="元 / 小時"
                                 className="font-mono text-right-align-input"
                               />
                             </Form.Item>
                           </Col>
-                          <Col span={12}>
-                            <Form.Item label={<span className="text-xs font-semibold text-slate-500">其他製造雜費 (Unit)</span>}>
+                          
+                          {/* Unit Labor Cost Hint */}
+                          <Col span={24} className="text-right -mt-2 mb-3">
+                            <span className="text-xs font-mono text-slate-400 block pr-2">
+                              ↳ 攤算單位人工費: {formatCurrency(calculatedResults.unitLaborCost)} / PCS
+                            </span>
+                          </Col>
+
+                          {/* 3. Merged Transportation & Logistics */}
+                          <Col span={24}>
+                            <Form.Item 
+                              label={<span className="text-xs font-semibold text-slate-500">整批總運輸與物流費</span>}
+                              tooltip="將整批貨物的運輸費、倉儲費、物流報關費用合併為一個欄位，在此輸入這批訂單的所有運輸物流費用總和。"
+                            >
+                              <InputNumber
+                                style={{ width: "100%" }}
+                                value={totalFreightCost}
+                                onChange={(val) => setTotalFreightCost(val || 0)}
+                                min={0}
+                                precision={2}
+                                addonAfter="元 (整批)"
+                                className="font-mono text-right-align-input"
+                              />
+                            </Form.Item>
+                          </Col>
+
+                          {/* Unit Freight Hint */}
+                          <Col span={24} className="text-right -mt-2 mb-3">
+                            <span className="text-xs font-mono text-slate-400 block pr-2">
+                              ↳ 攤算單位運輸物流費: {formatCurrency(calculatedResults.unitFreightCost)} / PCS
+                            </span>
+                          </Col>
+
+                          {/* 4. Other Cost */}
+                          <Col span={24}>
+                            <Form.Item label={<span className="text-xs font-semibold text-slate-500">其他製造雜費 (每單位 / Unit Overheads)</span>}>
                               <InputNumber
                                 style={{ width: "100%" }}
                                 value={otherCost}
@@ -450,11 +516,11 @@ export default function ProductPricingList() {
                           </div>
                           {marginType === "markup" ? (
                             <Paragraph className="mb-0 font-mono text-slate-700 dark:text-slate-300">
-                              試算單價 = (材料成本 + 人工 + 運輸 + 物流 + 其他) × (1 + 預期加成率%)
+                              試算單價 = (材料成本 + 單位人工成本 + 單位運輸物流成本 + 其他雜費) × (1 + 預期加成率%)
                             </Paragraph>
                           ) : (
                             <Paragraph className="mb-0 font-mono text-slate-700 dark:text-slate-300">
-                              試算單價 = (材料成本 + 人工 + 運輸 + 物流 + 其他) ÷ (1 - 預期毛利率%)
+                              試算單價 = (材料成本 + 單位人工成本 + 單位運輸物流成本 + 其他雜費) ÷ (1 - 預期毛利率%)
                             </Paragraph>
                           )}
                         </div>
@@ -485,17 +551,48 @@ export default function ProductPricingList() {
                       className={`shadow border-2 ${isDarkMode ? "bg-slate-900 border-slate-800" : "bg-emerald-50/40 border-emerald-200"}`}
                     >
                       <div className="space-y-3.5 py-1 text-sm text-slate-700 dark:text-slate-200">
+                        {/* Summary of simulated batch */}
+                        <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800 p-2 rounded text-xs font-semibold mb-2">
+                          <span className="text-slate-500">整體模擬產量：</span>
+                          <span className="font-mono text-slate-800 dark:text-slate-100">{simulatedQty.toLocaleString()} PCS</span>
+                        </div>
+
+                        {/* Cost breakdown per unit */}
                         <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-2">
-                          <span className="font-semibold text-slate-500">1. 加總總材料成本 (BOM)：</span>
+                          <span className="font-semibold text-slate-500">1. BOM 材料成本 (單位)：</span>
                           <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatCurrency(standardMaterialCost)}</span>
                         </div>
                         <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-2">
-                          <span className="font-semibold text-slate-500">2. 自訂費用參數加總：</span>
-                          <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatCurrency(laborCost + transportCost + logisticsCost + otherCost)}</span>
+                          <span className="font-semibold text-slate-500">2. 攤算人工成本 (單位)：</span>
+                          <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatCurrency(calculatedResults.unitLaborCost)}</span>
                         </div>
                         <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-2">
-                          <span className="font-bold text-slate-600 dark:text-slate-300">3. 產品生產總成本：</span>
-                          <span className="font-mono font-bold text-slate-800 dark:text-slate-100">{formatCurrency(calculatedResults.totalCost)}</span>
+                          <span className="font-semibold text-slate-500">3. 攤算運輸物流費 (單位)：</span>
+                          <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatCurrency(calculatedResults.unitFreightCost)}</span>
+                        </div>
+                        <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-2">
+                          <span className="font-semibold text-slate-500">4. 其他製造雜費 (單位)：</span>
+                          <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatCurrency(otherCost)}</span>
+                        </div>
+                        <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-2">
+                          <span className="font-bold text-slate-600 dark:text-slate-300">💡 產品生產單位總成本：</span>
+                          <span className="font-mono font-bold text-slate-800 dark:text-slate-100">{formatCurrency(calculatedResults.totalUnitCost)}</span>
+                        </div>
+
+                        {/* Batch metrics for ERP decision support */}
+                        <div className="bg-slate-50 dark:bg-slate-950 p-2.5 rounded border border-slate-200 dark:border-slate-800 space-y-1.5 text-xs">
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-400">這批訂單預估總成本：</span>
+                            <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{formatCurrency(calculatedResults.totalBatchCost)}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-400">這批訂單預估總銷售額：</span>
+                            <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{formatCurrency(calculatedResults.totalBatchRevenue)}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-400">這批訂單預估總利潤：</span>
+                            <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(calculatedResults.totalBatchProfit)}</span>
+                          </div>
                         </div>
                         
                         <div className="pt-3 flex flex-col justify-between items-stretch">
