@@ -77,7 +77,7 @@ export default function PurchaseOrderDrawer() {
         purchaseOrderType: 'Material',
         currency: 'TWD',
         exchangeRate: 1,
-        taxRate: 0.05,
+        taxRate: 5,
         taxType: 'Taxable',
       };
     }
