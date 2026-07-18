@@ -4,7 +4,7 @@ import {
   App, Empty, Form, Row, Col, Select, Descriptions, Table
 } from "antd";
 import { 
-  SyncOutlined, CheckCircleOutlined 
+  SyncOutlined, CheckCircleOutlined, QuestionCircleOutlined 
 } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageCard } from "@/components/common/PageCard";
@@ -461,6 +461,60 @@ export default function ProductPricingList() {
     setSelectedProductCode(null);
   };
 
+  const showMoldHelpDialog = () => {
+    modal.info({
+      title: <span className="font-bold text-slate-800 dark:text-slate-100 text-base">📐 模切業模具開發費：成本分攤計算說明</span>,
+      width: 520,
+      centered: true,
+      okText: "我瞭解了",
+      content: (
+        <div className="space-y-4 text-xs text-slate-600 dark:text-slate-300 pt-3 leading-relaxed">
+          <p>
+            在模切（Die-Cutting）客製化生產中，開模費用（例如：平壓木樣刀模、雕刻金屬鋼模、圓刀模輪）常由客戶負擔。系統提供以下<strong>雙軌制分攤與報價模型</strong>：
+          </p>
+
+          <div className="bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded p-2.5">
+            <h4 className="font-bold text-emerald-800 dark:text-emerald-400 text-xs flex items-center gap-1">
+              <span>🔵</span> 模式 A：攤入單價 (整批分攤)
+            </h4>
+            <div className="pl-4 mt-1 space-y-1">
+              <p>
+                <strong>計算邏輯：</strong>將模具總開發費用平攤到本次模擬銷售數量中，直接作為「成品生產成本」的一部分，再套用期望加成率/毛利率。
+              </p>
+              <p className="font-semibold text-slate-700 dark:text-slate-200">
+                公式：單PCS分攤模具費 = 模具費 / 模擬總數量
+              </p>
+              <p className="text-[11px] text-slate-400">
+                * 適用場景：小批量客製生產、贈品開模、或希望由單價獲利的常規專案。
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded p-2.5">
+            <h4 className="font-bold text-blue-800 dark:text-blue-400 text-xs flex items-center gap-1">
+              <span>🟢</span> 模式 B：獨立收取 (單獨報價)
+            </h4>
+            <div className="pl-4 mt-1 space-y-1">
+              <p>
+                <strong>計算邏輯：</strong>模具費用排除在成品的生產總成本與單價之外。成品單價維持純淨，但一整筆模具費用會在報價單上作為獨立 line item 收取。
+              </p>
+              <p className="font-semibold text-slate-700 dark:text-slate-200">
+                公式：總銷售收入 = (建議單價 × 數量) + 獨立模具費
+              </p>
+              <p className="text-[11px] text-slate-400">
+                * 適用場景：大型策略客戶、長期合約簽約、模具費由客戶一次性買斷 upfront 付清之交易。
+              </p>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-slate-400 italic">
+            * 提示：無論選擇何種模式，右側的「預估整批總利潤」皆會精確折算雙軌模式下的真實專案收益。
+          </p>
+        </div>
+      )
+    });
+  };
+
   return (
     <div className="p-2 flex flex-col h-full overflow-y-auto" style={{ minHeight: "calc(100vh - 64px)" }}>
       <PageCard
@@ -805,7 +859,15 @@ export default function ProductPricingList() {
                           {/* 6. Mold Amortization Mode */}
                           <Col span={12}>
                             <Form.Item 
-                              label={<span className="text-[11px] font-semibold text-slate-500">模具分攤模式</span>}
+                              label={
+                                <span className="text-[11px] font-semibold text-slate-500 flex items-center">
+                                  模具分攤模式
+                                  <QuestionCircleOutlined 
+                                    className="text-blue-500 cursor-pointer hover:text-blue-600 ml-1 text-[12px]" 
+                                    onClick={showMoldHelpDialog} 
+                                  />
+                                </span>
+                              }
                               style={{ marginBottom: 4 }}
                             >
                               <Select
