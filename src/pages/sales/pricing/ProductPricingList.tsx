@@ -35,6 +35,8 @@ interface LocalPricingParams {
   marginType: "markup" | "gross"; // markup: 成本加成, gross: 毛利率
   markupRate: number;         // 預期成本加成率 %
   grossMarginRate: number;    // 預期目標毛利率 %
+  moldCost: number;           // 模具開發費 (整批)
+  moldAmortizationType: "amortize" | "separate"; // 模具費用分攤模式
 }
 
 const DEFAULT_PARAMS: LocalPricingParams = {
@@ -45,7 +47,9 @@ const DEFAULT_PARAMS: LocalPricingParams = {
   totalOtherCost: 500,
   marginType: "markup",
   markupRate: 20,
-  grossMarginRate: 16.67
+  grossMarginRate: 16.67,
+  moldCost: 0,
+  moldAmortizationType: "amortize"
 };
 
 export default function ProductPricingList() {
@@ -63,6 +67,8 @@ export default function ProductPricingList() {
   const [laborRatePerHour, setLaborRatePerHour] = useState<number>(180);
   const [totalFreightCost, setTotalFreightCost] = useState<number>(1500);
   const [totalOtherCost, setTotalOtherCost] = useState<number>(500);
+  const [moldCost, setMoldCost] = useState<number>(0);
+  const [moldAmortizationType, setMoldAmortizationType] = useState<"amortize" | "separate">("amortize");
   const [marginType, setMarginType] = useState<"markup" | "gross">("markup");
   const [markupRate, setMarkupRate] = useState<number>(20);
   const [grossMarginRate, setGrossMarginRate] = useState<number>(16.67);
@@ -191,6 +197,8 @@ export default function ProductPricingList() {
           setLaborRatePerHour(parsed.laborRatePerHour ?? 180);
           setTotalFreightCost(parsed.totalFreightCost ?? 1500);
           setTotalOtherCost(parsed.totalOtherCost ?? 500);
+          setMoldCost(parsed.moldCost ?? 0);
+          setMoldAmortizationType(parsed.moldAmortizationType ?? "amortize");
           setMarginType(parsed.marginType ?? "markup");
           
           const mRate = parsed.markupRate ?? 20;
@@ -267,7 +275,9 @@ export default function ProductPricingList() {
         totalOtherCost,
         marginType,
         markupRate,
-        grossMarginRate
+        grossMarginRate,
+        moldCost,
+        moldAmortizationType
       };
       localStorage.setItem(`pricing_params_${selectedProductCode}`, JSON.stringify(paramsToStore));
     }
@@ -280,7 +290,9 @@ export default function ProductPricingList() {
     totalOtherCost,
     marginType,
     markupRate,
-    grossMarginRate
+    grossMarginRate,
+    moldCost,
+    moldAmortizationType
   ]);
 
   // Real-time calculations
@@ -299,8 +311,9 @@ export default function ProductPricingList() {
     // 4. Total Other Overheads (Direct from state)
     const totalBatchOtherCost = totalOtherCost;
 
-    // 5. Total Production Cost (Batch) = sum of all totals
-    const totalBatchCost = totalBatchMaterialCost + totalBatchLaborCost + totalBatchFreightCost + totalBatchOtherCost;
+    // 5. Total Production Cost (Batch) = sum of all totals + mold cost (if amortized)
+    const activeMoldCostInProduction = moldAmortizationType === "amortize" ? moldCost : 0;
+    const totalBatchCost = totalBatchMaterialCost + totalBatchLaborCost + totalBatchFreightCost + totalBatchOtherCost + activeMoldCostInProduction;
 
     // 6. Unit Cost
     const totalUnitCost = totalBatchCost / qty;
@@ -321,8 +334,10 @@ export default function ProductPricingList() {
     const priceDiffPercent = currentUnitPrice > 0 ? (priceDiff / currentUnitPrice) * 100 : 0;
 
     // Batch level totals for ERP decision support
-    const totalBatchRevenue = trialPrice * qty;
-    const totalBatchProfit = (trialPrice - totalUnitCost) * qty;
+    // For separate charge, the mold cost is still collected, so the total revenue of the batch including separate mold fee is:
+    const totalBatchRevenue = trialPrice * qty + (moldAmortizationType === "separate" ? moldCost : 0);
+    const totalBatchCostWithAllMold = totalBatchCost + (moldAmortizationType === "separate" ? moldCost : 0);
+    const totalBatchProfit = totalBatchRevenue - totalBatchCostWithAllMold;
 
     return {
       totalUnitCost,
@@ -337,7 +352,7 @@ export default function ProductPricingList() {
       totalBatchRevenue,
       totalBatchProfit
     };
-  }, [standardMaterialCost, simulatedQty, laborHours, laborRatePerHour, totalFreightCost, totalOtherCost, marginType, markupRate, grossMarginRate, currentUnitPrice]);
+  }, [standardMaterialCost, simulatedQty, laborHours, laborRatePerHour, totalFreightCost, totalOtherCost, marginType, markupRate, grossMarginRate, currentUnitPrice, moldCost, moldAmortizationType]);
 
   // Mutation to save price to DB
   const updatePriceMutation = useMutation({
@@ -363,7 +378,9 @@ export default function ProductPricingList() {
           totalOtherCost,
           marginType,
           markupRate,
-          grossMarginRate
+          grossMarginRate,
+          moldCost,
+          moldAmortizationType
         };
         localStorage.setItem(`pricing_params_${selectedProductCode}`, JSON.stringify(paramsToStore));
 
@@ -425,6 +442,8 @@ export default function ProductPricingList() {
     setLaborRatePerHour(DEFAULT_PARAMS.laborRatePerHour);
     setTotalFreightCost(DEFAULT_PARAMS.totalFreightCost);
     setTotalOtherCost(DEFAULT_PARAMS.totalOtherCost);
+    setMoldCost(DEFAULT_PARAMS.moldCost);
+    setMoldAmortizationType(DEFAULT_PARAMS.moldAmortizationType);
     setMarginType(DEFAULT_PARAMS.marginType);
     setMarkupRate(DEFAULT_PARAMS.markupRate);
     setGrossMarginRate(DEFAULT_PARAMS.grossMarginRate);
@@ -753,6 +772,45 @@ export default function ProductPricingList() {
                               />
                             </Form.Item>
                           </Col>
+
+                          {/* 5. Mold Cost */}
+                          <Col span={12}>
+                            <Form.Item 
+                              label={<span className="text-[11px] font-semibold text-slate-500">整批模具開發費</span>}
+                              style={{ marginBottom: 4 }}
+                            >
+                              <InputNumber
+                                style={{ width: "100%" }}
+                                value={moldCost}
+                                onChange={(val) => setMoldCost(val || 0)}
+                                min={0}
+                                precision={2}
+                                addonAfter="元"
+                                className="font-mono text-right-align-input"
+                                onFocus={(e) => e.target.select()}
+                              />
+                            </Form.Item>
+                          </Col>
+
+                          {/* 6. Mold Amortization Mode */}
+                          <Col span={12}>
+                            <Form.Item 
+                              label={<span className="text-[11px] font-semibold text-slate-500">模具分攤模式</span>}
+                              style={{ marginBottom: 4 }}
+                            >
+                              <Select
+                                value={moldAmortizationType}
+                                onChange={(val) => setMoldAmortizationType(val as any)}
+                                options={[
+                                  { label: "攤入單價 (模式A)", value: "amortize" },
+                                  { label: "獨立收取 (模式B)", value: "separate" }
+                                ]}
+                                style={{ width: "100%" }}
+                                size="small"
+                                className="font-semibold text-xs"
+                              />
+                            </Form.Item>
+                          </Col>
                         </Row>
                       </Form>
                     </Card>
@@ -864,6 +922,17 @@ export default function ProductPricingList() {
                           <span className="font-semibold text-slate-500">4. 其他製造總雜費 (整批)：</span>
                           <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatCurrency(calculatedResults.totalBatchOtherCost)}</span>
                         </div>
+                        
+                        {moldCost > 0 && (
+                          <div className="flex justify-between items-center border-b border-dashed border-slate-200 dark:border-slate-800 pb-1">
+                            <span className="font-semibold text-slate-500">
+                              5. 模具開發費 ({moldAmortizationType === "amortize" ? "整批分攤" : "獨立收費"})：
+                            </span>
+                            <span className={`font-mono font-bold ${moldAmortizationType === "amortize" ? "text-slate-800 dark:text-slate-200" : "text-slate-400 line-through"}`}>
+                              {formatCurrency(moldCost)}
+                            </span>
+                          </div>
+                        )}
                         
                         {/* Overall Original Total Production Cost */}
                         <div className="flex justify-between items-center border-b-2 border-slate-300 dark:border-slate-700 pb-1 pt-0.5">
