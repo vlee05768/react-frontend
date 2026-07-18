@@ -151,6 +151,12 @@ export default function ProductPricingList() {
     enabled: !!selectedProductCode
   });
 
+  // Determine if any material inside BOM has 0 or null cost
+  const hasZeroCostMaterial = useMemo(() => {
+    if (!bomData || !bomData.items) return false;
+    return bomData.items.some((item: any) => !item.materialUnitPrice || Number(item.materialUnitPrice) === 0);
+  }, [bomData]);
+
   // Handle BOM Verification and Termination Rule
   useEffect(() => {
     if (selectedProductCode && bomData === null && !isBomLoading) {
@@ -623,11 +629,14 @@ export default function ProductPricingList() {
                               key: "materialUnitPrice",
                               align: "right" as const,
                               width: "13%",
-                              render: (_: any, record: any) => (
-                                <span className="font-mono text-[11px] text-amber-600 dark:text-amber-400 font-semibold">
-                                  {record.materialUnitPrice != null ? `$${record.materialUnitPrice.toFixed(2)}` : "-"}
-                                </span>
-                              )
+                              render: (_: any, record: any) => {
+                                const isZero = !record.materialUnitPrice || record.materialUnitPrice === 0;
+                                return (
+                                  <span className={`font-mono text-[11px] font-semibold ${isZero ? "text-rose-600 dark:text-rose-400 font-bold" : "text-amber-600 dark:text-amber-400"}`}>
+                                    {record.materialUnitPrice != null ? `$${record.materialUnitPrice.toFixed(2)}${isZero ? " ⚠️" : ""}` : "$0.00 ⚠️"}
+                                  </span>
+                                );
+                              }
                             },
                             {
                               title: "成本(PCS)",
@@ -643,9 +652,10 @@ export default function ProductPricingList() {
                                   : quantity * (1 + scrapPercentage);
                                 const costPerSqm = record.materialUnitPrice || 0;
                                 const itemCost = standardSqm * costPerSqm;
+                                const isZero = itemCost === 0;
                                 return (
-                                  <span className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                                    {`$${itemCost.toFixed(4)}`}
+                                  <span className={`font-mono text-[11px] font-semibold ${isZero ? "text-rose-600 dark:text-rose-400 font-bold" : "text-emerald-600 dark:text-emerald-400"}`}>
+                                    {`$${itemCost.toFixed(4)}${isZero ? " ⚠️" : ""}`}
                                   </span>
                                 );
                               }
@@ -898,6 +908,15 @@ export default function ProductPricingList() {
                       title={<span className="font-bold text-slate-800 dark:text-slate-100 text-xs">定價試算模擬結果</span>} 
                       className={`shadow border-2 ${isDarkMode ? "bg-slate-900 border-slate-800" : "bg-amber-50/10 border-amber-200"}`}
                     >
+                      {hasZeroCostMaterial && (
+                        <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded p-1.5 mb-1.5 text-rose-700 dark:text-rose-400 text-[10px] font-semibold leading-relaxed flex items-start gap-1 shadow-sm animate-pulse">
+                          <span className="text-[12px] leading-none">⚠️</span>
+                          <div>
+                            <strong>警告提示：</strong>
+                            BOM 結構中包含成本為 0 的原物料，估算總利潤與單價可能存在較大誤差！
+                          </div>
+                        </div>
+                      )}
                       <div className="space-y-2 py-0.5 text-xs text-slate-700 dark:text-slate-200">
                         {/* Summary of simulated batch */}
                         <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800 p-1 rounded font-bold mb-1">
