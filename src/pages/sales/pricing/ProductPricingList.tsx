@@ -598,8 +598,8 @@ export default function ProductPricingList() {
               {pricingBase ? (
                 <Row gutter={[8, 8]}>
                   
-                  {/* Column 1: Base Data (Product Info & BOM list) - Widened to lg={10} */}
-                  <Col xs={24} lg={10} className="space-y-2 text-left">
+                  {/* Column 1: Base Data (Product Info & BOM list) - Widened to lg={12} */}
+                  <Col xs={24} lg={12} className="space-y-2 text-left">
                     
                     {/* A. Product Info Card */}
                     <Card size="small" className={`shadow-sm ${isDarkMode ? "bg-slate-900 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
@@ -643,6 +643,7 @@ export default function ProductPricingList() {
                               dataIndex: "materialCode",
                               key: "materialCode",
                               width: "18%",
+                              ellipsis: true,
                               render: (val: string) => (
                                 <a 
                                   href={`/warehouse/materials/${val}`} 
@@ -961,8 +962,8 @@ export default function ProductPricingList() {
                     </Card>
                   </Col>
 
-                  {/* Column 3: Output Results Display & Save Actions - Tightened to lg={7} */}
-                  <Col xs={24} lg={7} className="space-y-2 text-left">
+                  {/* Column 3: Output Results Display & Save Actions - Tightened to lg={5} */}
+                  <Col xs={24} lg={5} className="space-y-2 text-left">
                     
                     {/* D. Output Results Display Card */}
                     <Card 
