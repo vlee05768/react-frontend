@@ -145,7 +145,7 @@ export function WorkOrderDrawer({
     } else if (editMode === 'prepare') {
       modal.confirm({
         title: '備料完成確認',
-        content: '確定要確認備料完成嗎？確認後將無法隨意修改明細，並進入貼合程序。',
+        content: '確定要確認備料完成嗎？確認後將無法隨意修改明細，並進入貼合。',
         centered: true,
         width: 400,
         onOk: async () => {
@@ -374,7 +374,7 @@ export function WorkOrderDrawer({
               e.preventDefault(); 
               modal.confirm({
                 title: '備料完成確認',
-                content: '確定要確認備料完成嗎？系統將自動對關聯的領料單進行確認過帳，並進入貼合程序。',
+                content: '確定要確認備料完成嗎？系統將自動對關聯的領料單進行確認過帳，並進入貼合。',
                 centered: true, 
                 width: 400,
                 onOk: async () => {
@@ -400,7 +400,7 @@ export function WorkOrderDrawer({
               disabled={isDetailEditing}
               onClick={(e) => { e.preventDefault(); modal.confirm({
                 title: '貼合確認',
-                content: '確定要確認貼合程序嗎？確認後可以開始生產。',
+                content: '確定要確認貼合嗎？確認後將進入生產。',
                 centered: true, width: 400,
                 onOk: async () => {
                   try {
@@ -454,7 +454,7 @@ export function WorkOrderDrawer({
               disabled={isDetailEditing}
               onClick={(e) => { e.preventDefault(); modal.confirm({
                 title: '取消貼合確認',
-                content: '確定要取消貼合程序確認嗎？取消後將回到備料確認狀態。',
+                content: '確定要取消貼合確認嗎？取消後將回到製令備料狀態。',
                 centered: true, width: 400,
                 onOk: async () => {
                   try {
@@ -499,7 +499,7 @@ export function WorkOrderDrawer({
               disabled={isDetailEditing}
               onClick={(e) => { e.preventDefault(); modal.confirm({
                 title: '取消生產完成',
-                content: '確定要取消生產完成確認嗎？取消後將回到貼合確認狀態。',
+                content: '確定要取消生產完成確認嗎？取消後將回到生產中（貼合已確認）狀態。',
                 centered: true, width: 400,
                 onOk: async () => {
                   try {
@@ -581,20 +581,20 @@ export function WorkOrderDrawer({
   );
 
 
-  let statusText = "準備中";
+  let statusText = "草稿 / 備料中";
   let statusColor = "bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
   if (record) {
     if (isWarehousingCompleted) {
       statusText = "完工入庫";
       statusColor = "bg-green-50 text-green-600 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800";
     } else if (isProdCompleted) {
-      statusText = "生產完工";
+      statusText = "待入庫";
       statusColor = "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800";
     } else if (isInProduction) {
-      statusText = "貼合確認中";
+      statusText = "生產中";
       statusColor = "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800";
     } else if (isPrepCompleted) {
-      statusText = "備料確認";
+      statusText = "待貼合";
       statusColor = "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800";
     }
   }
@@ -604,25 +604,25 @@ export function WorkOrderDrawer({
   if (record) {
     steps = [
       {
-        title: '準備中',
+        title: 'Draft',
         status: record.preparationConfirmDate ? 'finish' : 'process',
         date: record.createdAt,
         user: record.createdBy ? `建立: ${record.createdBy}` : null,
       },
       {
-        title: '備料確認',
+        title: '製令備料',
         status: !record.preparationConfirmDate ? 'wait' : (record.laminationConfirmDate ? 'finish' : 'process'),
         date: record.preparationConfirmDate,
         user: record.preparationConfirmUser ? `備料: ${record.preparationConfirmUser}` : null,
       },
       {
-        title: '貼合確認',
+        title: '貼合',
         status: !record.laminationConfirmDate ? 'wait' : (record.productionCompleteDate ? 'finish' : 'process'),
         date: record.laminationConfirmDate,
         user: record.laminationConfirmUser ? `貼合: ${record.laminationConfirmUser}` : null,
       },
       {
-        title: '生產完工',
+        title: '生產',
         status: !record.productionCompleteDate ? 'wait' : (record.warehousingCompleteDate ? 'finish' : 'process'),
         date: record.productionCompleteDate,
         user: record.productionCompleteUser 
@@ -635,7 +635,7 @@ export function WorkOrderDrawer({
         user: record.warehousingCompleteUser ? `入庫: ${record.warehousingCompleteUser}` : null,
       },
       {
-        title: '車間退料',
+        title: '製令退料入庫',
         status: !record.warehousingCompleteDate 
           ? 'wait' 
           : (record.pendingWipRollsCount > 0 ? 'process' : 'finish'),
