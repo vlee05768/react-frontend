@@ -220,17 +220,17 @@ export default function Dashboard() {
           {/* Linear Supply Chain Flow */}
           <div className="flex items-start justify-start xl:justify-center gap-2 overflow-x-auto pb-4 flowchart-container relative z-10">
             
-            {/* COLUMN 1: BasicData (黃色) */}
-            <div className="flow-col min-w-[190px]">
+            {/* COLUMN 1: BasicData (黃色) - 2-Column Layout */}
+            <div className="flow-col min-w-[340px] xl:min-w-[380px]">
               <div className="flow-node-header border-t-4 border-t-yellow-500">
                 <div className="text-yellow-500 dark:text-yellow-400 mb-1">
                   <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                   </svg>
                 </div>
-                <div className="font-bold text-gray-800 dark:text-gray-200 text-xs">1. 基礎資料</div>
+                <div className="font-bold text-gray-800 dark:text-gray-200 text-xs">1. 基本資料</div>
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {renderSubButton({
                   permissionKey: 'BasicData.BusinessPartners.View',
                   path: '/basic/business-partners',
@@ -244,22 +244,22 @@ export default function Dashboard() {
                 {renderSubButton({
                   permissionKey: 'BasicData.Products.View',
                   path: '/warehouse/products',
-                  label: '📦 產品基本檔'
+                  label: '📦 產品管理'
                 })}
                 {renderSubButton({
                   permissionKey: 'BasicData.Materials.View',
                   path: '/warehouse/materials',
-                  label: '🧰 原物料管理'
+                  label: '🧰 原料管理'
                 })}
                 {renderSubButton({
                   permissionKey: 'BasicData.Molds.View',
                   path: '/production-quality/molds',
-                  label: '🔧 模具基本檔'
+                  label: '🔧 模具管理'
                 })}
                 {renderSubButton({
                   permissionKey: 'BasicData.Machines.View',
                   path: '/production-quality/machines',
-                  label: '⚙️ 機台基本檔'
+                  label: '⚙️ 機台管理'
                 })}
                 {renderSubButton({
                   permissionKey: 'BasicData.Storages.View',
@@ -281,7 +281,7 @@ export default function Dashboard() {
               </svg>
             </div>
 
-            {/* COLUMN 2: Purchase (橘色) */}
+            {/* COLUMN 2: Purchase (採購管理 - 橘色) */}
             <div className="flow-col min-w-[190px]">
               <div className="flow-node-header border-t-4 border-t-orange-500">
                 <div className="text-orange-500 dark:text-orange-400 mb-1">
@@ -289,23 +289,23 @@ export default function Dashboard() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
                   </svg>
                 </div>
-                <div className="font-bold text-gray-800 dark:text-gray-200 text-xs">2. 採購進料檢驗</div>
+                <div className="font-bold text-gray-800 dark:text-gray-200 text-xs">2. 採購管理</div>
               </div>
               <div className="flex flex-col gap-2">
                 {renderSubButton({
                   permissionKey: 'Purchase.Orders.View',
                   path: '/purchase/orders',
-                  label: '🛒 採購單維護'
+                  label: '🛒 採購單管理'
                 })}
                 {renderSubButton({
                   permissionKey: 'Purchase.Receipts.View',
                   path: '/purchase/receipts',
-                  label: '🚚 原料進貨單'
+                  label: '🚚 進貨單'
                 })}
                 {renderSubButton({
                   permissionKey: 'Purchase.IqcInspections.View',
                   path: '/purchase/iqc-inspections',
-                  label: '🔍 IQC 進料檢驗'
+                  label: '🔍 IQC 進料品質檢驗'
                 })}
               </div>
             </div>
@@ -317,7 +317,7 @@ export default function Dashboard() {
               </svg>
             </div>
 
-            {/* COLUMN 3: Production (紫色) */}
+            {/* COLUMN 3: ProductionQuality (生產與品質管理 - 紫色) */}
             <div className="flow-col min-w-[190px]">
               <div className="flow-node-header border-t-4 border-t-purple-500">
                 <div className="text-purple-500 dark:text-purple-400 mb-1">
@@ -326,23 +326,23 @@ export default function Dashboard() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                   </svg>
                 </div>
-                <div className="font-bold text-gray-800 dark:text-gray-200 text-xs">3. 生產完工檢驗</div>
+                <div className="font-bold text-gray-800 dark:text-gray-200 text-xs">3. 生產與品質管理</div>
               </div>
               <div className="flex flex-col gap-2">
                 {renderSubButton({
                   permissionKey: 'ProductionQuality.WorkOrders.View',
                   path: '/production-quality/work-orders',
-                  label: '📋 製令 (WO) 管理'
+                  label: '📋 製令管理'
                 })}
                 {renderSubButton({
                   permissionKey: 'ProductionQuality.ProductionReceipts.View',
                   path: '/production-quality/production-receipts',
-                  label: '📥 生產入庫單 (PR)'
+                  label: '📥 生產入庫單'
                 })}
                 {renderSubButton({
                   permissionKey: 'ProductionQuality.QcReceipts.View',
                   path: '/production-quality/qc-receipts',
-                  label: '🔍 QC 檢驗單 (FQC)'
+                  label: '🔍 QC 檢驗管理'
                 })}
               </div>
             </div>
@@ -354,26 +354,31 @@ export default function Dashboard() {
               </svg>
             </div>
 
-            {/* COLUMN 4: Warehouse (綠色) */}
-            <div className="flow-col min-w-[190px]">
+            {/* COLUMN 4: Warehouse (倉儲管理 - 綠色) */}
+            <div className="flow-col min-w-[210px]">
               <div className="flow-node-header border-t-4 border-t-teal-500">
                 <div className="text-teal-500 dark:text-teal-400 mb-1">
                   <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                   </svg>
                 </div>
-                <div className="font-bold text-gray-800 dark:text-gray-200 text-xs">4. 倉儲庫存管理</div>
+                <div className="font-bold text-gray-800 dark:text-gray-200 text-xs">4. 倉儲管理</div>
               </div>
               <div className="flex flex-col gap-2">
                 {renderSubButton({
                   permissionKey: 'Warehouse.Inventory.View',
                   path: '/warehouse/inventory',
-                  label: '🏢 庫存查詢與追溯'
+                  label: '🏢 產品儲位庫存'
+                })}
+                {renderSubButton({
+                  permissionKey: 'Warehouse.MaterialInventory.View',
+                  path: '/warehouse/material-inventory',
+                  label: '📦 原料庫存與卷卡號追溯'
                 })}
                 {renderSubButton({
                   permissionKey: 'Warehouse.InventoryMovements.View',
                   path: '/warehouse/inventory-movements',
-                  label: '🔄 庫存異動紀錄'
+                  label: '🔄 庫存異動明細'
                 })}
                 {renderSubButton({
                   permissionKey: 'Warehouse.InventoryAdjustments.View',
@@ -381,9 +386,9 @@ export default function Dashboard() {
                   label: '📝 庫存調整單'
                 })}
                 {renderSubButton({
-                  permissionKey: 'Warehouse.Inventory.View', // 原料快速調撥與庫存查詢對齊
+                  permissionKey: 'Warehouse.Inventory.View',
                   path: '/warehouse/quick-transfer',
-                  label: '⚡ 原料快速調撥'
+                  label: '⚡ 原料快速轉倉'
                 })}
               </div>
             </div>
@@ -395,7 +400,7 @@ export default function Dashboard() {
               </svg>
             </div>
 
-            {/* COLUMN 5: Sales (藍色) */}
+            {/* COLUMN 5: Sales (銷售管理 - 藍色) */}
             <div className="flow-col min-w-[190px]">
               <div className="flow-node-header border-t-4 border-t-blue-500">
                 <div className="text-blue-500 dark:text-blue-400 mb-1">
@@ -403,28 +408,28 @@ export default function Dashboard() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                   </svg>
                 </div>
-                <div className="font-bold text-gray-800 dark:text-gray-200 text-xs">5. 銷售與對帳結算</div>
+                <div className="font-bold text-gray-800 dark:text-gray-200 text-xs">5. 銷售管理</div>
               </div>
               <div className="flex flex-col gap-2">
                 {renderSubButton({
                   permissionKey: 'Sales.Pricing.View',
                   path: '/sales/pricing',
-                  label: '🧮 銷售輔助定價'
+                  label: '🧮 產品輔助定價'
                 })}
                 {renderSubButton({
                   permissionKey: 'Sales.Orders.View',
                   path: '/sales/orders',
-                  label: '📄 客戶訂單管理'
+                  label: '📄 訂單管理'
                 })}
                 {renderSubButton({
                   permissionKey: 'Sales.Deliveries.View',
                   path: '/sales/sales-deliveries',
-                  label: '🚚 銷貨出庫單 (SD)'
+                  label: '🚚 銷貨單管理'
                 })}
                 {renderSubButton({
                   permissionKey: 'Sales.Statements.View',
                   path: '/sales/statements',
-                  label: '🧾 客戶對帳單'
+                  label: '🧾 對帳單報表'
                 })}
               </div>
             </div>
