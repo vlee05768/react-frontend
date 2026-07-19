@@ -186,3 +186,26 @@
 }
 .flow-arrow { display: flex; justify-content: center; color: var(--ant-color-text-secondary, #666); padding-top: 36px; padding-left: 8px; padding-right: 8px; }
 .dark .flow-arrow { color: #4b5563; }
+
+/* 💻 中等螢幕/筆電 (1200px ~ 1440px) 局部自動等比微調縮小，防止提前觸發捲動 */
+@media (min-width: 1200px) and (max-width: 1440px) {
+  .sub-btn {
+    padding: 8px 10px;
+    font-size: 11px;
+    gap: 4px;
+  }
+  .sub-btn-disabled {
+    padding: 8px 10px;
+    font-size: 11px;
+    gap: 4px;
+  }
+  .flow-col {
+    flex: 0 0 140px;
+    min-width: 140px;
+  }
+  .flow-arrow {
+    padding-top: 32px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+}

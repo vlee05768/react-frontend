@@ -191,7 +191,7 @@ export default function Dashboard() {
 
         {/* Dynamic KPI Cards Grid */}
         <Spin spinning={isLoading}>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-10">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-4 mb-10">
             {KPI_CARDS_CONFIG.map((card, idx) => 
               renderKpiCard({
                 key: idx,
@@ -218,7 +218,7 @@ export default function Dashboard() {
         <div className="bg-white dark:bg-[#191919] p-8 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm dark:shadow-none relative overflow-hidden">
           
           {/* Linear Supply Chain Flow */}
-          <div className="flex items-start justify-start xl:justify-center gap-2 overflow-x-auto pb-4 flowchart-container relative z-10">
+          <div className="flex items-start justify-start gap-2 overflow-x-auto pb-4 flowchart-container relative z-10 w-full">
             
             {/* COLUMN 1: BasicData (黃色) - 2-Column Layout */}
             <div className="flow-col-double">
