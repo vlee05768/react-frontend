@@ -7,6 +7,77 @@ import {
 import { useAuthStore } from '@/stores/useAuthStore';
 import './Dashboard.css';
 
+// 1. 定義待處理事項配置型別
+interface KpiCardConfig {
+  permissionKey: string;           // 檢視所需權限
+  path: string;                    // 跳轉路由與參數
+  borderColorClass: string;        // 頂部邊框 Tailwind
+  title: string;                   // 卡片標題
+  valueKey: string;                // 對接 API pendingTasks 的欄位
+  textColorClass: string;          // 數字顏色 Tailwind
+  isWarning?: boolean;
+}
+
+// 7 大黃金待處理事項動態清單 (對齊最新選單分類架構，支援日後無限動態擴充)
+const KPI_CARDS_CONFIG: KpiCardConfig[] = [
+  {
+    permissionKey: 'Sales.Orders.View',
+    path: '/sales/orders?unprocessedOrders=true',
+    borderColorClass: 'bg-orange-500',
+    title: '未完成訂單',
+    valueKey: 'unprocessedOrders',
+    textColorClass: 'text-orange-500'
+  },
+  {
+    permissionKey: 'ProductionQuality.WorkOrders.View',
+    path: '/production-quality/work-orders?status=Draft',
+    borderColorClass: 'bg-red-500',
+    title: '未開工製令',
+    valueKey: 'draftWorkOrders',
+    textColorClass: 'text-red-500'
+  },
+  {
+    permissionKey: 'ProductionQuality.WorkOrders.View',
+    path: '/production-quality/work-orders?status=StartedUnwarehoused',
+    borderColorClass: 'bg-blue-500',
+    title: '開工未完工',
+    valueKey: 'inPrepWorkOrders',
+    textColorClass: 'text-blue-500'
+  },
+  {
+    permissionKey: 'ProductionQuality.ProductionReceipts.View',
+    path: '/production-quality/production-receipts?notQcFinished=true',
+    borderColorClass: 'bg-purple-500',
+    title: '生產未QC',
+    valueKey: 'notQcProductionReceipts',
+    textColorClass: 'text-purple-500'
+  },
+  {
+    permissionKey: 'ProductionQuality.QcReceipts.View',
+    path: '/production-quality/qc-receipts?status=Unconfirmed',
+    borderColorClass: 'bg-teal-500',
+    title: 'QC未確認',
+    valueKey: 'pendingQcReceipts',
+    textColorClass: 'text-teal-500'
+  },
+  {
+    permissionKey: 'Sales.Deliveries.View',
+    path: '/sales/sales-deliveries?shippedConfirmed=false',
+    borderColorClass: 'bg-yellow-500',
+    title: '銷貨未出庫 (SD)',
+    valueKey: 'notShippedSalesDeliveries',
+    textColorClass: 'text-yellow-500'
+  },
+  {
+    permissionKey: 'Purchase.Orders.View',
+    path: '/purchase/orders?status=DRAFT',
+    borderColorClass: 'bg-indigo-500',
+    title: '採購待核准',
+    valueKey: 'draftPurchaseOrders',
+    textColorClass: 'text-indigo-500'
+  }
+];
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const hasPermission = useAuthStore((state) => state.hasPermission);
@@ -16,7 +87,7 @@ export default function Dashboard() {
     queryFn: () => getApiV1DashboardPendingTasks()
   });
 
-  const pendingTasks = pendingTasksRes?.data?.data || {
+  const pendingTasks: Record<string, any> = pendingTasksRes?.data?.data || {
     unprocessedOrders: 0,
     draftWorkOrders: 0,
     inPrepWorkOrders: 0,
@@ -28,6 +99,7 @@ export default function Dashboard() {
   };
 
   const renderKpiCard = (params: {
+    key: any;
     permissionKey: string;
     path: string;
     borderColorClass: string;
@@ -42,7 +114,7 @@ export default function Dashboard() {
 
     if (!hasPerm) {
       return (
-        <div className="dashboard-card-disabled" title="🔒 您無此模組之存取權限">
+        <div key={params.key} className="dashboard-card-disabled" title="🔒 您無此模組之存取權限">
           <div className="card-border bg-gray-300"></div>
           <div className="text-sm text-gray-400 dark:text-gray-500 font-medium flex items-center gap-1">
             {params.title} 🔒
@@ -64,7 +136,7 @@ export default function Dashboard() {
     };
 
     return (
-      <div className="dashboard-card" onClick={handleClick}>
+      <div key={params.key} className="dashboard-card cursor-pointer" onClick={handleClick}>
         <div className={`card-border ${params.borderColorClass}`}></div>
         <div className={`text-sm font-medium ${params.isWarning ? 'text-rose-500 dark:text-rose-400' : 'text-gray-500 dark:text-gray-400'}`}>
           {params.title}
@@ -98,7 +170,7 @@ export default function Dashboard() {
 
     return (
       <div 
-        className={`sub-btn ${params.className || ''}`.trim()} 
+        className={`sub-btn cursor-pointer ${params.className || ''}`.trim()} 
         onClick={() => navigate(params.path)}
       >
         {params.label}
@@ -117,88 +189,46 @@ export default function Dashboard() {
           <span className="text-sm text-gray-500">點擊卡片可跳轉對應列表</span>
         </div>
 
-        {/* KPI Cards Grid */}
+        {/* Dynamic KPI Cards Grid */}
         <Spin spinning={isLoading}>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-10">
-            {renderKpiCard({
-              permissionKey: 'Sales.Orders.View',
-              path: '/sales/orders?unprocessedOrders=true',
-              borderColorClass: 'bg-orange-500',
-              title: '未完成訂單',
-              value: pendingTasks.unprocessedOrders ?? 0,
-              textColorClass: 'text-orange-500'
-            })}
-            {renderKpiCard({
-              permissionKey: 'ProductionQuality.WorkOrders.View',
-              path: '/production-quality/work-orders?status=Draft',
-              borderColorClass: 'bg-red-500',
-              title: '未開工製令',
-              value: pendingTasks.draftWorkOrders ?? 0,
-              textColorClass: 'text-red-500'
-            })}
-            {renderKpiCard({
-              permissionKey: 'ProductionQuality.WorkOrders.View',
-              path: '/production-quality/work-orders?status=StartedUnwarehoused',
-              borderColorClass: 'bg-blue-500',
-              title: '開工未完工',
-              value: pendingTasks.inPrepWorkOrders ?? 0,
-              textColorClass: 'text-blue-500'
-            })}
-            {renderKpiCard({
-              permissionKey: 'ProductionQuality.ProductionReceipts.View',
-              path: '/production-quality/production-receipts?notQcFinished=true',
-              borderColorClass: 'bg-purple-500',
-              title: '生產未QC',
-              value: pendingTasks.notQcProductionReceipts ?? 0,
-              textColorClass: 'text-purple-500'
-            })}
-            {renderKpiCard({
-              permissionKey: 'ProductionQuality.QcReceipts.View',
-              path: '/production-quality/qc-receipts?status=Unconfirmed',
-              borderColorClass: 'bg-teal-500',
-              title: 'QC未確認',
-              value: pendingTasks.pendingQcReceipts ?? 0,
-              textColorClass: 'text-teal-500'
-            })}
-            {renderKpiCard({
-              permissionKey: 'Sales.Deliveries.View',
-              path: '/sales/sales-deliveries?shippedConfirmed=false',
-              borderColorClass: 'bg-yellow-500',
-              title: '銷貨未出庫 (SD)',
-              value: pendingTasks.notShippedSalesDeliveries ?? 0,
-              textColorClass: 'text-yellow-500'
-            })}
-            {renderKpiCard({
-              permissionKey: 'Purchase.Orders.View',
-              path: '/purchase/orders?status=DRAFT',
-              borderColorClass: 'bg-indigo-500',
-              title: '採購待核准',
-              value: pendingTasks.draftPurchaseOrders ?? 0,
-              textColorClass: 'text-indigo-500'
-            })}
+            {KPI_CARDS_CONFIG.map((card, idx) => 
+              renderKpiCard({
+                key: idx,
+                permissionKey: card.permissionKey,
+                path: card.path,
+                borderColorClass: card.borderColorClass,
+                title: card.title,
+                value: pendingTasks[card.valueKey] ?? 0,
+                textColorClass: card.textColorClass,
+                isWarning: card.isWarning
+              })
+            )}
           </div>
         </Spin>
 
-        {/* Flowchart Section */}
+        {/* Supply Chain Flowchart Section */}
         <div className="flex justify-between items-end mb-4 mt-8">
           <h2 className="text-xl font-bold tracking-wider border-l-4 border-blue-500 pl-3 text-gray-800 dark:text-gray-200">
-            系統作業流程
+            系統作業流程 (供應鏈增值流)
           </h2>
-          <span className="text-sm text-gray-500">點擊下方按鈕可直接進入各模組</span>
+          <span className="text-sm text-gray-500">點擊按鈕直接進入各功能</span>
         </div>
 
-        <div className="bg-white dark:bg-[#191919] p-8 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm dark:shadow-none">
+        <div className="bg-white dark:bg-[#191919] p-8 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm dark:shadow-none relative overflow-hidden">
           
-          {/* 核心業務流程 Core Flow (Columns) */}
-          <div className="flex items-start justify-start lg:justify-center gap-2 overflow-x-auto pb-4 flowchart-container">
+          {/* Linear Supply Chain Flow */}
+          <div className="flex items-start justify-start xl:justify-center gap-2 overflow-x-auto pb-4 flowchart-container relative z-10">
             
-            {/* 基本資料模組列 (放最左邊) */}
-            <div className="flow-col">
+            {/* COLUMN 1: BasicData (黃色) */}
+            <div className="flow-col min-w-[190px]">
               <div className="flow-node-header border-t-4 border-t-yellow-500">
                 <div className="text-yellow-500 dark:text-yellow-400 mb-1">
-                  <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                  <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                  </svg>
                 </div>
-                <div className="font-bold text-gray-800 dark:text-gray-200">基本資料</div>
+                <div className="font-bold text-gray-800 dark:text-gray-200 text-xs">1. 基礎資料</div>
               </div>
               <div className="flex flex-col gap-2">
                 {renderSubButton({
@@ -209,54 +239,57 @@ export default function Dashboard() {
                 {renderSubButton({
                   permissionKey: 'BasicData.Employees.View',
                   path: '/basic/employees',
-                  label: '🧑‍💼 員工資料'
+                  label: '🧑‍💼 員工基本檔'
+                })}
+                {renderSubButton({
+                  permissionKey: 'BasicData.Products.View',
+                  path: '/warehouse/products',
+                  label: '📦 產品基本檔'
+                })}
+                {renderSubButton({
+                  permissionKey: 'BasicData.Materials.View',
+                  path: '/warehouse/materials',
+                  label: '🧰 原物料管理'
+                })}
+                {renderSubButton({
+                  permissionKey: 'BasicData.Molds.View',
+                  path: '/production-quality/molds',
+                  label: '🔧 模具基本檔'
+                })}
+                {renderSubButton({
+                  permissionKey: 'BasicData.Machines.View',
+                  path: '/production-quality/machines',
+                  label: '⚙️ 機台基本檔'
+                })}
+                {renderSubButton({
+                  permissionKey: 'BasicData.Storages.View',
+                  path: '/warehouse/storages',
+                  label: '📍 儲位管理'
+                })}
+                {renderSubButton({
+                  permissionKey: 'BasicData.BrandModels.View',
+                  path: '/warehouse/brand-models',
+                  label: '🏷️ 廠牌型號維護'
                 })}
               </div>
             </div>
 
-            {/* 透明箭頭：佔位用 */}
-            <div className="flow-arrow opacity-0 pointer-events-none">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-            </div>
-
-            {/* 銷售模組列 */}
-            <div className="flow-col">
-              <div className="flow-node-header border-t-4 border-t-blue-500">
-                <div className="text-blue-500 dark:text-blue-400 mb-1">
-                  <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                </div>
-                <div className="font-bold text-gray-800 dark:text-gray-200">銷售管理</div>
-              </div>
-              <div className="flex flex-col gap-2">
-                {renderSubButton({
-                  permissionKey: 'Sales.Orders.View',
-                  path: '/sales/orders',
-                  label: '📄 訂單管理'
-                })}
-                {renderSubButton({
-                  permissionKey: 'Sales.Deliveries.View',
-                  path: '/sales/sales-deliveries',
-                  label: '🚚 銷貨單維護'
-                })}
-                {renderSubButton({
-                  permissionKey: 'Sales.Statements.View',
-                  path: '/sales/statements',
-                  label: '🧾 客戶對帳單'
-                })}
-              </div>
-            </div>
-
+            {/* FLOW ARROW 1 */}
             <div className="flow-arrow">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              <svg className="w-5 h-5 text-gray-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+              </svg>
             </div>
 
-            {/* 採購模組列 */}
-            <div className="flow-col">
-              <div className="flow-node-header border-t-4 border-t-pink-500">
-                <div className="text-pink-500 dark:text-pink-400 mb-1">
-                  <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            {/* COLUMN 2: Purchase (橘色) */}
+            <div className="flow-col min-w-[190px]">
+              <div className="flow-node-header border-t-4 border-t-orange-500">
+                <div className="text-orange-500 dark:text-orange-400 mb-1">
+                  <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                  </svg>
                 </div>
-                <div className="font-bold text-gray-800 dark:text-gray-200">採購管理</div>
+                <div className="font-bold text-gray-800 dark:text-gray-200 text-xs">2. 採購進料檢驗</div>
               </div>
               <div className="flex flex-col gap-2">
                 {renderSubButton({
@@ -269,57 +302,37 @@ export default function Dashboard() {
                   path: '/purchase/receipts',
                   label: '🚚 原料進貨單'
                 })}
+                {renderSubButton({
+                  permissionKey: 'Purchase.IqcInspections.View',
+                  path: '/purchase/iqc-inspections',
+                  label: '🔍 IQC 進料檢驗'
+                })}
               </div>
             </div>
 
+            {/* FLOW ARROW 2 */}
             <div className="flow-arrow">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              <svg className="w-5 h-5 text-gray-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+              </svg>
             </div>
 
-            {/* 生產模組列 */}
-            <div className="flow-col">
-              <div className="flow-node-header border-t-4 border-t-indigo-500">
-                <div className="text-indigo-500 dark:text-indigo-400 mb-1">
-                  <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            {/* COLUMN 3: Production (紫色) */}
+            <div className="flow-col min-w-[190px]">
+              <div className="flow-node-header border-t-4 border-t-purple-500">
+                <div className="text-purple-500 dark:text-purple-400 mb-1">
+                  <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
                 </div>
-                <div className="font-bold text-gray-800 dark:text-gray-200">生產管理</div>
+                <div className="font-bold text-gray-800 dark:text-gray-200 text-xs">3. 生產完工檢驗</div>
               </div>
               <div className="flex flex-col gap-2">
                 {renderSubButton({
                   permissionKey: 'ProductionQuality.WorkOrders.View',
                   path: '/production-quality/work-orders',
-                  label: '📋 製令 (WO)'
-                })}
-                {renderSubButton({
-                  permissionKey: 'ProductionQuality.Machines.View',
-                  path: '/production-quality/machines',
-                  label: '⚙️ 機台維護'
-                })}
-                {renderSubButton({
-                  permissionKey: 'ProductionQuality.Molds.View',
-                  path: '/production-quality/molds',
-                  label: '🔧 模具維護'
-                })}
-              </div>
-            </div>
-
-            <div className="flow-arrow">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-            </div>
-
-            {/* 品檢模組列 */}
-            <div className="flow-col">
-              <div className="flow-node-header border-t-4 border-t-purple-500">
-                <div className="text-purple-500 dark:text-purple-400 mb-1">
-                  <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-                <div className="font-bold text-gray-800 dark:text-gray-200">品檢管理</div>
-              </div>
-              <div className="flex flex-col gap-2">
-                {renderSubButton({
-                  permissionKey: 'ProductionQuality.IqcInspections.View',
-                  path: '/production-quality/iqc-inspections',
-                  label: '🔍 IQC 進料檢驗'
+                  label: '📋 製令 (WO) 管理'
                 })}
                 {renderSubButton({
                   permissionKey: 'ProductionQuality.ProductionReceipts.View',
@@ -329,48 +342,33 @@ export default function Dashboard() {
                 {renderSubButton({
                   permissionKey: 'ProductionQuality.QcReceipts.View',
                   path: '/production-quality/qc-receipts',
-                  label: '🔍 QC 檢驗單'
+                  label: '🔍 QC 檢驗單 (FQC)'
                 })}
               </div>
             </div>
 
+            {/* FLOW ARROW 3 */}
             <div className="flow-arrow">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              <svg className="w-5 h-5 text-gray-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+              </svg>
             </div>
 
-            {/* 庫存模組列 */}
-            <div className="flow-col-wide">
+            {/* COLUMN 4: Warehouse (綠色) */}
+            <div className="flow-col min-w-[190px]">
               <div className="flow-node-header border-t-4 border-t-teal-500">
                 <div className="text-teal-500 dark:text-teal-400 mb-1">
-                  <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                  <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                  </svg>
                 </div>
-                <div className="font-bold text-gray-800 dark:text-gray-200">庫存管理</div>
+                <div className="font-bold text-gray-800 dark:text-gray-200 text-xs">4. 倉儲庫存管理</div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="flex flex-col gap-2">
                 {renderSubButton({
-                  permissionKey: 'Warehouse.Products.View',
-                  path: '/warehouse/products',
-                  label: '📦 產品資料'
-                })}
-                {renderSubButton({
-                  permissionKey: 'Warehouse.Materials.View',
-                  path: '/warehouse/materials',
-                  label: '🧰 原物料管理'
-                })}
-                {renderSubButton({
-                  permissionKey: 'Warehouse.BrandModels.View',
-                  path: '/warehouse/brand-models',
-                  label: '🏷️ 廠牌型號維護'
-                })}
-                {renderSubButton({
-                  permissionKey: 'Warehouse.Storages.View',
-                  path: '/warehouse/storages',
-                  label: '📍 儲位管理'
-                })}
-                {renderSubButton({
-                  permissionKey: 'Warehouse.InventoryAdjustments.View',
-                  path: '/warehouse/inventory-adjustments',
-                  label: '📝 庫存調整單'
+                  permissionKey: 'Warehouse.Inventory.View',
+                  path: '/warehouse/inventory',
+                  label: '🏢 庫存查詢與追溯'
                 })}
                 {renderSubButton({
                   permissionKey: 'Warehouse.InventoryMovements.View',
@@ -378,10 +376,55 @@ export default function Dashboard() {
                   label: '🔄 庫存異動紀錄'
                 })}
                 {renderSubButton({
-                  permissionKey: 'Warehouse.Inventory.View',
-                  path: '/warehouse/inventory',
-                  label: '🏢 庫存查詢',
-                  className: 'md:col-span-2'
+                  permissionKey: 'Warehouse.InventoryAdjustments.View',
+                  path: '/warehouse/inventory-adjustments',
+                  label: '📝 庫存調整單'
+                })}
+                {renderSubButton({
+                  permissionKey: 'Warehouse.Inventory.View', // 原料快速調撥與庫存查詢對齊
+                  path: '/warehouse/quick-transfer',
+                  label: '⚡ 原料快速調撥'
+                })}
+              </div>
+            </div>
+
+            {/* FLOW ARROW 4 */}
+            <div className="flow-arrow">
+              <svg className="w-5 h-5 text-gray-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+              </svg>
+            </div>
+
+            {/* COLUMN 5: Sales (藍色) */}
+            <div className="flow-col min-w-[190px]">
+              <div className="flow-node-header border-t-4 border-t-blue-500">
+                <div className="text-blue-500 dark:text-blue-400 mb-1">
+                  <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                </div>
+                <div className="font-bold text-gray-800 dark:text-gray-200 text-xs">5. 銷售與對帳結算</div>
+              </div>
+              <div className="flex flex-col gap-2">
+                {renderSubButton({
+                  permissionKey: 'Sales.Pricing.View',
+                  path: '/sales/pricing',
+                  label: '🧮 銷售輔助定價'
+                })}
+                {renderSubButton({
+                  permissionKey: 'Sales.Orders.View',
+                  path: '/sales/orders',
+                  label: '📄 客戶訂單管理'
+                })}
+                {renderSubButton({
+                  permissionKey: 'Sales.Deliveries.View',
+                  path: '/sales/sales-deliveries',
+                  label: '🚚 銷貨出庫單 (SD)'
+                })}
+                {renderSubButton({
+                  permissionKey: 'Sales.Statements.View',
+                  path: '/sales/statements',
+                  label: '🧾 客戶對帳單'
                 })}
               </div>
             </div>

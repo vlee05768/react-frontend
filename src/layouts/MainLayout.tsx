@@ -39,36 +39,35 @@ const ICON_MAPPING: Record<string, React.ReactNode> = {
 const ROUTE_MAPPING: Record<string, string> = {
   'BasicData.Employees': '/basic/employees',
   'BasicData.BusinessPartners': '/basic/business-partners',
+  'BasicData.Storages': '/warehouse/storages',
+  'BasicData.Materials': '/warehouse/materials',
+  'BasicData.Products': '/warehouse/products',
+  'BasicData.Molds': '/production-quality/molds',
+  'BasicData.Machines': '/production-quality/machines',
+  'BasicData.BrandModels': '/warehouse/brand-models',
+
   'Sales.Orders': '/sales/orders',
   'Sales.Deliveries': '/sales/sales-deliveries',
   'Sales.Statements': '/sales/statements',
   'Sales.Pricing': '/sales/pricing',
+
   'Purchase.Orders': '/purchase/orders',
   'Purchase.Receipts': '/purchase/receipts',
+  'Purchase.IqcInspections': '/purchase/iqc-inspections',
+
   'System.Users': '/system/users',
   'System.Roles': '/system/roles',
   'System.GeneralTypes': '/system/general-types',
   'System.SystemMaintenance': '/system/maintenance',
-  'Warehouse.Storages': '/warehouse/storages',
-  'Warehouse.MaterialInventory': '/warehouse/material-inventory',
-  'Warehouse.QuickTransfer': '/warehouse/quick-transfer',
-  'Warehouse.Materials': '/warehouse/materials',
-  'Warehouse.Products': '/warehouse/products',
+
   'Warehouse.Inventory': '/warehouse/inventory',
   'Warehouse.InventoryMovements': '/warehouse/inventory-movements',
   'Warehouse.InventoryAdjustments': '/warehouse/inventory-adjustments',
-  'Warehouse.BrandModels': '/warehouse/brand-models',
-  'ProductionQuality.Molds': '/production-quality/molds',
-  'ProductionQuality.Machines': '/production-quality/machines',
-  'ProductionQuality.WorkOrders': '/production-quality/work-orders',
-  'ProductionQuality.QcReceipts': '/production-quality/qc-receipts',
-  'ProductionQuality.ProductionReceipts': '/production-quality/production-receipts',
-  'ProductionQuality.IqcInspections': '/production-quality/iqc-inspections',
 };
 
 // 路由權限對照表 (Path -> Required Permission Key)
 const ROUTE_PERMISSION_MAP: Record<string, string> = {
-  '/warehouse/brand-models': 'Warehouse.BrandModels.View',
+  '/warehouse/brand-models': 'BasicData.BrandModels.View',
   '/basic/employees': 'BasicData.Employees.View',
   '/basic/business-partners': 'BasicData.BusinessPartners.View',
   '/sales/orders': 'Sales.Orders.View',
@@ -78,24 +77,24 @@ const ROUTE_PERMISSION_MAP: Record<string, string> = {
   '/purchase/orders': 'Purchase.Orders.View',
   '/purchase/receipts': 'Purchase.Receipts.View',
   '/purchase/mold-receipts': 'Purchase.Receipts.View',
+  '/purchase/iqc-inspections': 'Purchase.IqcInspections.View',
   '/system/users': 'System.Users.View',
   '/system/roles': 'System.Roles.View',
   '/system/general-types': 'System.GeneralTypes.View',
   '/system/maintenance': 'System.SystemMaintenance.View',
-  '/warehouse/storages': 'Warehouse.Storages.View',
-  '/warehouse/material-inventory': 'Warehouse.Materials.View',
-  '/warehouse/quick-transfer': 'Warehouse.Materials.View',
-  '/warehouse/materials': 'Warehouse.Materials.View',
-  '/warehouse/products': 'Warehouse.Products.View',
+  '/warehouse/storages': 'BasicData.Storages.View',
+  '/warehouse/material-inventory': 'Warehouse.MaterialInventory.View',
+  '/warehouse/quick-transfer': 'Warehouse.QuickTransfer.View',
+  '/warehouse/materials': 'BasicData.Materials.View',
+  '/warehouse/products': 'BasicData.Products.View',
   '/warehouse/inventory': 'Warehouse.Inventory.View',
   '/warehouse/inventory-movements': 'Warehouse.InventoryMovements.View',
   '/warehouse/inventory-adjustments': 'Warehouse.InventoryAdjustments.View',
-  '/production-quality/molds': 'ProductionQuality.Molds.View',
-  '/production-quality/machines': 'ProductionQuality.Machines.View',
+  '/production-quality/molds': 'BasicData.Molds.View',
+  '/production-quality/machines': 'BasicData.Machines.View',
   '/production-quality/work-orders': 'ProductionQuality.WorkOrders.View',
   '/production-quality/qc-receipts': 'ProductionQuality.QcReceipts.View',
   '/production-quality/production-receipts': 'ProductionQuality.ProductionReceipts.View',
-  '/production-quality/iqc-inspections': 'ProductionQuality.IqcInspections.View',
 };
 
 export default function MainLayout() {
@@ -246,20 +245,12 @@ export default function MainLayout() {
             // Level 1: 模組 (資料夾)
             const children = node.children ? mapNodes(node.children) : [];
             
-            if (node.key === 'Warehouse' && hasPermission('Warehouse.Materials.View')) {
+            if (node.key === 'Warehouse' && hasPermission('Warehouse.Inventory.View')) {
               if (!children.some(c => c.key === '/warehouse/material-inventory')) {
-                const idx = children.findIndex(c => c.key === '/warehouse/materials');
-                if (idx !== -1) {
-                  children.splice(idx + 1, 0, {
-                    key: '/warehouse/material-inventory',
-                    label: '原料庫存與卷卡號追溯',
-                  });
-                } else {
-                  children.push({
-                    key: '/warehouse/material-inventory',
-                    label: '原料庫存與卷卡號追溯',
-                  });
-                }
+                children.unshift({
+                  key: '/warehouse/material-inventory',
+                  label: '原料庫存與卷卡號追溯',
+                });
               }
               if (!children.some(c => c.key === '/warehouse/quick-transfer')) {
                 const idx = children.findIndex(c => c.key === '/warehouse/material-inventory');
@@ -269,20 +260,11 @@ export default function MainLayout() {
                     label: '原料快速轉倉',
                   });
                 } else {
-                  children.push({
+                  children.unshift({
                     key: '/warehouse/quick-transfer',
                     label: '原料快速轉倉',
                   });
                 }
-              }
-            }
-
-            if (node.key === 'ProductionQuality') {
-              if (!children.some(c => c.key === '/production-quality/iqc-inspections')) {
-                children.unshift({
-                  key: '/production-quality/iqc-inspections',
-                  label: 'IQC 進料品質檢驗',
-                });
               }
             }
             // 如果該模組下沒有任何有權限的子頁面，就不顯示該模組
