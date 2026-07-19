@@ -399,8 +399,20 @@ export default function IqcDrawer({
         message.success(
           "已成功提交特採申請並送交會簽中！狀態已更新為【特採審核中】。",
         );
+      } else if (overallResult === "AllPass") {
+        Modal.confirm({
+          title: "🎉 品質判定過帳成功！",
+          icon: <CheckCircleOutlined style={{ color: "#52c41a" }} />,
+          content: "良品已正式產生 LPN 卷卡並過帳至儲位。是否立刻列印所有卷卡的合格綠色標籤？",
+          okText: "一鍵列印合格標籤 (Labels PDF)",
+          cancelText: "暫不列印",
+          okButtonProps: { type: "primary", style: { backgroundColor: "#52c41a", borderColor: "#52c41a" } },
+          onOk: () => {
+            handlePrintLabelsPdf();
+          }
+        });
       } else {
-        message.success("品質檢驗過帳完成！良品已正式產生 LPN 卷卡入庫。");
+        message.success("品質檢驗判定已整批拒收過帳。已自動回彈採購單已到貨量。");
       }
       setIsEditing(false); // 💡 結案後回到唯讀狀態
       setLocalStatus(overallResult === "Concession" ? "Concession" : "AllPass"); // 💡 立即變更本地狀態
@@ -421,9 +433,17 @@ export default function IqcDrawer({
       }),
     onSuccess: () => {
       setIsReviewModalOpen(false);
-      message.success(
-        "特採核准過帳成功！全數卷料已正式建立 LPN 庫存卡並過帳至正式原料倉。",
-      );
+      Modal.confirm({
+        title: "🎉 特採審核核准過帳成功！",
+        icon: <CheckCircleOutlined style={{ color: "#52c41a" }} />,
+        content: "全數特採物料已正式建立 LPN 庫存卡並過帳。是否立刻列印合格綠色標籤？",
+        okText: "一鍵列印合格標籤 (Labels PDF)",
+        cancelText: "暫不列印",
+        okButtonProps: { type: "primary", style: { backgroundColor: "#52c41a", borderColor: "#52c41a" } },
+        onOk: () => {
+          handlePrintLabelsPdf();
+        }
+      });
       setIsEditing(false); // 💡 回到唯讀狀態
       setLocalStatus("AllPass"); // 💡 特採核准過帳後狀態變為 AllPass
       queryClient.invalidateQueries({ queryKey: ["iqc-detail", iqcRecordId] });
