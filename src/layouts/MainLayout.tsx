@@ -51,6 +51,7 @@ const ROUTE_MAPPING: Record<string, string> = {
   'System.SystemMaintenance': '/system/maintenance',
   'Warehouse.Storages': '/warehouse/storages',
   'Warehouse.MaterialInventory': '/warehouse/material-inventory',
+  'Warehouse.QuickTransfer': '/warehouse/quick-transfer',
   'Warehouse.Materials': '/warehouse/materials',
   'Warehouse.Products': '/warehouse/products',
   'Warehouse.Inventory': '/warehouse/inventory',
@@ -83,6 +84,7 @@ const ROUTE_PERMISSION_MAP: Record<string, string> = {
   '/system/maintenance': 'System.SystemMaintenance.View',
   '/warehouse/storages': 'Warehouse.Storages.View',
   '/warehouse/material-inventory': 'Warehouse.Materials.View',
+  '/warehouse/quick-transfer': 'Warehouse.Materials.View',
   '/warehouse/materials': 'Warehouse.Materials.View',
   '/warehouse/products': 'Warehouse.Products.View',
   '/warehouse/inventory': 'Warehouse.Inventory.View',
@@ -256,6 +258,20 @@ export default function MainLayout() {
                   children.push({
                     key: '/warehouse/material-inventory',
                     label: '原料庫存與卷卡號追溯',
+                  });
+                }
+              }
+              if (!children.some(c => c.key === '/warehouse/quick-transfer')) {
+                const idx = children.findIndex(c => c.key === '/warehouse/material-inventory');
+                if (idx !== -1) {
+                  children.splice(idx + 1, 0, {
+                    key: '/warehouse/quick-transfer',
+                    label: '原料快速轉倉',
+                  });
+                } else {
+                  children.push({
+                    key: '/warehouse/quick-transfer',
+                    label: '原料快速轉倉',
                   });
                 }
               }

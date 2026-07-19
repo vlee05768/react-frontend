@@ -440,9 +440,11 @@ export const transactionTypeDict: Record<string, { label: string; color: string 
   ADJ: { label: "庫存調整", color: "orange" },
   SCRAP: { label: "報廢", color: "error" },
   WT_CONSUME: { label: "製令消耗", color: "cyan" },
+  TR: { label: "原料調撥", color: "geekblue" },
 };
 
 export const transactionTypeOptions = [
+  { label: "原料調撥 (TR)", value: "TR" },
   { label: "採購入庫 (PD / PURCHASE_RECEIPT)", value: "PD" },
   { label: "品檢入庫 (IQC)", value: "IQC" },
   { label: "生產領料 (ISS / PRODUCTION_ISSUE)", value: "ISS" },
@@ -534,7 +536,7 @@ export const getTxColumns = (): TableColumnConfig<MaterialInventoryTransactionDt
     width: 120,
   },
   {
-    label: "異動數量",
+    label: "異動數量 (長度)",
     name: "quantity",
     width: 140,
     align: "right",
@@ -550,6 +552,31 @@ export const getTxColumns = (): TableColumnConfig<MaterialInventoryTransactionDt
         return <span className="text-red-600 dark:text-red-400 font-bold">-{formatted} {unit}</span>;
       }
       return <span className="font-semibold">{formatted} {unit}</span>;
+    }
+  },
+  {
+    label: "LPN 寬度",
+    name: "widthMm",
+    width: 100,
+    align: "right",
+    render: (val: any) => val ? `${Number(val).toLocaleString()} mm` : "-",
+  },
+  {
+    label: "異動面積",
+    name: "areaSqm",
+    width: 130,
+    align: "right",
+    render: (val: any, record: any) => {
+      if (val == null) return "-";
+      const sign = record.signFlag || 1;
+      const amount = Number(val) * sign;
+      const formatted = formatDecimal(val, 4, "0");
+      if (amount > 0) {
+        return <span className="text-green-600 dark:text-green-400 font-bold">+{formatted} SQM</span>;
+      } else if (amount < 0) {
+        return <span className="text-red-600 dark:text-red-400 font-bold">-{formatted} SQM</span>;
+      }
+      return <span className="font-semibold">{formatted} SQM</span>;
     }
   },
   {

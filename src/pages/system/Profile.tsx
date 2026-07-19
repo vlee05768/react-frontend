@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Form, Input, Button, Collapse, Row, Col, message, Modal, Divider, Table, Popconfirm } from 'antd';
-import { EditOutlined, UserOutlined, SaveOutlined, CloseOutlined, LockOutlined, StarFilled } from '@ant-design/icons';
+import { EditOutlined, UserOutlined, SaveOutlined, CloseOutlined, LockOutlined, StarFilled, LaptopOutlined } from '@ant-design/icons';
 import { getApiV1AuthProfile, putApiV1AuthProfile, postApiV1AuthChangePassword } from '@/api/generated/sdk.gen';
+import { useDeviceDetect } from '@/hooks/useDeviceDetect';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { useDocumentSubscriptionStore } from '@/stores/useDocumentSubscriptionStore';
@@ -31,10 +32,34 @@ const passwordSchema = z.object({
 
 type PasswordFormValues = z.infer<typeof passwordSchema>;
 
+const getUAInfo = () => {
+  if (typeof window === 'undefined') return { os: '未知', browser: '未知' };
+  const ua = navigator.userAgent;
+  let os = '未知';
+  let browser = '未知';
+
+  if (/windows/i.test(ua)) os = 'Windows';
+  else if (/macintosh|mac os x/i.test(ua)) os = 'macOS';
+  else if (/android/i.test(ua)) os = 'Android';
+  else if (/iphone|ipad|ipod/i.test(ua)) os = 'iOS';
+  else if (/linux/i.test(ua)) os = 'Linux';
+
+  if (/edg/i.test(ua)) browser = 'Microsoft Edge';
+  else if (/chrome/i.test(ua) && !/chromium/i.test(ua)) browser = 'Google Chrome';
+  else if (/safari/i.test(ua) && !/chrome/i.test(ua)) browser = 'Safari';
+  else if (/firefox/i.test(ua)) browser = 'Firefox';
+  else if (/opr/i.test(ua)) browser = 'Opera';
+
+  return { os, browser };
+};
+
 export default function Profile() {
+  const device = useDeviceDetect();
+  const uaInfo = getUAInfo();
+
   const [isEditing, setIsEditing] = useState(false);
   const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
-  const [activeKeys, setActiveKeys] = useState<string[]>(['profile', 'subscriptions']);
+  const [activeKeys, setActiveKeys] = useState<string[]>(['profile', 'subscriptions', 'device']);
   
   const queryClient = useQueryClient();
   const { logout, user } = useAuthStore();
@@ -241,6 +266,55 @@ export default function Profile() {
       )
     }
   ];
+
+  collapseItems.push({
+    key: 'device',
+    label: (
+      <div className="flex items-center gap-2 font-medium">
+        <LaptopOutlined className={mode === 'dark' ? 'text-gray-400' : 'text-gray-500'} />
+        <span>設備與瀏覽器資訊</span>
+      </div>
+    ),
+    children: (
+      <div className="max-h-[calc(100vh-250px)] overflow-y-auto overflow-x-hidden pr-2">
+        <div className="text-lg font-medium mb-4">目前登入設備屬性</div>
+        <Row gutter={[24, 16]}>
+          <Col xs={12} sm={8}>
+            <div className="text-xs text-gray-400 mb-1">偵測設備類型</div>
+            <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+              {device.isPDA ? '工業手持 PDA 掃描槍' : device.isMobile ? '智慧型手機' : device.isTablet ? '平板電腦' : '桌上型電腦 / 筆電'}
+            </div>
+          </Col>
+          <Col xs={12} sm={8}>
+            <div className="text-xs text-gray-400 mb-1">作業系統 (OS)</div>
+            <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">{uaInfo.os}</div>
+          </Col>
+          <Col xs={12} sm={8}>
+            <div className="text-xs text-gray-400 mb-1">瀏覽器核心</div>
+            <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">{uaInfo.browser}</div>
+          </Col>
+          <Col xs={12} sm={8}>
+            <div className="text-xs text-gray-400 mb-1">觸控螢幕支援</div>
+            <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">{device.isTouchDevice ? '支援 (Touch Screen)' : '不支援 (Mouse Only)'}</div>
+          </Col>
+          <Col xs={12} sm={8}>
+            <div className="text-xs text-gray-400 mb-1">實時視窗大小 (Viewport)</div>
+            <div className="text-sm font-semibold font-mono text-gray-800 dark:text-gray-200">{device.viewportWidth} × {device.viewportHeight}</div>
+          </Col>
+          <Col xs={12} sm={8}>
+            <div className="text-xs text-gray-400 mb-1">螢幕硬體解析度 (Screen)</div>
+            <div className="text-sm font-semibold font-mono text-gray-800 dark:text-gray-200">{typeof window !== 'undefined' ? `${window.screen.width} × ${window.screen.height}` : '未知'}</div>
+          </Col>
+          <Col xs={24}>
+            <div className="text-xs text-gray-400 mb-1">完整 User Agent 字串</div>
+            <div className="text-xs font-mono bg-gray-50 dark:bg-zinc-900/50 p-3 rounded border border-gray-100 dark:border-zinc-800 break-all text-gray-600 dark:text-gray-400">
+              {typeof navigator !== 'undefined' ? navigator.userAgent : '未知'}
+            </div>
+          </Col>
+        </Row>
+      </div>
+    )
+  });
 
   if (isStoreLoading || (subscriptions && subscriptions.length > 0)) {
     collapseItems.push({

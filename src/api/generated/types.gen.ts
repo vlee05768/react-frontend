@@ -4088,6 +4088,14 @@ export type MaterialInventoryTransactionDto = {
      */
     quantity?: number;
     /**
+     * 卷料寬度 (Mm，來自 LPN 關聯)
+     */
+    widthMm?: number | null;
+    /**
+     * 異動面積 (SQM，長度 * 寬度 / 1000)
+     */
+    areaSqm?: number | null;
+    /**
      * 原料型態 (R=捲料, S=片料)
      */
     materialForm?: string | null;
@@ -6631,6 +6639,24 @@ export type QcReceiptDtoPagedResultApiResponse = {
     error?: unknown;
     timestamp?: string;
     data?: QcReceiptDtoPagedResult;
+};
+
+/**
+ * 一鍵式卡卷快速轉倉 Request DTO
+ */
+export type QuickRollTransferRequestDto = {
+    /**
+     * 卷卡 LPN
+     */
+    rollNo: string;
+    /**
+     * 目的儲位代碼
+     */
+    targetStorageCode: string;
+    /**
+     * 備註
+     */
+    notes?: string | null;
 };
 
 /**
@@ -14604,6 +14630,22 @@ export type PutApiV1InventoryTransferByMovementNumberResponses = {
 };
 
 export type PutApiV1InventoryTransferByMovementNumberResponse = PutApiV1InventoryTransferByMovementNumberResponses[keyof PutApiV1InventoryTransferByMovementNumberResponses];
+
+export type PostApiV1InventoryTransferQuickRollTransferData = {
+    body?: QuickRollTransferRequestDto;
+    path?: never;
+    query?: never;
+    url: '/api/v1/InventoryTransfer/quick-roll-transfer';
+};
+
+export type PostApiV1InventoryTransferQuickRollTransferResponses = {
+    /**
+     * OK
+     */
+    200: InventoryTransferDtoApiResponse;
+};
+
+export type PostApiV1InventoryTransferQuickRollTransferResponse = PostApiV1InventoryTransferQuickRollTransferResponses[keyof PostApiV1InventoryTransferQuickRollTransferResponses];
 
 export type PostApiV1InventoryTransferByMovementNumberConfirmData = {
     body?: never;
