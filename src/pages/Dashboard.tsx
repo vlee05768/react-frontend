@@ -221,7 +221,7 @@ export default function Dashboard() {
           <div className="flex items-start justify-start xl:justify-center gap-2 overflow-x-auto pb-4 flowchart-container relative z-10">
             
             {/* COLUMN 1: BasicData (黃色) - 2-Column Layout */}
-            <div className="flow-col min-w-[340px] xl:min-w-[380px]">
+            <div className="flow-col-double">
               <div className="flow-node-header border-t-4 border-t-yellow-500">
                 <div className="text-yellow-500 dark:text-yellow-400 mb-1">
                   <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
