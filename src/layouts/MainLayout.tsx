@@ -63,6 +63,10 @@ const ROUTE_MAPPING: Record<string, string> = {
   'Warehouse.Inventory': '/warehouse/inventory',
   'Warehouse.InventoryMovements': '/warehouse/inventory-movements',
   'Warehouse.InventoryAdjustments': '/warehouse/inventory-adjustments',
+
+  'ProductionQuality.WorkOrders': '/production-quality/work-orders',
+  'ProductionQuality.QcReceipts': '/production-quality/qc-receipts',
+  'ProductionQuality.ProductionReceipts': '/production-quality/production-receipts',
 };
 
 // 路由權限對照表 (Path -> Required Permission Key)
