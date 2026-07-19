@@ -244,8 +244,8 @@ export default function MaterialList() {
     width: 120,
     render: (_: any, record: any) => (
       <TableActions
-        onView={hasPermission('Warehouse.Materials.View') ? () => openViewDrawer(record) : undefined}
-        onDelete={hasPermission('Warehouse.Materials.Delete') ? () => deleteMutation.mutate(record.code) : undefined}
+        onView={hasPermission('BasicData.Materials.View') ? () => openViewDrawer(record) : undefined}
+        onDelete={hasPermission('BasicData.Materials.Delete') ? () => deleteMutation.mutate(record.code) : undefined}
         recordName={record.name || record.code}
         deleteConfirmType="popconfirm"
       />
@@ -277,7 +277,7 @@ export default function MaterialList() {
             >
               查詢
             </Button>
-            {hasPermission('Warehouse.Materials.Create') && (
+            {hasPermission('BasicData.Materials.Create') && (
               <Button 
                 type="primary" 
                 icon={<PlusOutlined />} 
@@ -380,7 +380,7 @@ export default function MaterialList() {
             updatedAt={viewData?.updatedAt}
             actions={
               <Space>
-                {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('Warehouse.Materials.Update')) && (
+                {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('BasicData.Materials.Update')) && (
                   <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode}>編輯</Button>
                 )}
                 {(isDrawerEditing || isCreateDrawerOpen) && (

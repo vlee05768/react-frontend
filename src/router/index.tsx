@@ -128,7 +128,7 @@ export const router = createBrowserRouter([
       { path: 'warehouse/materials/:viewId?', element: <MaterialList /> },
       { path: 'production-quality/molds/:viewId?', element: <MoldList /> },
       { path: 'production-quality/machines/:viewId?', element: <MachineList /> },
-      { path: 'production-quality/iqc-inspections', element: <IqcList /> },
+      { path: 'purchase/iqc-inspections', element: <IqcList /> },
       { path: 'production-quality/work-orders/:viewId?', element: <WorkOrdersList /> },
       { path: 'production-quality/qc-receipts', element: <QcReceiptsList /> },
       { path: 'production-quality/qc-receipts/:id', element: <><QcReceiptsList /><QcReceiptDrawer /></> },

@@ -212,11 +212,11 @@ export default function StorageList() {
     fixed: 'right' as const,
     width: 120,
     render: (_: any, record: any) => {
-      const showEdit = !isReserved(record.code) && hasPermission('Warehouse.Storages.Update');
-      const showDelete = !isReserved(record.code) && hasPermission('Warehouse.Storages.Delete');
+      const showEdit = !isReserved(record.code) && hasPermission('BasicData.Storages.Update');
+      const showDelete = !isReserved(record.code) && hasPermission('BasicData.Storages.Delete');
       return (
         <TableActions
-          onView={hasPermission('Warehouse.Storages.View') ? () => openViewDrawer(record) : undefined}
+          onView={hasPermission('BasicData.Storages.View') ? () => openViewDrawer(record) : undefined}
           onEdit={showEdit ? () => { openViewDrawer(record); setTimeout(() => startEditMode(), 100); } : undefined}
           onDelete={showDelete ? () => {
             Modal.confirm({
@@ -260,7 +260,7 @@ export default function StorageList() {
             >
               查詢
             </Button>
-            {hasPermission('Warehouse.Storages.Create') && (
+            {hasPermission('BasicData.Storages.Create') && (
               <Button 
                 type="primary" 
                 icon={<PlusOutlined />} 
@@ -362,7 +362,7 @@ export default function StorageList() {
             updatedAt={viewData?.updatedAt}
             actions={
               <Space>
-                {(!isDrawerEditing && !isCreateDrawerOpen && viewId && !isReserved(viewId) && hasPermission('Warehouse.Storages.Update')) && (
+                {(!isDrawerEditing && !isCreateDrawerOpen && viewId && !isReserved(viewId) && hasPermission('BasicData.Storages.Update')) && (
                   <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode}>編輯</Button>
                 )}
                 {(isDrawerEditing || isCreateDrawerOpen) && (

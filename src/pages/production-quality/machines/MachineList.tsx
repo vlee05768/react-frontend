@@ -203,8 +203,8 @@ export default function MachineList() {
     width: 120,
     render: (_: any, record: any) => (
       <TableActions
-        onView={hasPermission('ProductionQuality.Machines.View') ? () => openViewDrawer(record) : undefined}
-        onDelete={hasPermission('ProductionQuality.Machines.Delete') ? () => deleteMutation.mutate(record.code) : undefined}
+        onView={hasPermission('BasicData.Machines.View') ? () => openViewDrawer(record) : undefined}
+        onDelete={hasPermission('BasicData.Machines.Delete') ? () => deleteMutation.mutate(record.code) : undefined}
         recordName={record.name || record.code}
         deleteConfirmType="popconfirm"
       />
@@ -236,7 +236,7 @@ export default function MachineList() {
             >
               查詢
             </Button>
-            {hasPermission('ProductionQuality.Machines.Create') && (
+            {hasPermission('BasicData.Machines.Create') && (
               <Button 
                 type="primary" 
                 icon={<PlusOutlined />} 
@@ -336,7 +336,7 @@ export default function MachineList() {
             updatedAt={viewData?.updatedAt}
             actions={
               <Space>
-            {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('ProductionQuality.Machines.Update')) && (
+            {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('BasicData.Machines.Update')) && (
               <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode}>編輯</Button>
             )}
             {(isDrawerEditing || isCreateDrawerOpen) && (

@@ -203,8 +203,8 @@ export default function MoldList() {
     width: 120,
     render: (_: any, record: any) => (
       <TableActions
-        onView={hasPermission('ProductionQuality.Molds.View') ? () => openViewDrawer(record) : undefined}
-        onDelete={hasPermission('ProductionQuality.Molds.Delete') ? () => deleteMutation.mutate(record.code) : undefined}
+        onView={hasPermission('BasicData.Molds.View') ? () => openViewDrawer(record) : undefined}
+        onDelete={hasPermission('BasicData.Molds.Delete') ? () => deleteMutation.mutate(record.code) : undefined}
         recordName={record.name || record.code}
         deleteConfirmType="popconfirm"
       />
@@ -236,7 +236,7 @@ export default function MoldList() {
             >
               查詢
             </Button>
-            {hasPermission('ProductionQuality.Molds.Create') && (
+            {hasPermission('BasicData.Molds.Create') && (
               <Button 
                 type="primary" 
                 icon={<PlusOutlined />} 
@@ -336,7 +336,7 @@ export default function MoldList() {
             updatedAt={viewData?.updatedAt}
             actions={
               <Space>
-            {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('ProductionQuality.Molds.Update')) && (
+            {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('BasicData.Molds.Update')) && (
               <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode}>編輯</Button>
             )}
             {(isDrawerEditing || isCreateDrawerOpen) && (

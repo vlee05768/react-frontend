@@ -33,9 +33,9 @@ export default function BrandModelsLayout() {
   const [modelForm] = Form.useForm();
 
   const { hasPermission } = useAuthStore();
-  const canCreate = hasPermission('Warehouse.BrandModels.Create');
-  const canUpdate = hasPermission('Warehouse.BrandModels.Update');
-  const canDelete = hasPermission('Warehouse.BrandModels.Delete');
+  const canCreate = hasPermission('BasicData.BrandModels.Create');
+  const canUpdate = hasPermission('BasicData.BrandModels.Update');
+  const canDelete = hasPermission('BasicData.BrandModels.Delete');
 
   useEffect(() => {
     fetchBrands();
