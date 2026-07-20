@@ -382,7 +382,6 @@ export const getItemColumns = (
       render: (val: number) =>
         val != null ? Number(val.toFixed(4)).toLocaleString("zh-TW") : "0",
     },
-    { title: "單位", dataIndex: "unit", width: 60, align: "center" as const },
     {
       title: "進貨量",
       dataIndex: "quantity",
@@ -398,6 +397,22 @@ export const getItemColumns = (
       ),
     },
     {
+      title: "總長度(M)",
+      dataIndex: "totalLength",
+      width: 100,
+      align: "right" as const,
+      render: (val: number, record: any) => {
+        const length = record.extraData?.length || record.length || 0;
+        const rollCount = record.rollCount || 0;
+        const total = record.isRoll ? (val ?? (rollCount * length)) : 0;
+        return (
+          <span className="font-bold text-blue-600">
+            {total != null ? Number(total.toFixed(2)).toLocaleString("zh-TW") : "0"} M
+          </span>
+        );
+      }
+    },    
+    {
       title: "金額",
       dataIndex: "amount",
       width: 100,
@@ -412,31 +427,31 @@ export const getItemColumns = (
       align: "right" as const,
     },
     {
-      title: "寬度(mm)",
+      title: "規格寬度(mm)",
       dataIndex: ["extraData", "width"],
-      width: 100,
+      width: 120,
       align: "right" as const,
     },
     {
-      title: "長度",
+      title: "規格長度",
       dataIndex: ["extraData", "length"],
-      width: 100,
-      align: "right" as const,
-    },
-    {
-      title: "總長度(M)",
-      dataIndex: "totalLength",
-      width: 100,
+      width: 120,
       align: "right" as const,
       render: (val: number, record: any) => {
-        const length = record.extraData?.length || record.length || 0;
-        const rollCount = record.rollCount || 0;
-        const total = record.isRoll ? (val ?? (rollCount * length)) : 0;
-        return (
-          <span className="font-bold text-blue-600">
-            {total != null ? Number(total.toFixed(2)).toLocaleString("zh-TW") : "0"} M
-          </span>
-        );
+        const length = val ?? record.length ?? 0;
+        if (record.isRoll) {
+          return (
+            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+              {Number(length).toLocaleString("zh-TW")} <span className="text-xs text-gray-500 font-normal">m</span>
+            </span>
+          );
+        } else {
+          return (
+            <span className="font-semibold text-amber-600 dark:text-amber-400">
+              {Number(length).toLocaleString("zh-TW")} <span className="text-xs text-gray-500 font-normal">mm</span>
+            </span>
+          );
+        }
       }
     },
     { title: "備註", dataIndex: "notes", width: 150, ellipsis: true },
