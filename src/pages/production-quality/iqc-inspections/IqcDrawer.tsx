@@ -108,18 +108,6 @@ const MeasuredInput = React.memo(
 );
 MeasuredInput.displayName = "MeasuredInput";
 
-const getSamplingPercentFromCount = (count: number, total: number, isRoll: boolean): number => {
-  if (total <= 0) return isRoll ? 30 : 1;
-  if (count >= total) return 100;
-  
-  const standardOpts = isRoll ? [10, 20, 30, 50] : [1, 2, 3, 4, 5];
-  for (const opt of standardOpts) {
-    if (Math.ceil((total * opt) / 100) === count) {
-      return opt;
-    }
-  }
-  return Math.round((count / total) * 100);
-};
 
 interface IqcDrawerProps {
   iqcRecordId: string | null;
@@ -145,8 +133,7 @@ export default function IqcDrawer({
   const [responsibleParty, setResponsibleParty] = useState("");
   const [incomingStorageCode, setIncomingStorageCode] = useState("");
   const [headerCoreDia, setHeaderCoreDia] = useState<number | null>(76.2);
-  const [samplingPercent, setSamplingPercent] = useState<number>(30); // 預設 30%
-  const [isCustomPercent, setIsCustomPercent] = useState<boolean>(false);
+  const [sampleSize, setSampleSize] = useState<number>(1); // 💡 自訂抽樣數量 SampleSize
   const [isEditing, setIsEditing] = useState<boolean>(false);
 
   // 💡 UX控制彈窗狀態
@@ -240,13 +227,7 @@ export default function IqcDrawer({
 
   const sampleCount = isReadOnlyPermanent
     ? detail?.sampleSize || rolls.length
-    : Math.min(
-        detail?.rollCount || 1,
-        Math.max(
-          1,
-          Math.ceil(((detail?.rollCount || 0) * samplingPercent) / 100),
-        ),
-      );
+    : sampleSize;
 
   const unitLabel = isRollMaterial ? "卷" : "pcs";
 
@@ -286,16 +267,12 @@ export default function IqcDrawer({
       setInspectorId(defaultInspector);
 
       if (detail.inspectionStatus !== "Pending") {
-        const pct = getSamplingPercentFromCount(
-          detail.sampleSize ?? detail.rolls.length,
-          detail.rollCount,
-          isRollMaterial,
-        );
-        setSamplingPercent(pct);
-        setIsCustomPercent(![10, 20, 30, 50, 100, 1, 2, 3, 4, 5].includes(pct));
+        setSampleSize(detail.sampleSize ?? detail.rolls.length ?? 1);
       } else {
-        setSamplingPercent(isRollMaterial ? 30 : 1);
-        setIsCustomPercent(false);
+        const defaultSize = isRollMaterial
+          ? Math.min(detail.rollCount || 1, Math.max(1, Math.ceil(((detail.rollCount || 0) * 30) / 100)))
+          : 1;
+        setSampleSize(defaultSize);
       }
 
       setNotes(detail.notes || "");
@@ -1513,67 +1490,52 @@ export default function IqcDrawer({
                     {!isReadOnly && (detail?.inspectionStatus === "Pending" || detail?.inspectionStatus === "FullInspecting") ? (
                       <Space size="small">
                         <Text type="secondary" className="text-xs">
-                          抽樣比例:
+                          抽檢數量 ({unitLabel}):
                         </Text>
-                        <Select
-                          value={isCustomPercent ? "custom" : samplingPercent}
-                          onChange={(val) => {
-                            if (val === "custom") {
-                              setIsCustomPercent(true);
-                            } else {
-                              setIsCustomPercent(false);
-                              setSamplingPercent(Number(val));
-                            }
-                          }}
+                        <InputNumber
+                          min={1}
+                          max={isRollMaterial ? (detail?.rollCount || 1000) : 100000}
                           size="small"
-                          style={{ width: 100 }}
-                          options={
-                            isRollMaterial
-                              ? [
-                                  { label: "10 %", value: 10 },
-                                  { label: "20 %", value: 20 },
-                                  { label: "30 %", value: 30 },
-                                  { label: "50 %", value: 50 },
-                                  { label: "100 % (全檢)", value: 100 },
-                                  { label: "自訂比例", value: "custom" },
-                                ]
-                              : [
-                                  { label: "1 %", value: 1 },
-                                  { label: "2 %", value: 2 },
-                                  { label: "3 %", value: 3 },
-                                  { label: "4 %", value: 4 },
-                                  { label: "5 %", value: 5 },
-                                  { label: "100 % (全檢)", value: 100 },
-                                  { label: "自訂比例", value: "custom" },
-                                ]
-                          }
+                          value={sampleCount}
+                          onChange={(v) => {
+                            if (v !== null && v !== undefined) setSampleSize(v);
+                          }}
+                          style={{ width: 80 }}
                         />
-                        {isCustomPercent && (
-                          <InputNumber
-                            min={1}
-                            max={100}
-                            size="small"
-                            value={samplingPercent}
-                            formatter={(v) => `${v}%`}
-                            parser={(v) => Number(v?.replace("%", "") || "")}
-                            onChange={(v) => {
-                              if (v) setSamplingPercent(v);
-                            }}
-                            style={{ width: 75 }}
-                          />
-                        )}
-                        <Text
-                          type="warning"
-                          strong
-                          className="text-[var(--ant-color-warning)] font-bold text-xs ml-1"
-                        >
-                          ➡️ 應抽檢: {sampleCount} {unitLabel}
-                        </Text>
+                        <Space size={4} className="ml-1 bg-[var(--ant-color-fill-alter)] px-2 py-0.5 rounded border border-[var(--ant-color-border-secondary)]">
+                          <span className="text-[10px] text-slate-400 font-medium">快捷比例:</span>
+                          {(isRollMaterial ? [10, 30, 50, 100] : [1, 5, 10, 100]).map((pct) => {
+                            const calculatedCount = isRollMaterial
+                              ? Math.min(
+                                  detail?.rollCount || 1,
+                                  Math.max(1, Math.ceil(((detail?.rollCount || 0) * pct) / 100))
+                                )
+                              : 1; // 片料預設不按比例填充，通常自訂
+                            if (!isRollMaterial && pct !== 100) return null; // 片料僅提供 100% 全檢或自訂
+                            return (
+                              <Button
+                                key={pct}
+                                size="small"
+                                type="link"
+                                className="text-[11px] p-0 h-auto font-bold"
+                                onClick={() => {
+                                  if (isRollMaterial) {
+                                    setSampleSize(calculatedCount);
+                                  } else {
+                                    // 片料 100% 全檢為當前進貨量 (或分配組數)
+                                    setSampleSize(1); // 片料預設大卡數
+                                  }
+                                }}
+                              >
+                                {pct === 100 ? "全檢" : `${pct}%`}
+                              </Button>
+                            );
+                          })}
+                        </Space>
                       </Space>
                     ) : (
                       <Text type="secondary" className="text-xs">
-                        抽樣比例: {samplingPercent}% (應抽檢: {sampleCount}{" "}
-                        {unitLabel})
+                        抽檢數量: {sampleCount} {unitLabel}
                       </Text>
                     )}
                   </Space>
