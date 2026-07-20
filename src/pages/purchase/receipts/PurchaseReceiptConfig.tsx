@@ -1,6 +1,6 @@
 import { DictSelect } from "@/components/Form/DictSelect";
 import type { TableColumnConfig } from "@/components/Form/types";
-import { Tag, Space, Button } from "antd";
+import { Tag, Space, Button, InputNumber } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { z } from "zod";
@@ -423,6 +423,22 @@ export const getItemColumns = (
       width: 100,
       align: "right" as const,
     },
+    {
+      title: "總長度(M)",
+      dataIndex: "totalLength",
+      width: 100,
+      align: "right" as const,
+      render: (val: number, record: any) => {
+        const length = record.extraData?.length || record.length || 0;
+        const rollCount = record.rollCount || 0;
+        const total = record.isRoll ? (val ?? (rollCount * length)) : 0;
+        return (
+          <span className="font-bold text-blue-600">
+            {total != null ? Number(total.toFixed(2)).toLocaleString("zh-TW") : "0"} M
+          </span>
+        );
+      }
+    },
     { title: "備註", dataIndex: "notes", width: 150, ellipsis: true },
     ...(!disabled
       ? [
@@ -561,6 +577,27 @@ export const getItemFormConfig = (isMold?: boolean): any[] => {
         allowClear: false,
       },
       validation: z.number().min(1, "長度必須大於 0"),
+    },
+    {
+      name: "totalLength",
+      label: "總長度 (M)",
+      componentType: "Custom",
+      editable: "always",
+      colSpan: 3,
+      customRender: (_props: any, context: any) => {
+        const isRoll = context?.watch("isRoll") ?? true;
+        const rollCount = context?.watch("rollCount") || 0;
+        const length = context?.watch("length") || 0;
+        const total = isRoll ? rollCount * length : 0;
+        return (
+          <InputNumber
+            value={total}
+            disabled
+            style={{ width: "100%", fontWeight: "bold", color: "#2563eb" }}
+            formatter={(val) => val != null ? `${val} M` : ""}
+          />
+        );
+      }
     },
     {
       name: "notes",
