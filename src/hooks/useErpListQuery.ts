@@ -7,6 +7,7 @@ interface UseErpListQueryOptions<Q> {
   params: Q & { pageNumber?: number; page?: number; pageSize?: number; SortRules?: string };
   setParams: (newParams: any) => void;
   pageKey?: 'page' | 'pageNumber';
+  searchConfig?: any[]; // 💡 傳入查詢配置，以精確清空所有條件，避免 RHF 延遲註冊漏清除之 Bug
 }
 
 /**
@@ -16,6 +17,7 @@ export function useErpListQuery<Q extends Record<string, any>>({
   params,
   setParams,
   pageKey = 'pageNumber',
+  searchConfig,
 }: UseErpListQueryOptions<Q>) {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const searchForm = useForm();
@@ -84,7 +86,9 @@ export function useErpListQuery<Q extends Record<string, any>>({
 
   // 5. 處理清除條件（重置 RHF 表單為 undefined，確實清空 AntD Select 並同步清空 Store）
   const handleClear = () => {
-    const fields = Object.keys(searchForm.getValues());
+    const configFields = searchConfig?.map(f => f.name) || [];
+    const formFields = Object.keys(searchForm.getValues());
+    const fields = Array.from(new Set([...configFields, ...formFields]));
     
     // 重置 UI inputs 為 undefined
     searchForm.reset(

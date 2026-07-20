@@ -42,6 +42,7 @@ export default function MaterialList() {
   const listQuery = useErpListQuery({
     params,
     setParams,
+    searchConfig: materialSearchFormConfig(),
   });
 
   const [formDefaultValues, setFormDefaultValues] = useState<any>({});

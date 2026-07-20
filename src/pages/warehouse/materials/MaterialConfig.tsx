@@ -110,7 +110,7 @@ export const materialSearchFormConfig = (): SearchFieldConfig[] => [
     colSpan: 2,
   },
   {
-    name: "Types",
+    name: "MaterialForms",
     label: "原料型態",
     componentType: "Select",
     componentProps: {
