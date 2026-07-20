@@ -34,6 +34,8 @@ import {
   AuditOutlined,
   EditOutlined,
   PrinterOutlined,
+  DeleteOutlined,
+  PlusOutlined,
 } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -567,6 +569,88 @@ export default function IqcDrawer({
     [isReadOnly, detail?.supplierCode],
   );
 
+  const handleSupplierLotNoChange = useCallback(
+    (rollNo: string, val: string) => {
+      if (isReadOnly) return;
+      // 💡 僅存大寫英數字及符號，禁中文；輸入小寫自動轉大寫
+      const cleanVal = val.replace(/[\u4e00-\u9fa5]/g, "").toUpperCase();
+      setRolls((prevRolls) =>
+        prevRolls.map((r) => (r.rollNo === rollNo ? { ...r, supplierLotNo: cleanVal } : r))
+      );
+    },
+    [isReadOnly],
+  );
+
+  const handleActualQtyAuxChange = useCallback(
+    (rollNo: string, val: number) => {
+      if (isReadOnly) return;
+      setRolls((prevRolls) =>
+        prevRolls.map((r) => (r.rollNo === rollNo ? { ...r, actualQtyAux: val } : r))
+      );
+    },
+    [isReadOnly],
+  );
+
+  const handleAddSheetRow = useCallback(() => {
+    if (isReadOnly || !detail) return;
+    setRolls((prevRolls) => {
+      const templateRoll = prevRolls[0] || {
+        measuredThicknessMm: detail.standardThickness ?? 0.05,
+        measuredCoreDiaMm: null,
+        lengthMm: detail.standardLength,
+        isOk: true,
+        disposition: "Concession",
+        responsibleParty: detail.supplierCode,
+        inspectionItems: [],
+      };
+      const newSeq = prevRolls.length + 1;
+      const rollNo = `${detail.lotNo}-S${newSeq.toString().padStart(2, "0")}`;
+      
+      const newRow = {
+        seq: newSeq,
+        rollNo: rollNo,
+        actualQtyAux: 0, // 新增行預設 0 PCS
+        supplierLotNo: "", // 預設空
+        isOk: true,
+        measuredThicknessMm: templateRoll.measuredThicknessMm,
+        measuredCoreDiaMm: null,
+        lengthMm: templateRoll.lengthMm,
+        disposition: undefined,
+        responsibleParty: undefined,
+        inspectionItems: (templateRoll.inspectionItems || []).map((itm: any) => ({
+          ...itm,
+          measuredValue: "",
+          isOk: true,
+        })),
+      };
+      const updated = [...prevRolls, newRow];
+      setSampleSize(updated.length);
+      return updated;
+    });
+  }, [isReadOnly, detail]);
+
+  const handleDeleteSheetRow = useCallback((targetRollNo: string) => {
+    if (isReadOnly || !detail) return;
+    setRolls((prevRolls) => {
+      if (prevRolls.length <= 1) {
+        message.warning("至少必須保留一組原廠批號進行品質判定！");
+        return prevRolls;
+      }
+      const filtered = prevRolls.filter((r) => r.rollNo !== targetRollNo);
+      const reordered = filtered.map((r, index) => {
+        const newSeq = index + 1;
+        const rollNo = `${detail.lotNo}-S${newSeq.toString().padStart(2, "0")}`;
+        return {
+          ...r,
+          seq: newSeq,
+          rollNo: rollNo
+        };
+      });
+      setSampleSize(reordered.length);
+      return reordered;
+    });
+  }, [isReadOnly, detail]);
+
   // 3.5 重置為待檢驗狀態之 Mutation (真正呼叫後端 API 進行資料庫清空重置)
   const resetMutation = useMutation({
     mutationFn: () =>
@@ -815,6 +899,11 @@ export default function IqcDrawer({
       const r = displayedRolls[i];
       const nameLabel = isRollMaterial ? `第 ${r.seq} 卷` : `第 ${r.seq} 包/片`;
 
+      if (!isRollMaterial && (!r.supplierLotNo || r.supplierLotNo.trim() === "")) {
+        message.warning(`請輸入 ${nameLabel} 的「原廠生產批號」`);
+        return false;
+      }
+
       if (
         r.actualQtyAux === null ||
         r.actualQtyAux === undefined ||
@@ -867,6 +956,14 @@ export default function IqcDrawer({
           );
           return false;
         }
+      }
+    }
+
+    if (!isRollMaterial) {
+      const totalAllocated = displayedRolls.reduce((sum, r) => sum + (Number(r.actualQtyAux) || 0), 0);
+      if (totalAllocated !== (detail?.rollCount ?? 0)) {
+        message.warning(`片料入庫數量分配不平衡！進貨總量: ${(detail?.rollCount ?? 0).toLocaleString()} PCS，目前分配總量: ${totalAllocated.toLocaleString()} PCS`);
+        return false;
       }
     }
 
@@ -1204,12 +1301,12 @@ export default function IqcDrawer({
       },
     }));
 
-    return [
+    const baseColumns: any[] = [
       {
         title: "流水號",
         dataIndex: "seq",
         key: "seq",
-        width: 100,
+        width: 80,
         align: "left" as const,
         render: (seq: number, record: any) => {
           const isAutoApproved =
@@ -1233,82 +1330,152 @@ export default function IqcDrawer({
             </Space>
           );
         },
-      },
-      ...dynamicColumns,
-      {
-        title: "檢驗判定",
-        key: "isOk",
-        width: 180,
+      }
+    ];
+
+    if (!isRollMaterial) {
+      // [IQC-04] 片料專屬：原廠生產批號與分攤片數
+      baseColumns.push(
+        {
+          title: "原廠生產批號 (SupplierLotNo)",
+          dataIndex: "supplierLotNo",
+          key: "supplierLotNo",
+          width: 220,
+          align: "left" as const,
+          render: (val: string, record: any) => {
+            if (isReadOnly) {
+              return <Text strong className="font-mono">{val || <span className="text-slate-400">（空白）</span>}</Text>;
+            }
+            return (
+              <Input
+                value={val}
+                size="small"
+                placeholder="請輸入或掃描原廠批號"
+                className="font-mono uppercase"
+                onChange={(e) => handleSupplierLotNoChange(record.rollNo, e.target.value)}
+              />
+            );
+          }
+        },
+        {
+          title: "分攤片數 (PCS)",
+          dataIndex: "actualQtyAux",
+          key: "actualQtyAux",
+          width: 140,
+          align: "right" as const,
+          render: (val: number, record: any) => {
+            if (isReadOnly) {
+              return <Text strong className="font-mono">{val?.toLocaleString()} PCS</Text>;
+            }
+            return (
+              <InputNumber
+                value={val}
+                size="small"
+                min={0}
+                max={1000000}
+                style={{ width: "100%" }}
+                onChange={(num) => handleActualQtyAuxChange(record.rollNo, num ?? 0)}
+              />
+            );
+          }
+        }
+      );
+    }
+
+    baseColumns.push(...dynamicColumns);
+
+    baseColumns.push({
+      title: "檢驗判定",
+      key: "isOk",
+      width: 160,
+      align: "center" as const,
+      render: (_: any, record: any) => (
+        <Radio.Group
+          value={record.isOk}
+          disabled={isReadOnly}
+          onChange={(e) => handleStatusChange(record.rollNo, e.target.value)}
+          optionType="button"
+          buttonStyle="solid"
+          size="small"
+        >
+          <Radio.Button 
+            value={true} 
+            className="px-2"
+            style={
+              record.isOk === true
+                ? {
+                    backgroundColor: "#52c41a",
+                    borderColor: "#52c41a",
+                    color: "#fff",
+                    opacity: isReadOnly ? 0.65 : 1,
+                  }
+                : undefined
+            }
+          >
+            合格
+          </Radio.Button>
+          <Radio.Button 
+            value={false} 
+            className="px-2"
+            style={
+              record.isOk === false
+                ? {
+                    backgroundColor: "#ff4d4f",
+                    borderColor: "#ff4d4f",
+                    color: "#fff",
+                    opacity: isReadOnly ? 0.65 : 1,
+                  }
+                : undefined
+            }
+          >
+            異常
+          </Radio.Button>
+        </Radio.Group>
+      ),
+    });
+
+    if (!isRollMaterial && !isReadOnly) {
+      baseColumns.push({
+        title: "操作",
+        key: "action",
+        width: 70,
         align: "center" as const,
         render: (_: any, record: any) => (
-          <Radio.Group
-            value={record.isOk}
-            disabled={isReadOnly}
-            onChange={(e) => handleStatusChange(record.rollNo, e.target.value)}
-            optionType="button"
-            buttonStyle="solid"
+          <Button
+            type="text"
+            danger
             size="small"
-          >
-            <Radio.Button 
-              value={true} 
-              className="px-3"
-              style={
-                record.isOk === true
-                  ? {
-                      backgroundColor: "#52c41a",
-                      borderColor: "#52c41a",
-                      color: "#fff",
-                      opacity: isReadOnly ? 0.65 : 1,
-                    }
-                  : undefined
-              }
-            >
-              合格 (G)
-            </Radio.Button>
-            <Radio.Button 
-              value={false} 
-              className="px-3"
-              style={
-                record.isOk === false
-                  ? {
-                      backgroundColor: "#ff4d4f",
-                      borderColor: "#ff4d4f",
-                      color: "#fff",
-                      opacity: isReadOnly ? 0.65 : 1,
-                    }
-                  : undefined
-              }
-            >
-              異常 (R)
-            </Radio.Button>
-          </Radio.Group>
-        ),
-      },
-      ...(isReadOnlyPermanent
-        ? [
-            {
-              title: "標籤補印",
-              key: "print_action",
-              width: 100,
-              align: "center" as const,
-              render: (_: any, record: any) => {
-                if (record.isOk === false)
-                  return <span className="text-slate-400">-</span>;
-                return (
-                  <Tooltip title="單卷補印合格標籤">
-                    <Button
-                      type="text"
-                      size="small"
-                      icon={<PrinterOutlined style={{ color: "#722ed1" }} />}
-                      onClick={() => handlePrintSingleLabelPdf(record.rollNo)}
-                    />
-                  </Tooltip>
-                );
-              },
-            },
-          ]
-        : []),
-    ];
+            icon={<DeleteOutlined />}
+            onClick={() => handleDeleteSheetRow(record.rollNo)}
+          />
+        )
+      });
+    }
+
+    if (isReadOnlyPermanent) {
+      baseColumns.push({
+        title: "標籤補印",
+        key: "print_action",
+        width: 90,
+        align: "center" as const,
+        render: (_: any, record: any) => {
+          if (record.isOk === false)
+            return <span className="text-slate-400">-</span>;
+          return (
+            <Tooltip title="單卷補印合格標籤">
+              <Button
+                type="text"
+                size="small"
+                icon={<PrinterOutlined style={{ color: "#722ed1" }} />}
+                onClick={() => handlePrintSingleLabelPdf(record.rollNo)}
+              />
+            </Tooltip>
+          );
+        },
+      });
+    }
+
+    return baseColumns;
   }, [
     templateItems,
     isReadOnly,
@@ -1317,12 +1484,23 @@ export default function IqcDrawer({
     handleStatusChange,
     detail?.sampleSize,
     handlePrintSingleLabelPdf,
+    isRollMaterial,
+    handleSupplierLotNoChange,
+    handleActualQtyAuxChange,
+    handleDeleteSheetRow,
   ]);
 
   const totalLength = useMemo(() => {
     if (!detail?.rolls) return 0;
     return detail.rolls.reduce((sum, r) => sum + (r.actualQtyAux || 0), 0);
   }, [detail?.rolls]);
+
+  const totalAllocatedPcs = useMemo(() => {
+    if (isRollMaterial) return 0;
+    return rolls.reduce((sum, r) => sum + (Number(r.actualQtyAux) || 0), 0);
+  }, [isRollMaterial, rolls]);
+
+  const isSheetTotalMismatched = !isRollMaterial && totalAllocatedPcs !== (detail?.rollCount ?? 0);
 
   return (
     <Drawer
@@ -1541,18 +1719,45 @@ export default function IqcDrawer({
                   </Space>
 
                   <Space size="middle" className="text-xs">
+                    {!isRollMaterial && !isReadOnly && (
+                      <Button
+                        type="primary"
+                        size="small"
+                        icon={<PlusOutlined />}
+                        onClick={handleAddSheetRow}
+                        className="bg-blue-600 hover:bg-blue-500 font-bold hover:text-white"
+                        style={{ color: "#fff" }}
+                      >
+                        新增原廠批號行
+                      </Button>
+                    )}
                     <Badge
                       status="default"
-                      text={`總數: ${detail.rollCount}`}
+                      text={isRollMaterial ? `總數: ${detail.rollCount} 卷` : `進貨總片數: ${detail.rollCount?.toLocaleString()} PCS`}
                     />
-                    <Badge
-                      status="processing"
-                      text={`抽檢: ${totalInspected}`}
-                    />
-                    <Badge status="success" text={`合格: ${okCount}`} />
-                    <Badge status="error" text={`異常: ${ngCount}`} />
+                    {isRollMaterial && (
+                      <Badge
+                        status="processing"
+                        text={`抽檢: ${totalInspected} 卷`}
+                      />
+                    )}
+                    <Badge status="success" text={`合格: ${isRollMaterial ? `${okCount} 卷` : `${okCount} 組`}`} />
+                    <Badge status="error" text={`異常: ${isRollMaterial ? `${ngCount} 卷` : `${ngCount} 組`}`} />
                   </Space>
                 </div>
+
+                {isSheetTotalMismatched && !isReadOnly && (
+                  <Alert
+                    message={
+                      <span className="font-bold">
+                        ⚠️ 片料入庫數量分配不平衡！進貨總量: <span className="underline">{(detail?.rollCount ?? 0).toLocaleString()} PCS</span>，目前分配加總: <span className="underline text-orange-500 font-mono">{totalAllocatedPcs.toLocaleString()} PCS</span>，尚差 <span className="font-mono text-red-500 font-bold">{Math.abs((detail?.rollCount ?? 0) - totalAllocatedPcs).toLocaleString()} PCS</span>。請調整各組數量以符合帳實一致原則。
+                      </span>
+                    }
+                    type="warning"
+                    showIcon
+                    className="mb-3 border-amber-300 bg-amber-50 dark:bg-amber-950/20 text-xs"
+                  />
+                )}
 
                 <Table
                   dataSource={displayedRolls}
