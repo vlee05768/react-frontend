@@ -268,7 +268,7 @@ export const getFormConfig = (): any[] => [
     name: "subTotalAmount",
     label: "未稅小計",
     componentType: "InputNumber",
-    colSpan: 3,
+    colSpan: 4,
     editable: "never",
     componentProps: {
       controls: false,
@@ -281,7 +281,7 @@ export const getFormConfig = (): any[] => [
     name: "taxAmount",
     label: "稅額",
     componentType: "InputNumber",
-    colSpan: 3,
+    colSpan: 4,
     editable: "never",
     componentProps: {
       controls: false,
@@ -294,7 +294,7 @@ export const getFormConfig = (): any[] => [
     name: "totalAmount",
     label: "含稅總金額",
     componentType: "InputNumber",
-    colSpan: 3,
+    colSpan: 4,
     editable: "never",
     componentProps: {
       controls: false,

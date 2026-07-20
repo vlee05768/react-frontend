@@ -17,7 +17,6 @@ import { buildTableColumns } from '@/utils/tableUtils';
 import { App } from 'antd';
 import { DRAWER_WIDTH_DETAIL, MAX_PAGE_SIZE } from '@/constants';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
-import { useUrlQuerySync } from '@/hooks/useUrlQuerySync';
 
 
 export default function ContactList({ businessPartnerCode, isViewMode: isMasterViewMode }: { businessPartnerCode: string; isViewMode: boolean }) {
@@ -27,18 +26,6 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [viewingData, setViewingData] = useState<any>(null);
-
-  // Pagination states
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 20 });
-
-  useUrlQuerySync({
-    query: {},
-    page: pagination.current,
-    pageSize: pagination.pageSize,
-    setPagination: (page, pageSize) => setPagination({ current: page, pageSize }),
-    setQuery: () => {},
-    enabled: true 
-  });
 
   // View only mode when viewing data
   
