@@ -458,6 +458,12 @@ export const bpSearchFormConfig = (): SearchFieldConfig[] => [
     colSpan: 2,
   },
   {
+    name: "RoleCode",
+    label: "角色代號 (如 C0003)",
+    componentType: "Input",
+    colSpan: 2,
+  },
+  {
     name: "Roles",
     label: "角色身份",
     componentType: "Select",
@@ -484,6 +490,12 @@ export const bpSearchFormConfig = (): SearchFieldConfig[] => [
       ],
       allowClear: true,
     },
+    colSpan: 2,
+  },
+  {
+    name: "Others",
+    label: "其它雜項/備註",
+    componentType: "Input",
     colSpan: 2,
   },
 ];

@@ -46,13 +46,14 @@ export const useBPQueryStore = create((set) => ({
     pageSize: DEFAULT_PAGE_SIZE,
     CodeOrName: undefined,
     Roles: undefined,
+    RoleCode: undefined,
     Types: undefined,
     IsTYCustomer: undefined,
     Others: undefined,
     SortRules: undefined,
   },
   setParams: (newParams: any) => set((state: any) => ({ params: { ...state.params, ...newParams } })),
-  resetParams: () => set({ params: { pageNumber: 1, pageSize: DEFAULT_PAGE_SIZE, CodeOrName: undefined, Roles: undefined, Types: undefined, IsTYCustomer: undefined, Others: undefined, SortRules: undefined } }),
+  resetParams: () => set({ params: { pageNumber: 1, pageSize: DEFAULT_PAGE_SIZE, CodeOrName: undefined, Roles: undefined, RoleCode: undefined, Types: undefined, IsTYCustomer: undefined, Others: undefined, SortRules: undefined } }),
 }));
 
 export default function BusinessPartnerList() {
