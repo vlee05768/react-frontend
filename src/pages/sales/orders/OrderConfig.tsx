@@ -344,19 +344,23 @@ export const getItemColumns = (
     render: (_: any, record: OrderItemDto) => {
       if (isViewMode) return null;
       return (
-        <Space size="small">
-          <Button
-            type="text"
-            icon={<EditOutlined style={{ fontSize: "16px" }} />}
-            onClick={() => onEdit(record)}
-          />
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined style={{ fontSize: "16px" }} />}
-            onClick={() => onDelete(record)}
-          />
-        </Space>
+        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: '24px', verticalAlign: 'middle' }}>
+          <Space size="small">
+            <Button
+              type="text"
+              size="small"
+              icon={<EditOutlined style={{ fontSize: "14px" }} />}
+              onClick={() => onEdit(record)}
+            />
+            <Button
+              type="text"
+              danger
+              size="small"
+              icon={<DeleteOutlined style={{ fontSize: "14px" }} />}
+              onClick={() => onDelete(record)}
+            />
+          </Space>
+        </div>
       );
     },
   },
@@ -368,10 +372,12 @@ export const getItemColumns = (
     ellipsis: true,
     render: (val: any, record: any, index: number) => {
       const serial = record?.serialNumber || record?.SerialNumber || val;
-      if (serial !== undefined && serial !== null && serial !== '') return serial;
-      const line = record?.lineNumber || record?.LineNumber;
-      if (line !== undefined && line !== null && line !== '') return line;
-      return index + 1;
+      const displayVal = (serial !== undefined && serial !== null && serial !== '') ? serial : (record?.lineNumber || record?.LineNumber || index + 1);
+      return (
+        <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle' }}>
+          {displayVal}
+        </span>
+      );
     }
   },
   {
@@ -380,7 +386,11 @@ export const getItemColumns = (
     width: 80,
     align: "center",
     ellipsis: true,
-    render: (val: string) => <DictTag dictKey="PRODUCT_TYPE" value={val} />,
+    render: (val: string) => (
+      <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: '24px', verticalAlign: 'middle' }}>
+        <DictTag dictKey="PRODUCT_TYPE" value={val} style={{ margin: 0 }} />
+      </div>
+    ),
   },
   {
     title: "商品編碼",
@@ -389,7 +399,11 @@ export const getItemColumns = (
     align: "left",
     ellipsis: true,
     render: (val: string, record: any) => {
-      if (!val) return "-";
+      if (!val) return (
+        <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle' }}>
+          -
+        </span>
+      );
       let color = "default";
       let toPath = "";
       if (record.goodsType === "P") {
@@ -405,29 +419,48 @@ export const getItemColumns = (
       const tagElement = (
         <Tag 
           color={color} 
-          className="m-0 cursor-pointer hover:opacity-85 transition-opacity"
+          style={{ margin: 0 }}
+          className="cursor-pointer hover:opacity-85 transition-opacity inline-flex items-center"
         >
           {val}
         </Tag>
       );
 
-      if (toPath) {
-        return (
-          <Link to={toPath} style={{ textDecoration: "none", cursor: "pointer" }}>
-            {tagElement}
-          </Link>
-        );
-      }
-      return tagElement;
+      const content = toPath ? (
+        <Link to={toPath} style={{ textDecoration: "none", cursor: "pointer", display: 'inline-flex', alignItems: 'center' }}>
+          {tagElement}
+        </Link>
+      ) : tagElement;
+
+      return (
+        <div style={{ display: 'inline-flex', alignItems: 'center', height: '24px', verticalAlign: 'middle' }}>
+          {content}
+        </div>
+      );
     },
   },
-  { title: "商品名稱", dataIndex: "goodsName", width: 220, ellipsis: true },
+  { 
+    title: "商品名稱", 
+    dataIndex: "goodsName", 
+    width: 220, 
+    ellipsis: true,
+    render: (val: string) => (
+      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {val || "-"}
+      </span>
+    )
+  },
   {
     title: "單位",
     dataIndex: "unit",
     width: 80,
     align: "center",
     ellipsis: true,
+    render: (val: string) => (
+      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'center', width: '100%' }}>
+        {val || "-"}
+      </span>
+    )
   },
   {
     title: "要求交期",
@@ -435,7 +468,11 @@ export const getItemColumns = (
     width: 120,
     align: "center",
     ellipsis: true,
-    render: (d: string) => (d ? dayjs(d).format("YYYY-MM-DD") : "-"),
+    render: (d: string) => (
+      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'center', width: '100%' }}>
+        {d ? dayjs(d).format("YYYY-MM-DD") : "-"}
+      </span>
+    ),
   },
   {
     title: "承諾交期",
@@ -443,16 +480,23 @@ export const getItemColumns = (
     width: 120,
     align: "center",
     ellipsis: true,
-    render: (d: string) => (d ? dayjs(d).format("YYYY-MM-DD") : "-"),
+    render: (d: string) => (
+      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'center', width: '100%' }}>
+        {d ? dayjs(d).format("YYYY-MM-DD") : "-"}
+      </span>
+    ),
   },
-{
+  {
     title: "優先級",
     dataIndex: "priority",
     width: 80,
     align: "center",
     ellipsis: true,
-    render: (val: string) =>
-      val ? <DictLabel dictKey="ORDER_PRIORITY" value={val} /> : "-",
+    render: (val: string) => (
+      <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: '24px', verticalAlign: 'middle' }}>
+        {val ? <DictLabel dictKey="ORDER_PRIORITY" value={val} /> : "-"}
+      </div>
+    ),
   },
   {
     title: "產生製令",
@@ -460,7 +504,19 @@ export const getItemColumns = (
     width: 90,
     align: "center",
     ellipsis: true,
-    render: (v: boolean | undefined | null) => v === true ? <CheckOutlined style={{ color: 'green' }} /> : (v === false ? <CloseOutlined style={{ color: 'red' }} /> : null),
+    render: (v: boolean | undefined | null) => {
+      let icon = null;
+      if (v === true) {
+        icon = <CheckOutlined style={{ color: 'green', fontSize: '14px' }} />;
+      } else if (v === false) {
+        icon = <CloseOutlined style={{ color: 'red', fontSize: '14px' }} />;
+      }
+      return (
+        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: '24px', verticalAlign: 'middle' }}>
+          {icon || "-"}
+        </div>
+      );
+    },
   },
   {
     title: "數量",
@@ -468,8 +524,11 @@ export const getItemColumns = (
     width: 100,
     align: "right",
     ellipsis: true,
-    render: (val: number) =>
-      val != null ? Number(val.toFixed(2)).toLocaleString() : "-",
+    render: (val: number) => (
+      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%' }}>
+        {val != null ? Number(val.toFixed(2)).toLocaleString() : "-"}
+      </span>
+    ),
   },
   {
     title: "單價",
@@ -477,8 +536,11 @@ export const getItemColumns = (
     width: 100,
     align: "right",
     ellipsis: true,
-    render: (val: number) =>
-      val != null ? Number(val.toFixed(2)).toLocaleString() : "-",
+    render: (val: number) => (
+      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%' }}>
+        {val != null ? Number(val.toFixed(2)).toLocaleString() : "-"}
+      </span>
+    ),
   },
   {
     title: "小計",
@@ -486,8 +548,11 @@ export const getItemColumns = (
     width: 120,
     align: "right",
     ellipsis: true,
-    render: (val: number) =>
-      val != null ? <span style={{ color: 'var(--ant-color-primary)' }}>{Number(val.toFixed(2)).toLocaleString()}</span> : "-",
+    render: (val: number) => (
+      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%', color: 'var(--ant-color-primary)' }}>
+        {val != null ? Number(val.toFixed(2)).toLocaleString() : "-"}
+      </span>
+    ),
   },
   {
     title: "備品數量",
@@ -495,8 +560,11 @@ export const getItemColumns = (
     width: 100,
     align: "right",
     ellipsis: true,
-    render: (val: number) =>
-      val != null ? Number(val.toFixed(2)).toLocaleString() : "-",
+    render: (val: number) => (
+      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%' }}>
+        {val != null ? Number(val.toFixed(2)).toLocaleString() : "-"}
+      </span>
+    ),
   },
   {
     title: "已出貨",
@@ -504,8 +572,11 @@ export const getItemColumns = (
     width: 100,
     align: "right",
     ellipsis: true,
-    render: (val: number) =>
-      val != null ? <span style={{ color: 'var(--ant-color-success)' }}>{Number(val.toFixed(2)).toLocaleString()}</span> : "-",
+    render: (val: number) => (
+      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%', color: 'var(--ant-color-success)' }}>
+        {val != null ? Number(val.toFixed(2)).toLocaleString() : "-"}
+      </span>
+    ),
   },
   {
     title: "取消數量",
@@ -513,8 +584,11 @@ export const getItemColumns = (
     width: 100,
     align: "right",
     ellipsis: true,
-    render: (val: number) =>
-      val != null ? <span style={{ color: 'var(--ant-color-error)' }}>{Number(val.toFixed(2)).toLocaleString()}</span> : "-",
+    render: (val: number) => (
+      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%', color: 'var(--ant-color-error)' }}>
+        {val != null ? Number(val.toFixed(2)).toLocaleString() : "-"}
+      </span>
+    ),
   },
   {
     title: "剩餘數量",
@@ -522,10 +596,23 @@ export const getItemColumns = (
     width: 100,
     align: "right",
     ellipsis: true,
-    render: (val: number) =>
-      val != null ? <span style={{ color: 'var(--ant-color-warning)' }}>{Number(val.toFixed(2)).toLocaleString()}</span> : "-",
+    render: (val: number) => (
+      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%', color: 'var(--ant-color-warning)' }}>
+        {val != null ? Number(val.toFixed(2)).toLocaleString() : "-"}
+      </span>
+    ),
   },
-  { title: "備註", dataIndex: "notes", width: 160, ellipsis: true },
+  { 
+    title: "備註", 
+    dataIndex: "notes", 
+    width: 160, 
+    ellipsis: true,
+    render: (val: string) => (
+      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {val || "-"}
+      </span>
+    )
+  },
 ];
 
 export const getItemFormConfig = (isCreatingMaterial = false): any[] => [
