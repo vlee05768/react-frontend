@@ -61,6 +61,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
   // 1. 儲存最新的 Schema Reference
   const formWrapperRef = useRef<HTMLDivElement>(null);
   const schemaRef = useRef<z.ZodTypeAny>(z.object({}));
+  const hasFocusedRef = useRef(false);
 
   // 2. 初始化 RHF
   const methods = useForm<TValues>({
@@ -223,7 +224,12 @@ export function DynamicForm<TValues extends Record<string, any>>({
 
   // 處理自動 Focus (所有 form 在編輯或新增模式時, 一出現當下應該把 focus 停留在第一個可以輸入的元件)
   useEffect(() => {
-    if (!isViewMode) {
+    if (isViewMode) {
+      hasFocusedRef.current = false;
+      return;
+    }
+
+    if (!isViewMode && !hasFocusedRef.current) {
       // 延遲 300ms 等待 Ant Design 的 Drawer/Modal 動畫完成
       const timer = setTimeout(() => {
         if (formWrapperRef.current) {
@@ -237,6 +243,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
             // 確保元素是可見的
             if (el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0) {
               el.focus();
+              hasFocusedRef.current = true; // 💡 標記為已聚焦過，防後續重新渲染搶奪 Focus
               break;
             }
           }
@@ -244,7 +251,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
       }, ANIMATION_DELAY_MS);
       return () => clearTimeout(timer);
     }
-  }, [isViewMode, defaultValues]); // 當進入編輯/新增模式，或是非同步載入資料完成時觸發
+  }, [isViewMode]); // 💡 僅在 isViewMode 狀態切換時重新偵測自動 focus，避免 defaultValues 物件變更造成無限 focus 亂跳
 
   // 判斷是否要啟用群組樣式 (卡片與標題)
   // 條件：只要有開發者手動設定了任何 group 屬性 (不管是不是基本資訊)，或者產生的 groups 數量大於 1

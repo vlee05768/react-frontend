@@ -32,7 +32,7 @@ export const logicalSearchFields: SearchFieldConfig[] = [
   }
 ];
 
-export const getLogicalColumns = (): TableColumnConfig<any>[] => [
+export const getRollLogicalColumns = (): TableColumnConfig<any>[] => [
   {
     label: "原料編號",
     name: "materialCode",
@@ -50,7 +50,21 @@ export const getLogicalColumns = (): TableColumnConfig<any>[] => [
     name: "materialForm",
     width: 100,
     align: "center",
-    render: (val: string) => val === "R" ? <Tag color="blue">捲材 (R)</Tag> : <Tag color="green">片材 (S)</Tag>,
+    render: () => (
+      <Tag 
+        style={{ 
+          backgroundColor: 'rgba(82, 196, 26, 0.12)', 
+          borderColor: 'rgba(82, 196, 26, 0.3)', 
+          color: '#52c41a',
+          fontWeight: 600,
+          borderStyle: 'solid',
+          borderWidth: '1px'
+        }}
+        className="m-0"
+      >
+        捲材 (R)
+      </Tag>
+    ),
   },
   {
     label: "寬度 (mm)",
@@ -64,28 +78,21 @@ export const getLogicalColumns = (): TableColumnConfig<any>[] => [
     name: "lengthMm",
     width: 180,
     align: "right",
-    showHint: false, // 💡 隱藏系統預設的提示（不顯示長度總量 3,600 M 的 Tooltip），但保留自訂的儲位明細提示
+    showHint: false,
     render: (_, record: any) => {
       const area = (record.quantity || 0) + (record.frozenQuantity || 0);
       const width = record.widthMm || 0;
-      const length = record.lengthMm || 0;
-      const isRoll = record.materialForm === "R";
-
-      let displayText = "-";
-      if (isRoll) {
-        if (width > 0) {
-          const lengthM = (area * 1000) / width;
-          displayText = `${formatDecimal(lengthM, 2, "0")} M`;
-        }
-      } else {
-        displayText = length > 0 ? `${formatDecimal(length, 0, "-")} mm` : "-";
+      let lengthM = 0;
+      if (width > 0) {
+        lengthM = (area * 1000) / width;
       }
+      const displayText = `${formatDecimal(lengthM, 2, "0")} M`;
 
       const tooltipContent = (
         <div style={{ whiteSpace: "pre-line", padding: "2px 4px" }}>
           {(record.storages || []).map((s: any) => {
             const totalSLength = (s.length || 0) + (s.frozenLength || 0);
-            return `${s.storageCode || "未指定"}: ${isRoll ? `${formatDecimal(totalSLength, 2, "0")} M` : `${s.length > 0 ? `${formatDecimal(s.length, 0, "0")} mm` : "-"}`}`;
+            return `${s.storageCode || "未指定"}: ${formatDecimal(totalSLength, 2, "0")} M`;
           }).join('\n')}
         </div>
       );
@@ -103,9 +110,6 @@ export const getLogicalColumns = (): TableColumnConfig<any>[] => [
     width: 150,
     align: "right",
     render: (_, record: any) => {
-      const isRoll = record.materialForm === "R";
-      if (!isRoll) return "-";
-      
       const area = record.quantity || 0;
       const width = record.widthMm || 0;
       let lengthM = 0;
@@ -134,9 +138,6 @@ export const getLogicalColumns = (): TableColumnConfig<any>[] => [
     width: 150,
     align: "right",
     render: (_, record: any) => {
-      const isRoll = record.materialForm === "R";
-      if (!isRoll) return "-";
-      
       const area = record.frozenQuantity || 0;
       const width = record.widthMm || 0;
       let lengthM = 0;
@@ -165,17 +166,14 @@ export const getLogicalColumns = (): TableColumnConfig<any>[] => [
     width: 160,
     align: "right",
     render: (_, record: any) => {
-      const isRoll = record.materialForm === "R";
       const val = (record.quantity || 0) + (record.frozenQuantity || 0);
-      const displayText = isRoll 
-        ? `${formatDecimal(val, 4, "0")} m²` 
-        : `${formatDecimal(val, 0, "0")} pcs`;
+      const displayText = `${formatDecimal(val, 4, "0")} m²`;
 
       const tooltipContent = (
         <div style={{ whiteSpace: "pre-line", padding: "2px 4px" }}>
           {(record.storages || []).map((s: any) => {
             const sTotal = (s.quantity || 0) + (s.frozenQuantity || 0);
-            return `${s.storageCode || "未指定"}: ${isRoll ? `${formatDecimal(sTotal, 4, "0")} m²` : `${formatDecimal(sTotal, 0, "0")} pcs`}`;
+            return `${s.storageCode || "未指定"}: ${formatDecimal(sTotal, 4, "0")} m²`;
           }).join('\n')}
         </div>
       );
@@ -193,15 +191,12 @@ export const getLogicalColumns = (): TableColumnConfig<any>[] => [
     width: 160,
     align: "right",
     render: (val: any, record: any) => {
-      const isRoll = record.materialForm === "R";
-      const displayText = isRoll 
-        ? `${formatDecimal(val, 4, "0")} m²` 
-        : `${formatDecimal(val, 0, "0")} pcs`;
+      const displayText = `${formatDecimal(val, 4, "0")} m²`;
 
       const tooltipContent = (
         <div style={{ whiteSpace: "pre-line", padding: "2px 4px" }}>
           {(record.storages || []).map((s: any) => 
-            `${s.storageCode || "未指定"}: ${isRoll ? `${formatDecimal(s.quantity, 4, "0")} m²` : `${formatDecimal(s.quantity, 0, "0")} pcs`}`
+            `${s.storageCode || "未指定"}: ${formatDecimal(s.quantity, 4, "0")} m²`
           ).join('\n')}
         </div>
       );
@@ -219,15 +214,133 @@ export const getLogicalColumns = (): TableColumnConfig<any>[] => [
     width: 160,
     align: "right",
     render: (val: any, record: any) => {
-      const isRoll = record.materialForm === "R";
-      const displayText = isRoll 
-        ? `${formatDecimal(val, 4, "0")} m²` 
-        : `${formatDecimal(val, 0, "0")} pcs`;
+      const displayText = `${formatDecimal(val, 4, "0")} m²`;
 
       const tooltipContent = (
         <div style={{ whiteSpace: "pre-line", padding: "2px 4px" }}>
           {(record.storages || []).map((s: any) => 
-            `${s.storageCode || "未指定"}: ${isRoll ? `${formatDecimal(s.frozenQuantity, 4, "0")} m²` : `${formatDecimal(s.frozenQuantity, 0, "0")} pcs`}`
+            `${s.storageCode || "未指定"}: ${formatDecimal(s.frozenQuantity, 4, "0")} m²`
+          ).join('\n')}
+        </div>
+      );
+
+      return (
+        <Tooltip title={tooltipContent} placement="topLeft" color="rgba(15, 23, 42, 0.95)">
+          <span className="cursor-help border-b border-dashed border-amber-400 font-semibold text-amber-600 dark:text-amber-400 select-all">{displayText}</span>
+        </Tooltip>
+      );
+    },
+  },
+];
+
+export const getSheetLogicalColumns = (): TableColumnConfig<any>[] => [
+  {
+    label: "原料編號",
+    name: "materialCode",
+    width: 180,
+    sortable: { multiple: 1 },
+  },
+  {
+    label: "原料名稱",
+    name: "materialName",
+    width: 250,
+    ellipsis: true,
+  },
+  {
+    label: "形態",
+    name: "materialForm",
+    width: 100,
+    align: "center",
+    render: () => (
+      <Tag 
+        style={{ 
+          backgroundColor: 'rgba(250, 140, 22, 0.12)', 
+          borderColor: 'rgba(250, 140, 22, 0.3)', 
+          color: '#fa8c16',
+          fontWeight: 600,
+          borderStyle: 'solid',
+          borderWidth: '1px'
+        }}
+        className="m-0"
+      >
+        片材 (S)
+      </Tag>
+    ),
+  },
+  {
+    label: "物理規格 (寬×長 mm)",
+    name: "specification",
+    width: 180,
+    align: "center",
+    render: (_, record: any) => {
+      const w = record.widthMm;
+      const l = record.lengthMm;
+      if (w != null && l != null) {
+        return `${formatDecimal(w, 0, "-")} × ${formatDecimal(l, 0, "-")} mm`;
+      }
+      return "-";
+    },
+  },
+  {
+    label: "庫存總數量",
+    name: "totalSheetQuantity",
+    width: 160,
+    align: "right",
+    render: (_, record: any) => {
+      const val = (record.quantity || 0) + (record.frozenQuantity || 0);
+      const displayText = `${formatDecimal(val, 0, "0")} pcs`;
+
+      const tooltipContent = (
+        <div style={{ whiteSpace: "pre-line", padding: "2px 4px" }}>
+          {(record.storages || []).map((s: any) => {
+            const sTotal = (s.quantity || 0) + (s.frozenQuantity || 0);
+            return `${s.storageCode || "未指定"}: ${formatDecimal(sTotal, 0, "0")} pcs`;
+          }).join('\n')}
+        </div>
+      );
+
+      return (
+        <Tooltip title={tooltipContent} placement="topLeft" color="rgba(15, 23, 42, 0.95)">
+          <span className="cursor-help border-b border-dashed border-slate-400 font-semibold select-all">{displayText}</span>
+        </Tooltip>
+      );
+    },
+  },
+  {
+    label: "在庫可用數量",
+    name: "quantity",
+    width: 160,
+    align: "right",
+    render: (val: any, record: any) => {
+      const displayText = `${formatDecimal(val, 0, "0")} pcs`;
+
+      const tooltipContent = (
+        <div style={{ whiteSpace: "pre-line", padding: "2px 4px" }}>
+          {(record.storages || []).map((s: any) => 
+            `${s.storageCode || "未指定"}: ${formatDecimal(s.quantity, 0, "0")} pcs`
+          ).join('\n')}
+        </div>
+      );
+
+      return (
+        <Tooltip title={tooltipContent} placement="topLeft" color="rgba(15, 23, 42, 0.95)">
+          <span className="cursor-help border-b border-dashed border-blue-400 font-semibold text-blue-600 dark:text-blue-400 select-all">{displayText}</span>
+        </Tooltip>
+      );
+    },
+  },
+  {
+    label: "凍結待驗數量",
+    name: "frozenQuantity",
+    width: 160,
+    align: "right",
+    render: (val: any, record: any) => {
+      const displayText = `${formatDecimal(val, 0, "0")} pcs`;
+
+      const tooltipContent = (
+        <div style={{ whiteSpace: "pre-line", padding: "2px 4px" }}>
+          {(record.storages || []).map((s: any) => 
+            `${s.storageCode || "未指定"}: ${formatDecimal(s.frozenQuantity, 0, "0")} pcs`
           ).join('\n')}
         </div>
       );
@@ -320,6 +433,48 @@ export const getRollColumns = (
     name: "materialName",
     width: 200,
     ellipsis: true,
+  },
+  {
+    label: "形態",
+    name: "materialForm",
+    width: 100,
+    align: "center",
+    render: (val: string, record: any) => {
+      const form = val || (record.materialCode?.startsWith("R-") ? "R" : "S");
+      if (form === "R") {
+        return (
+          <Tag 
+            style={{ 
+              backgroundColor: 'rgba(82, 196, 26, 0.12)', 
+              borderColor: 'rgba(82, 196, 26, 0.3)', 
+              color: '#52c41a',
+              fontWeight: 600,
+              borderStyle: 'solid',
+              borderWidth: '1px'
+            }}
+            className="m-0"
+          >
+            捲材 (R)
+          </Tag>
+        );
+      } else {
+        return (
+          <Tag 
+            style={{ 
+              backgroundColor: 'rgba(250, 140, 22, 0.12)', 
+              borderColor: 'rgba(250, 140, 22, 0.3)', 
+              color: '#fa8c16',
+              fontWeight: 600,
+              borderStyle: 'solid',
+              borderWidth: '1px'
+            }}
+            className="m-0"
+          >
+            片材 (S)
+          </Tag>
+        );
+      }
+    }
   },
   {
     label: "實體寬度 (mm)",
@@ -529,6 +684,48 @@ export const getTxColumns = (): TableColumnConfig<MaterialInventoryTransactionDt
     name: "materialName",
     width: 200,
     ellipsis: true,
+  },
+  {
+    label: "形態",
+    name: "materialForm",
+    width: 100,
+    align: "center",
+    render: (val: string, record: any) => {
+      const form = val || (record.materialCode?.startsWith("R-") ? "R" : "S");
+      if (form === "R") {
+        return (
+          <Tag 
+            style={{ 
+              backgroundColor: 'rgba(82, 196, 26, 0.12)', 
+              borderColor: 'rgba(82, 196, 26, 0.3)', 
+              color: '#52c41a',
+              fontWeight: 600,
+              borderStyle: 'solid',
+              borderWidth: '1px'
+            }}
+            className="m-0"
+          >
+            捲材 (R)
+          </Tag>
+        );
+      } else {
+        return (
+          <Tag 
+            style={{ 
+              backgroundColor: 'rgba(250, 140, 22, 0.12)', 
+              borderColor: 'rgba(250, 140, 22, 0.3)', 
+              color: '#fa8c16',
+              fontWeight: 600,
+              borderStyle: 'solid',
+              borderWidth: '1px'
+            }}
+            className="m-0"
+          >
+            片材 (S)
+          </Tag>
+        );
+      }
+    }
   },
   {
     label: "異動儲位",

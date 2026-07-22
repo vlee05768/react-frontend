@@ -1,5 +1,5 @@
 
-import { Button, Form, Input, Checkbox, message , Modal} from "antd";
+import { Button, Form, Input, Checkbox, App } from "antd";
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { postApiV1AuthLogin } from '@/api/generated/sdk.gen';
 
 export default function Login() {
+  const { message, modal } = App.useApp();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const setToken = useAuthStore((state) => state.setToken);
@@ -38,7 +39,7 @@ export default function Login() {
       // hey-api 的預設行為：發生 HTTP 錯誤時不會 throw，而是把錯誤內容放在 response.error 中
       if (response.error) {
         const errorData = response.error as any;
-        Modal.error({ 
+        modal.error({ 
           centered: true, 
           title: '登入失敗', 
           content: errorData?.message || errorData?.title || '帳號或密碼錯誤，請重新輸入' 
@@ -66,7 +67,7 @@ export default function Login() {
           navigate(ROUTES.HOME, { replace: true });
         }
       } else {
-        Modal.error({ 
+        modal.error({ 
           centered: true, 
           title: '登入失敗', 
           content: '系統未回傳 Token，請聯絡管理員' 
@@ -74,7 +75,7 @@ export default function Login() {
       }
         } catch (error: any) {
       const errorData = error?.response?.data || error;
-      Modal.error({ 
+      modal.error({ 
         centered: true, 
         title: '登入失敗', 
         content: errorData?.message || errorData?.title || '登入發生錯誤，請稍後再試' 

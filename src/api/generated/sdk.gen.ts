@@ -1193,7 +1193,7 @@ export const postApiV1MaterialByCodeUploadFiles = <ThrowOnError extends boolean 
 });
 
 /**
- * 查詢原料邏輯庫存總量
+ * 查詢原料邏輯庫存總量 (分頁)
  */
 export const getApiV1MaterialInventoryLogical = <ThrowOnError extends boolean = false>(options?: Options<GetApiV1MaterialInventoryLogicalData, ThrowOnError>) => (options?.client ?? client).get<GetApiV1MaterialInventoryLogicalResponses, unknown, ThrowOnError>({
     responseType: 'json',
@@ -1203,7 +1203,7 @@ export const getApiV1MaterialInventoryLogical = <ThrowOnError extends boolean = 
 });
 
 /**
- * 查詢原料實物卷卡 LPN 清單
+ * 查詢原料實物卷卡 LPN 清單 (分頁)
  */
 export const getApiV1MaterialInventoryRolls = <ThrowOnError extends boolean = false>(options?: Options<GetApiV1MaterialInventoryRollsData, ThrowOnError>) => (options?.client ?? client).get<GetApiV1MaterialInventoryRollsResponses, unknown, ThrowOnError>({
     responseType: 'json',
@@ -1213,7 +1213,7 @@ export const getApiV1MaterialInventoryRolls = <ThrowOnError extends boolean = fa
 });
 
 /**
- * 查詢原料庫存異動歷史流水帳
+ * 查詢原料庫存異動歷史流水帳 (分頁)
  */
 export const getApiV1MaterialInventoryTransactions = <ThrowOnError extends boolean = false>(options?: Options<GetApiV1MaterialInventoryTransactionsData, ThrowOnError>) => (options?.client ?? client).get<GetApiV1MaterialInventoryTransactionsResponses, unknown, ThrowOnError>({
     responseType: 'json',

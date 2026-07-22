@@ -11,7 +11,8 @@ import {
   postApiV1MaterialInventoryRollScrap
 } from '@/api/generated/sdk.gen';
 import { 
-  getLogicalColumns, 
+  getRollLogicalColumns, 
+  getSheetLogicalColumns, 
   getRollColumns, 
   getTxColumns, 
   rollStateOptions, 
@@ -26,44 +27,44 @@ export default function MaterialInventoryList() {
   const [activeTab, setActiveTab] = useState<string>('1');
 
   // ============================================================================
-  // 1. 邏輯庫存 (Tab 1) States, Form, Query
+  // 1. 捲材邏輯庫存 (Tab 1) States, Form, Query
   // ============================================================================
-  const [logicalParams, setLogicalParams] = useState<any>({
+  const [rollLogicalParams, setRollLogicalParams] = useState<any>({
     pageNumber: 1,
     pageSize: 20,
     MaterialCode: '',
     StorageCode: undefined
   });
 
-  const logicalForm = useForm({
+  const rollLogicalForm = useForm({
     defaultValues: {
       MaterialCode: '',
       StorageCode: undefined
     }
   });
 
-  const { data: logicalData, isFetching: logicalLoading, refetch: refetchLogical } = useQuery({
-    queryKey: ['material-inventory-logical', logicalParams.MaterialCode, logicalParams.StorageCode],
+  const { data: rollLogicalData, isFetching: rollLogicalLoading, refetch: refetchRollLogical } = useQuery({
+    queryKey: ['material-inventory-roll-logical', rollLogicalParams.MaterialCode, rollLogicalParams.StorageCode],
     queryFn: async () => {
       const res = await getApiV1MaterialInventoryLogical({
         query: {
-          MaterialCode: logicalParams.MaterialCode || undefined,
-          StorageCode: logicalParams.StorageCode || undefined,
+          MaterialCode: rollLogicalParams.MaterialCode || undefined,
+          StorageCode: rollLogicalParams.StorageCode || undefined,
           pageNumber: 1,
-          pageSize: -1, // 🟢 獲取全量以在前端完成 100% 精確的邏輯分組與聚合！
+          pageSize: -1,
         }
       });
       return res.data?.data;
     }
   });
 
-  // 🟢 內存聚合分組
-  const groupedLogicalList = useMemo(() => {
-    const rawList = logicalData?.data || [];
+  // 🟢 捲材內存聚合分組
+  const rollGroupedList = useMemo(() => {
+    const rawList = rollLogicalData?.data || [];
+    const filtered = rawList.filter((item: any) => item.materialForm === "R");
     const groups: { [key: string]: any } = {};
     
-    rawList.forEach((item: any) => {
-      // 💡 以「原料品編」+「寬度」作為分組鍵 (相同品編但不同寬度的捲材分開統計)
+    filtered.forEach((item: any) => {
       const key = `${item.materialCode}_${item.widthMm || 0}`;
       
       if (!groups[key]) {
@@ -83,10 +84,9 @@ export default function MaterialInventoryList() {
       g.quantity += item.quantity || 0;
       g.frozenQuantity += item.frozenQuantity || 0;
       
-      // 計算長度 (可用長度與凍結長度)
       let itemLength = item.lengthMm || 0;
       let itemFrozenLength = item.lengthMm || 0;
-      if (item.materialForm === "R" && (item.widthMm || 0) > 0) {
+      if ((item.widthMm || 0) > 0) {
         itemLength = ((item.quantity || 0) * 1000) / item.widthMm; // SQM to M
         itemFrozenLength = ((item.frozenQuantity || 0) * 1000) / item.widthMm; // SQM to M
       }
@@ -101,17 +101,17 @@ export default function MaterialInventoryList() {
     });
     
     return Object.values(groups);
-  }, [logicalData?.data]);
+  }, [rollLogicalData?.data]);
 
-  // 🟢 本地前端分頁數據
-  const paginatedLogicalData = useMemo(() => {
-    const start = (logicalParams.pageNumber - 1) * logicalParams.pageSize;
-    const end = logicalParams.pageNumber * logicalParams.pageSize;
-    return groupedLogicalList.slice(start, end);
-  }, [groupedLogicalList, logicalParams.pageNumber, logicalParams.pageSize]);
+  // 🟢 捲材本地前端分頁數據
+  const rollPaginatedData = useMemo(() => {
+    const start = (rollLogicalParams.pageNumber - 1) * rollLogicalParams.pageSize;
+    const end = rollLogicalParams.pageNumber * rollLogicalParams.pageSize;
+    return rollGroupedList.slice(start, end);
+  }, [rollGroupedList, rollLogicalParams.pageNumber, rollLogicalParams.pageSize]);
 
-  const handleLogicalSearch = (values: any) => {
-    setLogicalParams((prev: any) => ({
+  const handleRollLogicalSearch = (values: any) => {
+    setRollLogicalParams((prev: any) => ({
       ...prev,
       pageNumber: 1,
       MaterialCode: values.MaterialCode,
@@ -119,12 +119,109 @@ export default function MaterialInventoryList() {
     }));
   };
 
-  const handleLogicalClear = () => {
-    logicalForm.reset({
+  const handleRollLogicalClear = () => {
+    rollLogicalForm.reset({
       MaterialCode: '',
       StorageCode: undefined
     });
-    setLogicalParams({
+    setRollLogicalParams({
+      pageNumber: 1,
+      pageSize: 20,
+      MaterialCode: '',
+      StorageCode: undefined
+    });
+  };
+
+  // ============================================================================
+  // 2. 片材邏輯庫存 (Tab 2) States, Form, Query
+  // ============================================================================
+  const [sheetLogicalParams, setSheetLogicalParams] = useState<any>({
+    pageNumber: 1,
+    pageSize: 20,
+    MaterialCode: '',
+    StorageCode: undefined
+  });
+
+  const sheetLogicalForm = useForm({
+    defaultValues: {
+      MaterialCode: '',
+      StorageCode: undefined
+    }
+  });
+
+  const { data: sheetLogicalData, isFetching: sheetLogicalLoading, refetch: refetchSheetLogical } = useQuery({
+    queryKey: ['material-inventory-sheet-logical', sheetLogicalParams.MaterialCode, sheetLogicalParams.StorageCode],
+    queryFn: async () => {
+      const res = await getApiV1MaterialInventoryLogical({
+        query: {
+          MaterialCode: sheetLogicalParams.MaterialCode || undefined,
+          StorageCode: sheetLogicalParams.StorageCode || undefined,
+          pageNumber: 1,
+          pageSize: -1,
+        }
+      });
+      return res.data?.data;
+    }
+  });
+
+  // 🟢 片材內存聚合分組
+  const sheetGroupedList = useMemo(() => {
+    const rawList = sheetLogicalData?.data || [];
+    const filtered = rawList.filter((item: any) => item.materialForm !== "R");
+    const groups: { [key: string]: any } = {};
+    
+    filtered.forEach((item: any) => {
+      const key = `${item.materialCode}_${item.widthMm || 0}_${item.lengthMm || 0}`;
+      
+      if (!groups[key]) {
+        groups[key] = {
+          materialCode: item.materialCode,
+          materialName: item.materialName,
+          materialForm: item.materialForm,
+          widthMm: item.widthMm,
+          lengthMm: item.lengthMm,
+          quantity: 0,
+          frozenQuantity: 0,
+          storages: []
+        };
+      }
+      
+      const g = groups[key];
+      g.quantity += item.quantity || 0;
+      g.frozenQuantity += item.frozenQuantity || 0;
+      
+      g.storages.push({
+        storageCode: item.storageCode,
+        quantity: item.quantity || 0,
+        frozenQuantity: item.frozenQuantity || 0
+      });
+    });
+    
+    return Object.values(groups);
+  }, [sheetLogicalData?.data]);
+
+  // 🟢 片材本地前端分頁數據
+  const sheetPaginatedData = useMemo(() => {
+    const start = (sheetLogicalParams.pageNumber - 1) * sheetLogicalParams.pageSize;
+    const end = sheetLogicalParams.pageNumber * sheetLogicalParams.pageSize;
+    return sheetGroupedList.slice(start, end);
+  }, [sheetGroupedList, sheetLogicalParams.pageNumber, sheetLogicalParams.pageSize]);
+
+  const handleSheetLogicalSearch = (values: any) => {
+    setSheetLogicalParams((prev: any) => ({
+      ...prev,
+      pageNumber: 1,
+      MaterialCode: values.MaterialCode,
+      StorageCode: values.StorageCode
+    }));
+  };
+
+  const handleSheetLogicalClear = () => {
+    sheetLogicalForm.reset({
+      MaterialCode: '',
+      StorageCode: undefined
+    });
+    setSheetLogicalParams({
       pageNumber: 1,
       pageSize: 20,
       MaterialCode: '',
@@ -220,10 +317,11 @@ export default function MaterialInventoryList() {
       RollNo: parentBarcode,
       RollStatus: allStatuses
     }));
+    setActiveTab('3'); // 🟢 自動切換到原料卷卡號分頁
   };
 
   // ============================================================================
-  // 3. 異動流水帳 (Tab 3) States, Form, Query
+  // 3. 異動流水帳 (Tab 4) States, Form, Query
   // ============================================================================
   const [txParams, setTxParams] = useState<any>({
     pageNumber: 1,
@@ -327,7 +425,8 @@ export default function MaterialInventoryList() {
           });
           if (res.data?.success) {
             message.success("卷卡報廢成功！已自動重算同步對應規格之邏輯儲位庫存。");
-            refetchLogical();
+            refetchRollLogical();
+            refetchSheetLogical();
             refetchRolls();
             refetchTx();
           } else {
@@ -344,16 +443,18 @@ export default function MaterialInventoryList() {
   // Tab 切換與更新
   // ============================================================================
   const handleRefetchActiveTab = () => {
-    if (activeTab === '1') refetchLogical();
-    if (activeTab === '2') refetchRolls();
-    if (activeTab === '3') refetchTx();
+    if (activeTab === '1') refetchRollLogical();
+    if (activeTab === '2') refetchSheetLogical();
+    if (activeTab === '3') refetchRolls();
+    if (activeTab === '4') refetchTx();
   };
 
-  const isFetchingActiveTab = logicalLoading || rollLoading || txLoading;
+  const isFetchingActiveTab = rollLogicalLoading || sheetLogicalLoading || rollLoading || txLoading;
 
   // 實體卷卡列表 Columns 注入母卷追溯事件與手動報廢事件
   const rollColumns = useMemo(() => buildTableColumns(getRollColumns(handleSelectParentBarcode, handleScrapRoll)), [handleSelectParentBarcode]);
-  const logicalColumns = useMemo(() => buildTableColumns(getLogicalColumns()), []);
+  const rollLogicalColumns = useMemo(() => buildTableColumns(getRollLogicalColumns()), []);
+  const sheetLogicalColumns = useMemo(() => buildTableColumns(getSheetLogicalColumns()), []);
   const txColumns = useMemo(() => buildTableColumns(getTxColumns()), []);
 
   return (
@@ -387,32 +488,32 @@ export default function MaterialInventoryList() {
             items={[
               {
                 key: '1',
-                label: '原料邏輯庫存總量',
+                label: '捲材邏輯庫存總量',
                 children: (
                   <div className="flex-1 flex flex-col overflow-hidden">
                     {/* Tab 1 Form */}
                     <Form 
                       layout="inline" 
                       className="mb-4 pb-4 border-b border-slate-200 dark:border-slate-800 flex !flex-row !flex-nowrap items-center gap-x-4 gap-y-0 shrink-0 overflow-x-auto overflow-y-hidden" 
-                      onFinish={logicalForm.handleSubmit(handleLogicalSearch)}
+                      onFinish={rollLogicalForm.handleSubmit(handleRollLogicalSearch)}
                     >
                       <Form.Item>
                         <Space>
-                          <Button type="primary" htmlType="submit" icon={<SearchOutlined />} loading={logicalLoading}>查詢</Button>
-                          <Button onClick={handleLogicalClear} icon={<ClearOutlined />}>清除</Button>
+                          <Button type="primary" htmlType="submit" icon={<SearchOutlined />} loading={rollLogicalLoading}>查詢</Button>
+                          <Button onClick={handleRollLogicalClear} icon={<ClearOutlined />}>清除</Button>
                         </Space>
                       </Form.Item>
                       <Form.Item label="原料品編">
                         <Controller 
                           name="MaterialCode" 
-                          control={logicalForm.control} 
+                          control={rollLogicalForm.control} 
                           render={({field}: any) => <Input {...field} placeholder="原料品編" allowClear className="w-36 min-w-[140px] shrink-0" />} 
                         />
                       </Form.Item>
                       <Form.Item label="儲位">
                         <Controller 
                           name="StorageCode" 
-                          control={logicalForm.control} 
+                          control={rollLogicalForm.control} 
                           render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" optionsFilter={(opt: any) => opt.type === 'MAT'} placeholder="選擇儲位" className="w-48 min-w-[240px] shrink-0" allowClear />} 
                         />
                       </Form.Item>
@@ -422,15 +523,15 @@ export default function MaterialInventoryList() {
                     <div className="flex-1 min-h-0 flex flex-col">
                       <StandardErpTable
                         rowKey={(record: any) => `${record.materialCode}_${record.widthMm || 0}`}
-                        loading={logicalLoading}
-                        dataSource={paginatedLogicalData}
-                        columns={logicalColumns as any}
+                        loading={rollLogicalLoading}
+                        dataSource={rollPaginatedData}
+                        columns={rollLogicalColumns as any}
                         pagination={{
-                          current: logicalParams.pageNumber,
-                          pageSize: logicalParams.pageSize,
-                          total: groupedLogicalList.length,
+                          current: rollLogicalParams.pageNumber,
+                          pageSize: rollLogicalParams.pageSize,
+                          total: rollGroupedList.length,
                           onChange: (page, size) => {
-                            setLogicalParams((prev: any) => ({ ...prev, pageNumber: page, pageSize: size }));
+                            setRollLogicalParams((prev: any) => ({ ...prev, pageNumber: page, pageSize: size }));
                           },
                           showSizeChanger: true,
                           showTotal: (total) => `共 ${total} 筆`,
@@ -442,10 +543,65 @@ export default function MaterialInventoryList() {
               },
               {
                 key: '2',
-                label: '原料卷卡號',
+                label: '片材邏輯庫存總量',
                 children: (
                   <div className="flex-1 flex flex-col overflow-hidden">
                     {/* Tab 2 Form */}
+                    <Form 
+                      layout="inline" 
+                      className="mb-4 pb-4 border-b border-slate-200 dark:border-slate-800 flex !flex-row !flex-nowrap items-center gap-x-4 gap-y-0 shrink-0 overflow-x-auto overflow-y-hidden" 
+                      onFinish={sheetLogicalForm.handleSubmit(handleSheetLogicalSearch)}
+                    >
+                      <Form.Item>
+                        <Space>
+                          <Button type="primary" htmlType="submit" icon={<SearchOutlined />} loading={sheetLogicalLoading}>查詢</Button>
+                          <Button onClick={handleSheetLogicalClear} icon={<ClearOutlined />}>清除</Button>
+                        </Space>
+                      </Form.Item>
+                      <Form.Item label="原料品編">
+                        <Controller 
+                          name="MaterialCode" 
+                          control={sheetLogicalForm.control} 
+                          render={({field}: any) => <Input {...field} placeholder="原料品編" allowClear className="w-36 min-w-[140px] shrink-0" />} 
+                        />
+                      </Form.Item>
+                      <Form.Item label="儲位">
+                        <Controller 
+                          name="StorageCode" 
+                          control={sheetLogicalForm.control} 
+                          render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" optionsFilter={(opt: any) => opt.type === 'MAT'} placeholder="選擇儲位" className="w-48 min-w-[240px] shrink-0" allowClear />} 
+                        />
+                      </Form.Item>
+                    </Form>
+
+                    {/* Tab 2 Table */}
+                    <div className="flex-1 min-h-0 flex flex-col">
+                      <StandardErpTable
+                        rowKey={(record: any) => `${record.materialCode}_${record.widthMm || 0}_${record.lengthMm || 0}`}
+                        loading={sheetLogicalLoading}
+                        dataSource={sheetPaginatedData}
+                        columns={sheetLogicalColumns as any}
+                        pagination={{
+                          current: sheetLogicalParams.pageNumber,
+                          pageSize: sheetLogicalParams.pageSize,
+                          total: sheetGroupedList.length,
+                          onChange: (page, size) => {
+                            setSheetLogicalParams((prev: any) => ({ ...prev, pageNumber: page, pageSize: size }));
+                          },
+                          showSizeChanger: true,
+                          showTotal: (total) => `共 ${total} 筆`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                )
+              },
+              {
+                key: '3',
+                label: '原料卷卡號',
+                children: (
+                  <div className="flex-1 flex flex-col overflow-hidden">
+                    {/* Tab 3 Form */}
                     <Form 
                       layout="inline" 
                       className="mb-4 pb-4 border-b border-slate-200 dark:border-slate-800 flex !flex-row !flex-nowrap items-center gap-x-2 gap-y-0 shrink-0 overflow-x-auto overflow-y-hidden" 
@@ -500,7 +656,7 @@ export default function MaterialInventoryList() {
                       </Form.Item>
                     </Form>
 
-                    {/* Tab 2 Table */}
+                    {/* Tab 3 Table */}
                     <div className="flex-1 min-h-0 flex flex-col">
                       <StandardErpTable
                         rowKey="rollNo"
@@ -523,11 +679,11 @@ export default function MaterialInventoryList() {
                 )
               },
               {
-                key: '3',
+                key: '4',
                 label: '庫存異動流水帳',
                 children: (
                   <div className="flex-1 flex flex-col overflow-hidden">
-                    {/* Tab 3 Form */}
+                    {/* Tab 4 Form */}
                     <Form 
                       layout="inline" 
                       className="mb-4 pb-4 border-b border-slate-200 dark:border-slate-800 flex !flex-row !flex-nowrap items-center gap-x-4 gap-y-0 shrink-0 overflow-x-auto overflow-y-hidden" 
@@ -577,7 +733,7 @@ export default function MaterialInventoryList() {
                       </Form.Item>
                     </Form>
 
-                    {/* Tab 3 Table */}
+                    {/* Tab 4 Table */}
                     <div className="flex-1 min-h-0 flex flex-col">
                       <StandardErpTable
                         rowKey="transactionId"

@@ -5,12 +5,12 @@ import type {
   TableColumnConfig,
 } from "@/components/Form/types";
 
-import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
+import { CheckOutlined, CloseOutlined, LockOutlined, UnlockOutlined } from "@ant-design/icons";
 import { DictLabel } from "@/components/Form/DictLabel";
 import { BrandSelect } from "./components/BrandSelect";
 import { ModelSelect } from "./components/ModelSelect";
 import { getApiV1Material } from "@/api/generated/sdk.gen";
-import { Modal } from "antd";
+import { Modal, Space, Tooltip, Button } from "antd";
 
 export const materialFormOptions = [
   { label: "捲材 (R)", value: "R" },
@@ -181,7 +181,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   { label: "財務單位", name: "baseUOM", width: 100 },
   { label: "輔助單位", name: "auxUOM", width: 100 },
   { 
-    label: "標準成本(元/㎡)", 
+    label: "最後進貨成本(元/㎡)", 
     name: "unitPrice", 
     width: 140, 
     align: "right",
@@ -210,7 +210,12 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   { label: "備註", name: "notes", width: 200, ellipsis: true },
 ];
 
-export const mainFormConfig = (): FormFieldConfig[] => [
+export const mainFormConfig = (
+  isCostLocked?: boolean,
+  isAdminOrFinance?: boolean,
+  isUnlocked?: boolean,
+  onUnlock?: () => void
+): FormFieldConfig[] => [
   // === Tab 1: 基本規格 ===
   {
     name: "code",
@@ -357,12 +362,40 @@ export const mainFormConfig = (): FormFieldConfig[] => [
   },
   {
     name: "unitPrice",
-    label: "標準成本 (元/㎡)",
+    label: (
+      <Space size={4}>
+        <span>最後進貨成本 (元/㎡)</span>
+        {isCostLocked && (
+          <Tooltip title={isUnlocked ? "已解鎖手動編輯" : "已有實際進貨記錄，此欄位已鎖定，由系統 IQC 過帳自動維護。點選解鎖。"}>
+            {isAdminOrFinance ? (
+              <Button
+                type="text"
+                size="small"
+                style={{ padding: 0, height: "auto", width: "auto" }}
+                icon={isUnlocked ? <UnlockOutlined style={{ color: "#52c41a" }} /> : <LockOutlined style={{ color: "#ff4d4f" }} />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  if (!isUnlocked && onUnlock) {
+                    onUnlock();
+                  }
+                }}
+              />
+            ) : (
+              <LockOutlined style={{ color: "#ff4d4f" }} />
+            )}
+          </Tooltip>
+        )}
+      </Space>
+    ),
     componentType: "InputNumber",
     colSpan: 6,
-    editable: "never",
+    editable: () => {
+      if (!isCostLocked) return "always";
+      return isUnlocked ? "always" : "never";
+    },
     componentProps: { 
-      disabled: true, 
+      disabled: isCostLocked && !isUnlocked, 
       style: { width: "100%" },
       formatter: (value: any) => value != null ? `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "",
       parser: (value: any) => value ? value.replace(/\$\s?|(,*)/g, "") : "",

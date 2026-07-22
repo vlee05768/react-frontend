@@ -36,8 +36,34 @@ export default function MaterialList() {
   const { modal } = App.useApp();
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const { params, setParams, resetParams } = useMaterialQueryStore();
-  const { hasPermission } = useAuthStore();
+  const { hasPermission, user } = useAuthStore();
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+
+  const isAdminOrFinance = user?.roles?.includes('Admin') || user?.roles?.includes('Finance') || user?.userName === 'admin';
+
+  useEffect(() => {
+    setIsUnlocked(false);
+  }, [viewId, isCreateDrawerOpen]);
+
+  const handleUnlock = () => {
+    modal.confirm({
+      title: '⚠️ 財務一致性警告',
+      content: (
+        <div>
+          <p>本原物料在系統中已有實際的進貨過帳紀錄。手動強制調整「最後進貨成本」將導致其與實際交易明細產生財務落差。</p>
+          <strong style={{ color: '#ff4d4f' }}>您確定要強制手動調整嗎？</strong>
+        </div>
+      ),
+      okText: '確定解鎖',
+      cancelText: '取消',
+      centered: true,
+      onOk: () => {
+        setIsUnlocked(true);
+        message.success('已解除欄位鎖定，現在可以手動編輯最後進貨成本');
+      }
+    });
+  };
 
   const listQuery = useErpListQuery({
     params,
@@ -414,7 +440,7 @@ export default function MaterialList() {
               masterContent={
                 <DynamicForm
                   formId="materialForm"
-                  fields={mainFormConfig()}
+                  fields={mainFormConfig(viewData?.isCostLocked, isAdminOrFinance, isUnlocked, handleUnlock)}
                   defaultValues={formDefaultValues}
                   onSubmit={handleCrudSubmit}
                   isUpdateMode={isDrawerEditing}

@@ -599,6 +599,10 @@ export type CompleteSampleRollDto = {
      */
     responsibleParty?: string | null;
     /**
+     * 原廠生產批號 (片料專用)
+     */
+    supplierLotNo?: string | null;
+    /**
      * 動態檢驗項目
      */
     inspectionItems?: Array<IqcInspectionValueDto> | null;
@@ -3790,6 +3794,10 @@ export type IqcSampleDetailDto = {
      */
     responsibleParty?: string | null;
     /**
+     * 原廠生產批號
+     */
+    supplierLotNo?: string | null;
+    /**
      * 動態檢驗值清單
      */
     inspectionItems?: Array<IqcInspectionValueDto> | null;
@@ -6407,6 +6415,10 @@ export type PurchaseReceiptItemDto = {
      * 是否為卷料
      */
     isRoll?: boolean;
+    /**
+     * 卷料進貨總長度 M (由 RollCount * Length 自動計算)
+     */
+    readonly totalLength?: number;
     /**
      * 額外擴充資料
      */
@@ -15308,6 +15320,10 @@ export type GetApiV1MaterialData = {
          * 原料類型
          */
         Types?: Array<string>;
+        /**
+         * 原料型態 (R=捲材, S=片材)
+         */
+        MaterialForms?: Array<string>;
         /**
          * 是否啟用（未指定的話預設為 true）
          */
