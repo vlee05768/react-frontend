@@ -34,6 +34,9 @@ import { ActionBar } from '@/components/common/ActionBar';
 
 export default function MaterialList() {
   const { modal } = App.useApp();
+  const queryClient = useQueryClient();
+  const { viewId } = useParams<{ viewId: string }>();
+  const navigate = useNavigate();
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const { params, setParams, resetParams } = useMaterialQueryStore();
   const { hasPermission, user } = useAuthStore();
@@ -92,10 +95,6 @@ export default function MaterialList() {
       setActiveTab('master_info');
     }
   }, [isDrawerEditing, isCreateDrawerOpen]);
-
-  const queryClient = useQueryClient();
-  const { viewId } = useParams<{ viewId: string }>();
-  const navigate = useNavigate();
 
   // 單筆資料查詢 (Drawer)
   const { data: viewRes, isFetching: isFetchingView } = useQuery({
