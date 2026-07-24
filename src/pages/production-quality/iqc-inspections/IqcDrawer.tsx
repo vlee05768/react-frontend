@@ -820,9 +820,12 @@ export default function IqcDrawer({
           actualQtyAux: Number(r.actualQtyAux) || 1,
           isOk: r.isOk ?? true,
           measuredThicknessMm: Number(r.measuredThicknessMm) || 0.05,
+          measuredSampleThicknessMm: Number(r.measuredSampleThicknessMm || r.measuredThicknessMm) || 0.05,
           measuredCoreDiaMm: isRollMaterial ? (r.measuredCoreDiaMm || null) : null,
           measuredOuterDiaMm: isRollMaterial ? (r.measuredOuterDiaMm || null) : null, // 💡 儲存實測外徑
           lengthMm: r.lengthMm || null,
+          measuredLengthMm: Number(r.measuredLengthMm || r.lengthMm) || null,
+          measuredWidthMm: Number(r.measuredWidthMm || r.widthMm) || null,
           disposition: r.disposition || "Concession",
           responsibleParty: r.responsibleParty || detail?.supplierCode,
           supplierLotNo: cleanLotNo,
@@ -847,9 +850,12 @@ export default function IqcDrawer({
         actualQtyAux: r.actualQtyAux,
         isOk: r.isOk ?? true, // 預設單項合格
         measuredThicknessMm: r.measuredThicknessMm || 0.05,
+        measuredSampleThicknessMm: Number(r.measuredSampleThicknessMm || r.measuredThicknessMm) || 0.05,
         measuredCoreDiaMm: isRollMaterial ? (r.measuredCoreDiaMm || null) : null, // 💡 內管芯外徑
         measuredOuterDiaMm: isRollMaterial ? (r.measuredOuterDiaMm || null) : null, // 💡 實測外徑
         lengthMm: r.lengthMm || null,
+        measuredLengthMm: Number(r.measuredLengthMm || r.lengthMm) || null,
+        measuredWidthMm: Number(r.measuredWidthMm || r.widthMm) || null,
         disposition: r.isOk ? undefined : (r.disposition || "Concession"),
         responsibleParty: r.isOk ? undefined : (r.responsibleParty || detail?.supplierCode),
         supplierLotNo: r.supplierLotNo, // 💡 補回缺失的原廠生產批號
@@ -901,6 +907,14 @@ export default function IqcDrawer({
             } else if (itemCode === "thickness") {
               const numVal = parseFloat(value);
               extraUpdates.measuredThicknessMm = isNaN(numVal) ? 0.05 : numVal;
+              extraUpdates.measuredSampleThicknessMm = isNaN(numVal) ? 0.05 : numVal;
+            } else if (itemCode === "width") {
+              const numVal = parseFloat(value);
+              extraUpdates.measuredWidthMm = isNaN(numVal) ? null : numVal;
+            } else if (itemCode === "length") {
+              const numVal = parseFloat(value);
+              extraUpdates.measuredLengthMm = isNaN(numVal) ? null : numVal;
+              extraUpdates.lengthMm = isNaN(numVal) ? null : numVal;
             }
 
             let finalRoll = { ...r, inspectionItems: updatedItems, ...extraUpdates };
@@ -1467,9 +1481,12 @@ export default function IqcDrawer({
           actualQtyAux: Number(r.actualQtyAux) || 1,
           isOk: r.isOk ?? true,
           measuredThicknessMm: Number(r.measuredThicknessMm) || 0.05,
+          measuredSampleThicknessMm: Number(r.measuredSampleThicknessMm || r.measuredThicknessMm) || 0.05,
           measuredCoreDiaMm: isRollMaterial ? (r.measuredCoreDiaMm || null) : null,
           measuredOuterDiaMm: isRollMaterial ? (r.measuredOuterDiaMm || null) : null, // 💡 儲存實測外徑
           lengthMm: r.lengthMm || null,
+          measuredLengthMm: Number(r.measuredLengthMm || r.lengthMm) || null,
+          measuredWidthMm: Number(r.measuredWidthMm || r.widthMm) || null,
           disposition: r.disposition || "Concession",
           responsibleParty: r.responsibleParty || detail?.supplierCode,
           supplierLotNo: cleanLotNo,

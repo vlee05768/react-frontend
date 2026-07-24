@@ -563,7 +563,7 @@ export const getRollColumns = (
   {
     label: "操作",
     name: "action",
-    width: 100,
+    width: 80,
     align: "center",
     fixed: "right",
     render: (_, record: any) => {
