@@ -2120,9 +2120,11 @@ export default function IqcDrawer({
   ]);
 
   const totalLength = useMemo(() => {
-    if (!detail?.rolls) return 0;
-    return detail.rolls.reduce((sum: number, r: any) => sum + (r.actualQtyAux || 0), 0);
-  }, [detail?.rolls]);
+    if (!detail) return 0;
+    return isRollMaterial
+      ? (detail.rollCount || 0) * (detail.standardLength || 0)
+      : (detail.rollCount || 0);
+  }, [detail, isRollMaterial]);
 
   const totalAllocatedPcs = useMemo(() => {
     if (isRollMaterial) return 0;
