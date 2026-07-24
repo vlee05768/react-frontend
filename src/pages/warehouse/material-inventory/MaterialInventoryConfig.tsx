@@ -407,6 +407,7 @@ export const getRollColumns = (
     label: "卷卡號 (LPN)",
     name: "rollNo",
     width: 180,
+    fixed: "left",
     render: (val: string) => <span className="font-mono font-bold text-slate-800 dark:text-slate-100">{val || "-"}</span>,
   },
   {
@@ -563,6 +564,7 @@ export const getRollColumns = (
     name: "action",
     width: 150,
     align: "center",
+    fixed: "right",
     render: (_, record: any) => {
       const upper = String(record.rollStatus || '').toUpperCase();
       const canScrap = upper === 'INSTOCK' || upper === 'AVAILABLE';
