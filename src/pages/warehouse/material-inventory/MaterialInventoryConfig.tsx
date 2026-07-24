@@ -3,6 +3,7 @@ import type {
   MaterialInventoryTransactionDto 
 } from "@/api/generated/types.gen";
 import { Tag, Tooltip, Button, Space } from "antd";
+import { PrinterOutlined, DeleteOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
 // 輔助函式：安全格式化小數，防範 string 或 null 造成 toFixed 崩潰
@@ -406,7 +407,7 @@ export const getRollColumns = (
   {
     label: "卷卡號 (LPN)",
     name: "rollNo",
-    width: 180,
+    width: 150,
     fixed: "left",
     render: (val: string) => <span className="font-mono font-bold text-slate-800 dark:text-slate-100">{val || "-"}</span>,
   },
@@ -428,7 +429,7 @@ export const getRollColumns = (
   {
     label: "原料品編",
     name: "materialCode",
-    width: 160,
+    width: 180,
   },
   {
     label: "原料名稱",
@@ -503,14 +504,14 @@ export const getRollColumns = (
   {
     label: "剩餘面積 (m²)",
     name: "currentAreaSqm",
-    width: 110,
+    width: 100,
     align: "right",
     render: (val: any) => <span className="font-semibold text-blue-600 dark:text-blue-400">{formatDecimal(val, 4, "0")}</span>,
   },
   {
     label: "每平米成本",
     name: "costPerSqm",
-    width: 110,
+    width: 90,
     align: "right",
     render: (val: any) => formatDecimal(val, 2, "-"),
   },
@@ -562,7 +563,7 @@ export const getRollColumns = (
   {
     label: "操作",
     name: "action",
-    width: 150,
+    width: 100,
     align: "center",
     fixed: "right",
     render: (_, record: any) => {
@@ -570,25 +571,30 @@ export const getRollColumns = (
       const canScrap = upper === 'INSTOCK' || upper === 'AVAILABLE';
       
       return (
-        <Space size={4}>
+        <Space size={8}>
           {onPrintLabel && (
-            <Button 
-              type="link" 
-              size="small"
-              onClick={() => onPrintLabel(record)}
-            >
-              列印
-            </Button>
+            <Tooltip title="列印合格物料標籤 (PDF)">
+              <Button 
+                type="primary" 
+                shape="circle"
+                icon={<PrinterOutlined />} 
+                size="small"
+                onClick={() => onPrintLabel(record)}
+                style={{ backgroundColor: '#1890ff', borderColor: '#1890ff' }}
+              />
+            </Tooltip>
           )}
           {canScrap && (
-            <Button 
-              type="link" 
-              danger 
-              size="small"
-              onClick={() => onScrapRoll && onScrapRoll(record)}
-            >
-              報廢
-            </Button>
+            <Tooltip title="手動報廢此原料卡卷">
+              <Button 
+                type="primary" 
+                danger
+                shape="circle"
+                icon={<DeleteOutlined />} 
+                size="small"
+                onClick={() => onScrapRoll && onScrapRoll(record)}
+              />
+            </Tooltip>
           )}
           {!onPrintLabel && !canScrap && "-"}
         </Space>
