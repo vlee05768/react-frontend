@@ -2,7 +2,7 @@ import PageCard from '@/components/common/PageCard';
 // @ts-nocheck
 import { getApiErrorMessage } from "@/utils/apiError";
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import { Spin, Button, Modal, Space, Drawer, Divider } from 'antd';
 import {
@@ -73,6 +73,11 @@ export default function BusinessPartnerList() {
 
   const [isDrawerEditing, setIsDrawerEditing] = useState(false);
   const isViewMode = !isDrawerEditing && !isCreateDrawerOpen;
+
+  // 💡 Memoize configuration arrays to avoid heavy re-renders and schema recreation
+  const formFields = useMemo(() => mainFormConfig(), []);
+  const searchFields = useMemo(() => bpSearchFormConfig(), []);
+  const tableCols = useMemo(() => mainTableColumns(), []);
   
   useEffect(() => {
     if (isCreateDrawerOpen || isDrawerEditing) {
@@ -301,22 +306,23 @@ export default function BusinessPartnerList() {
     }
   };
 
-  const actionColumn = {
-    title: '操作',
-    key: 'actions',
-    fixed: 'right' as const,
-    width: 120,
-    render: (_: any, record: any) => (
-      <TableActions
-        onView={() => openViewDrawer(record)}
-        onDelete={() => deleteMutation.mutate(record.code)}
-        recordName={record.name || record.code}
-        deleteConfirmType="popconfirm"
-      />
-    ),
-  };
-
-  const columns = buildTableColumns(mainTableColumns(), actionColumn, params.SortRules);
+  const columns = useMemo(() => {
+    const actionColumn = {
+      title: '操作',
+      key: 'actions',
+      fixed: 'right' as const,
+      width: 120,
+      render: (_: any, record: any) => (
+        <TableActions
+          onView={() => openViewDrawer(record)}
+          onDelete={() => deleteMutation.mutate(record.code)}
+          recordName={record.name || record.code}
+          deleteConfirmType="popconfirm"
+        />
+      ),
+    };
+    return buildTableColumns(tableCols, actionColumn, params.SortRules);
+  }, [tableCols, params.SortRules]);
 
 
 
@@ -344,8 +350,8 @@ export default function BusinessPartnerList() {
         
         {/* 統一的查詢與排序標籤區塊 */}
         <ActiveQueryAndSortTags
-          searchConfig={bpSearchFormConfig()}
-          tableColumns={mainTableColumns()}
+          searchConfig={searchFields}
+          tableColumns={tableCols}
           params={params}
           onQueryTagClose={listQuery.handleClearQueryField}
           onSortTagClose={listQuery.handleClearSortField}
@@ -408,7 +414,7 @@ export default function BusinessPartnerList() {
       >
         
         <DynamicSearchForm 
-          config={bpSearchFormConfig()} 
+          config={searchFields} 
           form={listQuery.searchForm} 
           onSearch={listQuery.handleSearch} 
         />
@@ -478,7 +484,7 @@ export default function BusinessPartnerList() {
               <DynamicForm
                 key={isCreateDrawerOpen ? 'create' : `${viewId || 'empty'}_${isDrawerEditing ? 'edit' : 'view'}`}
                 defaultValues={getFormDefaultValues()}
-                fields={mainFormConfig()}
+                fields={formFields}
                 onSubmit={handleCrudSubmit}
                 isUpdateMode={isDrawerEditing}
                 isViewMode={isViewMode}

@@ -14,11 +14,11 @@ interface KpiCardConfig {
   borderColorClass: string;        // 頂部邊框 Tailwind
   title: string;                   // 卡片標題
   valueKey: string;                // 對接 API pendingTasks 的欄位
-  textColorClass: string;          // 數字顏色 Tailwind
+  textColorClass: string;          // 數字顏色 Tailwind (支援亮暗模式雙向對齊)
   isWarning?: boolean;
 }
 
-// 7 大黃金待處理事項動態清單 (對齊最新選單分類架構，支援日後無限動態擴充)
+// 7 大黃金待處理事項動態清單 (對齊最新選單分類架構，支援亮暗雙色高對比對齊)
 const KPI_CARDS_CONFIG: KpiCardConfig[] = [
   {
     permissionKey: 'Sales.Orders.View',
@@ -26,7 +26,7 @@ const KPI_CARDS_CONFIG: KpiCardConfig[] = [
     borderColorClass: 'bg-orange-500',
     title: '未完成訂單',
     valueKey: 'unprocessedOrders',
-    textColorClass: 'text-orange-500'
+    textColorClass: 'text-orange-600 dark:text-orange-400'
   },
   {
     permissionKey: 'ProductionQuality.WorkOrders.View',
@@ -34,7 +34,7 @@ const KPI_CARDS_CONFIG: KpiCardConfig[] = [
     borderColorClass: 'bg-red-500',
     title: '未開工製令',
     valueKey: 'draftWorkOrders',
-    textColorClass: 'text-red-500'
+    textColorClass: 'text-red-600 dark:text-red-400'
   },
   {
     permissionKey: 'ProductionQuality.WorkOrders.View',
@@ -42,7 +42,7 @@ const KPI_CARDS_CONFIG: KpiCardConfig[] = [
     borderColorClass: 'bg-blue-500',
     title: '開工未完工',
     valueKey: 'inPrepWorkOrders',
-    textColorClass: 'text-blue-500'
+    textColorClass: 'text-blue-600 dark:text-blue-400'
   },
   {
     permissionKey: 'ProductionQuality.ProductionReceipts.View',
@@ -50,7 +50,7 @@ const KPI_CARDS_CONFIG: KpiCardConfig[] = [
     borderColorClass: 'bg-purple-500',
     title: '生產未QC',
     valueKey: 'notQcProductionReceipts',
-    textColorClass: 'text-purple-500'
+    textColorClass: 'text-purple-600 dark:text-purple-400'
   },
   {
     permissionKey: 'ProductionQuality.QcReceipts.View',
@@ -58,15 +58,15 @@ const KPI_CARDS_CONFIG: KpiCardConfig[] = [
     borderColorClass: 'bg-teal-500',
     title: 'QC未確認',
     valueKey: 'pendingQcReceipts',
-    textColorClass: 'text-teal-500'
+    textColorClass: 'text-teal-600 dark:text-teal-400'
   },
   {
     permissionKey: 'Sales.Deliveries.View',
     path: '/sales/sales-deliveries?shippedConfirmed=false',
-    borderColorClass: 'bg-yellow-500',
+    borderColorClass: 'bg-amber-500',
     title: '銷貨未出庫 (SD)',
     valueKey: 'notShippedSalesDeliveries',
-    textColorClass: 'text-yellow-500'
+    textColorClass: 'text-amber-600 dark:text-amber-400' // 修改為 amber 色以確保白底下的完美對比度
   },
   {
     permissionKey: 'Purchase.Orders.View',
@@ -74,7 +74,7 @@ const KPI_CARDS_CONFIG: KpiCardConfig[] = [
     borderColorClass: 'bg-indigo-500',
     title: '採購待核准',
     valueKey: 'draftPurchaseOrders',
-    textColorClass: 'text-indigo-500'
+    textColorClass: 'text-indigo-600 dark:text-indigo-400'
   }
 ];
 
@@ -115,11 +115,11 @@ export default function Dashboard() {
     if (!hasPerm) {
       return (
         <div key={params.key} className="dashboard-card-disabled" title="🔒 您無此模組之存取權限">
-          <div className="card-border bg-gray-300"></div>
+          <div className="card-border bg-gray-300 dark:bg-gray-700"></div>
           <div className="text-sm text-gray-400 dark:text-gray-500 font-medium flex items-center gap-1">
             {params.title} 🔒
           </div>
-          <div className="text-3xl font-bold text-gray-400 dark:text-gray-500 mt-2">--</div>
+          <div className="text-3xl font-bold text-gray-300 dark:text-gray-650 mt-2">--</div>
           <div className="text-xs text-gray-400 dark:text-gray-500 mt-auto pt-2 flex items-center">
             <span>🔒 無權限</span>
           </div>
@@ -181,6 +181,7 @@ export default function Dashboard() {
   return (
     <div className="p-6 md:p-10 min-h-screen relative">
       <div className="dashboard-container">
+        
         {/* Header Section */}
         <div className="flex justify-between items-end mb-4">
           <h2 className="text-xl font-bold tracking-wider border-l-4 border-blue-500 pl-3 text-gray-800 dark:text-gray-200">
@@ -189,9 +190,9 @@ export default function Dashboard() {
           <span className="text-sm text-gray-500">點擊卡片可跳轉對應列表</span>
         </div>
 
-        {/* Dynamic KPI Cards Grid */}
+        {/* Dynamic KPI Cards Grid - Responsive columns, automatically wraps cleanly */}
         <Spin spinning={isLoading}>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-4 mb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4 mb-10">
             {KPI_CARDS_CONFIG.map((card, idx) => 
               renderKpiCard({
                 key: idx,
@@ -217,11 +218,11 @@ export default function Dashboard() {
 
         <div className="bg-white dark:bg-[#191919] p-8 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm dark:shadow-none relative overflow-hidden">
           
-          {/* Linear Supply Chain Flow */}
-          <div className="flex items-start justify-start gap-2 overflow-x-auto pb-4 flowchart-container relative z-10 w-full">
+          {/* Responsive Supply Chain Flowchart Grid (Option A) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 w-full relative z-10">
             
-            {/* COLUMN 1: BasicData (黃色) - 2-Column Layout */}
-            <div className="flow-col-double">
+            {/* COLUMN 1: BasicData (黃色) - 2-Column Subgrid internally */}
+            <div className="flex flex-col w-full">
               <div className="flow-node-header border-t-4 border-t-yellow-500">
                 <div className="text-yellow-500 dark:text-yellow-400 mb-1">
                   <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -274,15 +275,8 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* FLOW ARROW 1 */}
-            <div className="flow-arrow">
-              <svg className="w-5 h-5 text-gray-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-              </svg>
-            </div>
-
             {/* COLUMN 2: Purchase (採購管理 - 橘色) */}
-            <div className="flow-col min-w-[190px]">
+            <div className="flex flex-col w-full">
               <div className="flow-node-header border-t-4 border-t-orange-500">
                 <div className="text-orange-500 dark:text-orange-400 mb-1">
                   <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -310,15 +304,8 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* FLOW ARROW 2 */}
-            <div className="flow-arrow">
-              <svg className="w-5 h-5 text-gray-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-              </svg>
-            </div>
-
             {/* COLUMN 3: ProductionQuality (生產與品質管理 - 紫色) */}
-            <div className="flow-col min-w-[190px]">
+            <div className="flex flex-col w-full">
               <div className="flow-node-header border-t-4 border-t-purple-500">
                 <div className="text-purple-500 dark:text-purple-400 mb-1">
                   <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -347,15 +334,8 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* FLOW ARROW 3 */}
-            <div className="flow-arrow">
-              <svg className="w-5 h-5 text-gray-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-              </svg>
-            </div>
-
             {/* COLUMN 4: Warehouse (倉儲管理 - 綠色) */}
-            <div className="flow-col min-w-[210px]">
+            <div className="flex flex-col w-full">
               <div className="flow-node-header border-t-4 border-t-teal-500">
                 <div className="text-teal-500 dark:text-teal-400 mb-1">
                   <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -393,15 +373,8 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* FLOW ARROW 4 */}
-            <div className="flow-arrow">
-              <svg className="w-5 h-5 text-gray-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-              </svg>
-            </div>
-
             {/* COLUMN 5: Sales (銷售管理 - 藍色) */}
-            <div className="flow-col min-w-[190px]">
+            <div className="flex flex-col w-full">
               <div className="flow-node-header border-t-4 border-t-blue-500">
                 <div className="text-blue-500 dark:text-blue-400 mb-1">
                   <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">

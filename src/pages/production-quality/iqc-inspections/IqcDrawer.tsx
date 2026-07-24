@@ -48,6 +48,7 @@ import { useFileDownload } from "@/hooks/useFileDownload";
 import { AsyncSelect } from "@/components/Form/AsyncSelect";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { client } from "@/api/generated/client.gen";
+import { getIqcFormFields } from "./IqcConfig";
 import { DynamicForm } from "@/components/Form/DynamicForm";
 import { ActionBar } from "@/components/common/ActionBar";
 
@@ -204,7 +205,8 @@ export default function IqcDrawer({
   const [notes, setNotes] = useState("");
   const [responsibleParty, setResponsibleParty] = useState("");
   const [incomingStorageCode, setIncomingStorageCode] = useState("");
-  const [headerCoreDia, setHeaderCoreDia] = useState<number | null>(76.2);
+  const [headerCoreDia, setHeaderCoreDia] = useState<number | null>(86);
+  const [headerSupplierLot, setHeaderSupplierLot] = useState<string>("");
   const [sampleSize, setSampleSize] = useState<number>(1); // 💡 自訂抽樣數量 SampleSize
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [sheetLots, setSheetLots] = useState<any[]>([]);
@@ -298,6 +300,40 @@ export default function IqcDrawer({
   const isReadOnly = isReadOnlyPermanent || !isEditing;
   const isRollMaterial = detail?.materialForm === "R"; // R=捲材, S=片材
 
+  // ==========================================
+  // 💡 捲料物理長度即時逆算公式與狀態連動 (Caliper Length Calculation Helpers)
+  // ==========================================
+  const calculateRollLength = useCallback((Do: number, Di: number, t: number): number => {
+    if (!Do || !Di || !t) return 0;
+    if (Do <= Di || t <= 0) return 0;
+    const length = (Math.PI * (Math.pow(Do, 2) - Math.pow(Di, 2))) / (4000 * t);
+    return Math.round(length * 10) / 10; // 四捨五入到小數點第一位，與 UI 規格 100% 物理對齊
+  }, []);
+
+  const recalculateRollLengthForRoll = useCallback((r: any, standardThickness?: number) => {
+    if (!isRollMaterial) return r;
+
+    const Do = r.measuredCoreDiaMm ?? 250.0;
+
+    const DiItem = r.inspectionItems?.find((i: any) => i.itemCode === "core_dia");
+    const Di = parseFloat(DiItem?.measuredValue) || 86.00;
+
+    const tItem = r.inspectionItems?.find((i: any) => i.itemCode === "thickness");
+    const t = parseFloat(tItem?.measuredValue) || standardThickness || 0.050;
+
+    const calculatedMeters = calculateRollLength(Do, Di, t);
+
+    // 同步更新 rolls 狀態中的實測長度 (length) 欄位
+    const updatedItems = r.inspectionItems.map((i: any) => {
+      if (i.itemCode === "length") {
+        return { ...i, measuredValue: String(calculatedMeters) };
+      }
+      return i;
+    });
+
+    return { ...r, inspectionItems: updatedItems };
+  }, [isRollMaterial, calculateRollLength]);
+
   const sampleCount = isReadOnlyPermanent
     ? detail?.sampleSize || rolls.length
     : sampleSize;
@@ -308,54 +344,102 @@ export default function IqcDrawer({
     if (detail?.rolls) {
       setLocalStatus(null); // 💡 清除本地 overrides 狀態
       setIsEditing(false); // 💡 回到唯讀檢視模式
-      const dbCoreDia = detail.measuredCoreDiaMm ?? (isRollMaterial ? 76.2 : null);
+      const dbCoreDia = detail.measuredCoreDiaMm ?? (isRollMaterial ? 86 : null);
       setHeaderCoreDia(dbCoreDia);
 
+      const dbSupplierLot = detail.rolls?.[0]?.supplierLotNo || "";
+      setHeaderSupplierLot(dbSupplierLot);
+
       const initialRolls = detail.rolls.map((r: any) => {
-        const rollCoreDia = r.measuredCoreDiaMm ?? dbCoreDia;
-        return {
+        const rollCoreDia = dbCoreDia;
+        // 💡 實測外徑 (Do) 採用 measuredOuterDiaMm
+        const outerDiaVal = r.measuredOuterDiaMm !== null && r.measuredOuterDiaMm !== undefined ? r.measuredOuterDiaMm : 250.0;
+        // 💡 內管芯外徑 (Di) 採用 measuredCoreDiaMm
+        const coreDiaVal = r.measuredCoreDiaMm ?? rollCoreDia ?? 86;
+        
+        const rollObj = {
           ...r,
           actualQtyAux: r.actualQtyAux,
           isOk: r.isOk, // 💡 嚴格讀取資料庫狀態，不判定預設 true！未檢驗時為 null
           measuredThicknessMm:
             r.measuredThicknessMm ?? detail.standardThickness ?? 0.05,
-          measuredCoreDiaMm: rollCoreDia,
+          measuredOuterDiaMm: outerDiaVal, // 💡 實測外徑獨立
+          measuredCoreDiaMm: coreDiaVal, // 💡 內管芯外徑獨立
           lengthMm: r.lengthMm ?? (isRollMaterial ? null : detail.standardLength),
           disposition: r.disposition || "Concession",
           responsibleParty: r.responsibleParty || detail.supplierCode,
           inspectionItems: (r.inspectionItems || []).map((item: any) => {
             if (item.itemCode === "core_dia" && (item.measuredValue === null || item.measuredValue === undefined || item.measuredValue === "")) {
-              return { ...item, measuredValue: rollCoreDia !== null ? String(rollCoreDia) : "" };
+              return { ...item, measuredValue: coreDiaVal !== null ? String(coreDiaVal) : "" };
             }
             return item;
           }),
         };
+
+        // 💡 開啟或重置品檢單時，立刻自動即時計算出實測長度並同步到 DTO 狀態
+        return recalculateRollLengthForRoll(rollObj, detail.standardThickness);
       });
       setRolls(initialRolls);
 
-      // 💡 片料專屬：從資料庫已存的 rolls 中，GroupBy 還原出原廠批號數量分配 (sheetLots)
-      if (!isRollMaterial) {
-        const initialLots = [];
+      // 💡 優先從資料庫已存的 groups 中讀取原廠批號數量分配 (sheetLots)；若無則由 rolls 還原
+      const initialLots: any[] = [];
+
+      if (detail.groups && detail.groups.length > 0) {
+        detail.groups.forEach((g: any, index: number) => {
+          initialLots.push({
+            id: g.id || `lot-${index + 1}`,
+            supplierLotNo: g.supplierLotNo || "",
+            qty: g.allocatedQty || 0,
+            sampleQty: g.sampleQty || 0,
+            measuredCoreDiaMm: g.measuredCoreDiaMm ?? (isRollMaterial ? 86 : null)
+          });
+        });
+      } else if (detail.rolls && detail.rolls.length > 0) {
         const lotMap = new Map();
         const lotSampleMap = new Map();
 
         detail.rolls.forEach((r: any) => {
           const lotNo = (r.supplierLotNo || "").trim().toUpperCase() || "NO-LOT";
-          lotMap.set(lotNo, (lotMap.get(lotNo) || 0) + (r.actualQtyAux || 0));
-          lotSampleMap.set(lotNo, (lotSampleMap.get(lotNo) || 0) + 1);
-        });
-        
-        let idx = 1;
-        lotMap.forEach((qty, supplierLotNo) => {
-          const sampleQty = lotSampleMap.get(supplierLotNo) || 0;
-          initialLots.push({ id: `lot-${idx++}`, supplierLotNo, qty, sampleQty });
+          const coreDia = r.measuredCoreDiaMm ?? dbCoreDia;
+          const key = `${lotNo}_${coreDia}`;
+
+          lotMap.set(key, { supplierLotNo: lotNo, coreDia });
+          lotSampleMap.set(key, (lotSampleMap.get(key) || 0) + 1);
         });
 
-        if (initialLots.length === 0) {
-          initialLots.push({ id: "lot-1", supplierLotNo: "NO-LOT", qty: detail.rollCount || 0, sampleQty: 1 });
-        }
-        setSheetLots(initialLots);
+        let idx = 1;
+        lotSampleMap.forEach((sampleQty, key) => {
+          const lotInfo = lotMap.get(key);
+          const groupRolls = detail.rolls.filter((r: any) => {
+            const lNo = (r.supplierLotNo || "").trim().toUpperCase() || "NO-LOT";
+            const cDia = r.measuredCoreDiaMm ?? dbCoreDia;
+            return lNo === lotInfo.supplierLotNo && cDia === lotInfo.coreDia;
+          });
+
+          const qty = isRollMaterial 
+            ? groupRolls.length 
+            : groupRolls.reduce((sum: number, r: any) => sum + (r.actualQtyAux || 0), 0);
+
+          initialLots.push({ 
+            id: `lot-${idx++}`, 
+            supplierLotNo: lotInfo.supplierLotNo === "NO-LOT" ? "" : lotInfo.supplierLotNo, 
+            qty, 
+            sampleQty: (detail.inspectionStatus === "Pending" && isRollMaterial) ? 1 : sampleQty,
+            measuredCoreDiaMm: lotInfo.coreDia
+          });
+        });
       }
+
+      if (initialLots.length === 0) {
+        initialLots.push({ 
+          id: "lot-1", 
+          supplierLotNo: "", 
+          qty: detail.rollCount || 0, 
+          sampleQty: 1,
+          measuredCoreDiaMm: isRollMaterial ? (dbCoreDia ?? 86) : null
+        });
+      }
+      setSheetLots(initialLots);
 
       const defaultInspector =
         detail.inspectorId === "PENDING" || !detail.inspectorId
@@ -363,12 +447,13 @@ export default function IqcDrawer({
           : detail.inspectorId;
       setInspectorId(defaultInspector);
 
-      if (detail.inspectionStatus !== "Pending") {
-        setSampleSize(detail.sampleSize || detail.rolls.length || 1);
+      // 💡 樣品量初始化：若資料庫已有存檔明細，則以存檔明細的總樣品數（各組 sampleQty 總和）為準；否則依公式初始化
+      const hasExistingRolls = detail.rolls && detail.rolls.length > 0;
+      if (hasExistingRolls) {
+        const totalLoadedSampleSize = initialLots.reduce((sum, l) => sum + (l.sampleQty || 0), 0);
+        setSampleSize(totalLoadedSampleSize || detail.sampleSize || detail.rolls.length || 1);
       } else {
-        const defaultSize = isRollMaterial
-          ? Math.min(detail.rollCount || 1, Math.max(1, Math.ceil(((detail.rollCount || 0) * 30) / 100)))
-          : 1;
+        const defaultSize = 1;
         setSampleSize(defaultSize);
       }
 
@@ -659,9 +744,26 @@ export default function IqcDrawer({
       return;
     }
 
-    const tempSheetLots = isRollMaterial
-      ? []
-      : sheetLots.map(l => ({
+    // 💡 剛性檢核防呆：不允許存在原廠批號與管芯外徑完全相同的重複分組
+    const uniqueKeys = new Set<string>();
+    for (let idx = 0; idx < sheetLots.length; idx++) {
+      const lot = sheetLots[idx];
+      const cleanLotNo = (lot.supplierLotNo || "").trim().toUpperCase();
+      const coreDia = lot.measuredCoreDiaMm !== null && lot.measuredCoreDiaMm !== undefined ? lot.measuredCoreDiaMm : (headerCoreDia ?? 86);
+      
+      const uniqueKey = isRollMaterial ? `${cleanLotNo}_${coreDia}` : cleanLotNo;
+      
+      if (uniqueKeys.has(uniqueKey)) {
+        const errorMsg = isRollMaterial
+          ? `【第一步防呆】存在重複的分組資料（原廠批號: "${cleanLotNo || "空白"}"，管芯外徑: ${coreDia} mm）！每個分組必須有唯一的批號與管芯組合。`
+          : `【第一步防呆】存在重複的批號分組（原廠批號: "${cleanLotNo || "空白"}"）！不允許有重複的批號分組。`;
+        message.error(errorMsg);
+        return;
+      }
+      uniqueKeys.add(uniqueKey);
+    }
+
+    const tempSheetLots = sheetLots.map(l => ({
           ...l,
           supplierLotNo: (!l.supplierLotNo || l.supplierLotNo.trim() === "") ? "" : l.supplierLotNo.trim().toUpperCase()
         }));
@@ -691,6 +793,50 @@ export default function IqcDrawer({
           });
         })();
 
+    const groupsPayload = tempSheetLots.map((lot, idx) => {
+      const cleanLotNo = (lot.supplierLotNo || "").trim().toUpperCase();
+      
+      const lotRolls = balancedRolls.filter((r: any) => {
+        const rLotNo = (r.supplierLotNo || "").trim().toUpperCase();
+        if (isRollMaterial) {
+          const rCoreDia = r.measuredCoreDiaMm ?? headerCoreDia ?? 86;
+          const lotCoreDia = lot.measuredCoreDiaMm ?? headerCoreDia ?? 86;
+          return rLotNo === cleanLotNo && Math.abs(rCoreDia - lotCoreDia) < 0.01;
+        } else {
+          return rLotNo === cleanLotNo;
+        }
+      });
+
+      return {
+        groupSeq: idx + 1,
+        supplierLotNo: cleanLotNo,
+        measuredCoreDiaMm: isRollMaterial ? (lot.measuredCoreDiaMm ?? headerCoreDia ?? 86) : null,
+        allocatedQty: Number(lot.qty) || 0,
+        sampleQty: Number(lot.sampleQty) || 0,
+        samples: lotRolls.map((r: any, rIdx: number) => ({
+          seq: rIdx + 1,
+          sampleNo: r.sampleNo || String(rIdx + 1).padStart(2, "0"),
+          rollNo: r.rollNo || `S-${String(rIdx + 1).padStart(2, "0")}`,
+          actualQtyAux: Number(r.actualQtyAux) || 1,
+          isOk: r.isOk ?? true,
+          measuredThicknessMm: Number(r.measuredThicknessMm) || 0.05,
+          measuredCoreDiaMm: isRollMaterial ? (r.measuredCoreDiaMm || null) : null,
+          measuredOuterDiaMm: isRollMaterial ? (r.measuredOuterDiaMm || null) : null, // 💡 儲存實測外徑
+          lengthMm: r.lengthMm || null,
+          disposition: r.disposition || "Concession",
+          responsibleParty: r.responsibleParty || detail?.supplierCode,
+          supplierLotNo: cleanLotNo,
+          inspectionItems: (r.inspectionItems || []).map((item: any) => ({
+            itemCode: item.itemCode,
+            itemName: item.itemName,
+            specification: item.specification,
+            measuredValue: item.measuredValue || "",
+            isOk: item.isOk ?? true,
+          })),
+        }))
+      };
+    });
+
     const payload = {
       inspectorId,
       incomingStorageCode: incomingStorageCode || null,
@@ -701,7 +847,8 @@ export default function IqcDrawer({
         actualQtyAux: r.actualQtyAux,
         isOk: r.isOk ?? true, // 預設單項合格
         measuredThicknessMm: r.measuredThicknessMm || 0.05,
-        measuredCoreDiaMm: isRollMaterial ? (r.measuredCoreDiaMm || null) : null, // 💡 極致純淨方案
+        measuredCoreDiaMm: isRollMaterial ? (r.measuredCoreDiaMm || null) : null, // 💡 內管芯外徑
+        measuredOuterDiaMm: isRollMaterial ? (r.measuredOuterDiaMm || null) : null, // 💡 實測外徑
         lengthMm: r.lengthMm || null,
         disposition: r.isOk ? undefined : (r.disposition || "Concession"),
         responsibleParty: r.isOk ? undefined : (r.responsibleParty || detail?.supplierCode),
@@ -714,6 +861,7 @@ export default function IqcDrawer({
           isOk: item.isOk ?? true,
         })),
       })),
+      groups: groupsPayload, // 💡 補上缺失的品檢分群列表，完美儲存 Step 1 的所有修改！
     };
 
     saveDraftMutation.mutate(payload);
@@ -726,12 +874,24 @@ export default function IqcDrawer({
       setRolls((prevRolls) =>
         prevRolls.map((r) => {
           if (r.rollNo === rollNo) {
-            const updatedItems = r.inspectionItems.map((i: any) => {
-              if (i.itemCode === itemCode) {
-                return { ...i, measuredValue: value };
-              }
-              return i;
-            });
+            const exists = r.inspectionItems.some((i: any) => i.itemCode === itemCode);
+            const updatedItems = exists
+              ? r.inspectionItems.map((i: any) => {
+                  if (i.itemCode === itemCode) {
+                    return { ...i, measuredValue: value };
+                  }
+                  return i;
+                })
+              : [
+                  ...r.inspectionItems,
+                  {
+                    itemCode,
+                    itemName: itemCode === "appearance_desc" ? "外觀自訂描述" : itemCode,
+                    specification: "",
+                    measuredValue: value,
+                    isOk: true
+                  }
+                ];
 
             // 💡 同步更新最上端實體屬性，確保 DTO/API 儲存與物理卷卡建立之屬性 100% 正確
             const extraUpdates: any = {};
@@ -743,13 +903,17 @@ export default function IqcDrawer({
               extraUpdates.measuredThicknessMm = isNaN(numVal) ? 0.05 : numVal;
             }
 
-            return { ...r, inspectionItems: updatedItems, ...extraUpdates };
+            let finalRoll = { ...r, inspectionItems: updatedItems, ...extraUpdates };
+            if (itemCode === "core_dia" || itemCode === "thickness") {
+              finalRoll = recalculateRollLengthForRoll(finalRoll, detail?.standardThickness);
+            }
+            return finalRoll;
           }
           return r;
         }),
       );
     },
-    [isReadOnly],
+    [isReadOnly, recalculateRollLengthForRoll, detail?.standardThickness],
   );
 
   const handleStatusChange = useCallback(
@@ -1104,19 +1268,34 @@ export default function IqcDrawer({
       return false;
     }
 
-    // 💡 片材專屬：自動將空白批號同步為大寫，空白不強行寫入 NO-LOT
-    const tempSheetLots = isRollMaterial
-      ? []
-      : sheetLots.map(l => ({
+    // 💡 剛性檢核防呆：不允許存在原廠批號與管芯外徑完全相同的重複分組
+    const uniqueKeys = new Set<string>();
+    for (let idx = 0; idx < sheetLots.length; idx++) {
+      const lot = sheetLots[idx];
+      const cleanLotNo = (lot.supplierLotNo || "").trim().toUpperCase();
+      const coreDia = lot.measuredCoreDiaMm !== null && lot.measuredCoreDiaMm !== undefined ? lot.measuredCoreDiaMm : (headerCoreDia ?? 86);
+      
+      const uniqueKey = isRollMaterial ? `${cleanLotNo}_${coreDia}` : cleanLotNo;
+      
+      if (uniqueKeys.has(uniqueKey)) {
+        const errorMsg = isRollMaterial
+          ? `【第一步防呆】存在重複的分組資料（原廠批號: "${cleanLotNo || "空白"}"，管芯外徑: ${coreDia} mm）！每個分組必須有唯一的批號與管芯組合。`
+          : `【第一步防呆】存在重複的批號分組（原廠批號: "${cleanLotNo || "空白"}"）！不允許有重複的批號分組。`;
+        message.error(errorMsg);
+        return false;
+      }
+      uniqueKeys.add(uniqueKey);
+    }
+
+    // 💡 自動將空白批號同步為大寫，空白不強行寫入 NO-LOT
+    const tempSheetLots = sheetLots.map(l => ({
           ...l,
           supplierLotNo: (!l.supplierLotNo || l.supplierLotNo.trim() === "") ? "" : l.supplierLotNo.trim().toUpperCase()
         }));
 
-    if (!isRollMaterial) {
-      const hasChanges = sheetLots.some(l => l.supplierLotNo && l.supplierLotNo !== l.supplierLotNo.trim().toUpperCase());
-      if (hasChanges) {
-        setSheetLots(tempSheetLots);
-      }
+    const hasChanges = sheetLots.some(l => l.supplierLotNo && l.supplierLotNo !== l.supplierLotNo.trim().toUpperCase());
+    if (hasChanges) {
+      setSheetLots(tempSheetLots);
     }
 
     // 剛性檢核：判定與過帳時，必須每個欄位與品檢項目都有填入值
@@ -1181,22 +1360,20 @@ export default function IqcDrawer({
       }
     }
 
-    if (!isRollMaterial) {
-      // 1. 檢核 sheetLots 中的每一組批號 (使用已更正之 tempSheetLots)
-      for (let k = 0; k < tempSheetLots.length; k++) {
-        const lot = tempSheetLots[k];
-        if (lot.qty === null || lot.qty === undefined || lot.qty <= 0) {
-          message.warning(`請輸入第 ${k + 1} 組原廠批號的到貨數量，且必須大於 0！`);
-          return false;
-        }
-      }
-
-      // 2. 檢核總量是否配平
-      const totalAllocated = tempSheetLots.reduce((sum, l) => sum + (Number(l.qty) || 0), 0);
-      if (totalAllocated !== (detail?.rollCount ?? 0)) {
-        message.warning(`片料入庫數量分配不平衡！進貨總量: ${(detail?.rollCount ?? 0).toLocaleString()} PCS，目前分配總量: ${totalAllocated.toLocaleString()} PCS`);
+    // 1. 檢核 sheetLots 中的每一組批號 (使用已更正之 tempSheetLots)
+    for (let k = 0; k < tempSheetLots.length; k++) {
+      const lot = tempSheetLots[k];
+      if (lot.qty === null || lot.qty === undefined || lot.qty <= 0) {
+        message.warning(`請輸入第 ${k + 1} 組原廠批號的到貨${isRollMaterial ? "卷" : "數量"}，且必須大於 0！`);
         return false;
       }
+    }
+
+    // 2. 檢核總量是否配平
+    const totalAllocated = tempSheetLots.reduce((sum, l) => sum + (Number(l.qty) || 0), 0);
+    if (totalAllocated !== (detail?.rollCount ?? 0)) {
+      message.warning(`${isRollMaterial ? "卷料" : "片料"}入庫數量分配不平衡！進貨總量: ${(detail?.rollCount ?? 0).toLocaleString()} ${isRollMaterial ? "卷" : "PCS"}，目前分配總量: ${totalAllocated.toLocaleString()} ${isRollMaterial ? "卷" : "PCS"}`);
+      return false;
     }
 
     return true;
@@ -1207,9 +1384,7 @@ export default function IqcDrawer({
       return;
     }
 
-    const tempSheetLots = isRollMaterial
-      ? []
-      : sheetLots.map(l => ({
+    const tempSheetLots = sheetLots.map(l => ({
           ...l,
           supplierLotNo: (!l.supplierLotNo || l.supplierLotNo.trim() === "") ? "" : l.supplierLotNo.trim().toUpperCase()
         }));
@@ -1265,6 +1440,50 @@ export default function IqcDrawer({
           });
         })();
 
+    const groupsPayload = tempSheetLots.map((lot, idx) => {
+      const cleanLotNo = (lot.supplierLotNo || "").trim().toUpperCase();
+      
+      const lotRolls = balancedRolls.filter((r: any) => {
+        const rLotNo = (r.supplierLotNo || "").trim().toUpperCase();
+        if (isRollMaterial) {
+          const rCoreDia = r.measuredCoreDiaMm ?? headerCoreDia ?? 86;
+          const lotCoreDia = lot.measuredCoreDiaMm ?? headerCoreDia ?? 86;
+          return rLotNo === cleanLotNo && Math.abs(rCoreDia - lotCoreDia) < 0.01;
+        } else {
+          return rLotNo === cleanLotNo;
+        }
+      });
+
+      return {
+        groupSeq: idx + 1,
+        supplierLotNo: cleanLotNo,
+        measuredCoreDiaMm: isRollMaterial ? (lot.measuredCoreDiaMm ?? headerCoreDia ?? 86) : null,
+        allocatedQty: Number(lot.qty) || 0,
+        sampleQty: Number(lot.sampleQty) || 0,
+        samples: lotRolls.map((r: any, rIdx: number) => ({
+          seq: rIdx + 1,
+          sampleNo: r.sampleNo || String(rIdx + 1).padStart(2, "0"),
+          rollNo: r.rollNo || `S-${String(rIdx + 1).padStart(2, "0")}`,
+          actualQtyAux: Number(r.actualQtyAux) || 1,
+          isOk: r.isOk ?? true,
+          measuredThicknessMm: Number(r.measuredThicknessMm) || 0.05,
+          measuredCoreDiaMm: isRollMaterial ? (r.measuredCoreDiaMm || null) : null,
+          measuredOuterDiaMm: isRollMaterial ? (r.measuredOuterDiaMm || null) : null, // 💡 儲存實測外徑
+          lengthMm: r.lengthMm || null,
+          disposition: r.disposition || "Concession",
+          responsibleParty: r.responsibleParty || detail?.supplierCode,
+          supplierLotNo: cleanLotNo,
+          inspectionItems: (r.inspectionItems || []).map((item: any) => ({
+            itemCode: item.itemCode,
+            itemName: item.itemName,
+            specification: item.specification,
+            measuredValue: item.measuredValue || "",
+            isOk: item.isOk ?? true,
+          })),
+        }))
+      };
+    });
+
     // 組裝過帳 Payloads
     const payload = {
       overallResult,
@@ -1283,7 +1502,8 @@ export default function IqcDrawer({
         actualQtyAux: r.actualQtyAux,
         isOk: r.isOk,
         measuredThicknessMm: r.measuredThicknessMm,
-        measuredCoreDiaMm: isRollMaterial ? r.measuredCoreDiaMm : undefined, // 💡 極致純淨方案
+        measuredCoreDiaMm: isRollMaterial ? r.measuredCoreDiaMm : undefined, // 💡 內管芯外徑
+        measuredOuterDiaMm: isRollMaterial ? r.measuredOuterDiaMm : undefined, // 💡 實測外徑
         lengthMm: r.lengthMm,
         disposition: r.isOk ? undefined : r.disposition,
         responsibleParty: r.isOk ? undefined : r.responsibleParty,
@@ -1296,6 +1516,7 @@ export default function IqcDrawer({
           isOk: i.isOk,
         })),
       })),
+      groups: groupsPayload, // 💡 補上品質過帳分群列表
     };
 
     completeMutation.mutate(payload);
@@ -1313,230 +1534,160 @@ export default function IqcDrawer({
   const okCount = inspectedRolls.filter((r) => r.isOk === true).length;
   const ngCount = inspectedRolls.filter((r) => r.isOk === false).length;
 
-  const fields = [
-    {
-      name: "iqcRecordId",
-      label: "品檢單號",
-      componentType: "Input",
-      editable: "never",
-      colSpan: 4,
-    },
-    {
-      name: "sourceDocNumber",
-      label: "來源進貨單號",
-      componentType: "Input",
-      editable: "never",
-      colSpan: 4,
-    },
-    {
-      name: "poLineNumber",
-      label: "關聯採購項次",
-      componentType: "Input",
-      editable: "never",
-      colSpan: 4,
-    },
-    {
-      name: "lotNo",
-      label: "批次代碼",
-      componentType: "Input",
-      editable: "never",
-      colSpan: 4,
-    },
-    {
-      name: "supplierCode",
-      label: "供應商",
-      componentType: "Custom",
-      colSpan: 4,
-      customRender: () => (
-        <Input
-          value={
-            detail?.supplierCode
-              ? `[${detail.supplierCode}] ${detail.supplierName || ""}`
-              : ""
-          }
-          disabled
-          className="w-full text-[var(--ant-color-text)] font-semibold"
-        />
-      ),
-    },
-    {
-      name: "materialCode",
-      label: "物料編碼",
-      componentType: "Input",
-      editable: "never",
-      colSpan: 4,
-    },
-    {
-      name: "materialName",
-      label: "物料名稱",
-      componentType: "Input",
-      editable: "never",
-      colSpan: 4,
-    },
-    {
-      name: "inspectorId",
-      label: "品檢人員工代碼",
-      componentType: "Custom",
-      colSpan: 4,
-      required: true,
-      customRender: (props: any) => (
-        <AsyncSelect
-          configKey="EMPLOYEE"
-          placeholder="請選擇或搜尋員工"
-          value={props.value || inspectorId}
-          disabled={isReadOnly}
-          className="w-full focus:ring-2 focus:ring-blue-400 focus:outline-none"
-          onChange={(val) => {
-            setInspectorId(val);
-            props.onChange(val);
-          }}
-        />
-      ),
-    },
-    {
-      name: "standardThickness",
-      label: "標準厚度 (mm)",
-      componentType: "InputNumber",
-      editable: "never",
-      colSpan: 6,
-      componentProps: {
-        className: "text-right",
+  // ==========================================
+  // 💡 批號分配表格欄位 Memo 緩存 (防止 inline columns 重新建立導致輸入框 Focus 遺失)
+  // ==========================================
+  const sheetLotsColumns = useMemo(() => {
+    return [
+      {
+        title: "#",
+        key: "index",
+        width: 50,
+        align: "center" as const,
+        render: (_: any, __: any, index: number) => index + 1
       },
-    },
-    {
-      name: "standardWidth",
-      label: "標準寬度 (mm)",
-      componentType: "InputNumber",
-      editable: "never",
-      colSpan: 6,
-      componentProps: {
-        className: "text-right",
+      {
+        title: "原廠生產批號 (SupplierLotNo)",
+        dataIndex: "supplierLotNo",
+        key: "supplierLotNo",
+        render: (val: string, record: any) => {
+          if (isReadOnly) return <span className="font-mono font-bold text-[var(--ant-color-text)]">{val || <span className="text-slate-500">（空白）</span>}</span>;
+          return (
+            <Input
+              value={val}
+              size="small"
+              placeholder="請輸入或掃描原廠生產批號"
+              className="font-mono uppercase text-xs"
+              onFocus={(e) => e.target.select()}
+              onChange={(e) => {
+                const cleanVal = e.target.value.replace(/[\u4e00-\u9fa5]/g, "").toUpperCase();
+                setSheetLots(prev => prev.map(l => l.id === record.id ? { ...l, supplierLotNo: cleanVal } : l));
+              }}
+              onBlur={(e) => {
+                const cleanVal = e.target.value.trim().toUpperCase();
+                setSheetLots(prev => prev.map(l => l.id === record.id ? { ...l, supplierLotNo: cleanVal } : l));
+              }}
+            />
+          );
+        }
       },
-    },
-    {
-      name: "standardLength",
-      label: isRollMaterial ? "標準長度 (M)" : "標準長度 (mm)",
-      componentType: "InputNumber",
-      editable: "never",
-      colSpan: 6,
-      componentProps: {
-        className: "text-right",
+      ...(isRollMaterial ? [{
+        title: "內管芯外徑 (mm)",
+        dataIndex: "measuredCoreDiaMm",
+        key: "measuredCoreDiaMm",
+        align: "right" as const,
+        width: 140,
+        render: (val: any, record: any) => {
+          const coreDia = record.measuredCoreDiaMm ?? headerCoreDia ?? 86;
+          if (isReadOnly) return <span className="font-mono font-bold">{coreDia} mm</span>;
+          return (
+            <InputNumber
+              value={coreDia}
+              size="small"
+              min={0}
+              precision={1}
+              className="w-full text-xs font-mono"
+              onFocus={(e) => e.target.select()}
+              onChange={(num) => {
+                setSheetLots(prev => prev.map(l => l.id === record.id ? { ...l, measuredCoreDiaMm: num || 86 } : l));
+              }}
+            />
+          );
+        }
+      }] : []),
+      {
+        title: isRollMaterial ? "到貨卷數 (卷)" : "到貨數量 (PCS)",
+        dataIndex: "qty",
+        key: "qty",
+        align: "right" as const,
+        width: 160,
+        render: (val: number, record: any) => {
+          if (isReadOnly) return <span className="font-mono font-bold text-[var(--ant-color-primary)]">{val?.toLocaleString()} {isRollMaterial ? "卷" : "PCS"}</span>;
+          return (
+            <InputNumber
+              value={val}
+              size="small"
+              min={1}
+              className="w-full text-xs font-mono"
+              onFocus={(e) => e.target.select()}
+              onChange={(num) => {
+                setSheetLots(prev => prev.map(l => l.id === record.id ? { ...l, qty: num || 0 } : l));
+              }}
+            />
+          );
+        }
       },
-    },
-    {
-      name: "rollCount",
-      label: isRollMaterial ? "到貨總卷數" : "數量",
-      componentType: "InputNumber",
-      editable: "never",
-      colSpan: 6,
-      componentProps: {
-        className: "text-right",
-      },
-    },
-    {
-      name: "totalActualQty",
-      label: isRollMaterial ? "到貨總長度" : "到貨總張數",
-      componentType: "Custom",
-      colSpan: 6,
-      customRender: () => (
-        <Input
-          value={`${totalLength.toLocaleString()} ${isRollMaterial ? "M" : "PCS"}`}
-          disabled
-          className="w-full text-[var(--ant-color-text)] font-semibold text-right"
-        />
-      ),
-    },
-    {
-      name: "measuredCoreDiaMm",
-      label: "管芯內外徑 (mm)",
-      componentType: "Custom",
-      colSpan: 6,
-      hidden: !isRollMaterial, // 💡 片材不需要管芯內外徑欄位，直接隱藏
-      customRender: (props: any) => (
-        <InputNumber
-          value={props.value !== undefined ? props.value : headerCoreDia}
-          disabled={isReadOnly || !isRollMaterial}
-          precision={1}
-          style={{ width: "100%" }}
-          className="w-full text-right"
-          onChange={(val) => {
-            const numVal = val != null ? Number(val) : null;
-            setHeaderCoreDia(numVal);
-            props.onChange(numVal);
-            
-            // 💡 當使用者更改表頭管芯徑時，連動更新所有明細行中尚未修改的 core_dia 項目值！
-            setRolls((prevRolls) =>
-              prevRolls.map((r) => {
-                const updatedItems = r.inspectionItems.map((i: any) => {
-                  if (i.itemCode === "core_dia") {
-                    return { ...i, measuredValue: numVal !== null ? String(numVal) : "" };
-                  }
-                  return i;
-                });
-                return {
-                  ...r,
-                  measuredCoreDiaMm: numVal,
-                  inspectionItems: updatedItems,
-                };
-              }),
+      {
+        title: isRollMaterial ? "抽樣卷數 (卷)" : "抽檢數 (PCS)",
+        dataIndex: "sampleQty",
+        key: "sampleQty",
+        align: "right" as const,
+        width: 140,
+        render: (val: number, record: any) => {
+          const numVal = record.sampleQty ?? 0;
+          if (isReadOnly) {
+            return (
+              <span className="font-mono font-bold text-[#52c41a]">
+                {numVal} {isRollMaterial ? "卷" : "PCS"}
+              </span>
             );
-          }}
-        />
-      ),
-    },
-    {
-      name: "materialForm",
-      label: "材料型態",
-      componentType: "Select",
-      editable: "never",
-      colSpan: 6,
-      componentProps: {
-        options: [
-          { label: "捲材 (Coil)", value: "R" },
-          { label: "片材 (Sheet)", value: "S" },
-        ],
+          }
+          return (
+            <InputNumber
+              value={numVal}
+              size="small"
+              min={0}
+              className="w-full text-xs font-mono"
+              onFocus={(e) => e.target.select()}
+              onChange={(num) => {
+                const newSampleQty = num || 0;
+                setSheetLots(prev => {
+                  const nextLots = prev.map(l => 
+                    l.id === record.id ? { ...l, sampleQty: newSampleQty } : l
+                  );
+                  const totalSampleCount = nextLots.reduce((sum, l) => sum + (l.sampleQty || 0), 0);
+                  setSampleSize(totalSampleCount);
+                  return nextLots;
+                });
+              }}
+            />
+          );
+        }
       },
-    },    
-    {
-      name: "incomingStorageCode",
-      label: "入庫儲位",
-      componentType: "Custom",
-      colSpan: 4,
-      required: true,
-      customRender: (props: any) => (
-        <AsyncSelect
-          configKey="STORAGE"
-          placeholder="請選擇入庫儲位"
-          value={props.value || incomingStorageCode}
-          disabled={isReadOnly}
-          className="w-full focus:ring-2 focus:ring-blue-400 focus:outline-none"
-          onChange={(val) => {
-            setIncomingStorageCode(val || "");
-            props.onChange(val || "");
-          }}
-          allowClear
-        />
-      ),
-    },
-  ];
-
-  const defaultValues = useMemo(() => ({
-    iqcRecordId: detail?.iqcRecordId,
-    sourceDocNumber: detail?.sourceDocNumber,
-    lotNo: detail?.lotNo,
-    supplierCode: detail?.supplierCode,
-    materialCode: detail?.materialCode,
-    materialName: detail?.materialName,
-    rollCount: detail?.rollCount,
-    inspectorId: inspectorId,
-    materialForm: detail?.materialForm,
-    standardThickness: detail?.standardThickness || 0.05,
-    standardWidth: detail?.standardWidth,
-    standardLength: detail?.standardLength,
-    poLineNumber: detail?.poLineNumber,
-    incomingStorageCode: incomingStorageCode,
-    measuredCoreDiaMm: isRollMaterial ? headerCoreDia : null, // 💡 極致純淨方案：片材強設定為 null
-  }), [detail, inspectorId, incomingStorageCode, headerCoreDia, isRollMaterial]);
+      ...(!isReadOnly ? [{
+        title: "操作",
+        key: "action",
+        width: 70,
+        align: "center" as const,
+        render: (_: any, record: any) => (
+          <Button
+            type="text"
+            danger
+            size="small"
+            icon={<DeleteOutlined />}
+            onClick={() => {
+              if (sheetLots.length <= 1) {
+                message.warning("至少必須保留一組原廠批號！");
+                return;
+              }
+              modal.confirm({
+                title: "確定要刪除此原廠批號嗎？",
+                content: "這會重新分攤抽樣樣品並清除已填寫的實測數據。",
+                onOk: () => {
+                  setSheetLots(prev => {
+                    const nextLots = prev.filter(l => l.id !== record.id);
+                    const totalSampleCount = nextLots.reduce((sum, l) => sum + (l.sampleQty || 0), 0);
+                    setSampleSize(totalSampleCount);
+                    return nextLots;
+                  });
+                }
+              });
+            }}
+          />
+        )
+      }] : [])
+    ];
+  }, [isRollMaterial, isReadOnly, sheetLots, headerCoreDia]);
 
   // 💡 動態依範本產生檢驗項目欄位，將實測值直接行內顯示 (不帶 OK/NG 按鈕，按鈕獨立在檢驗判定列)
   const templateItems = useMemo(() => {
@@ -1544,30 +1695,46 @@ export default function IqcDrawer({
   }, [detail]);
 
   const columns = useMemo(() => {
-    const dynamicColumns = templateItems.map((item: any) => ({
-      title: `${item.itemName} (${item.specification})`,
-      key: `item_${item.itemCode}`,
-      align: (item.itemCode === "appearance" ? "left" : "center") as const,
-      width: item.itemCode === "appearance" ? 220 : 130,
-      render: (_: any, record: any) => {
-        const rollItem = record.inspectionItems?.find(
-          (i: any) => i.itemCode === item.itemCode,
-        );
-        if (!rollItem) return "-";
-        return (
-          <MeasuredInput
-            rollNo={record.rollNo}
-            itemCode={item.itemCode}
-            initialValue={rollItem.measuredValue}
-            isReadOnly={isReadOnly}
-            onChange={handleMeasuredItemValueChange}
-            isText={item.itemCode === "appearance"}
-          />
-        );
+    const appearanceOptions = [
+      {
+        value: "Pass",
+        label: (
+          <Space size={8}>
+            <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#52c41a] shadow" />
+            <span>合格 (Pass)</span>
+          </Space>
+        )
       },
-    }));
+      {
+        value: "Scratch",
+        label: (
+          <Space size={8}>
+            <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#faad14] shadow" />
+            <span>輕微刮傷 (特採)</span>
+          </Space>
+        )
+      },
+      {
+        value: "Dirty",
+        label: (
+          <Space size={8}>
+            <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#ff4d4f] shadow" />
+            <span>嚴重髒污 (Reject)</span>
+          </Space>
+        )
+      },
+      {
+        value: "Custom",
+        label: (
+          <Space size={8}>
+            <EditOutlined className="text-blue-500" />
+            <span>自訂敘述 (請於下方輸入)</span>
+          </Space>
+        )
+      }
+    ];
 
-    const baseColumns: any[] = [
+    const baseCols = [
       {
         title: "流水號",
         dataIndex: "seq",
@@ -1596,51 +1763,256 @@ export default function IqcDrawer({
             </Space>
           );
         },
+      },
+      // 💡 表面外觀移到流水號後面！
+      {
+        title: "表面外觀 (無氣泡、髒污、摺皺)",
+        key: "appearance",
+        width: 220,
+        align: "left" as const,
+        render: (_: any, record: any) => {
+          const rollItem = record.inspectionItems?.find((i: any) => i.itemCode === "appearance");
+          const currentVal = rollItem?.measuredValue || "Pass";
+          const customDescItem = record.inspectionItems?.find((i: any) => i.itemCode === "appearance_desc");
+          const customDesc = customDescItem?.measuredValue || "";
+
+          if (isReadOnly) {
+            const option = appearanceOptions.find(o => o.value === currentVal);
+            return (
+              <div className="flex flex-col space-y-1">
+                <span className="font-semibold text-xs text-[var(--ant-color-text)]">
+                  {option ? option.label : currentVal}
+                </span>
+                {currentVal === "Custom" && (
+                  <span className="text-xs text-slate-400 italic font-mono">
+                    描述: {customDesc || "（未填寫）"}
+                  </span>
+                )}
+              </div>
+            );
+          }
+
+          return (
+            <div className="flex flex-col space-y-1.5 w-full min-w-[180px]">
+              <Select
+                size="small"
+                value={currentVal}
+                onChange={(newVal) => {
+                  handleMeasuredItemValueChange(record.rollNo, "appearance", newVal);
+                }}
+                options={appearanceOptions}
+                className="w-full"
+              />
+              {currentVal === "Custom" && (
+                <Input
+                  size="small"
+                  placeholder="請輸入自訂外觀異常描述"
+                  value={customDesc}
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) => {
+                    handleMeasuredItemValueChange(record.rollNo, "appearance_desc", e.target.value);
+                  }}
+                  className="w-full text-xs font-mono border-amber-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                />
+              )}
+            </div>
+          );
+        }
+      },
+      {
+        title: isRollMaterial ? "原廠生產批號 (SupplierLotNo)" : "對應原廠批號 (SupplierLotNo)",
+        dataIndex: "supplierLotNo",
+        key: "supplierLotNo",
+        width: 220,
+        align: "left" as const,
+        render: (val: string, record: any) => {
+          if (!isRollMaterial) {
+            return (
+              <Text strong className="font-mono text-blue-600">
+                {val || <span className="text-slate-400">（待分配）</span>}
+              </Text>
+            );
+          }
+          if (isReadOnly) return <span className="font-mono font-bold text-blue-600">{val || "（空白）"}</span>;
+          const options = sheetLots
+            .map(l => l.supplierLotNo)
+            .filter(Boolean)
+            .map(lot => ({ label: lot, value: lot }));
+
+          return (
+            <Select
+              size="small"
+              showSearch
+              value={val || undefined}
+              placeholder="選擇分配原廠批"
+              onChange={(selectedLot) => {
+                const targetLot = sheetLots.find(l => l.supplierLotNo === selectedLot);
+                setRolls((prevRolls) =>
+                  prevRolls.map((r) =>
+                    r.rollNo === record.rollNo 
+                      ? { 
+                          ...r, 
+                          supplierLotNo: selectedLot,
+                          measuredCoreDiaMm: targetLot?.measuredCoreDiaMm ?? r.measuredCoreDiaMm
+                        } 
+                      : r
+                  )
+                );
+              }}
+              options={options}
+              className="w-full font-mono text-blue-600"
+            />
+          );
+        }
+      },
+      // 3. 實測厚度
+      {
+        title: `實測厚度(mm) (${detail?.standardThickness || 0.05}±0.002)`,
+        key: "thickness",
+        width: 130,
+        align: "center" as const,
+        render: (_: any, record: any) => {
+          const rollItem = record.inspectionItems?.find((i: any) => i.itemCode === "thickness");
+          return (
+            <MeasuredInput
+              rollNo={record.rollNo}
+              itemCode="thickness"
+              initialValue={rollItem?.measuredValue ?? ""}
+              isReadOnly={isReadOnly}
+              onChange={handleMeasuredItemValueChange}
+            />
+          );
+        }
+      },
+      // 4. 實測寬度
+      {
+        title: `實測寬度(mm) (${detail?.standardWidth || 150}±0.5)`,
+        key: "width",
+        width: 130,
+        align: "center" as const,
+        render: (_: any, record: any) => {
+          const rollItem = record.inspectionItems?.find((i: any) => i.itemCode === "width");
+          return (
+            <MeasuredInput
+              rollNo={record.rollNo}
+              itemCode="width"
+              initialValue={rollItem?.measuredValue ?? ""}
+              isReadOnly={isReadOnly}
+              onChange={handleMeasuredItemValueChange}
+            />
+          );
+        }
       }
     ];
 
     if (isRollMaterial) {
-      // 卷料專屬：可編輯原廠生產批號輸入框
-      baseColumns.push(
-        {
-          title: "原廠生產批號 (SupplierLotNo)",
-          dataIndex: "supplierLotNo",
-          key: "supplierLotNo",
-          width: 220,
-          align: "left" as const,
-          render: (val: string, record: any) => (
-            <Input
-              size="small"
-              value={val || ""}
-              placeholder="請輸入原廠生產批號"
-              disabled={isReadOnly}
-              onChange={(e) => handleSupplierLotNoChange(record.rollNo, e.target.value)}
-              className="font-mono text-blue-600"
+      // 5. 實測外徑
+      baseCols.push({
+        title: "實測外徑 (mm)",
+        dataIndex: "measuredOuterDiaMm",
+        key: "measuredOuterDiaMm",
+        width: 150,
+        align: "right" as const,
+        render: (val: number, record: any) => (
+          <InputNumber
+            size="small"
+            value={val !== undefined && val !== null ? val : 250.0}
+            placeholder="實測外徑"
+            disabled={isReadOnly}
+            min={0}
+            precision={1}
+            onFocus={(e) => e.target.select()}
+            onChange={(num) => {
+              setRolls((prevRolls) =>
+                prevRolls.map((r) => {
+                  if (r.rollNo === record.rollNo) {
+                    const updated = { ...r, measuredOuterDiaMm: num || 250.0 };
+                    return recalculateRollLengthForRoll(updated, detail?.standardThickness);
+                  }
+                  return r;
+                })
+              );
+            }}
+            className="font-mono text-right"
+          />
+        )
+      });
+
+      // 6. 實測長度
+      baseCols.push({
+        title: `實測長度(M) (${detail?.standardLength || 300}±5)`,
+        key: "length",
+        width: 140,
+        align: "right" as const,
+        render: (_: any, record: any) => {
+          const Do = record.measuredOuterDiaMm ?? 250.0;
+          const DiItem = record.inspectionItems?.find((i: any) => i.itemCode === "core_dia");
+          const Di = parseFloat(DiItem?.measuredValue) || 86.00;
+          const tItem = record.inspectionItems?.find((i: any) => i.itemCode === "thickness");
+          const t = parseFloat(tItem?.measuredValue) || detail?.standardThickness || 0.050;
+
+          const calculatedMeters = calculateRollLength(Do, Di, t);
+          const stdLength = detail?.standardLength || 300;
+          const deviation = calculatedMeters > 0 
+            ? Math.round(((calculatedMeters - stdLength) / stdLength) * 1000) / 10
+            : 0;
+
+          return (
+            <div className="font-mono text-right font-bold text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-200/50 dark:border-blue-800/50">
+              <span>{calculatedMeters} M</span>
+              {calculatedMeters > 0 && (
+                <span className={`ml-1 text-[9px] font-semibold ${deviation >= 0 ? "text-green-600 dark:text-green-400" : "text-rose-600 dark:text-rose-400"}`}>
+                  ({deviation >= 0 ? "+" : ""}{deviation}%)
+                </span>
+              )}
+            </div>
+          );
+        }
+      });
+
+      // 7. 內管芯外徑
+      baseCols.push({
+        title: `內管芯外徑(mm) (${detail?.measuredCoreDiaMm || 86}±0.2)`,
+        key: "core_dia",
+        width: 130,
+        align: "center" as const,
+        render: (_: any, record: any) => {
+          const rollItem = record.inspectionItems?.find((i: any) => i.itemCode === "core_dia");
+          return (
+            <MeasuredInput
+              rollNo={record.rollNo}
+              itemCode="core_dia"
+              initialValue={rollItem?.measuredValue ?? ""}
+              isReadOnly={isReadOnly}
+              onChange={handleMeasuredItemValueChange}
             />
-          )
+          );
         }
-      );
+      });
     } else {
-      // [IQC-04] 片料專屬：對應原廠批號（唯讀提示）
-      baseColumns.push(
-        {
-          title: "對應原廠批號 (SupplierLotNo)",
-          dataIndex: "supplierLotNo",
-          key: "supplierLotNo",
-          width: 220,
-          align: "left" as const,
-          render: (val: string) => (
-            <Text strong className="font-mono text-blue-600">
-              {val || <span className="text-slate-400">（待分配）</span>}
-            </Text>
-          )
+      // 6. 實測長度
+      baseCols.push({
+        title: `實測長度(mm) (${detail?.standardLength || 300}±5)`,
+        key: "length",
+        width: 130,
+        align: "center" as const,
+        render: (_: any, record: any) => {
+          const rollItem = record.inspectionItems?.find((i: any) => i.itemCode === "length");
+          return (
+            <MeasuredInput
+              rollNo={record.rollNo}
+              itemCode="length"
+              initialValue={rollItem?.measuredValue ?? ""}
+              isReadOnly={isReadOnly}
+              onChange={handleMeasuredItemValueChange}
+            />
+          );
         }
-      );
+      });
     }
 
-    baseColumns.push(...dynamicColumns);
-
-    baseColumns.push({
+    // 9. 檢驗判定
+    baseCols.push({
       title: "檢驗判定",
       key: "isOk",
       width: 160,
@@ -1691,7 +2063,7 @@ export default function IqcDrawer({
     });
 
     if (!isRollMaterial && !isReadOnly) {
-      baseColumns.push({
+      baseCols.push({
         title: "操作",
         key: "action",
         width: 70,
@@ -1709,7 +2081,7 @@ export default function IqcDrawer({
     }
 
     if (isReadOnlyPermanent) {
-      baseColumns.push({
+      baseCols.push({
         title: "標籤補印",
         key: "print_action",
         width: 90,
@@ -1731,24 +2103,25 @@ export default function IqcDrawer({
       });
     }
 
-    return baseColumns;
+    return baseCols;
   }, [
-    templateItems,
     isReadOnly,
     isReadOnlyPermanent,
     handleMeasuredItemValueChange,
     handleStatusChange,
-    detail?.sampleSize,
+    detail,
     handlePrintSingleLabelPdf,
     isRollMaterial,
-    handleSupplierLotNoChange,
-    handleActualQtyAuxChange,
-    handleDeleteSheetRow,
+    sheetLots,
+    headerCoreDia,
+    calculateRollLength,
+    recalculateRollLengthForRoll,
+    handleDeleteSheetRow
   ]);
 
   const totalLength = useMemo(() => {
     if (!detail?.rolls) return 0;
-    return detail.rolls.reduce((sum, r) => sum + (r.actualQtyAux || 0), 0);
+    return detail.rolls.reduce((sum: number, r: any) => sum + (r.actualQtyAux || 0), 0);
   }, [detail?.rolls]);
 
   const totalAllocatedPcs = useMemo(() => {
@@ -1757,6 +2130,38 @@ export default function IqcDrawer({
   }, [isRollMaterial, sheetLots]);
 
   const isSheetTotalMismatched = !isRollMaterial && totalAllocatedPcs !== (detail?.rollCount ?? 0);
+
+  const fields = getIqcFormFields({
+    isRollMaterial,
+    isReadOnly,
+    setRolls,
+    detail,
+    inspectorId,
+    setInspectorId,
+    headerCoreDia,
+    setHeaderCoreDia,
+    incomingStorageCode,
+    setIncomingStorageCode,
+    totalLength
+  });
+
+  const defaultValues = useMemo(() => ({
+    iqcRecordId: detail?.iqcRecordId,
+    sourceDocNumber: detail?.sourceDocNumber,
+    supplierLotNo: detail?.rolls?.[0]?.supplierLotNo || "",
+    supplierCode: detail?.supplierCode,
+    materialCode: detail?.materialCode,
+    materialName: detail?.materialName,
+    rollCount: detail?.rollCount,
+    inspectorId: inspectorId,
+    materialForm: detail?.materialForm,
+    standardThickness: detail?.standardThickness || 0.05,
+    standardWidth: detail?.standardWidth,
+    standardLength: detail?.standardLength,
+    poLineNumber: detail?.poLineNumber,
+    incomingStorageCode: incomingStorageCode,
+    measuredCoreDiaMm: isRollMaterial ? headerCoreDia : null, // 💡 極致純淨方案：片材強設定為 null
+  }), [detail, inspectorId, incomingStorageCode, headerCoreDia, isRollMaterial, headerSupplierLot]);
 
   return (
     <Drawer
@@ -1910,8 +2315,8 @@ export default function IqcDrawer({
                 />
               </Card>
 
-              {/* [IQC-04] 片料專屬：第一步 到貨原廠批號與入庫數量分配 */}
-              {!isRollMaterial && (
+              {/* [IQC-04] 第一步 到貨原廠批號與入庫數量分配 */}
+              {true && (
                 <Card
                   title={
                     <div className="flex items-center space-x-2">
@@ -1922,7 +2327,7 @@ export default function IqcDrawer({
                   extra={
                     <Space size="middle">
                       <span className="text-xs text-slate-500">
-                        進貨總量：<strong className="font-mono text-[var(--ant-color-text)]">{(detail?.rollCount ?? 0).toLocaleString()} PCS</strong>
+                        進貨總量：<strong className="font-mono text-[var(--ant-color-text)]">{(detail?.rollCount ?? 0).toLocaleString()} {isRollMaterial ? "卷" : "PCS"}</strong>
                       </span>
                       {!isReadOnly && (
                         <Button
@@ -1935,7 +2340,13 @@ export default function IqcDrawer({
                             setSheetLots(prev => {
                               const nextLots = [
                                 ...prev,
-                                { id: `lot-${Date.now()}`, supplierLotNo: "", qty: remaining, sampleQty: 1 }
+                                { 
+                                  id: `lot-${Date.now()}`, 
+                                  supplierLotNo: "", 
+                                  qty: remaining, 
+                                  sampleQty: 1,
+                                  measuredCoreDiaMm: isRollMaterial ? 86 : null
+                                }
                               ];
                               const totalSampleCount = nextLots.reduce((sum, l) => sum + (l.sampleQty || 0), 0);
                               setSampleSize(totalSampleCount);
@@ -1958,128 +2369,7 @@ export default function IqcDrawer({
                     rowKey="id"
                     pagination={false}
                     size="small"
-                    columns={[
-                      {
-                        title: "#",
-                        key: "index",
-                        width: 50,
-                        align: "center",
-                        render: (_, __, index) => index + 1
-                      },
-                      {
-                        title: "原廠生產批號 (SupplierLotNo)",
-                        dataIndex: "supplierLotNo",
-                        key: "supplierLotNo",
-                        render: (val, record) => {
-                          if (isReadOnly) return <span className="font-mono font-bold text-[var(--ant-color-text)]">{val || <span className="text-slate-500">（空白）</span>}</span>;
-                          return (
-                            <Input
-                              value={val}
-                              size="small"
-                              placeholder="請輸入或掃描原廠生產批號"
-                              className="font-mono uppercase text-xs"
-                              onChange={(e) => {
-                                const cleanVal = e.target.value.replace(/[\u4e00-\u9fa5]/g, "").toUpperCase();
-                                setSheetLots(prev => prev.map(l => l.id === record.id ? { ...l, supplierLotNo: cleanVal } : l));
-                              }}
-                              onBlur={(e) => {
-                                const cleanVal = e.target.value.trim().toUpperCase();
-                                setSheetLots(prev => prev.map(l => l.id === record.id ? { ...l, supplierLotNo: cleanVal } : l));
-                              }}
-                            />
-                          );
-                        }
-                      },
-                      {
-                        title: "到貨數量 (PCS)",
-                        dataIndex: "qty",
-                        key: "qty",
-                        align: "right",
-                        width: 160,
-                        render: (val, record) => {
-                          if (isReadOnly) return <span className="font-mono font-bold text-[var(--ant-color-primary)]">{val?.toLocaleString()} PCS</span>;
-                          return (
-                            <InputNumber
-                              value={val}
-                              size="small"
-                              min={1}
-                              className="w-full text-xs font-mono"
-                              onChange={(num) => {
-                                setSheetLots(prev => prev.map(l => l.id === record.id ? { ...l, qty: num || 0 } : l));
-                              }}
-                            />
-                          );
-                        }
-                      },
-                      {
-                        title: "抽檢數 (PCS)",
-                        dataIndex: "sampleQty",
-                        key: "sampleQty",
-                        align: "right",
-                        width: 140,
-                        render: (val, record) => {
-                          const numVal = record.sampleQty ?? 0;
-                          if (isReadOnly) {
-                            return (
-                              <span className="font-mono font-bold text-[#52c41a]">
-                                {numVal} PCS
-                              </span>
-                            );
-                          }
-                          return (
-                            <InputNumber
-                              value={numVal}
-                              size="small"
-                              min={0}
-                              className="w-full text-xs font-mono"
-                              onChange={(num) => {
-                                const newSampleQty = num || 0;
-                                setSheetLots(prev => {
-                                  const nextLots = prev.map(l => 
-                                    l.id === record.id ? { ...l, sampleQty: newSampleQty } : l
-                                  );
-                                  const totalSampleCount = nextLots.reduce((sum, l) => sum + (l.sampleQty || 0), 0);
-                                  setSampleSize(totalSampleCount);
-                                  return nextLots;
-                                });
-                              }}
-                            />
-                          );
-                        }
-                      },
-                      ...(!isReadOnly ? [{
-                        title: "操作",
-                        key: "action",
-                        width: 70,
-                        align: "center" as const,
-                        render: (_, record) => (
-                          <Button
-                            type="text"
-                            danger
-                            size="small"
-                            icon={<DeleteOutlined />}
-                            onClick={() => {
-                              if (sheetLots.length <= 1) {
-                                message.warning("至少必須保留一組原廠批號！");
-                                return;
-                              }
-                              modal.confirm({
-                                title: "確定要刪除此原廠批號嗎？",
-                                content: "這會重新分攤抽樣樣品並清除已填寫的實測數據。",
-                                onOk: () => {
-                                  setSheetLots(prev => {
-                                    const nextLots = prev.filter(l => l.id !== record.id);
-                                    const totalSampleCount = nextLots.reduce((sum, l) => sum + (l.sampleQty || 0), 0);
-                                    setSampleSize(totalSampleCount);
-                                    return nextLots;
-                                  });
-                                }
-                              });
-                            }}
-                          />
-                        )
-                      }] : [])
-                    ]}
+                    columns={sheetLotsColumns}
                   />
                 </Card>
               )}
@@ -2105,6 +2395,7 @@ export default function IqcDrawer({
                           max={isRollMaterial ? (detail?.rollCount || 1000) : 100000}
                           size="small"
                           value={sampleCount}
+                          onFocus={(e) => e.target.select()}
                           onChange={(v) => {
                             if (v !== null && v !== undefined) {
                               setSampleSize(v);
@@ -2388,6 +2679,7 @@ export default function IqcDrawer({
                     <Input.TextArea
                       placeholder="請輸入判定與備註"
                       value={notes}
+                      onFocus={(e) => e.target.select()}
                       onChange={(e) => setNotes(e.target.value)}
                       rows={3}
                     />
@@ -2437,6 +2729,7 @@ export default function IqcDrawer({
                     <Input.TextArea
                       placeholder="請輸入審查核定意見與備註（例如：已取得客戶限度書同意，特採放行）..."
                       value={notes}
+                      onFocus={(e) => e.target.select()}
                       onChange={(e) => setNotes(e.target.value)}
                       rows={4}
                     />

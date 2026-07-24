@@ -3,7 +3,7 @@
   margin: 0 auto;
 }
 
-/* 上方 KPI 卡片樣式 */
+/* 上方 KPI 卡片樣式 (無障礙對比度、雙色對稱適配) */
 .dashboard-card { 
   background-color: var(--ant-color-bg-container, #ffffff);
   border-radius: 8px; 
@@ -24,7 +24,7 @@
 }
 .dashboard-card:hover { 
   transform: translateY(-2px); 
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06); 
 }
 .dark .dashboard-card:hover {
   background-color: #262626;
@@ -40,7 +40,7 @@
   padding: 16px 8px; 
   text-align: center; 
   margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
 }
 .dark .flow-node-header {
   background-color: #1f1f1f;
@@ -80,26 +80,6 @@
   background-color: #3f3f46;
   color: #fff;
   border-color: #1677ff;
-}
-
-/* 開發中子模組按鈕樣式 (虛線框) */
-.sub-btn-dev {
-  background-color: transparent; 
-  border: 1px dashed var(--ant-color-border, #d9d9d9);
-  border-radius: 6px; 
-  padding: 10px 12px; 
-  font-size: 13px; 
-  color: var(--ant-color-text-tertiary, #999);
-  cursor: not-allowed; 
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-.dark .sub-btn-dev {
-  border-color: #52525b;
-  color: #71717a;
 }
 
 /* 停用（無權限）子模組按鈕樣式 */
@@ -151,61 +131,12 @@
   opacity: 0.5;
 }
 
-/* 隱藏水平捲軸但保留滾動能力 */
-.flowchart-container {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
-}
-.flowchart-container::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
-}
-
-.flow-col {
-  display: flex;
-  flex-direction: column;
-  flex: 0 0 160px;
-  min-width: 160px;
-}
-.flow-col-double {
-  display: flex;
-  flex-direction: column;
-  flex: 0 0 auto;
-  min-width: max-content;
-}
-.flow-col-wide {
-  display: flex;
-  flex-direction: column;
-  flex: 0 0 160px;
-  min-width: 160px;
-}
-@media (min-width: 768px) {
-  .flow-col-wide {
-    flex: 0 0 380px;
-    min-width: 380px;
-  }
-}
-.flow-arrow { display: flex; justify-content: center; color: var(--ant-color-text-secondary, #666); padding-top: 36px; padding-left: 8px; padding-right: 8px; }
-.dark .flow-arrow { color: #4b5563; }
-
-/* 💻 中等螢幕/筆電 (1200px ~ 1440px) 局部自動等比微調縮小，防止提前觸發捲動 */
-@media (min-width: 1200px) and (max-width: 1440px) {
-  .sub-btn {
-    padding: 8px 10px;
-    font-size: 11px;
-    gap: 4px;
-  }
+/* 💻 中等螢幕/筆電 (1200px ~ 1440px) 局部等比微調縮小按鈕內間距，防文字折行 */
+@media (max-width: 1440px) {
+  .sub-btn,
   .sub-btn-disabled {
     padding: 8px 10px;
-    font-size: 11px;
+    font-size: 12px;
     gap: 4px;
-  }
-  .flow-col {
-    flex: 0 0 140px;
-    min-width: 140px;
-  }
-  .flow-arrow {
-    padding-top: 32px;
-    padding-left: 4px;
-    padding-right: 4px;
   }
 }

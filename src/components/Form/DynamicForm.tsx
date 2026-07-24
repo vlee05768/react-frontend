@@ -339,7 +339,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
                     </span>
                   ),
                   children: (
-                    <div className="p-6 pt-5 bg-zinc-50/50 dark:bg-zinc-900/40 border border-solid border-zinc-200/60 dark:border-zinc-800/80 rounded-xl mt-3 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
+                    <div className="pt-5 pb-2">
                       {renderFieldList(groupFields)}
                     </div>
                   ),

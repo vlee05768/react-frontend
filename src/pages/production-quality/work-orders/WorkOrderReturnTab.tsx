@@ -425,7 +425,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
         // 當變更「實測外徑」時，即時重算「退回長度 (M)」
         if (field === "measuredDiaMm") {
           const Do = Number(value || 0);
-          const Di = Number(nr.coreDiaMm || 76.2);
+          const Di = Number(nr.coreDiaMm || 86);
           const t = Number(nr.thicknessMm || 0.05);
           const maxWipQty = Number(nr.wipQtyAux ?? nr.qtyAux ?? 0);
           
@@ -571,7 +571,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     
     setActiveScanRoll(match);
     setScanStorageCode(match.storageCode || "");
-    setScanCoreDia(match.coreDiaMm || 76.2);
+    setScanCoreDia(match.coreDiaMm || 86);
     setMeasuredDia(null);
     setCalcResult(null);
     
@@ -581,7 +581,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     }, 100);
   };
 
-  const calculateLengthOnTheFly = (roll: any, dia: number, coreDia: number = (scanCoreDia as number) || 76.2) => {
+  const calculateLengthOnTheFly = (roll: any, dia: number, coreDia: number = (scanCoreDia as number) || 86) => {
     const Do = dia; // 實測外徑
     const Di = coreDia; // 紙芯外徑
     const t = Number(roll.thicknessMm || 0.05); // 厚度 (mm)
@@ -615,7 +615,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
 
   const handleScanAndCalcSave = () => {
     if (!activeScanRoll || !measuredDia || !scanStorageCode || !scanCoreDia) {
-      message.warning("請確保已輸入卷卡、測量直徑、管芯內外徑並選擇入庫儲位！");
+      message.warning("請確保已輸入卷卡、測量直徑、內管芯外徑並選擇入庫儲位！");
       return;
     }
     
@@ -642,7 +642,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
       widthMm: activeScanRoll.widthMm ?? activeScanRoll.WidthMm,
       qtyAux: finalQty,
       thicknessMm: activeScanRoll.thicknessMm ?? activeScanRoll.ThicknessMm,
-      coreDiaMm: scanCoreDia || 76.2,
+      coreDiaMm: scanCoreDia || 86,
       originalQtyAux: activeScanRoll.originalQtyAux ?? activeScanRoll.OriginalQtyAux,
       wipQtyAux: activeScanRoll.wipQtyAux ?? activeScanRoll.WipQtyAux ?? activeScanRoll.qtyAux ?? activeScanRoll.QtyAux,
       costPerSqm: activeScanRoll.costPerSqm ?? activeScanRoll.CostPerSqm,
@@ -712,7 +712,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
       setMeasuredDia(null);
       setCalcResult(null);
       setScanStorageCode("");
-      setScanCoreDia(76.2);
+      setScanCoreDia(86);
     } else {
       // Reset scanner inputs
       setScanRollNo("");
@@ -720,7 +720,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
       setMeasuredDia(null);
       setCalcResult(null);
       setScanStorageCode("");
-      setScanCoreDia(76.2);
+      setScanCoreDia(86);
       
       // Refocus on scanner input
       setTimeout(() => {
@@ -1068,7 +1068,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
                         if (matched) {
                           setActiveScanRoll(matched);
                           setScanStorageCode(matched.storageCode || "");
-                          setScanCoreDia(matched.coreDiaMm || 76.2);
+                          setScanCoreDia(matched.coreDiaMm || 86);
                           setMeasuredDia(null);
                           setCalcResult(null);
                           setLpnError("");
@@ -1124,7 +1124,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
                       onChange={val => {
                         setMeasuredDia(val);
                         if (val && activeScanRoll) {
-                          calculateLengthOnTheFly(activeScanRoll, val, (scanCoreDia || 76.2) as number);
+                          calculateLengthOnTheFly(activeScanRoll, val, (scanCoreDia || 86) as number);
                         } else {
                           setCalcResult(null);
                         }
@@ -1138,7 +1138,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
                         danger
                         className="h-9 px-2.5 bg-red-600 hover:bg-red-500 border-red-600 text-xs font-semibold text-white shrink-0 rounded"
                         onClick={() => {
-                          const coreDia = (scanCoreDia || 76.2) as number;
+                          const coreDia = (scanCoreDia || 86) as number;
                           setMeasuredDia(coreDia);
                           calculateLengthOnTheFly(activeScanRoll, coreDia, coreDia);
                         }}
@@ -1256,10 +1256,10 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
                       render: (v) => `${v} mm`,
                     },
                     {
-                      title: "管芯內外徑(mm)",
+                      title: "內管芯外徑(mm)",
                       key: "coreDia",
                       width: 130,
-                      render: (_, rec: any) => `${rec.coreDiaMm ?? 76.2} mm`,
+                      render: (_, rec: any) => `${rec.coreDiaMm ?? 86} mm`,
                     },
                     {
                       title: "儲位",
@@ -1293,7 +1293,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
                             setActiveScanRoll(rec);
                             setScanRollNo(rec.rollNo);
                             setScanStorageCode(rec.storageCode || "");
-                            setScanCoreDia(rec.coreDiaMm || 76.2);
+                            setScanCoreDia(rec.coreDiaMm || 86);
                             setMeasuredDia(null);
                             setCalcResult(null);
                             setTimeout(() => diaInputRef.current?.focus(), 100);
@@ -1463,7 +1463,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
                         key: "coreDiaMm",
                         width: 100,
                         align: "right" as const,
-                        render: (v: number) => <span>{v ? `${v} mm` : "76.2 mm"}</span>,
+                        render: (v: number) => <span>{v ? `${v} mm` : "86 mm"}</span>,
                       },
                       {
                         title: "餘料成本小計",
@@ -1566,7 +1566,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
                         key: "coreDiaMm",
                         width: 100,
                         align: "right" as const,
-                        render: (v: number) => <span>{v ? `${v} mm` : "76.2 mm"}</span>,
+                        render: (v: number) => <span>{v ? `${v} mm` : "86 mm"}</span>,
                       },
                       {
                         title: "餘料成本小計",

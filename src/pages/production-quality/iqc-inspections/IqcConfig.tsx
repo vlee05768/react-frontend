@@ -1,6 +1,8 @@
 import type { TableColumnConfig } from '@/components/Form/types';
-import { Tag } from 'antd';
+import { Tag, Input, InputNumber } from 'antd';
 import dayjs from 'dayjs';
+import { AsyncSelect } from '@/components/Form/AsyncSelect';
+import React from 'react';
 
 export const iqcSearchConfig = (): any[] => [
   {
@@ -11,7 +13,7 @@ export const iqcSearchConfig = (): any[] => [
   },
   {
     name: 'lotNo',
-    label: '批次代碼',
+    label: 'IQC批號',
     componentType: 'Input',
     colSpan: 2,
   },
@@ -80,7 +82,7 @@ export const getStatusTag = (status?: string | null) => {
 export const mainTableColumns = (): TableColumnConfig[] => [
   { label: '品檢單號', name: 'iqcRecordId', sortable: { multiple: 1 }, width: 140 },
   { label: '關聯進貨單', name: 'sourceDocNumber', width: 130 },
-  { label: '批次代碼', name: 'lotNo', sortable: { multiple: 2 }, width: 130 },
+  { label: 'IQC批號', name: 'lotNo', sortable: { multiple: 2 }, width: 130 },
   { 
     label: '料號', 
     name: 'materialCode', 
@@ -151,3 +153,231 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     }
   },
 ];
+
+export const getIqcFormFields = (ctx: {
+  isRollMaterial: boolean;
+  isReadOnly: boolean;
+  setRolls: React.Dispatch<React.SetStateAction<any[]>>;
+  detail: any;
+  inspectorId: string;
+  setInspectorId: (val: string) => void;
+  headerCoreDia: number | null;
+  setHeaderCoreDia: (val: number | null) => void;
+  incomingStorageCode: string;
+  setIncomingStorageCode: (val: string) => void;
+  totalLength: number;
+}): any[] => {
+  const {
+    isRollMaterial,
+    isReadOnly,
+    setRolls,
+    detail,
+    inspectorId,
+    setInspectorId,
+    headerCoreDia,
+    setHeaderCoreDia,
+    incomingStorageCode,
+    setIncomingStorageCode,
+    totalLength
+  } = ctx;
+
+  return [
+    {
+      name: "iqcRecordId",
+      label: "品檢單號",
+      componentType: "Input",
+      editable: "never",
+      colSpan: 4,
+    },
+    {
+      name: "sourceDocNumber",
+      label: "來源進貨單號",
+      componentType: "Input",
+      editable: "never",
+      colSpan: 4,
+    },
+    {
+      name: "poLineNumber",
+      label: "關聯採購項次",
+      componentType: "Input",
+      editable: "never",
+      colSpan: 4,
+    },
+
+    {
+      name: "supplierCode",
+      label: "供應商",
+      componentType: "Custom",
+      colSpan: 4,
+      customRender: () => (
+        <Input
+          value={
+            detail?.supplierCode
+              ? `[${detail.supplierCode}] ${detail.supplierName || ""}`
+              : ""
+          }
+          disabled
+          className="w-full text-[var(--ant-color-text)] font-semibold"
+        />
+      ),
+    },
+    {
+      name: "materialCode",
+      label: "物料編碼",
+      componentType: "Input",
+      editable: "never",
+      colSpan: 4,
+    },
+    {
+      name: "materialName",
+      label: "物料名稱",
+      componentType: "Input",
+      editable: "never",
+      colSpan: 4,
+    },
+    {
+      name: "inspectorId",
+      label: "品檢人員工代碼",
+      componentType: "Custom",
+      colSpan: 4,
+      required: true,
+      customRender: (props: any) => (
+        <AsyncSelect
+          configKey="EMPLOYEE"
+          placeholder="請選擇或搜尋員工"
+          value={props.value || inspectorId}
+          disabled={isReadOnly}
+          className="w-full focus:ring-2 focus:ring-blue-400 focus:outline-none"
+          onChange={(val) => {
+            setInspectorId(val);
+            props.onChange(val);
+          }}
+        />
+      ),
+    },
+    {
+      name: "standardThickness",
+      label: "標準厚度 (mm)",
+      componentType: "InputNumber",
+      editable: "never",
+      colSpan: 6,
+      componentProps: {
+        className: "text-right",
+      },
+    },
+    {
+      name: "standardWidth",
+      label: "標準寬度 (mm)",
+      componentType: "InputNumber",
+      editable: "never",
+      colSpan: 6,
+      componentProps: {
+        className: "text-right",
+      },
+    },
+    {
+      name: "standardLength",
+      label: isRollMaterial ? "標準長度 (M)" : "標準長度 (mm)",
+      componentType: "InputNumber",
+      editable: "never",
+      colSpan: 6,
+      componentProps: {
+        className: "text-right",
+      },
+    },
+    {
+      name: "rollCount",
+      label: isRollMaterial ? "到貨總卷數" : "數量",
+      componentType: "InputNumber",
+      editable: "never",
+      colSpan: 6,
+      componentProps: {
+        className: "text-right",
+      },
+    },
+    {
+      name: "totalActualQty",
+      label: isRollMaterial ? "到貨總長度" : "到貨總張數",
+      componentType: "Custom",
+      colSpan: 6,
+      customRender: () => (
+        <Input
+          value={`${totalLength.toLocaleString()} ${isRollMaterial ? "M" : "PCS"}`}
+          disabled
+          className="w-full text-[var(--ant-color-text)] font-semibold text-right"
+        />
+      ),
+    },
+    {
+      name: "measuredCoreDiaMm",
+      label: "內管芯外徑 (mm)",
+      componentType: "Custom",
+      colSpan: 6,
+      hidden: !isRollMaterial,
+      customRender: (props: any) => (
+        <InputNumber
+          value={props.value !== undefined ? props.value : headerCoreDia}
+          disabled={isReadOnly || !isRollMaterial}
+          precision={1}
+          style={{ width: "100%" }}
+          className="w-full text-right"
+          onChange={(val) => {
+            const numVal = val != null ? Number(val) : null;
+            setHeaderCoreDia(numVal);
+            props.onChange(numVal);
+            
+            setRolls((prevRolls) =>
+              prevRolls.map((r) => {
+                const updatedItems = r.inspectionItems.map((i: any) => {
+                  if (i.itemCode === "core_dia") {
+                    return { ...i, measuredValue: numVal !== null ? String(numVal) : "" };
+                  }
+                  return i;
+                });
+                return {
+                  ...r,
+                  measuredCoreDiaMm: numVal,
+                  inspectionItems: updatedItems,
+                };
+              }),
+            );
+          }}
+        />
+      ),
+    },
+    {
+      name: "materialForm",
+      label: "材料型態",
+      componentType: "Select",
+      editable: "never",
+      colSpan: 6,
+      componentProps: {
+        options: [
+          { label: "捲材 (Coil)", value: "R" },
+          { label: "片材 (Sheet)", value: "S" },
+        ],
+      },
+    },    
+    {
+      name: "incomingStorageCode",
+      label: "入庫儲位",
+      componentType: "Custom",
+      colSpan: 4,
+      required: true,
+      customRender: (props: any) => (
+        <AsyncSelect
+          configKey="STORAGE"
+          placeholder="請選擇入庫儲位"
+          value={props.value || incomingStorageCode}
+          disabled={isReadOnly}
+          className="w-full focus:ring-2 focus:ring-blue-400 focus:outline-none"
+          onChange={(val) => {
+            setIncomingStorageCode(val || "");
+            props.onChange(val || "");
+          }}
+          allowClear
+        />
+      ),
+    },
+  ];
+};

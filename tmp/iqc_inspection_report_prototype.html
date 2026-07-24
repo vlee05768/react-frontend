@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IQC 品質檢驗報告 報表原型設計</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+    }
+    .pdf-page {
+      width: 210mm;
+      min-height: 297mm;
+      padding: 12mm;
+      margin: 0 auto;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      background: #ffffff;
+      position: relative;
+    }
+    @media print {
+      body {
+        background: none;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .pdf-page {
+        width: 100%;
+        min-height: auto;
+        box-shadow: none;
+        margin: 0;
+        padding: 10mm;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen py-10 transition-colors duration-200" id="bodyNode">
+
+  <!-- 頂部浮動控制列 -->
+  <div class="max-w-[210mm] mx-auto mb-6 bg-white dark:bg-zinc-800 p-4 rounded-xl shadow-md border border-slate-200 dark:border-zinc-700 flex flex-wrap items-center justify-between gap-4 no-print transition-colors duration-200">
+    <div class="flex items-center gap-3">
+      <div class="bg-indigo-100 dark:bg-indigo-950 p-2 rounded-lg text-indigo-600 dark:text-indigo-400">
+        <i data-lucide="file-text" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <h3 class="font-bold text-slate-800 dark:text-zinc-100 text-sm">IQC品質檢驗報告 PDF 報表重構原型</h3>
+        <p class="text-xs text-slate-500 dark:text-zinc-400">對齊最新 IQC 雙階段分群架構 • 移動「表面外觀」至流水號後</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <!-- 材料形態切換 -->
+      <button onclick="toggleMaterialForm('R')" id="btnRoll" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-all duration-200 bg-indigo-600 text-white hover:bg-indigo-700">
+        捲材 (Coil)
+      </button>
+      <button onclick="toggleMaterialForm('S')" id="btnSheet" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-all duration-200 bg-slate-100 dark:bg-zinc-700 text-slate-700 dark:text-zinc-200 hover:bg-slate-200 dark:hover:bg-zinc-600">
+        片材 (Sheet)
+      </button>
+      <!-- 主題切換 -->
+      <button onclick="toggleTheme()" class="p-2 rounded-lg bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-zinc-200 hover:bg-slate-200 dark:hover:bg-zinc-600 ml-2" title="切換深/淺色模式">
+        <i id="themeIcon" data-lucide="moon" class="w-4 h-4"></i>
+      </button>
+      <!-- 列印按鈕 -->
+      <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 ml-2">
+        <i data-lucide="printer" class="w-4 h-4"></i> 列印 / 導出 PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- A4 模擬紙張 -->
+  <div class="pdf-page transition-colors duration-200" id="pdfPage">
+    
+    <!-- 1. 表頭 (Letterhead Style) -->
+    <div class="border-b-2 border-black pb-3">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-lg font-black tracking-wider text-slate-900" id="corpName">東富電子股份有限公司</h1>
+          <h2 class="text-[10px] text-slate-500 font-bold tracking-wide mt-0.5">品質管理部 — IQC 進料檢驗處</h2>
+        </div>
+        <div class="text-center">
+          <h2 class="text-xl font-extrabold tracking-widest text-black border-2 border-black px-4 py-1">IQC 品質檢驗報告</h2>
+          <span class="text-[9px] text-slate-400 mt-1 block">INCOMING QUALITY CONTROL REPORT</span>
+        </div>
+        <div class="text-right text-[10px] text-slate-600">
+          <p class="font-mono">文件編號: FM-QC-IQC-07</p>
+          <p class="font-mono mt-0.5" id="printTime">列印時間: 2026-07-24 17:15</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. 基本資料彙整 (Grid Card) -->
+    <div class="mt-4">
+      <div class="grid grid-cols-4 border border-black text-xs text-slate-900">
+        <!-- 列 1 -->
+        <div class="bg-slate-100 p-2 font-bold border-r border-b border-black flex items-center">品檢單號</div>
+        <div class="p-2 border-r border-b border-black font-mono font-bold" id="recId">IQC-20260723-0007</div>
+        <div class="bg-slate-100 p-2 font-bold border-r border-b border-black flex items-center">進貨批次 (Lot)</div>
+        <div class="p-2 border-b border-black font-mono font-bold text-blue-800" id="lotNo">PR-12</div>
+
+        <!-- 列 2 -->
+        <div class="bg-slate-100 p-2 font-bold border-r border-b border-black flex items-center">來源單據</div>
+        <div class="p-2 border-r border-b border-black leading-tight text-[11px]" id="sourceDocs">
+          採購項次: <span class="font-mono">PO-202607-0007-02</span><br>
+          進貨單號: <span class="font-mono">PD-202607-0002</span>
+        </div>
+        <div class="bg-slate-100 p-2 font-bold border-r border-b border-black flex items-center">品檢人員</div>
+        <div class="p-2 border-b border-black font-medium" id="inspector">EMP-ADMIN (系統管理員)</div>
+
+        <!-- 列 3 -->
+        <div class="bg-slate-100 p-2 font-bold border-r border-b border-black flex items-center">供應商</div>
+        <div class="p-2 border-r border-b border-black font-semibold" id="supplier">[S0002] 延平國際有限公司</div>
+        <div class="bg-slate-100 p-2 font-bold border-r border-b border-black flex items-center">檢驗時間</div>
+        <div class="p-2 border-b border-black font-mono" id="checkDate">2026-07-24 17:04</div>
+
+        <!-- 列 4 -->
+        <div class="bg-slate-100 p-2 font-bold border-r border-b border-black flex items-center">原料名稱</div>
+        <div class="p-2 border-r border-b border-black font-bold text-slate-800 col-span-3" id="matName">[R-BR03-MD03B-1.2] (捲材) BR03 MD03B 厚1.2mm</div>
+
+        <!-- 列 5 -->
+        <div class="bg-slate-100 p-2 font-bold border-r border-black flex items-center">到貨規格</div>
+        <div class="p-2 border-r border-black" id="matSpec">寬 200 mm × 300 M (捲材)</div>
+        <div class="bg-slate-100 p-2 font-bold border-r border-black flex items-center">到貨總數</div>
+        <div class="p-2 font-bold text-slate-900" id="totalQty">10 卷</div>
+      </div>
+    </div>
+
+    <!-- 3. 第一步：到貨分配明細表 (Step 1 Lot Groups) -->
+    <div class="mt-4">
+      <div class="bg-indigo-900 text-white px-2.5 py-1 text-xs font-bold flex justify-between items-center">
+        <span>▼ 第一步 到貨原廠批號與數量分配 (IqcInspectionGroup 實體對齊)</span>
+        <span class="text-[10px] bg-indigo-800 px-2 py-0.5 rounded" id="sumAllocated">進貨總量：10 卷 / 實收儲位：原料倉-D0102</span>
+      </div>
+      <table class="w-full border-l border-r border-b border-black text-xs text-slate-900 mt-0">
+        <thead>
+          <tr class="bg-slate-100 border-b border-black">
+            <th class="p-1.5 border-r border-black w-10 text-center">#</th>
+            <th class="p-1.5 border-r border-black text-left">原廠生產批號 (SupplierLotNo)</th>
+            <th class="p-1.5 border-r border-black w-24 text-right" id="thGroupCore">內管芯外徑</th>
+            <th class="p-1.5 border-r border-black w-28 text-right" id="thGroupAllocated">到貨數量</th>
+            <th class="p-1.5 border-r border-black w-24 text-right">抽樣數量</th>
+            <th class="p-1.5 w-24 text-center">分組判定</th>
+          </tr>
+        </thead>
+        <tbody id="groupTableBody">
+          <!-- 捲材預設 -->
+          <tr class="border-b border-black">
+            <td class="p-1.5 border-r border-black text-center font-mono font-medium">1</td>
+            <td class="p-1.5 border-r border-black font-mono font-bold text-slate-500">（空白）</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold">82.0 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold text-blue-600">5 卷</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold text-green-600">1 卷</td>
+            <td class="p-1.5 text-center font-bold text-emerald-600">✔ 合格</td>
+          </tr>
+          <tr class="border-b border-black">
+            <td class="p-1.5 border-r border-black text-center font-mono font-medium">2</td>
+            <td class="p-1.5 border-r border-black font-mono font-bold text-slate-800">ABC</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold">76.2 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold text-blue-600">5 卷</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold text-green-600">1 卷</td>
+            <td class="p-1.5 text-center font-bold text-emerald-600">✔ 合格</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 4. 第二步：檢驗實測細項 (Step 2 Samples - Appearance moved right after Seq!) -->
+    <div class="mt-4">
+      <div class="bg-indigo-900 text-white px-2.5 py-1 text-xs font-bold flex justify-between items-center">
+        <span>▼ 第二步 品質檢驗抽樣與實測量表 (實體樣品卷 LPN 物理數據隔離)</span>
+        <span class="text-[10px] bg-indigo-800 px-2 py-0.5 rounded" id="sumSampled">實際抽檢：2 卷 / 合格：2 卷 / 異常：0 卷</span>
+      </div>
+      <table class="w-full border-l border-r border-b border-black text-[11px] text-slate-900 mt-0">
+        <thead>
+          <tr class="bg-slate-100 border-b border-black">
+            <th class="p-1.5 border-r border-black w-10 text-center">#</th>
+            <!-- 💡 表面外觀：100% 物理對齊螢幕，緊鄰流水號！ -->
+            <th class="p-1.5 border-r border-black text-left w-36">表面外觀 (無氣泡/髒污/摺皺)</th>
+            <th class="p-1.5 border-r border-black text-left">對應原廠批號</th>
+            <th class="p-1.5 border-r border-black text-right w-24">實測厚度</th>
+            <th class="p-1.5 border-r border-black text-right w-24">實測寬度</th>
+            <th class="p-1.5 border-r border-black text-right w-24" id="thOuterDia">實測外徑 (Do)</th>
+            <th class="p-1.5 border-r border-black text-right w-32" id="thLength">實測長度 (M)</th>
+            <th class="p-1.5 border-r border-black text-right w-24" id="thCoreDia">內管芯外徑 (Di)</th>
+            <th class="p-1.5 w-16 text-center">判定</th>
+          </tr>
+        </thead>
+        <tbody id="sampleTableBody">
+          <!-- 捲材預設 -->
+          <tr class="border-b border-black">
+            <td class="p-1.5 border-r border-black text-center font-mono font-medium">1</td>
+            <td class="p-1.5 border-r border-black text-emerald-600 font-bold flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-sm inline-block"></span>
+              合格 (Pass)
+            </td>
+            <td class="p-1.5 border-r border-black font-mono">（空白）</td>
+            <td class="p-1.5 border-r border-black text-right font-mono">1.200 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono">200.0 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono">500.0 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold text-blue-600">
+              159.2 M <span class="text-[9px] text-rose-500">(-46.9%)</span>
+            </td>
+            <td class="p-1.5 border-r border-black text-right font-mono">82.0 mm</td>
+            <td class="p-1.5 text-center font-bold text-emerald-600">合格</td>
+          </tr>
+          <tr class="border-b border-black bg-amber-50/20">
+            <td class="p-1.5 border-r border-black text-center font-mono font-medium">2</td>
+            <td class="p-1.5 border-r border-black text-amber-600 font-bold flex flex-col">
+              <div class="flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-amber-500 shadow-sm inline-block"></span>
+                輕微刮傷 (特採)
+              </div>
+            </td>
+            <td class="p-1.5 border-r border-black font-mono">ABC</td>
+            <td class="p-1.5 border-r border-black text-right font-mono">1.202 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono">200.5 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono">250.0 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold text-blue-600">
+              37.1 M <span class="text-[9px] text-rose-500">(-87.6%)</span>
+            </td>
+            <td class="p-1.5 border-r border-black text-right font-mono">76.2 mm</td>
+            <td class="p-1.5 text-center font-bold text-amber-600">特採</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="text-[9px] text-slate-500 mt-1.5 leading-tight">
+        💡 <b>財務合規隔離說明</b>：依據公司財務與審計標準（GAAP），品檢員所測得之捲實測外徑與厚度逆算長度（僅供品檢處外觀/異常判定使用），落實物庫存 LPN 與帳務入庫時，<b>一律強制鎖定來源進貨單之標準長度（300M）</b>，不因量測之微小物理公差造成成本與存貨計價漂移。
+      </div>
+    </div>
+
+    <!-- 5. 異常判定大橫幅 ( BW Contrast NCR Banner) -->
+    <div class="mt-4 border border-black p-3 bg-slate-50">
+      <div class="flex justify-between items-start">
+        <div>
+          <h3 class="text-sm font-black text-slate-900 flex items-center gap-1.5">
+            <i data-lucide="shield-check" class="w-5 h-5 text-emerald-600"></i>
+            品質判定判定結果：【部分允收 (Partial Acceptance)】
+          </h3>
+          <p class="text-[10px] text-slate-500 mt-1">
+            本批原料經抽樣檢驗，原廠生產批 [ABC] 判定為「輕微刮傷 (特採)」，已開立 Concession 審查單，其餘批次判定合格准予入可用倉。
+          </p>
+        </div>
+        <div class="text-right text-xs">
+          <p class="font-bold">不合格數: <span class="font-mono text-rose-600">1 卷 (特採)</span></p>
+          <p class="font-bold text-emerald-600 mt-0.5">允收進庫: <span class="font-mono">9 卷</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. 簽核與核決區 (3 Columns Signature Zone) -->
+    <div class="mt-8">
+      <table class="w-full border border-black text-xs text-slate-900">
+        <thead>
+          <tr class="bg-slate-100 border-b border-black">
+            <th class="p-2 border-r border-black w-1/3 text-left">品質管理部 (品檢員) 簽名</th>
+            <th class="p-2 border-r border-black w-1/3 text-left">生管部 (核備) 簽名</th>
+            <th class="p-2 w-1/3 text-left">品保主管 (審核/NCR判定) 核決</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="p-4 border-r border-black h-16 flex flex-col justify-between">
+              <span class="text-[10px] text-slate-400">登入工號: EMP-ADMIN</span>
+              <span class="text-right text-[10px] text-slate-500">簽名: __________________</span>
+            </td>
+            <td class="p-4 border-r border-black h-16 flex flex-col justify-end">
+              <span class="text-right text-[10px] text-slate-500">簽名: __________________</span>
+            </td>
+            <td class="p-4 h-16 flex flex-col justify-end">
+              <span class="text-right text-[10px] text-slate-500">核決: __________________</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 頁碼 -->
+    <div class="absolute bottom-4 left-0 right-0 text-center text-[10px] text-slate-400">
+      第 1 頁，共 1 頁
+    </div>
+
+  </div>
+
+  <script>
+    // 初始化 Lucide 圖標
+    lucide.createIcons();
+
+    // 狀態模擬資料庫
+    const materialsData = {
+      R: {
+        matName: "[R-BR03-MD03B-1.2] (捲材) BR03 MD03B 厚1.2mm",
+        matSpec: "寬 200 mm × 300 M (捲材)",
+        totalQty: "10 卷",
+        thGroupCore: "內管芯外徑",
+        thGroupAllocated: "到貨數量",
+        thOuterDia: "實測外徑 (Do)",
+        thLength: "實測長度 (M)",
+        thCoreDia: "內管芯外徑 (Di)",
+        sumAllocated: "進貨總量：10 卷 / 實收儲位：原料倉-D0102",
+        sumSampled: "實際抽檢：2 卷 / 合格：2 卷 / 異常：0 卷",
+        groupBody: `
+          <tr class="border-b border-black">
+            <td class="p-1.5 border-r border-black text-center font-mono font-medium">1</td>
+            <td class="p-1.5 border-r border-black font-mono font-bold text-slate-500">（空白）</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold">82.0 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold text-blue-600">5 卷</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold text-green-600">1 卷</td>
+            <td class="p-1.5 text-center font-bold text-emerald-600">✔ 合格</td>
+          </tr>
+          <tr class="border-b border-black">
+            <td class="p-1.5 border-r border-black text-center font-mono font-medium">2</td>
+            <td class="p-1.5 border-r border-black text-slate-800">ABC</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold">76.2 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold text-blue-600">5 卷</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold text-green-600">1 卷</td>
+            <td class="p-1.5 text-center font-bold text-emerald-600">✔ 合格</td>
+          </tr>
+        `,
+        sampleBody: `
+          <tr class="border-b border-black">
+            <td class="p-1.5 border-r border-black text-center font-mono font-medium">1</td>
+            <td class="p-1.5 border-r border-black text-emerald-600 font-bold flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-sm inline-block"></span>
+              合格 (Pass)
+            </td>
+            <td class="p-1.5 border-r border-black font-mono">（空白）</td>
+            <td class="p-1.5 border-r border-black text-right font-mono">1.200 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono">200.0 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono">500.0 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold text-blue-600">
+              159.2 M <span class="text-[9px] text-rose-500">(-46.9%)</span>
+            </td>
+            <td class="p-1.5 border-r border-black text-right font-mono">82.0 mm</td>
+            <td class="p-1.5 text-center font-bold text-emerald-600">合格</td>
+          </tr>
+          <tr class="border-b border-black bg-amber-50/20">
+            <td class="p-1.5 border-r border-black text-center font-mono font-medium">2</td>
+            <td class="p-1.5 border-r border-black text-amber-600 font-bold flex flex-col">
+              <div class="flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-amber-500 shadow-sm inline-block"></span>
+                輕微刮傷 (特採)
+              </div>
+            </td>
+            <td class="p-1.5 border-r border-black font-mono">ABC</td>
+            <td class="p-1.5 border-r border-black text-right font-mono">1.202 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono">200.5 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono">250.0 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold text-blue-600">
+              37.1 M <span class="text-[9px] text-rose-500">(-87.6%)</span>
+            </td>
+            <td class="p-1.5 border-r border-black text-right font-mono">76.2 mm</td>
+            <td class="p-1.5 text-center font-bold text-amber-600">特採</td>
+          </tr>
+        `
+      },
+      S: {
+        matName: "[S-BR03-MD03B-1.2] (片材) BR03 MD03B 厚1.2mm",
+        matSpec: "長寬 200 mm × 300 mm (片材)",
+        totalQty: "1000 PCS",
+        thGroupCore: "（無管芯）",
+        thGroupAllocated: "到貨數量",
+        thOuterDia: "（無外外外徑）",
+        thLength: "實測長度 (mm)",
+        thCoreDia: "（無內內管芯）",
+        sumAllocated: "進貨總量：1000 PCS / 實收儲位：原料倉-D0102",
+        sumSampled: "實際抽檢：200 PCS / 合格：200 PCS / 異常：0 PCS",
+        groupBody: `
+          <tr class="border-b border-black">
+            <td class="p-1.5 border-r border-black text-center font-mono font-medium">1</td>
+            <td class="p-1.5 border-r border-black font-mono font-bold text-slate-500">LOT-S-01</td>
+            <td class="p-1.5 border-r border-black text-right font-mono text-slate-400">--</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold text-blue-600">500 PCS</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold text-green-600">100 PCS</td>
+            <td class="p-1.5 text-center font-bold text-emerald-600">✔ 合格</td>
+          </tr>
+          <tr class="border-b border-black">
+            <td class="p-1.5 border-r border-black text-center font-mono font-medium">2</td>
+            <td class="p-1.5 border-r border-black font-mono font-bold text-slate-800">LOT-S-02</td>
+            <td class="p-1.5 border-r border-black text-right font-mono text-slate-400">--</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold text-blue-600">500 PCS</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold text-green-600">100 PCS</td>
+            <td class="p-1.5 text-center font-bold text-emerald-600">✔ 合格</td>
+          </tr>
+        `,
+        sampleBody: `
+          <tr class="border-b border-black">
+            <td class="p-1.5 border-r border-black text-center font-mono font-medium">1</td>
+            <td class="p-1.5 border-r border-black text-emerald-600 font-bold flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-sm inline-block"></span>
+              合格 (Pass)
+            </td>
+            <td class="p-1.5 border-r border-black font-mono">LOT-S-01</td>
+            <td class="p-1.5 border-r border-black text-right font-mono">1.200 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono">200.0 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono text-slate-400">--</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold text-blue-600">
+              300.0 mm <span class="text-[9px] text-green-600">(0.0%)</span>
+            </td>
+            <td class="p-1.5 border-r border-black text-right font-mono text-slate-400">--</td>
+            <td class="p-1.5 text-center font-bold text-emerald-600">合格</td>
+          </tr>
+          <tr class="border-b border-black">
+            <td class="p-1.5 border-r border-black text-center font-mono font-medium">2</td>
+            <td class="p-1.5 border-r border-black text-emerald-600 font-bold flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-sm inline-block"></span>
+              合格 (Pass)
+            </td>
+            <td class="p-1.5 border-r border-black font-mono">LOT-S-02</td>
+            <td class="p-1.5 border-r border-black text-right font-mono">1.201 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono">200.2 mm</td>
+            <td class="p-1.5 border-r border-black text-right font-mono text-slate-400">--</td>
+            <td class="p-1.5 border-r border-black text-right font-mono font-bold text-blue-600">
+              300.5 mm <span class="text-[9px] text-green-600">(+0.2%)</span>
+            </td>
+            <td class="p-1.5 border-r border-black text-right font-mono text-slate-400">--</td>
+            <td class="p-1.5 text-center font-bold text-emerald-600">合格</td>
+          </tr>
+        `
+      }
+    };
+
+    function toggleMaterialForm(form) {
+      const data = materialsData[form];
+      document.getElementById('matName').innerText = data.matName;
+      document.getElementById('matSpec').innerText = data.matSpec;
+      document.getElementById('totalQty').innerText = data.totalQty;
+      
+      document.getElementById('thGroupCore').innerText = data.thGroupCore;
+      document.getElementById('thGroupAllocated').innerText = data.thGroupAllocated;
+      document.getElementById('thOuterDia').innerText = data.thOuterDia;
+      document.getElementById('thLength').innerText = data.thLength;
+      document.getElementById('thCoreDia').innerText = data.thCoreDia;
+
+      document.getElementById('sumAllocated').innerText = data.sumAllocated;
+      document.getElementById('sumSampled').innerText = data.sumSampled;
+
+      document.getElementById('groupTableBody').innerHTML = data.groupBody;
+      document.getElementById('sampleTableBody').innerHTML = data.sampleBody;
+
+      // 按鈕樣式切換
+      const isRoll = form === 'R';
+      document.getElementById('btnRoll').className = isRoll
+        ? "px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-all duration-200 bg-indigo-600 text-white hover:bg-indigo-700"
+        : "px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-all duration-200 bg-slate-100 dark:bg-zinc-700 text-slate-700 dark:text-zinc-200 hover:bg-slate-200 dark:hover:bg-zinc-600";
+      
+      document.getElementById('btnSheet').className = !isRoll
+        ? "px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-all duration-200 bg-indigo-600 text-white hover:bg-indigo-700"
+        : "px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-all duration-200 bg-slate-100 dark:bg-zinc-700 text-slate-700 dark:text-zinc-200 hover:bg-slate-200 dark:hover:bg-zinc-600";
+    }
+
+    // 暗黑模式控制
+    let isDarkMode = false;
+    function toggleTheme() {
+      isDarkMode = !isDarkMode;
+      const body = document.getElementById('bodyNode');
+      const page = document.getElementById('pdfPage');
+      const themeIcon = document.getElementById('themeIcon');
+      
+      if (isDarkMode) {
+        body.classList.add('dark', 'bg-zinc-950');
+        page.classList.add('bg-zinc-900', 'text-zinc-100', 'border-zinc-800');
+        page.style.backgroundColor = '#18181b';
+        page.style.color = '#f4f4f5';
+        themeIcon.setAttribute('data-lucide', 'sun');
+      } else {
+        body.classList.remove('dark', 'bg-zinc-950');
+        page.classList.remove('bg-zinc-900', 'text-zinc-100', 'border-zinc-800');
+        page.style.backgroundColor = '#ffffff';
+        page.style.color = '#0f172a';
+        themeIcon.setAttribute('data-lucide', 'moon');
+      }
+      lucide.createIcons();
+    }
+  </script>
+</body>
+</html>

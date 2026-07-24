@@ -357,5 +357,25 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   color: var(--ant-color-primary, #1677ff) !important;
 }
 
+/* === Autofill Overrides (暗色模式防自動填入黃色背景 Bug) === */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #0F172A inset !important;
+  -webkit-text-fill-color: #f8fafc !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+:where(.dark, .dark *) input:-webkit-autofill,
+:where(.dark, .dark *) input:-webkit-autofill:hover,
+:where(.dark, .dark *) input:-webkit-autofill:focus,
+:where(.dark, .dark *) input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #0F172A inset !important;
+  -webkit-text-fill-color: #f8fafc !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+
 
 
