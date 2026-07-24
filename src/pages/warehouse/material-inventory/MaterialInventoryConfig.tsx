@@ -2,7 +2,7 @@ import type { TableColumnConfig, SearchFieldConfig } from "@/components/Form/typ
 import type { 
   MaterialInventoryTransactionDto 
 } from "@/api/generated/types.gen";
-import { Tag, Tooltip, Button } from "antd";
+import { Tag, Tooltip, Button, Space } from "antd";
 import dayjs from "dayjs";
 
 // 輔助函式：安全格式化小數，防範 string 或 null 造成 toFixed 崩潰
@@ -400,7 +400,8 @@ export const rollSearchFields: SearchFieldConfig[] = [
 
 export const getRollColumns = (
   onSelectParentBarcode?: (barcode: string) => void,
-  onScrapRoll?: (record: any) => void
+  onScrapRoll?: (record: any) => void,
+  onPrintLabel?: (record: any) => void
 ): TableColumnConfig<any>[] => [
   {
     label: "卷卡號 (LPN)",
@@ -519,6 +520,12 @@ export const getRollColumns = (
     render: (val: string) => val || "-",
   },
   {
+    label: "原廠批號",
+    name: "supplierLotNo",
+    width: 150,
+    render: (val: string) => <span className="font-mono text-slate-800 dark:text-slate-100">{val || "（空白）"}</span>,
+  },
+  {
     label: "母卷條碼",
     name: "parentRollNo",
     width: 180,
@@ -554,23 +561,35 @@ export const getRollColumns = (
   {
     label: "操作",
     name: "action",
-    width: 120,
+    width: 150,
     align: "center",
     render: (_, record: any) => {
       const upper = String(record.rollStatus || '').toUpperCase();
       const canScrap = upper === 'INSTOCK' || upper === 'AVAILABLE';
       
-      if (!canScrap) return "-";
-      
       return (
-        <Button 
-          type="link" 
-          danger 
-          size="small"
-          onClick={() => onScrapRoll && onScrapRoll(record)}
-        >
-          報廢
-        </Button>
+        <Space size={4}>
+          {onPrintLabel && (
+            <Button 
+              type="link" 
+              size="small"
+              onClick={() => onPrintLabel(record)}
+            >
+              列印
+            </Button>
+          )}
+          {canScrap && (
+            <Button 
+              type="link" 
+              danger 
+              size="small"
+              onClick={() => onScrapRoll && onScrapRoll(record)}
+            >
+              報廢
+            </Button>
+          )}
+          {!onPrintLabel && !canScrap && "-"}
+        </Space>
       );
     }
   }

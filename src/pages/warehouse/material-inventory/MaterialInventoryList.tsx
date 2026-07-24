@@ -18,6 +18,8 @@ import {
   rollStateOptions, 
   transactionTypeOptions 
 } from './MaterialInventoryConfig';
+import { useFileDownload } from '@/hooks/useFileDownload';
+import { client } from '@/api/generated/client.gen';
 import StandardErpTable from '@/components/Table/StandardErpTable';
 import { DictSelect } from '@/components/Form/DictSelect';
 import { buildTableColumns } from '@/utils/tableUtils';
@@ -439,6 +441,23 @@ export default function MaterialInventoryList() {
     });
   };
 
+  const { downloadFile } = useFileDownload();
+
+  const handlePrintLabel = (record: any) => {
+    const rollNo = record.rollNo;
+    if (!rollNo) return;
+    downloadFile({
+      apiFunction: () =>
+        client.get({
+          url: `/api/v1/IqcInspection/rolls/${rollNo}/label-pdf`,
+          responseType: "blob",
+        }),
+      successMessage: `LPN ${rollNo} 標籤補印 PDF 導出成功！`,
+      filename: `LABEL-${rollNo}.pdf`,
+      openInNewTab: true,
+    });
+  };
+
   // ============================================================================
   // Tab 切換與更新
   // ============================================================================
@@ -451,8 +470,8 @@ export default function MaterialInventoryList() {
 
   const isFetchingActiveTab = rollLogicalLoading || sheetLogicalLoading || rollLoading || txLoading;
 
-  // 實體卷卡列表 Columns 注入母卷追溯事件與手動報廢事件
-  const rollColumns = useMemo(() => buildTableColumns(getRollColumns(handleSelectParentBarcode, handleScrapRoll)), [handleSelectParentBarcode]);
+  // 實體卷卡列表 Columns 注入母卷追溯事件、手動報廢事件與補印標籤事件
+  const rollColumns = useMemo(() => buildTableColumns(getRollColumns(handleSelectParentBarcode, handleScrapRoll, handlePrintLabel)), [handleSelectParentBarcode]);
   const rollLogicalColumns = useMemo(() => buildTableColumns(getRollLogicalColumns()), []);
   const sheetLogicalColumns = useMemo(() => buildTableColumns(getSheetLogicalColumns()), []);
   const txColumns = useMemo(() => buildTableColumns(getTxColumns()), []);
