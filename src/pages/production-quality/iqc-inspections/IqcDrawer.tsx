@@ -795,15 +795,16 @@ export default function IqcDrawer({
 
     const groupsPayload = tempSheetLots.map((lot, idx) => {
       const cleanLotNo = (lot.supplierLotNo || "").trim().toUpperCase();
+      const matchLotNo = cleanLotNo || "NO-LOT";
       
       const lotRolls = balancedRolls.filter((r: any) => {
-        const rLotNo = (r.supplierLotNo || "").trim().toUpperCase();
+        const rLotNo = (r.supplierLotNo || "").trim().toUpperCase() || "NO-LOT";
         if (isRollMaterial) {
           const rCoreDia = r.measuredCoreDiaMm ?? headerCoreDia ?? 86;
           const lotCoreDia = lot.measuredCoreDiaMm ?? headerCoreDia ?? 86;
-          return rLotNo === cleanLotNo && Math.abs(rCoreDia - lotCoreDia) < 0.01;
+          return rLotNo === matchLotNo && Math.abs(rCoreDia - lotCoreDia) < 0.01;
         } else {
-          return rLotNo === cleanLotNo;
+          return rLotNo === matchLotNo;
         }
       });
 
@@ -1456,15 +1457,16 @@ export default function IqcDrawer({
 
     const groupsPayload = tempSheetLots.map((lot, idx) => {
       const cleanLotNo = (lot.supplierLotNo || "").trim().toUpperCase();
+      const matchLotNo = cleanLotNo || "NO-LOT";
       
       const lotRolls = balancedRolls.filter((r: any) => {
-        const rLotNo = (r.supplierLotNo || "").trim().toUpperCase();
+        const rLotNo = (r.supplierLotNo || "").trim().toUpperCase() || "NO-LOT";
         if (isRollMaterial) {
           const rCoreDia = r.measuredCoreDiaMm ?? headerCoreDia ?? 86;
           const lotCoreDia = lot.measuredCoreDiaMm ?? headerCoreDia ?? 86;
-          return rLotNo === cleanLotNo && Math.abs(rCoreDia - lotCoreDia) < 0.01;
+          return rLotNo === matchLotNo && Math.abs(rCoreDia - lotCoreDia) < 0.01;
         } else {
-          return rLotNo === cleanLotNo;
+          return rLotNo === matchLotNo;
         }
       });
 
@@ -1844,9 +1846,10 @@ export default function IqcDrawer({
         align: "left" as const,
         render: (val: string, record: any) => {
           if (!isRollMaterial) {
+            const displayVal = val === "NO-LOT" ? "" : val;
             return (
-              <Text strong className="font-mono text-blue-600">
-                {val || <span className="text-slate-400">（待分配）</span>}
+              <Text strong className={displayVal ? "font-mono text-blue-600" : "font-mono text-slate-400 font-normal"}>
+                {displayVal || "（空白）"}
               </Text>
             );
           }
