@@ -1836,29 +1836,30 @@ export default function IqcDrawer({
         key: "supplierLotNo",
         width: 220,
         align: "left" as const,
+        onCell: (record: any) => {
+          const custom = isCustomAppearance(record);
+          return {
+            colSpan: custom ? (isRollMaterial ? 5 : 4) : 1,
+          };
+        },
         render: (val: string, record: any) => {
           const custom = isCustomAppearance(record);
           if (custom) {
             const customDescItem = record.inspectionItems?.find((i: any) => i.itemCode === "appearance_desc");
             const customDesc = customDescItem?.measuredValue || "";
-            return {
-              children: (
-                <Input
-                  size="small"
-                  disabled={isReadOnly}
-                  placeholder="請輸入自訂外觀敘述描述"
-                  value={customDesc}
-                  onFocus={(e) => e.target.select()}
-                  onChange={(e) => {
-                    handleMeasuredItemValueChange(record.rollNo, "appearance_desc", e.target.value);
-                  }}
-                  className="w-full text-xs font-mono border-amber-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 bg-amber-50/20 dark:bg-amber-950/10 text-[var(--ant-color-text)]"
-                />
-              ),
-              props: {
-                colSpan: isRollMaterial ? 5 : 4,
-              }
-            };
+            return (
+              <Input
+                size="small"
+                disabled={isReadOnly}
+                placeholder="請輸入自訂外觀敘述描述"
+                value={customDesc}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => {
+                  handleMeasuredItemValueChange(record.rollNo, "appearance_desc", e.target.value);
+                }}
+                className="w-full text-xs font-mono border-amber-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 bg-amber-50/20 dark:bg-amber-950/10 text-[var(--ant-color-text)]"
+              />
+            );
           }
 
           const children = !isRollMaterial ? (() => {
@@ -1901,12 +1902,7 @@ export default function IqcDrawer({
             );
           })();
 
-          return {
-            children,
-            props: {
-              colSpan: 1,
-            }
-          };
+          return children;
         }
       },
       // 3. 實測厚度
@@ -1915,32 +1911,22 @@ export default function IqcDrawer({
         key: "thickness",
         width: 130,
         align: "center" as const,
+        onCell: (record: any) => ({
+          colSpan: isCustomAppearance(record) ? 0 : 1,
+        }),
         render: (_: any, record: any) => {
-          const custom = isCustomAppearance(record);
-          if (custom) {
-            return {
-              children: null,
-              props: {
-                colSpan: 0,
-              }
-            };
-          }
+          if (isCustomAppearance(record)) return null;
 
           const rollItem = record.inspectionItems?.find((i: any) => i.itemCode === "thickness");
-          return {
-            children: (
-              <MeasuredInput
-                rollNo={record.rollNo}
-                itemCode="thickness"
-                initialValue={rollItem?.measuredValue ?? ""}
-                isReadOnly={isReadOnly}
-                onChange={handleMeasuredItemValueChange}
-              />
-            ),
-            props: {
-              colSpan: 1,
-            }
-          };
+          return (
+            <MeasuredInput
+              rollNo={record.rollNo}
+              itemCode="thickness"
+              initialValue={rollItem?.measuredValue ?? ""}
+              isReadOnly={isReadOnly}
+              onChange={handleMeasuredItemValueChange}
+            />
+          );
         }
       },
       // 4. 實測寬度
@@ -1949,32 +1935,22 @@ export default function IqcDrawer({
         key: "width",
         width: 130,
         align: "center" as const,
+        onCell: (record: any) => ({
+          colSpan: isCustomAppearance(record) ? 0 : 1,
+        }),
         render: (_: any, record: any) => {
-          const custom = isCustomAppearance(record);
-          if (custom) {
-            return {
-              children: null,
-              props: {
-                colSpan: 0,
-              }
-            };
-          }
+          if (isCustomAppearance(record)) return null;
 
           const rollItem = record.inspectionItems?.find((i: any) => i.itemCode === "width");
-          return {
-            children: (
-              <MeasuredInput
-                rollNo={record.rollNo}
-                itemCode="width"
-                initialValue={rollItem?.measuredValue ?? ""}
-                isReadOnly={isReadOnly}
-                onChange={handleMeasuredItemValueChange}
-              />
-            ),
-            props: {
-              colSpan: 1,
-            }
-          };
+          return (
+            <MeasuredInput
+              rollNo={record.rollNo}
+              itemCode="width"
+              initialValue={rollItem?.measuredValue ?? ""}
+              isReadOnly={isReadOnly}
+              onChange={handleMeasuredItemValueChange}
+            />
+          );
         }
       }
     ];
@@ -1987,45 +1963,35 @@ export default function IqcDrawer({
         key: "measuredOuterDiaMm",
         width: 150,
         align: "right" as const,
+        onCell: (record: any) => ({
+          colSpan: isCustomAppearance(record) ? 0 : 1,
+        }),
         render: (val: number, record: any) => {
-          const custom = isCustomAppearance(record);
-          if (custom) {
-            return {
-              children: null,
-              props: {
-                colSpan: 0,
-              }
-            };
-          }
+          if (isCustomAppearance(record)) return null;
 
-          return {
-            children: (
-              <InputNumber
-                size="small"
-                value={val !== undefined && val !== null ? val : 250.0}
-                placeholder="實測外徑"
-                disabled={isReadOnly}
-                min={0}
-                precision={1}
-                onFocus={(e) => e.target.select()}
-                onChange={(num) => {
-                  setRolls((prevRolls) =>
-                    prevRolls.map((r) => {
-                      if (r.rollNo === record.rollNo) {
-                        const updated = { ...r, measuredOuterDiaMm: num || 250.0 };
-                        return recalculateRollLengthForRoll(updated, detail?.standardThickness);
-                      }
-                      return r;
-                    })
-                  );
-                }}
-                className="font-mono text-right"
-              />
-            ),
-            props: {
-              colSpan: 1,
-            }
-          };
+          return (
+            <InputNumber
+              size="small"
+              value={val !== undefined && val !== null ? val : 250.0}
+              placeholder="實測外徑"
+              disabled={isReadOnly}
+              min={0}
+              precision={1}
+              onFocus={(e) => e.target.select()}
+              onChange={(num) => {
+                setRolls((prevRolls) =>
+                  prevRolls.map((r) => {
+                    if (r.rollNo === record.rollNo) {
+                      const updated = { ...r, measuredOuterDiaMm: num || 250.0 };
+                      return recalculateRollLengthForRoll(updated, detail?.standardThickness);
+                    }
+                    return r;
+                  })
+                );
+              }}
+              className="font-mono text-right"
+            />
+          );
         }
       });
 
@@ -2035,16 +2001,11 @@ export default function IqcDrawer({
         key: "length",
         width: 140,
         align: "right" as const,
+        onCell: (record: any) => ({
+          colSpan: isCustomAppearance(record) ? 0 : 1,
+        }),
         render: (_: any, record: any) => {
-          const custom = isCustomAppearance(record);
-          if (custom) {
-            return {
-              children: null,
-              props: {
-                colSpan: 0,
-              }
-            };
-          }
+          if (isCustomAppearance(record)) return null;
 
           const Do = record.measuredOuterDiaMm ?? 250.0;
           const DiItem = record.inspectionItems?.find((i: any) => i.itemCode === "core_dia");
@@ -2058,21 +2019,16 @@ export default function IqcDrawer({
             ? Math.round(((calculatedMeters - stdLength) / stdLength) * 1000) / 10
             : 0;
 
-          return {
-            children: (
-              <div className="font-mono text-right font-bold text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-200/50 dark:border-blue-800/50">
-                <span>{calculatedMeters} M</span>
-                {calculatedMeters > 0 && (
-                  <span className={`ml-1 text-[9px] font-semibold ${deviation >= 0 ? "text-green-600 dark:text-green-400" : "text-rose-600 dark:text-rose-400"}`}>
-                    ({deviation >= 0 ? "+" : ""}{deviation}%)
-                  </span>
-                )}
-              </div>
-            ),
-            props: {
-              colSpan: 1,
-            }
-          };
+          return (
+            <div className="font-mono text-right font-bold text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-200/50 dark:border-blue-800/50">
+              <span>{calculatedMeters} M</span>
+              {calculatedMeters > 0 && (
+                <span className={`ml-1 text-[9px] font-semibold ${deviation >= 0 ? "text-green-600 dark:text-green-400" : "text-rose-600 dark:text-rose-400"}`}>
+                  ({deviation >= 0 ? "+" : ""}{deviation}%)
+                </span>
+              )}
+            </div>
+          );
         }
       });
 
@@ -2082,32 +2038,22 @@ export default function IqcDrawer({
         key: "core_dia",
         width: 130,
         align: "center" as const,
+        onCell: (record: any) => ({
+          colSpan: isCustomAppearance(record) ? 0 : 1,
+        }),
         render: (_: any, record: any) => {
-          const custom = isCustomAppearance(record);
-          if (custom) {
-            return {
-              children: null,
-              props: {
-                colSpan: 0,
-              }
-            };
-          }
+          if (isCustomAppearance(record)) return null;
 
           const rollItem = record.inspectionItems?.find((i: any) => i.itemCode === "core_dia");
-          return {
-            children: (
-              <MeasuredInput
-                rollNo={record.rollNo}
-                itemCode="core_dia"
-                initialValue={rollItem?.measuredValue ?? ""}
-                isReadOnly={isReadOnly}
-                onChange={handleMeasuredItemValueChange}
-              />
-            ),
-            props: {
-              colSpan: 1,
-            }
-          };
+          return (
+            <MeasuredInput
+              rollNo={record.rollNo}
+              itemCode="core_dia"
+              initialValue={rollItem?.measuredValue ?? ""}
+              isReadOnly={isReadOnly}
+              onChange={handleMeasuredItemValueChange}
+            />
+          );
         }
       });
     } else {
@@ -2117,32 +2063,22 @@ export default function IqcDrawer({
         key: "length",
         width: 130,
         align: "center" as const,
+        onCell: (record: any) => ({
+          colSpan: isCustomAppearance(record) ? 0 : 1,
+        }),
         render: (_: any, record: any) => {
-          const custom = isCustomAppearance(record);
-          if (custom) {
-            return {
-              children: null,
-              props: {
-                colSpan: 0,
-              }
-            };
-          }
+          if (isCustomAppearance(record)) return null;
 
           const rollItem = record.inspectionItems?.find((i: any) => i.itemCode === "length");
-          return {
-            children: (
-              <MeasuredInput
-                rollNo={record.rollNo}
-                itemCode="length"
-                initialValue={rollItem?.measuredValue ?? ""}
-                isReadOnly={isReadOnly}
-                onChange={handleMeasuredItemValueChange}
-              />
-            ),
-            props: {
-              colSpan: 1,
-            }
-          };
+          return (
+            <MeasuredInput
+              rollNo={record.rollNo}
+              itemCode="length"
+              initialValue={rollItem?.measuredValue ?? ""}
+              isReadOnly={isReadOnly}
+              onChange={handleMeasuredItemValueChange}
+            />
+          );
         }
       });
     }
