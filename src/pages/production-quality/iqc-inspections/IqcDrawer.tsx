@@ -1969,6 +1969,7 @@ export default function IqcDrawer({
             disabled={isReadOnly}
             min={0}
             precision={1}
+            style={{ width: "100%" }}
             onFocus={(e) => e.target.select()}
             onChange={(num) => {
               setRolls((prevRolls) =>
