@@ -1,8 +1,51 @@
 import type { TableColumnConfig } from '@/components/Form/types';
-import { Tag, Input, InputNumber } from 'antd';
+import { Tag, Input, InputNumber, Select } from 'antd';
 import dayjs from 'dayjs';
 import { AsyncSelect } from '@/components/Form/AsyncSelect';
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getApiV1Employee } from '@/api/generated';
+
+const EmployeeSelect: React.FC<{
+  value?: string;
+  disabled?: boolean;
+  onChange?: (val: string) => void;
+}> = ({ value, disabled, onChange }) => {
+  const { data: employees, isLoading } = useQuery({
+    queryKey: ['all-employees'],
+    queryFn: async () => {
+      const res = await getApiV1Employee({
+        query: { pageSize: -1 } as any
+      });
+      return (res.data as any)?.data?.data || (res.data as any)?.data || [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const options = useMemo(() => {
+    if (!employees) return [];
+    return employees
+      .filter((e: any) => e.status === "Active" || e.status === "正常" || e.status === 1 || !e.status)
+      .map((e: any) => ({
+        label: `${e.name} (${e.employeeNo})`,
+        value: e.employeeNo,
+      }));
+  }, [employees]);
+
+  return (
+    <Select
+      showSearch
+      loading={isLoading}
+      placeholder="請選擇品檢人員"
+      value={value || undefined}
+      disabled={disabled}
+      onChange={onChange}
+      options={options}
+      optionFilterProp="label"
+      className="w-full focus:ring-2 focus:ring-blue-400 focus:outline-none"
+    />
+  );
+};
 
 export const iqcSearchConfig = (): any[] => [
   {
@@ -242,12 +285,9 @@ export const getIqcFormFields = (ctx: {
       colSpan: 4,
       required: true,
       customRender: (props: any) => (
-        <AsyncSelect
-          configKey="EMPLOYEE"
-          placeholder="請選擇或搜尋員工"
+        <EmployeeSelect
           value={props.value || inspectorId}
           disabled={isReadOnly}
-          className="w-full focus:ring-2 focus:ring-blue-400 focus:outline-none"
           onChange={(val) => {
             setInspectorId(val);
             props.onChange(val);
