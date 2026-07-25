@@ -1318,54 +1318,111 @@ export default function IqcDrawer({
       const r = displayedRolls[i];
       const nameLabel = isRollMaterial ? `第 ${r.seq} 卷` : `第 ${r.seq} 包/片`;
 
-      if (isRollMaterial) {
+      const rollItem = r.inspectionItems?.find((itm: any) => itm.itemCode === "appearance");
+      const appearanceVal = rollItem?.measuredValue || "Pass";
+      const isCustom = appearanceVal === "Custom";
+
+      if (isCustom) {
+        // 💡 自訂外觀異常情境：強制檢核「自訂外觀敘述」不可為空
+        const customDescItem = r.inspectionItems?.find((itm: any) => itm.itemCode === "appearance_desc");
+        if (!customDescItem?.measuredValue || customDescItem.measuredValue.trim() === "") {
+          message.warning(`請輸入 ${nameLabel} 的「自訂外觀異常描述」`);
+          return false;
+        }
+      } else {
+        // 💡 正常量測情境：每個抽樣實測數據都不可為空且必須大於 0
+
+        // 1. 實測厚度 (Roll / Sheet 皆有)
         if (
-          r.actualQtyAux === null ||
-          r.actualQtyAux === undefined ||
-          r.actualQtyAux === ""
+          r.measuredThicknessMm === null ||
+          r.measuredThicknessMm === undefined ||
+          r.measuredThicknessMm === ""
         ) {
-          message.warning(`請輸入 ${nameLabel} 的「實測數量」`);
+          message.warning(`請輸入 ${nameLabel} 的「實測厚度」`);
+          return false;
+        }
+        if (Number(r.measuredThicknessMm) <= 0) {
+          message.warning(`${nameLabel} 的「實測厚度」必須大於 0`);
           return false;
         }
 
-        if (Number(r.actualQtyAux) <= 0) {
-          message.warning(`${nameLabel} 的「實測數量」必須大於 0`);
+        // 2. 實測寬度 (Roll / Sheet 皆有)
+        const widthItem = r.inspectionItems?.find((itm: any) => itm.itemCode === "width");
+        const widthVal = widthItem?.measuredValue;
+        if (widthVal === null || widthVal === undefined || String(widthVal).trim() === "") {
+          message.warning(`請輸入 ${nameLabel} 的「實測寬度」`);
           return false;
+        }
+        if (Number(widthVal) <= 0) {
+          message.warning(`${nameLabel} 的「實測寬度」必須大於 0`);
+          return false;
+        }
+
+        if (isRollMaterial) {
+          // 3. 實測數量 (Roll 專屬)
+          if (
+            r.actualQtyAux === null ||
+            r.actualQtyAux === undefined ||
+            r.actualQtyAux === ""
+          ) {
+            message.warning(`請輸入 ${nameLabel} 的「實測數量」`);
+            return false;
+          }
+          if (Number(r.actualQtyAux) <= 0) {
+            message.warning(`${nameLabel} 的「實測數量」必須大於 0`);
+            return false;
+          }
+
+          // 4. 內管芯外徑 (Roll 專屬)
+          if (
+            r.measuredCoreDiaMm === null ||
+            r.measuredCoreDiaMm === undefined ||
+            r.measuredCoreDiaMm === ""
+          ) {
+            message.warning(`請輸入 ${nameLabel} 的「內管芯外徑」`);
+            return false;
+          }
+          if (Number(r.measuredCoreDiaMm) <= 0) {
+            message.warning(`${nameLabel} 的「內管芯外徑」必須大於 0`);
+            return false;
+          }
+
+          // 5. 實測外徑 (Roll 專屬)
+          if (
+            r.measuredOuterDiaMm === null ||
+            r.measuredOuterDiaMm === undefined ||
+            r.measuredOuterDiaMm === ""
+          ) {
+            message.warning(`請輸入 ${nameLabel} 的「實測外徑」`);
+            return false;
+          }
+          if (Number(r.measuredOuterDiaMm) <= 0) {
+            message.warning(`${nameLabel} 的「實測外徑」必須大於 0`);
+            return false;
+          }
+        } else {
+          // 6. 實測長度 (Sheet 專屬)
+          const lengthItem = r.inspectionItems?.find((itm: any) => itm.itemCode === "length");
+          const lengthVal = lengthItem?.measuredValue;
+          if (lengthVal === null || lengthVal === undefined || String(lengthVal).trim() === "") {
+            message.warning(`請輸入 ${nameLabel} 的「實測長度」`);
+            return false;
+          }
+          if (Number(lengthVal) <= 0) {
+            message.warning(`${nameLabel} 的「實測長度」必須大於 0`);
+            return false;
+          }
         }
       }
 
-      if (
-        r.measuredThicknessMm === null ||
-        r.measuredThicknessMm === undefined ||
-        r.measuredThicknessMm === ""
-      ) {
-        message.warning(`請輸入 ${nameLabel} 的「實測厚度」`);
-        return false;
-      }
-
-      if (Number(r.measuredThicknessMm) <= 0) {
-        message.warning(`${nameLabel} 的「實測厚度」必須大於 0`);
-        return false;
-      }
-
-      if (isRollMaterial) {
-        if (
-          r.measuredCoreDiaMm === null ||
-          r.measuredCoreDiaMm === undefined ||
-          r.measuredCoreDiaMm === ""
-        ) {
-          message.warning(`請輸入 ${nameLabel} 的「實測紙管」`);
-          return false;
-        }
-        if (Number(r.measuredCoreDiaMm) <= 0) {
-          message.warning(`${nameLabel} 的「實測紙管」必須大於 0`);
-          return false;
-        }
-      }
-
-      // 檢核品檢細項參數
+      // 檢核品檢細項參數 (排除隱藏的外觀描述項目以及隱藏的其他欄位)
       for (let j = 0; j < r.inspectionItems.length; j++) {
         const item = r.inspectionItems[j];
+        // 如果是外觀描述項目，且外觀判定不是自訂敘述，則不檢核
+        if (item.itemCode === "appearance_desc" && !isCustom) continue;
+        // 如果是厚度/寬度/長度/管芯，且外觀判定是自訂敘述，則屬於隱藏欄位不檢核
+        if (isCustom && ["thickness", "width", "length", "core_dia", "measuredOuterDiaMm"].includes(item.itemCode)) continue;
+
         if (!item.measuredValue || item.measuredValue.trim() === "") {
           message.warning(
             `請填寫 ${nameLabel} 檢驗項目【${item.itemName}】的「實測值」`,
