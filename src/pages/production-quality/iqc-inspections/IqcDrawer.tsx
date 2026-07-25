@@ -982,65 +982,7 @@ export default function IqcDrawer({
     [isReadOnly],
   );
 
-  const handleAddSheetRow = useCallback(() => {
-    if (isReadOnly || !detail) return;
-    setRolls((prevRolls) => {
-      const templateRoll = prevRolls[0] || {
-        measuredThicknessMm: detail.standardThickness ?? 0.05,
-        measuredCoreDiaMm: null,
-        lengthMm: detail.standardLength,
-        isOk: true,
-        disposition: "Concession",
-        responsibleParty: detail.supplierCode,
-        inspectionItems: [],
-      };
-      const newSeq = prevRolls.length + 1;
-      const rollNo = `${detail.lotNo}-S${newSeq.toString().padStart(2, "0")}`;
-      
-      const newRow = {
-        seq: newSeq,
-        rollNo: rollNo,
-        actualQtyAux: 0, // 新增行預設 0 PCS
-        supplierLotNo: "", // 預設空
-        isOk: true,
-        measuredThicknessMm: templateRoll.measuredThicknessMm,
-        measuredCoreDiaMm: null,
-        lengthMm: templateRoll.lengthMm,
-        disposition: undefined,
-        responsibleParty: undefined,
-        inspectionItems: (templateRoll.inspectionItems || []).map((itm: any) => ({
-          ...itm,
-          measuredValue: "",
-          isOk: true,
-        })),
-      };
-      const updated = [...prevRolls, newRow];
-      setSampleSize(updated.length);
-      return updated;
-    });
-  }, [isReadOnly, detail]);
 
-  const handleDeleteSheetRow = useCallback((targetRollNo: string) => {
-    if (isReadOnly || !detail) return;
-    setRolls((prevRolls) => {
-      if (prevRolls.length <= 1) {
-        message.warning("至少必須保留一組原廠批號進行品質判定！");
-        return prevRolls;
-      }
-      const filtered = prevRolls.filter((r) => r.rollNo !== targetRollNo);
-      const reordered = filtered.map((r, index) => {
-        const newSeq = index + 1;
-        const rollNo = `${detail.lotNo}-S${newSeq.toString().padStart(2, "0")}`;
-        return {
-          ...r,
-          seq: newSeq,
-          rollNo: rollNo
-        };
-      });
-      setSampleSize(reordered.length);
-      return reordered;
-    });
-  }, [isReadOnly, detail]);
 
   // 3.5 重置為待檢驗狀態之 Mutation (真正呼叫後端 API 進行資料庫清空重置)
   const resetMutation = useMutation({
@@ -2256,23 +2198,7 @@ export default function IqcDrawer({
       ),
     });
 
-    if (!isRollMaterial && !isReadOnly) {
-      baseCols.push({
-        title: "操作",
-        key: "action",
-        width: 70,
-        align: "center" as const,
-        render: (_: any, record: any) => (
-          <Button
-            type="text"
-            danger
-            size="small"
-            icon={<DeleteOutlined />}
-            onClick={() => handleDeleteSheetRow(record.rollNo)}
-          />
-        )
-      });
-    }
+
 
     if (isReadOnlyPermanent) {
       baseCols.push({
@@ -2309,8 +2235,7 @@ export default function IqcDrawer({
     sheetLots,
     headerCoreDia,
     calculateRollLength,
-    recalculateRollLengthForRoll,
-    handleDeleteSheetRow
+    recalculateRollLengthForRoll
   ]);
 
   const totalLength = useMemo(() => {
@@ -2643,18 +2568,7 @@ export default function IqcDrawer({
                   </Space>
 
                   <Space size="middle" className="text-xs">
-                    {!isRollMaterial && !isReadOnly && (
-                      <Button
-                        type="primary"
-                        size="small"
-                        icon={<PlusOutlined />}
-                        onClick={handleAddSheetRow}
-                        className="bg-blue-600 hover:bg-blue-500 font-bold hover:text-white"
-                        style={{ color: "#fff" }}
-                      >
-                        新增原廠批號行
-                      </Button>
-                    )}
+
                     <Badge
                       status="default"
                       text={isRollMaterial ? `總數: ${detail.rollCount} 卷` : `進貨總片數: ${detail.rollCount?.toLocaleString()} PCS`}
