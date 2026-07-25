@@ -2383,65 +2383,9 @@ export default function IqcDrawer({
                       品質檢驗抽樣與實測量表
                     </Text>
                     <Divider vertical className="border-slate-300" />
-                    {!isReadOnly && (detail?.inspectionStatus === "Pending" || detail?.inspectionStatus === "FullInspecting") ? (
-                      <Space size="small">
-                        <Text type="secondary" className="text-xs">
-                          抽檢數量 ({unitLabel}):
-                        </Text>
-                        <InputNumber
-                          min={1}
-                          max={isRollMaterial ? (detail?.rollCount || 1000) : 100000}
-                          size="small"
-                          value={sampleCount}
-                          onFocus={(e) => e.target.select()}
-                          onChange={(v) => {
-                            if (v !== null && v !== undefined) {
-                              setSampleSize(v);
-                              if (!isRollMaterial) {
-                                setSheetLots(prev => distributeSampleSizeToLotsHelper(v, prev));
-                              }
-                            }
-                          }}
-                          style={{ width: 80 }}
-                        />
-                        <Space size={4} className="ml-1 bg-[var(--ant-color-fill-alter)] px-2 py-0.5 rounded border border-[var(--ant-color-border-secondary)]">
-                          <span className="text-[10px] text-slate-400 font-medium">快捷比例:</span>
-                          {(isRollMaterial ? [10, 30, 50, 100] : [1, 5, 10, 100]).map((pct) => {
-                            const calculatedCount = isRollMaterial
-                              ? Math.min(
-                                  detail?.rollCount || 1,
-                                  Math.max(1, Math.ceil(((detail?.rollCount || 0) * pct) / 100))
-                                )
-                              : 1; // 片料預設不按比例填充，通常自訂
-                            if (!isRollMaterial && pct !== 100) return null; // 片料僅提供 100% 全檢或自訂
-                            return (
-                              <Button
-                                key={pct}
-                                size="small"
-                                type="link"
-                                className="text-[11px] p-0 h-auto font-bold"
-                                onClick={() => {
-                                  if (isRollMaterial) {
-                                    setSampleSize(calculatedCount);
-                                  } else {
-                                    // 片料 100% 全檢：設置數量等於目前原廠批號表格中的行數
-                                    const targetSize = sheetLots.length || 1;
-                                    setSampleSize(targetSize);
-                                    setSheetLots(prev => distributeSampleSizeToLotsHelper(targetSize, prev));
-                                  }
-                                }}
-                              >
-                                {pct === 100 ? "全檢" : `${pct}%`}
-                              </Button>
-                            );
-                          })}
-                        </Space>
-                      </Space>
-                    ) : (
-                      <Text type="secondary" className="text-xs">
-                        抽檢數量: {sampleCount} {unitLabel}
-                      </Text>
-                    )}
+                    <Text type="secondary" className="text-xs font-bold text-blue-500 bg-blue-500/10 dark:bg-blue-950/40 px-2 py-0.5 rounded border border-blue-200/50 dark:border-blue-800/50">
+                      抽檢數量: {sampleCount} {unitLabel}
+                    </Text>
                   </Space>
 
                   <Space size="middle" className="text-xs">
