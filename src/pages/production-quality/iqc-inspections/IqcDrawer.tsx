@@ -357,26 +357,61 @@ export default function IqcDrawer({
         // 💡 內管芯外徑 (Di) 採用 measuredCoreDiaMm
         const coreDiaVal = r.measuredCoreDiaMm ?? rollCoreDia ?? 86;
         
+        // 💡 確保 inspectionItems 中一定包含 thickness, width, core_dia, length, appearance_desc 等基礎量測項
+        const rawItems = r.inspectionItems || [];
+        const requiredCodes = ["thickness", "width", isRollMaterial ? "core_dia" : "length"];
+        const finalItems = [...rawItems];
+
+        requiredCodes.forEach((code) => {
+          if (!finalItems.some((item: any) => item.itemCode === code)) {
+            let valStr = "";
+            if (code === "thickness") valStr = String(r.measuredSampleThicknessMm ?? r.measuredThicknessMm ?? detail.standardThickness ?? 0.05);
+            else if (code === "width") valStr = String(r.measuredWidthMm ?? detail.standardWidth ?? 150);
+            else if (code === "core_dia") valStr = String(coreDiaVal);
+            else if (code === "length") valStr = String(r.measuredLengthMm ?? detail.standardLength ?? 300);
+
+            finalItems.push({
+              itemCode: code,
+              itemName: code === "thickness" ? "厚度(mm)" : code === "width" ? "寬度(mm)" : code === "core_dia" ? "內管芯外徑(mm)" : "長度(mm)",
+              specification: "",
+              measuredValue: valStr,
+              isOk: true,
+            });
+          }
+        });
+
+        // 另外，我們也需要確保厚度和寬度、管芯等 item.measuredValue 如果為空，自動用直接欄位值同步，雙保險防丟失！
+        const mappedItems = finalItems.map((item: any) => {
+          let updatedVal = item.measuredValue;
+          if (item.itemCode === "thickness" && (!updatedVal || updatedVal === "")) {
+            updatedVal = String(r.measuredSampleThicknessMm ?? r.measuredThicknessMm ?? detail.standardThickness ?? 0.05);
+          } else if (item.itemCode === "width" && (!updatedVal || updatedVal === "")) {
+            updatedVal = String(r.measuredWidthMm ?? detail.standardWidth ?? 150);
+          } else if (item.itemCode === "core_dia" && (!updatedVal || updatedVal === "")) {
+            updatedVal = String(coreDiaVal);
+          } else if (item.itemCode === "length" && (!updatedVal || updatedVal === "")) {
+            updatedVal = String(r.measuredLengthMm ?? detail.standardLength ?? 300);
+          }
+          return { ...item, measuredValue: updatedVal };
+        });
+
         const rollObj = {
           ...r,
           actualQtyAux: r.actualQtyAux,
           isOk: r.isOk, // 💡 嚴格讀取資料庫狀態，不判定預設 true！未檢驗時為 null
-          measuredThicknessMm:
-            r.measuredThicknessMm ?? detail.standardThickness ?? 0.05,
+          measuredThicknessMm: r.measuredSampleThicknessMm ?? r.measuredThicknessMm ?? detail.standardThickness ?? 0.05,
+          measuredSampleThicknessMm: r.measuredSampleThicknessMm ?? r.measuredThicknessMm ?? detail.standardThickness ?? 0.05,
+          measuredWidthMm: r.measuredWidthMm ?? detail.standardWidth ?? 150,
           measuredOuterDiaMm: outerDiaVal, // 💡 實測外徑獨立
           measuredCoreDiaMm: coreDiaVal, // 💡 內管芯外徑獨立
           lengthMm: r.lengthMm ?? (isRollMaterial ? null : detail.standardLength),
+          measuredLengthMm: r.measuredLengthMm ?? (isRollMaterial ? null : detail.standardLength),
           disposition: r.disposition || "Concession",
           responsibleParty: r.responsibleParty || detail.supplierCode,
-          inspectionItems: (r.inspectionItems || []).map((item: any) => {
-            if (item.itemCode === "core_dia" && (item.measuredValue === null || item.measuredValue === undefined || item.measuredValue === "")) {
-              return { ...item, measuredValue: coreDiaVal !== null ? String(coreDiaVal) : "" };
-            }
-            return item;
-          }),
+          inspectionItems: mappedItems,
         };
 
-        // 💡 開啟或重置品檢單時，立刻自動即時計算出實測長度並同步到 DTO 狀態
+        // 💡 開氣或重置品檢單時，立刻自動即時計算出實測長度並同步到 DTO 狀態
         return recalculateRollLengthForRoll(rollObj, detail.standardThickness);
       });
       setRolls(initialRolls);
@@ -1946,7 +1981,7 @@ export default function IqcDrawer({
                 })
               );
             }}
-            className="font-mono text-right"
+            className="font-mono text-right w-full"
           />
         )
       });
