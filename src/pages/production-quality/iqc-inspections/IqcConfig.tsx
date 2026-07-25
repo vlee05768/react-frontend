@@ -55,12 +55,6 @@ export const iqcSearchConfig = (): any[] => [
     colSpan: 2,
   },
   {
-    name: 'lotNo',
-    label: 'IQC批號',
-    componentType: 'Input',
-    colSpan: 2,
-  },
-  {
     name: 'inspectionStatus',
     label: '品檢判定',
     componentType: 'Select',
@@ -125,7 +119,14 @@ export const getStatusTag = (status?: string | null) => {
 export const mainTableColumns = (): TableColumnConfig[] => [
   { label: '品檢單號', name: 'iqcRecordId', sortable: { multiple: 1 }, width: 140 },
   { label: '關聯進貨單', name: 'sourceDocNumber', width: 130 },
-  { label: 'IQC批號', name: 'lotNo', sortable: { multiple: 2 }, width: 130 },
+  { 
+    label: '判定狀態', 
+    name: 'inspectionStatus', 
+    sortable: { multiple: 2 },
+    width: 110,
+    align: 'center',
+    render: (status: string) => getStatusTag(status)
+  },
   { 
     label: '料號', 
     name: 'materialCode', 
@@ -167,14 +168,6 @@ export const mainTableColumns = (): TableColumnConfig[] => [
         </span>
       );
     }
-  },
-  { 
-    label: '判定狀態', 
-    name: 'inspectionStatus', 
-    sortable: { multiple: 3 },
-    width: 110,
-    align: 'center',
-    render: (status: string) => getStatusTag(status)
   },
   { 
     label: '抽樣/不合格卷數', 
