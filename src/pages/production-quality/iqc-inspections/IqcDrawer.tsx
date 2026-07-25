@@ -100,7 +100,7 @@ const MeasuredInput = React.memo(
         size="small"
         value={val}
         disabled={isReadOnly}
-        className={`${isText ? "w-full min-w-[180px] text-left px-2" : "w-32 text-center"} focus:ring-2 focus:ring-blue-400 focus:outline-none rounded`}
+        className={`${isText ? "w-full min-w-[180px] text-left px-2" : "w-32 text-left pl-2"} focus:ring-2 focus:ring-blue-400 focus:outline-none rounded`}
         onFocus={(e) => e.target.select()}
         onChange={(e) => setVal(e.target.value)}
         onBlur={handleBlur}
@@ -1918,7 +1918,7 @@ export default function IqcDrawer({
         title: `實測厚度(mm) (${detail?.standardThickness || 0.05}±0.002)`,
         key: "thickness",
         width: 130,
-        align: "center" as const,
+        align: "left" as const,
         render: (_: any, record: any) => {
           const rollItem = record.inspectionItems?.find((i: any) => i.itemCode === "thickness");
           return (
@@ -1937,7 +1937,7 @@ export default function IqcDrawer({
         title: `實測寬度(mm) (${detail?.standardWidth || 150}±0.5)`,
         key: "width",
         width: 130,
-        align: "center" as const,
+        align: "left" as const,
         render: (_: any, record: any) => {
           const rollItem = record.inspectionItems?.find((i: any) => i.itemCode === "width");
           return (
@@ -1960,7 +1960,7 @@ export default function IqcDrawer({
         dataIndex: "measuredOuterDiaMm",
         key: "measuredOuterDiaMm",
         width: 150,
-        align: "right" as const,
+        align: "left" as const,
         render: (val: number, record: any) => (
           <InputNumber
             size="small"
@@ -1982,7 +1982,7 @@ export default function IqcDrawer({
                 })
               );
             }}
-            className="font-mono text-right w-full"
+            className="font-mono text-left pl-2 w-full"
           />
         )
       });
@@ -1992,7 +1992,7 @@ export default function IqcDrawer({
         title: `實測長度(M) (${detail?.standardLength || 300}±5)`,
         key: "length",
         width: 140,
-        align: "right" as const,
+        align: "left" as const,
         render: (_: any, record: any) => {
           const Do = record.measuredOuterDiaMm ?? 250.0;
           const DiItem = record.inspectionItems?.find((i: any) => i.itemCode === "core_dia");
@@ -2007,7 +2007,7 @@ export default function IqcDrawer({
             : 0;
 
           return (
-            <div className="font-mono text-right font-bold text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-200/50 dark:border-blue-800/50">
+            <div className="font-mono text-left pl-2 font-bold text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-200/50 dark:border-blue-800/50">
               <span>{calculatedMeters} M</span>
               {calculatedMeters > 0 && (
                 <span className={`ml-1 text-[9px] font-semibold ${deviation >= 0 ? "text-green-600 dark:text-green-400" : "text-rose-600 dark:text-rose-400"}`}>
@@ -2024,7 +2024,7 @@ export default function IqcDrawer({
         title: `內管芯外徑(mm) (${detail?.measuredCoreDiaMm || 86}±0.2)`,
         key: "core_dia",
         width: 130,
-        align: "center" as const,
+        align: "left" as const,
         render: (_: any, record: any) => {
           const rollItem = record.inspectionItems?.find((i: any) => i.itemCode === "core_dia");
           return (
@@ -2044,7 +2044,7 @@ export default function IqcDrawer({
         title: `實測長度(mm) (${detail?.standardLength || 300}±5)`,
         key: "length",
         width: 130,
-        align: "center" as const,
+        align: "left" as const,
         render: (_: any, record: any) => {
           const rollItem = record.inspectionItems?.find((i: any) => i.itemCode === "length");
           return (
