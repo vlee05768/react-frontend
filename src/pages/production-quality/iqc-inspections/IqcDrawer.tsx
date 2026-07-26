@@ -294,11 +294,32 @@ export default function IqcDrawer({
   });
 
   const detail = response?.data?.data;
+
+  // 💡 根據標準厚度、標準長度與內紙管芯外徑動態反算出「預設實測外徑 (Do)」
+  const defaultOuterDia = useMemo(() => {
+    const Di = detail?.measuredCoreDiaMm ?? 86.0;
+    const L = detail?.standardLength ?? 300.0;
+    const t = detail?.standardThickness ?? 0.050;
+
+    if (!Di || !L || !t || Di <= 0 || L <= 0 || t <= 0) return 250.0;
+    try {
+      const insideSq = Math.pow(Number(Di), 2) + ((Number(L) * 4000.0 * Number(t)) / Math.PI);
+      const Do = Math.sqrt(insideSq);
+      return Math.round(Do * 10) / 10;
+    } catch {
+      return 250.0;
+    }
+  }, [detail]);
+
   const currentStatus = localStatus || detail?.inspectionStatus || "Pending";
   const isReadOnlyPermanent =
     currentStatus !== "Pending" && currentStatus !== "FullInspecting";
   const isReadOnly = isReadOnlyPermanent || !isEditing;
   const isRollMaterial = detail?.materialForm === "R"; // R=捲材, S=片材
+  const isCompletedAndPosted =
+    currentStatus === "AllPass" ||
+    currentStatus === "ConcessionApproved" ||
+    currentStatus === "Partial";
 
   // ==========================================
   // 💡 捲料物理長度即時逆算公式與狀態連動 (Caliper Length Calculation Helpers)
@@ -313,7 +334,7 @@ export default function IqcDrawer({
   const recalculateRollLengthForRoll = useCallback((r: any, standardThickness?: number) => {
     if (!isRollMaterial) return r;
 
-    const Do = r.measuredCoreDiaMm ?? 250.0;
+    const Do = r.measuredOuterDiaMm ?? defaultOuterDia;
 
     const DiItem = r.inspectionItems?.find((i: any) => i.itemCode === "core_dia");
     const Di = parseFloat(DiItem?.measuredValue) || 86.00;
@@ -332,7 +353,7 @@ export default function IqcDrawer({
     });
 
     return { ...r, inspectionItems: updatedItems };
-  }, [isRollMaterial, calculateRollLength]);
+  }, [isRollMaterial, calculateRollLength, defaultOuterDia]);
 
   const sampleCount = isReadOnlyPermanent
     ? detail?.sampleSize || rolls.length
@@ -353,7 +374,7 @@ export default function IqcDrawer({
       const initialRolls = detail.rolls.map((r: any) => {
         const rollCoreDia = dbCoreDia;
         // 💡 實測外徑 (Do) 採用 measuredOuterDiaMm
-        const outerDiaVal = r.measuredOuterDiaMm !== null && r.measuredOuterDiaMm !== undefined ? r.measuredOuterDiaMm : 250.0;
+        const outerDiaVal = r.measuredOuterDiaMm !== null && r.measuredOuterDiaMm !== undefined ? r.measuredOuterDiaMm : defaultOuterDia;
         // 💡 內管芯外徑 (Di) 採用 measuredCoreDiaMm
         const coreDiaVal = r.measuredCoreDiaMm ?? rollCoreDia ?? 86;
         
@@ -1964,7 +1985,7 @@ export default function IqcDrawer({
         render: (val: number, record: any) => (
           <InputNumber
             size="small"
-            value={val !== undefined && val !== null ? val : 250.0}
+            value={val !== undefined && val !== null ? val : defaultOuterDia}
             placeholder="實測外徑"
             disabled={isReadOnly}
             min={0}
@@ -1975,7 +1996,7 @@ export default function IqcDrawer({
               setRolls((prevRolls) =>
                 prevRolls.map((r) => {
                   if (r.rollNo === record.rollNo) {
-                    const updated = { ...r, measuredOuterDiaMm: num || 250.0 };
+                    const updated = { ...r, measuredOuterDiaMm: num || defaultOuterDia };
                     return recalculateRollLengthForRoll(updated, detail?.standardThickness);
                   }
                   return r;
@@ -1994,7 +2015,7 @@ export default function IqcDrawer({
         width: 140,
         align: "left" as const,
         render: (_: any, record: any) => {
-          const Do = record.measuredOuterDiaMm ?? 250.0;
+          const Do = record.measuredOuterDiaMm ?? defaultOuterDia;
           const DiItem = record.inspectionItems?.find((i: any) => i.itemCode === "core_dia");
           const Di = parseFloat(DiItem?.measuredValue) || 86.00;
           const tItem = record.inspectionItems?.find((i: any) => i.itemCode === "thickness");
@@ -2113,7 +2134,7 @@ export default function IqcDrawer({
 
 
 
-    if (isReadOnlyPermanent) {
+    if (isCompletedAndPosted) {
       baseCols.push({
         title: "標籤補印",
         key: "print_action",
@@ -2140,6 +2161,7 @@ export default function IqcDrawer({
   }, [
     isReadOnly,
     isReadOnlyPermanent,
+    isCompletedAndPosted,
     handleMeasuredItemValueChange,
     handleStatusChange,
     detail,
