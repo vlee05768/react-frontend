@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
-import { Card, Button, Modal, Typography, Divider, Row, Col, Descriptions, Input } from 'antd';
-import { ExclamationCircleFilled, CalculatorOutlined, SettingOutlined, SyncOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Card, Button, Modal, Typography, Divider, Row, Col, Descriptions, Input, Upload } from 'antd';
+import { 
+  ExclamationCircleFilled, 
+  CalculatorOutlined, 
+  SettingOutlined, 
+  SyncOutlined, 
+  ReloadOutlined,
+  UploadOutlined,
+  FileExcelOutlined
+} from '@ant-design/icons';
 import { useMutation } from '@tanstack/react-query';
 import { 
   postApiV1StorageCalculateInventory, 
@@ -8,6 +16,7 @@ import {
   postApiV1SystemMaintenanceRebuildMaterialInventory
 } from '@/api/generated/sdk.gen';
 import { useThemeStore } from '@/stores/useThemeStore';
+import { apiClient } from '@/api/client';
 
 const { Title, Text } = Typography;
 
@@ -16,6 +25,62 @@ const SystemMaintenance: React.FC = () => {
   const isDarkMode = mode === 'dark';
 
   const [materialCode, setMaterialCode] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleUploadOpeningInventory = async (file: File) => {
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await apiClient.post('/api/v1/SystemMaintenance/import-opening-inventory', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const apiResponse = response.data;
+      if (apiResponse?.success) {
+        Modal.success({
+          title: '開帳匯入成功',
+          centered: true,
+          content: (
+            <div className="space-y-2">
+              <div className="text-sm">{apiResponse.message || '原料期初開帳數據與物料主檔已成功導入系統！'}</div>
+              <div className="p-3 rounded bg-amber-50 text-amber-800 border border-amber-200 text-xs mt-2">
+                ⚠️ 重要：請立即點擊「執行全量 LPN 重建」按鈕，同步校正最新倉庫儲位的邏輯庫存量！
+              </div>
+            </div>
+          ),
+        });
+      }
+    } catch (error: any) {
+      console.error('Import opening inventory error:', error);
+      const resData = error?.response?.data;
+      const errorMsg = resData?.message || '匯入開帳資料失敗，請檢查格式。';
+      const rowErrors: string[] = resData?.errors || [];
+
+      Modal.error({
+        title: '開帳匯入未通過',
+        width: 500,
+        centered: true,
+        content: (
+          <div className="space-y-3 max-h-[300px] overflow-y-auto">
+            <div className="font-semibold text-red-600">{errorMsg}</div>
+            {rowErrors.length > 0 && (
+              <div className="space-y-1 bg-red-50 p-3 rounded border border-red-200 text-xs text-red-800 font-mono mt-2">
+                {rowErrors.map((err, idx) => (
+                  <div key={idx}>• {err}</div>
+                ))}
+              </div>
+            )}
+          </div>
+        ),
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   // Mutation for LPN raw material inventory rebuilding
   const { mutateAsync: rebuildLogicalInventory, isPending: isRebuilding } = useMutation({
@@ -362,6 +427,63 @@ const SystemMaintenance: React.FC = () => {
                 >
                   執行全量 LPN 重建
                 </Button>
+              </div>
+            </div>
+          </Card>
+        </Col>
+
+        {/* 原料期初開帳匯入 (Excel) */}
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Card 
+            hoverable 
+            className={`h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
+            styles={{ body: { padding: '24px', height: '100%', display: 'flex', flexDirection: 'column' } }}
+          >
+            <div className="flex flex-col justify-between h-full">
+              <div className="flex flex-col items-center text-center space-y-3">
+                <div className={`p-4 rounded-full ${isDarkMode ? 'bg-indigo-900 text-indigo-300' : 'bg-indigo-50 text-indigo-600'}`}>
+                  <FileExcelOutlined className="text-3xl" />
+                </div>
+                <div>
+                  <Title level={5} className={isDarkMode ? '!text-gray-200' : ''}>原料期初開帳導入</Title>
+                  <Text type="secondary" className={`text-xs ${isDarkMode ? '!text-gray-400' : ''}`}>
+                    上線期初原料主檔動態建立與實物 LPN 庫存覆寫導入。
+                  </Text>
+                </div>
+              </div>
+
+              <div className="space-y-3 mt-3">
+                <Divider className="my-1" />
+                
+                <Button 
+                  type="link" 
+                  icon={<FileExcelOutlined />} 
+                  href="/templates/Template_Material_Opening.xlsx"
+                  download="Template_Material_Opening.xlsx"
+                  className="w-full text-indigo-600 hover:text-indigo-500 font-semibold p-0 h-auto text-xs"
+                >
+                  下載標準開帳 Excel 範本
+                </Button>
+
+                <Divider className="my-1" />
+
+                <Upload
+                  accept=".xlsx, .xls"
+                  showUploadList={false}
+                  beforeUpload={(file) => {
+                    handleUploadOpeningInventory(file);
+                    return false; // Block auto-upload by AntD Upload, we submit manually
+                  }}
+                >
+                  <Button 
+                    type="primary" 
+                    icon={<UploadOutlined />} 
+                    loading={isUploading}
+                    className="w-full bg-indigo-600 hover:bg-indigo-500 border-none"
+                  >
+                    選擇並上傳開帳 Excel
+                  </Button>
+                </Upload>
               </div>
             </div>
           </Card>
