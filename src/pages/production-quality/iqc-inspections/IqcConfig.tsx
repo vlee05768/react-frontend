@@ -312,7 +312,7 @@ export const getIqcFormFields = (ctx: {
       name: "standardLength",
       label: isRollMaterial ? "標準長度 (M)" : "標準長度 (mm)",
       componentType: "InputNumber",
-      editable: "never",
+      editable: isReadOnly ? "never" : "always",
       colSpan: 6,
       componentProps: {
         className: "text-right",

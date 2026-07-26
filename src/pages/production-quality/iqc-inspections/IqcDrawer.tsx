@@ -214,6 +214,7 @@ export default function IqcDrawer({
   // 💡 UX控制彈窗狀態
   const [isDecisionModalOpen, setIsDecisionModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [standardLength, setStandardLength] = useState<number | null>(null);
 
   const { downloadFile, isDownloading } = useFileDownload();
 
@@ -298,7 +299,7 @@ export default function IqcDrawer({
   // 💡 根據標準厚度、標準長度與內紙管芯外徑動態反算出「預設實測外徑 (Do)」
   const defaultOuterDia = useMemo(() => {
     const Di = detail?.measuredCoreDiaMm ?? 86.0;
-    const L = detail?.standardLength ?? 300.0;
+    const L = standardLength ?? detail?.standardLength ?? 300.0;
     const t = detail?.standardThickness ?? 0.050;
 
     if (!Di || !L || !t || Di <= 0 || L <= 0 || t <= 0) return 250.0;
@@ -516,6 +517,7 @@ export default function IqcDrawer({
       setNotes(detail.notes || "");
       setResponsibleParty(detail.responsibleParty || "");
       setIncomingStorageCode(detail.incomingStorageCode || "");
+      setStandardLength(detail.standardLength || null);
 
       const defResult =
         detail.inspectionStatus === "Pending"
@@ -901,6 +903,7 @@ export default function IqcDrawer({
       inspectorId,
       incomingStorageCode: incomingStorageCode || null,
       measuredCoreDiaMm: isRollMaterial ? (headerCoreDia || null) : null, // 💡 極致純淨方案
+      standardLength: standardLength || null, // 💡 提交修改後的預設每卷長度 (作為驗收標準)
       rolls: balancedRolls.map((r: any) => ({
         seq: r.seq,
         rollNo: r.rollNo,
@@ -1570,6 +1573,7 @@ export default function IqcDrawer({
       incomingStorageCode: incomingStorageCode || undefined,
       sampleSize: sampleCount, // 💡 同步將計算出的抽樣數回寫至資料庫
       measuredCoreDiaMm: isRollMaterial ? (headerCoreDia || undefined) : undefined, // 💡 極致純淨方案
+      standardLength: standardLength || undefined, // 💡 提交修改後的預設每卷長度 (作為驗收標準)
       rolls: balancedRolls.map((r) => ({
         seq: r.seq,
         rollNo: r.rollNo,
@@ -2010,7 +2014,7 @@ export default function IqcDrawer({
 
       // 6. 實測長度
       baseCols.push({
-        title: `實測長度(M) (${detail?.standardLength || 300}±5)`,
+        title: `實測長度(M) (${standardLength || detail?.standardLength || 300}±5)`,
         key: "length",
         width: 140,
         align: "left" as const,
@@ -2022,7 +2026,7 @@ export default function IqcDrawer({
           const t = parseFloat(tItem?.measuredValue) || detail?.standardThickness || 0.050;
 
           const calculatedMeters = calculateRollLength(Do, Di, t);
-          const stdLength = detail?.standardLength || 300;
+          const stdLength = standardLength || detail?.standardLength || 300;
           const deviation = calculatedMeters > 0 
             ? Math.round(((calculatedMeters - stdLength) / stdLength) * 1000) / 10
             : 0;
@@ -2062,7 +2066,7 @@ export default function IqcDrawer({
     } else {
       // 6. 實測長度
       baseCols.push({
-        title: `實測長度(mm) (${detail?.standardLength || 300}±5)`,
+        title: `實測長度(mm) (${standardLength || detail?.standardLength || 300}±5)`,
         key: "length",
         width: 130,
         align: "left" as const,
@@ -2362,6 +2366,11 @@ export default function IqcDrawer({
                   isViewMode={isReadOnly}
                   isUpdateMode={!isReadOnly}
                   hideDefaultFooter={true}
+                  onValuesChange={(values: any) => {
+                    if (values.standardLength !== undefined && values.standardLength !== standardLength) {
+                      setStandardLength(values.standardLength);
+                    }
+                  }}
                   onSubmit={() => {
                     // 💡 只有當表單驗證完全與實物明細欄位剛性驗證通過後，才開啟品質判定與過帳彈窗
                     if (validateIqcFields()) {
