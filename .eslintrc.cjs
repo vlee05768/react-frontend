@@ -14,7 +14,7 @@ module.exports = {
     'react'
   ],
   rules: {
-    'deprecation/deprecation': 'warn',
+    'deprecation/deprecation': 'error',
     // --- Code Style & Structure Enforcements ---
     
     // 1. Enforce PascalCase for React components and camelCase for hooks/utils
