@@ -244,32 +244,32 @@ export default function Dashboard() {
                 })}
                 {renderSubButton({
                   permissionKey: 'BasicData.Products.View',
-                  path: '/warehouse/products',
+                  path: '/basic/products',
                   label: '📦 產品管理'
                 })}
                 {renderSubButton({
                   permissionKey: 'BasicData.Materials.View',
-                  path: '/warehouse/materials',
+                  path: '/basic/materials',
                   label: '🧰 原料管理'
                 })}
                 {renderSubButton({
                   permissionKey: 'BasicData.Molds.View',
-                  path: '/production-quality/molds',
+                  path: '/basic/molds',
                   label: '🔧 模具管理'
                 })}
                 {renderSubButton({
                   permissionKey: 'BasicData.Machines.View',
-                  path: '/production-quality/machines',
+                  path: '/basic/machines',
                   label: '⚙️ 機台管理'
                 })}
                 {renderSubButton({
                   permissionKey: 'BasicData.Storages.View',
-                  path: '/warehouse/storages',
+                  path: '/basic/storages',
                   label: '📍 儲位管理'
                 })}
                 {renderSubButton({
                   permissionKey: 'BasicData.BrandModels.View',
-                  path: '/warehouse/brand-models',
+                  path: '/basic/brand-models',
                   label: '🏷️ 廠牌型號維護'
                 })}
               </div>

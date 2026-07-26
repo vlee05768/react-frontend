@@ -150,14 +150,14 @@ export default function MachineList() {
   });
 
   const openViewDrawer = (record: any) => {
-    navigate(`/production-quality/machines/${record.code}`);
+    navigate(`/basic/machines/${record.code}`);
   };
 
   const closeViewDrawer = () => {
     setIsCreateDrawerOpen(false);
     setIsDrawerEditing(false);
     if (viewId) {
-      navigate('/production-quality/machines');
+      navigate('/basic/machines');
     }
   };
 

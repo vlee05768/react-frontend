@@ -613,7 +613,7 @@ export default function ProductPricingList() {
                             label: <span className="text-slate-400 text-xs">成品品號</span>,
                             children: (
                               <a 
-                                href={`/warehouse/products/${pricingBase.productCode}`} 
+                                href={`/basic/products/${pricingBase.productCode}`} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
                                 className="font-mono font-bold text-xs text-blue-500 hover:text-blue-400 hover:underline cursor-pointer transition-colors"
@@ -656,7 +656,7 @@ export default function ProductPricingList() {
                               ellipsis: true,
                               render: (val: string) => (
                                 <a 
-                                  href={`/warehouse/materials/${val}`} 
+                                  href={`/basic/materials/${val}`} 
                                   target="_blank" 
                                   rel="noopener noreferrer"
                                   className="font-mono text-[11px] font-bold text-blue-500 hover:text-blue-400 hover:underline cursor-pointer transition-colors"

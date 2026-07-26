@@ -408,10 +408,10 @@ export const getItemColumns = (
       let toPath = "";
       if (record.goodsType === "P") {
         color = "orange";
-        toPath = `/warehouse/products/${val}`;
+        toPath = `/basic/products/${val}`;
       } else if (record.goodsType === "M") {
         color = "cyan";
-        toPath = `/warehouse/materials/${val}`;
+        toPath = `/basic/materials/${val}`;
       } else if (record.goodsType === "S") {
         color = "purple";
       }

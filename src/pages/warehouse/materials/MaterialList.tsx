@@ -174,14 +174,14 @@ export default function MaterialList() {
 
   const openViewDrawer = (record: any) => {
     setActiveTab('master_info');
-    navigate(`/warehouse/materials/${record.code}`);
+    navigate(`/basic/materials/${record.code}`);
   };
 
   const closeViewDrawer = () => {
     setIsCreateDrawerOpen(false);
     setIsDrawerEditing(false);
     if (viewId) {
-      navigate('/warehouse/materials');
+      navigate('/basic/materials');
     }
   };
 

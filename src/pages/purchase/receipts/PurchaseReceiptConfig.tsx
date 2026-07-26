@@ -356,7 +356,7 @@ export const getItemColumns = (
         if (isMold) {
           return (
             <Link 
-              to={`/production-quality/molds/${val}`} 
+              to={`/basic/molds/${val}`} 
               className="text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 hover:underline font-mono cursor-pointer"
             >
               {val}
@@ -365,7 +365,7 @@ export const getItemColumns = (
         }
         return (
           <Link 
-            to={`/warehouse/materials/${val}`} 
+            to={`/basic/materials/${val}`} 
             className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline font-mono cursor-pointer"
           >
             {val}

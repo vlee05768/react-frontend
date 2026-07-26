@@ -150,14 +150,14 @@ export default function MoldList() {
   });
 
   const openViewDrawer = (record: any) => {
-    navigate(`/production-quality/molds/${record.code}`);
+    navigate(`/basic/molds/${record.code}`);
   };
 
   const closeViewDrawer = () => {
     setIsCreateDrawerOpen(false);
     setIsDrawerEditing(false);
     if (viewId) {
-      navigate('/production-quality/molds');
+      navigate('/basic/molds');
     }
   };
 

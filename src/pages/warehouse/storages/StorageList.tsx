@@ -145,14 +145,14 @@ export default function StorageList() {
   const isReserved = (code: string) => reservedCodes.includes(code);
 
   const openViewDrawer = (record: any) => {
-    navigate(`/warehouse/storages/${record.code}`);
+    navigate(`/basic/storages/${record.code}`);
   };
 
   const closeViewDrawer = () => {
     setIsCreateDrawerOpen(false);
     setIsDrawerEditing(false);
     if (viewId) {
-      navigate('/warehouse/storages');
+      navigate('/basic/storages');
     }
   };
 

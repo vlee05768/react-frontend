@@ -148,14 +148,14 @@ export default function ProductsList() {
 
   const openViewDrawer = (record: any) => {
     setActiveTab('master_info');
-    navigate(`/warehouse/products/${record.code}`);
+    navigate(`/basic/products/${record.code}`);
   };
 
   const closeViewDrawer = () => {
     setIsCreateDrawerOpen(false);
     setIsDrawerEditing(false);
     if (viewId) {
-      navigate('/warehouse/products');
+      navigate('/basic/products');
     }
   };
 
