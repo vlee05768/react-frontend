@@ -40,6 +40,7 @@ const GeneralTypeLayout = withSuspense(lazy(() => import('@/pages/system/general
 const StorageList = withSuspense(lazy(() => import('@/pages/basic/storages/StorageList')));
 const StorageInventoryList = withSuspense(lazy(() => import('@/pages/warehouse/inventory/StorageInventoryList')));
 const MaterialInventoryList = withSuspense(lazy(() => import('@/pages/warehouse/material-inventory/MaterialInventoryList')));
+const CustomerMaterialReceiptList = withSuspense(lazy(() => import('@/pages/warehouse/customer-material-receipt/CustomerMaterialReceiptList')));
 const QuickRollTransfer = withSuspense(
   lazy(() =>
     import('@/pages/warehouse/material-inventory/QuickRollTransfer').then((module) => ({
@@ -121,6 +122,7 @@ export const router = createBrowserRouter([
       { path: 'warehouse/inventory', element: <StorageInventoryList /> },
       { path: 'warehouse/material-inventory', element: <MaterialInventoryList /> },
       { path: 'warehouse/quick-transfer', element: <QuickRollTransfer /> },
+      { path: 'warehouse/customer-material-receipt', element: <CustomerMaterialReceiptList /> },
       { path: 'warehouse/inventory-movements', element: <StorageTransactionsList /> },
       { path: 'basic/products/:viewId?', element: <ProductsList /> },
       { path: 'warehouse/inventory-adjustments/:viewId?', element: <InventoryAdjustmentList /> },
