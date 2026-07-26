@@ -208,7 +208,7 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
         onCancel={() => setIsOpen(false)}
         width={600}
         style={{ top: 20 }}
-        bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
+        styles={{ body: { maxHeight: '70vh', overflowY: 'auto' } }}
         footer={
           <Space>
             {!disabled && (

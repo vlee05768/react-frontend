@@ -308,7 +308,7 @@ export default function StorageTransactionsList() {
   return (
     <div className="p-4 pb-0 flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
       <PageCard 
-        title="庫存異動明細"
+        title="產品庫存異動明細"
       >
         <Form 
           layout="vertical"

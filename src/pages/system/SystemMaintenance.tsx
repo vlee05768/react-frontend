@@ -225,7 +225,7 @@ const SystemMaintenance: React.FC = () => {
           <Card 
             hoverable 
             className={`h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
-            bodyStyle={{ padding: '24px', height: '100%', display: 'flex', flexDirection: 'column' }}
+            styles={{ body: { padding: '24px', height: '100%', display: 'flex', flexDirection: 'column' } }}
           >
             <div className="flex flex-col justify-between h-full">
               <div className="flex flex-col items-center text-center space-y-4">
@@ -261,7 +261,7 @@ const SystemMaintenance: React.FC = () => {
           <Card 
             hoverable 
             className={`h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
-            bodyStyle={{ padding: '24px', height: '100%', display: 'flex', flexDirection: 'column' }}
+            styles={{ body: { padding: '24px', height: '100%', display: 'flex', flexDirection: 'column' } }}
           >
             <div className="flex flex-col justify-between h-full">
               <div className="flex flex-col items-center text-center space-y-4">
@@ -297,7 +297,7 @@ const SystemMaintenance: React.FC = () => {
           <Card 
             hoverable 
             className={`h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
-            bodyStyle={{ padding: '24px', height: '100%', display: 'flex', flexDirection: 'column' }}
+            styles={{ body: { padding: '24px', height: '100%', display: 'flex', flexDirection: 'column' } }}
           >
             <div className="flex flex-col justify-between h-full">
               <div className="flex flex-col items-center text-center space-y-3">

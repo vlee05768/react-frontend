@@ -358,7 +358,7 @@ export default function Dashboard() {
                 {renderSubButton({
                   permissionKey: 'Warehouse.InventoryMovements.View',
                   path: '/warehouse/inventory-movements',
-                  label: '🔄 庫存異動明細'
+                  label: '🔄 產品庫存異動明細'
                 })}
                 {renderSubButton({
                   permissionKey: 'Warehouse.InventoryAdjustments.View',

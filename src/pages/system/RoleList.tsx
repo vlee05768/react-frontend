@@ -354,7 +354,7 @@ export default function RoleList() {
         open={!!viewId || isCreateDrawerOpen}
         mask={{ closable: isViewMode }}
         keyboard={isViewMode}
-        bodyStyle={{ backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', padding: '24px' }}
+        styles={{ body: { backgroundColor: 'var(--ant-color-fill-quaternary, #fafafa)', padding: '24px' } }}
         
       >
         <Spin spinning={isFetchingView && !isCreateDrawerOpen}>
