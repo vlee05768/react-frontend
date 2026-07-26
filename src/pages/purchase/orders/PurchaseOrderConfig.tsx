@@ -415,8 +415,8 @@ export const getItemColumns = (
     align: "right",
     render: (val: number, record: any) => {
       if (record.purchaseOrderType === "Mold" || val == null) return "-";
-      const isRoll = record.materialForm === "R" || record.goodsCode?.startsWith("R-") || record.unit === "m2";
-      const isSheet = record.materialForm === "S" || record.goodsCode?.startsWith("S-") || record.unit === "pcs";
+      const isRoll = record.materialForm === "R" || record.goodsCode?.startsWith("R-") || record.goodsCode?.endsWith("-R") || record.unit === "m2";
+      const isSheet = record.materialForm === "S" || record.goodsCode?.startsWith("S-") || record.goodsCode?.endsWith("-S") || record.unit === "pcs";
       const formattedVal = Number(val.toFixed(4)).toLocaleString();
       
       if (isRoll) {
@@ -476,7 +476,7 @@ export const getItemColumns = (
     align: "center",
     render: (val: string, record: any) => {
       if (record.purchaseOrderType === "Mold") return val || "-";
-      const isRoll = record.materialForm === "R" || record.goodsCode?.startsWith("R-") || val === "m2";
+      const isRoll = record.materialForm === "R" || record.goodsCode?.startsWith("R-") || record.goodsCode?.endsWith("-R") || val === "m2";
       if (isRoll) return "m²";
       return val || "-";
     }
@@ -640,14 +640,14 @@ export const getItemFormConfig = (): any[] => [
   {
     name: "length",
     label: (context: any) => {
-      const isSheet = context?.values?.materialForm === "S" || context?.values?.goodsCode?.startsWith("S-") || context?.values?.unit === "pcs";
+      const isSheet = context?.values?.materialForm === "S" || context?.values?.goodsCode?.startsWith("S-") || context?.values?.goodsCode?.endsWith("-S") || context?.values?.unit === "pcs";
       return isSheet ? "長度 (mm)" : "長度 (m)";
     },
     componentType: "InputNumber",
     colSpan: 4,
     hidden: (context: any) => context?.values?.purchaseOrderType !== "Material",
     componentProps: (context: any) => {
-      const isSheet = context?.values?.materialForm === "S" || context?.values?.goodsCode?.startsWith("S-") || context?.values?.unit === "pcs";
+      const isSheet = context?.values?.materialForm === "S" || context?.values?.goodsCode?.startsWith("S-") || context?.values?.goodsCode?.endsWith("-S") || context?.values?.unit === "pcs";
       return {
         controls: false,
         style: { width: "100%" },

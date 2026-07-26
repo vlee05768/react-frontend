@@ -44,8 +44,8 @@ const generateCode = (context: any, setValue: any) => {
   const spec = `${upperModelNo}-${formattedThickness}`;
   setValue("spec", spec);
 
-  // 原料編碼：R/S-廠牌-型號-厚度
-  const code = `${materialForm}-${upperBrand}-${upperModelNo}-${formattedThickness}`;
+  // 原料編碼：{廠牌}-{型號}-{厚度}-{形態(R/S)}
+  const code = `${upperBrand}-${upperModelNo}-${formattedThickness}-${materialForm}`.toUpperCase();
   setValue("code", code);
 
   const formLabel = materialForm === "R" ? "捲材" : "片材";
@@ -270,7 +270,7 @@ export const mainFormConfig = (
     ),
     colSpan: 4,
     editable: "createOnly",
-    validation: z.string().min(1, "請輸入廠牌(英文大寫)"),
+    validation: z.string().min(1, "請輸入廠牌(英文大寫)").refine((val) => !val.includes("-"), "廠牌不能包含連字號 (-)"),
     onChange: (val, ctx, setValue) => {
       const upper = (val || "").replace(/[\u4e00-\u9fff]/g, "").toUpperCase();
       
@@ -299,7 +299,7 @@ export const mainFormConfig = (
     ),
     colSpan: 4,
     editable: "createOnly",
-    validation: z.string().min(1, "請輸入型號(英文大寫)"),
+    validation: z.string().min(1, "請輸入型號(英文大寫)").refine((val) => !val.includes("-"), "型號不能包含連字號 (-)"),
     onChange: (val, ctx, setValue) => {
       const upper = (val || "").replace(/[\u4e00-\u9fff]/g, "").toUpperCase();
       setValue("modelNo", upper);

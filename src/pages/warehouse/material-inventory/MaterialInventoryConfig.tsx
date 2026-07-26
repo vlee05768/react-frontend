@@ -443,7 +443,7 @@ export const getRollColumns = (
     width: 100,
     align: "center",
     render: (val: string, record: any) => {
-      const form = val || (record.materialCode?.startsWith("R-") ? "R" : "S");
+      const form = val || (record.materialCode?.startsWith("R-") || record.materialCode?.endsWith("-R") ? "R" : "S");
       if (form === "R") {
         return (
           <Tag 
@@ -718,7 +718,7 @@ export const getTxColumns = (): TableColumnConfig<MaterialInventoryTransactionDt
     width: 100,
     align: "center",
     render: (val: string, record: any) => {
-      const form = val || (record.materialCode?.startsWith("R-") ? "R" : "S");
+      const form = val || (record.materialCode?.startsWith("R-") || record.materialCode?.endsWith("-R") ? "R" : "S");
       if (form === "R") {
         return (
           <Tag 

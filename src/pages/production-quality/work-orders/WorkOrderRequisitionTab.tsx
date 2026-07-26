@@ -497,7 +497,8 @@ export function WorkOrderRequisitionTab({
       referenceQuantity1: modalFormValues.referenceQuantity1,
       sourceStorageCode:
         matched?.materialForm === "R" ||
-        (matched?.materialCode || "").startsWith("R-")
+        (matched?.materialCode || "").startsWith("R-") ||
+        (matched?.materialCode || "").endsWith("-R")
           ? null
           : modalFormValues.sourceStorageCode,
       extra: mappedExtra,
@@ -518,8 +519,8 @@ export function WorkOrderRequisitionTab({
     ? masterData.items.map((x: any) => {
         let form = x.materialForm;
         if (!form || (form !== "R" && form !== "S")) {
-          if (x.materialCode?.startsWith("R-")) form = "R";
-          else if (x.materialCode?.startsWith("S-")) form = "S";
+          if (x.materialCode?.startsWith("R-") || x.materialCode?.endsWith("-R")) form = "R";
+          else if (x.materialCode?.startsWith("S-") || x.materialCode?.endsWith("-S")) form = "S";
         }
         return {
           materialCode: x.materialCode,
