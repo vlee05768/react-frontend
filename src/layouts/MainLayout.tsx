@@ -94,6 +94,7 @@ const ROUTE_PERMISSION_MAP: Record<string, string> = {
   '/warehouse/inventory': 'Warehouse.Inventory.View',
   '/warehouse/inventory-movements': 'Warehouse.InventoryMovements.View',
   '/warehouse/inventory-adjustments': 'Warehouse.InventoryAdjustments.View',
+  '/warehouse/customer-material-receipt': 'Warehouse.InventoryMovements.View',
   '/basic/molds': 'BasicData.Molds.View',
   '/basic/machines': 'BasicData.Machines.View',
   '/production-quality/work-orders': 'ProductionQuality.WorkOrders.View',
@@ -267,6 +268,20 @@ export default function MainLayout() {
                   children.unshift({
                     key: '/warehouse/quick-transfer',
                     label: '原料快速轉倉',
+                  });
+                }
+              }
+              if (!children.some(c => c.key === '/warehouse/customer-material-receipt')) {
+                const idx = children.findIndex(c => c.key === '/warehouse/quick-transfer');
+                if (idx !== -1) {
+                  children.splice(idx + 1, 0, {
+                    key: '/warehouse/customer-material-receipt',
+                    label: '客供料入庫單',
+                  });
+                } else {
+                  children.unshift({
+                    key: '/warehouse/customer-material-receipt',
+                    label: '客供料入庫單',
                   });
                 }
               }
