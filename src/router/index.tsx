@@ -37,7 +37,7 @@ const UserList = withSuspense(lazy(() => import('@/pages/system/UserList')));
 const RoleList = withSuspense(lazy(() => import('@/pages/system/RoleList')));
 const SystemMaintenance = withSuspense(lazy(() => import('@/pages/system/SystemMaintenance')));
 const GeneralTypeLayout = withSuspense(lazy(() => import('@/pages/system/general-types/GeneralTypeLayout')));
-const StorageList = withSuspense(lazy(() => import('@/pages/warehouse/storages/StorageList')));
+const StorageList = withSuspense(lazy(() => import('@/pages/basic/storages/StorageList')));
 const StorageInventoryList = withSuspense(lazy(() => import('@/pages/warehouse/inventory/StorageInventoryList')));
 const MaterialInventoryList = withSuspense(lazy(() => import('@/pages/warehouse/material-inventory/MaterialInventoryList')));
 const QuickRollTransfer = withSuspense(
@@ -48,9 +48,9 @@ const QuickRollTransfer = withSuspense(
   )
 );
 const StorageTransactionsList = withSuspense(lazy(() => import('@/pages/warehouse/inventory-movements/StorageTransactionsList')));
-const ProductsList = withSuspense(lazy(() => import('@/pages/warehouse/Products/ProductsList')));
+const ProductsList = withSuspense(lazy(() => import('@/pages/basic/products/ProductsList')));
 const InventoryAdjustmentList = withSuspense(lazy(() => import('@/pages/warehouse/inventory-adjustments/InventoryAdjustmentList')));
-const BrandModelsLayout = withSuspense(lazy(() => import('@/pages/warehouse/BrandModels/BrandModelsLayout')));
+const BrandModelsLayout = withSuspense(lazy(() => import('@/pages/basic/brand-models/BrandModelsLayout')));
 const OrdersList = withSuspense(lazy(() => import('@/pages/sales/orders/OrdersList')));
 const PurchaseOrdersList = withSuspense(lazy(() => import('@/pages/purchase/orders/PurchaseOrdersList')));
 const PurchaseOrderDrawer = withSuspense(lazy(() => import('@/pages/purchase/orders/PurchaseOrderDrawer')));
@@ -61,9 +61,9 @@ const SalesDeliveryDrawer = withSuspense(lazy(() => import('@/pages/sales/sales-
 const CustomerStatementList = withSuspense(lazy(() => import('@/pages/sales/statements/CustomerStatementList')));
 const ProductPricingList = withSuspense(lazy(() => import('@/pages/sales/pricing/ProductPricingList')));
 const OrderDrawer = withSuspense(lazy(() => import('@/pages/sales/orders/OrderDrawer')));
-const MaterialList = withSuspense(lazy(() => import('@/pages/warehouse/materials/MaterialList')));
-const MoldList = withSuspense(lazy(() => import('@/pages/production-quality/molds/MoldList')));
-const MachineList = withSuspense(lazy(() => import('@/pages/production-quality/machines/MachineList')));
+const MaterialList = withSuspense(lazy(() => import('@/pages/basic/materials/MaterialList')));
+const MoldList = withSuspense(lazy(() => import('@/pages/basic/molds/MoldList')));
+const MachineList = withSuspense(lazy(() => import('@/pages/basic/machines/MachineList')));
 
 // Named export 延遲載入
 const WorkOrdersList = withSuspense(
@@ -79,7 +79,7 @@ const QcReceiptDrawer = withSuspense(lazy(() => import('@/pages/production-quali
 const ProductionReceiptsList = withSuspense(lazy(() => import('@/pages/production-quality/production-receipts/ProductionReceiptsList')));
 const ProductionReceiptDrawer = withSuspense(lazy(() => import('@/pages/production-quality/production-receipts/ProductionReceiptDrawer')));
 const BusinessPartnerList = withSuspense(lazy(() => import('@/pages/basic/business-partners/BusinessPartnerList')));
-const IqcList = withSuspense(lazy(() => import('@/pages/production-quality/iqc-inspections/IqcList')));
+const IqcList = withSuspense(lazy(() => import('@/pages/purchase/iqc-inspections/IqcList')));
 
 // 路由守衛
 function ProtectedRoute({ children }: { children: ReactNode }) {
