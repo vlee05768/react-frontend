@@ -439,16 +439,25 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
         <Spin spinning={loadingStock} tip="正在查詢報廢倉庫存...">
           {addSpareItem && (
             <div className="py-4">
-              <Descriptions column={1} size="small" bordered className="mb-4">
-                <Descriptions.Item label="品名">{addSpareItem.inventoryName}</Descriptions.Item>
-                <Descriptions.Item label="料號">{addSpareItem.inventoryCode}</Descriptions.Item>
-                <Descriptions.Item label="來源儲位">報廢倉 (TW-GEN-SCRAP)</Descriptions.Item>
-                <Descriptions.Item label="報廢倉現有庫存">
-                  <span className={scrapStock && scrapStock > 0 ? "text-green-600 font-bold" : "text-red-500 font-bold"}>
-                    {scrapStock !== null ? `${scrapStock.toLocaleString()} ${addSpareItem.unit || ''}` : '-'}
-                  </span>
-                </Descriptions.Item>
-              </Descriptions>
+              <Descriptions 
+                column={1} 
+                size="small" 
+                bordered 
+                className="mb-4"
+                items={[
+                  { label: "品名", children: addSpareItem.inventoryName },
+                  { label: "料號", children: addSpareItem.inventoryCode },
+                  { label: "來源儲位", children: "報廢倉 (TW-GEN-SCRAP)" },
+                  { 
+                    label: "報廢倉現有庫存", 
+                    children: (
+                      <span className={scrapStock && scrapStock > 0 ? "text-green-600 font-bold" : "text-red-500 font-bold"}>
+                        {scrapStock !== null ? `${scrapStock.toLocaleString()} ${addSpareItem.unit || ''}` : '-'}
+                      </span>
+                    ) 
+                  }
+                ]}
+              />
 
               {scrapStock !== null && scrapStock <= 0 ? (
                 <div className="text-red-500 font-medium text-center py-2 px-3" style={{ backgroundColor: 'var(--ant-color-error-bg-hover)', borderRadius: '4px' }}>

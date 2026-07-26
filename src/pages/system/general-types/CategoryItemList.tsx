@@ -177,7 +177,7 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
           dataSource={listData}
           columns={columns as any}
           rowKey="id"
-          size="middle"
+          size="medium"
           scroll={{ x: 'max-content' }}
           pagination={false}
         />

@@ -80,7 +80,7 @@ export const QuickRollTransfer: React.FC = () => {
           {!activeTransfer ? (
             // 手機版：初始狀態 - 開始調撥
             <Card 
-              bordered={false}
+              variant="borderless"
               title={
                 <div className="flex flex-col gap-1 items-start">
                   <span className="font-bold text-base">原料批次快速轉倉</span>
@@ -115,7 +115,7 @@ export const QuickRollTransfer: React.FC = () => {
             // 手機版：進行調撥狀態
             <div className="space-y-3">
               <Card 
-                bordered={false}
+                variant="borderless"
                 title={
                   <div className="flex flex-col gap-1 items-start">
                     <div className="flex items-center gap-2">
@@ -234,7 +234,7 @@ export const QuickRollTransfer: React.FC = () => {
 
               {/* 手機版：已掃描明細與表頭控制 */}
               <Card 
-                bordered={false}
+                variant="borderless"
                 title={
                   <div className="flex justify-between items-center w-full">
                     <span className="font-bold text-sm">本批已掃明細 ({activeTransfer.items?.length || 0} 筆)</span>

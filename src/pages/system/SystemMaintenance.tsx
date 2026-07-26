@@ -99,11 +99,16 @@ const SystemMaintenance: React.FC = () => {
             centered: true,
             content: (
               <div className="mt-4">
-                <Descriptions column={1} bordered size="small">
-                  <Descriptions.Item label="總檢查項目數">{totalCalculatedItems ?? 0}</Descriptions.Item>
-                  <Descriptions.Item label="需更新項目數">{itemsToUpdate ?? 0}</Descriptions.Item>
-                  <Descriptions.Item label="實際更新數">{updatedItems ?? 0}</Descriptions.Item>
-                </Descriptions>
+                <Descriptions 
+                  column={1} 
+                  bordered 
+                  size="small"
+                  items={[
+                    { label: "總檢查項目數", children: totalCalculatedItems ?? 0 },
+                    { label: "需更新項目數", children: itemsToUpdate ?? 0 },
+                    { label: "實際更新數", children: updatedItems ?? 0 }
+                  ]}
+                />
                 <div className="mt-4 text-gray-500 text-sm">
                   {apiResponse.message || '庫存資料已重新計算並覆寫完成。'}
                 </div>
@@ -118,11 +123,16 @@ const SystemMaintenance: React.FC = () => {
             content: (
               <div className="mt-4">
                 <p className="text-red-500 mb-4">{errorMessage || '執行過程中發生部分錯誤。'}</p>
-                <Descriptions column={1} bordered size="small">
-                  <Descriptions.Item label="總檢查項目數">{totalCalculatedItems ?? 0}</Descriptions.Item>
-                  <Descriptions.Item label="需更新項目數">{itemsToUpdate ?? 0}</Descriptions.Item>
-                  <Descriptions.Item label="實際更新數">{updatedItems ?? 0}</Descriptions.Item>
-                </Descriptions>
+                <Descriptions 
+                  column={1} 
+                  bordered 
+                  size="small"
+                  items={[
+                    { label: "總檢查項目數", children: totalCalculatedItems ?? 0 },
+                    { label: "需更新項目數", children: itemsToUpdate ?? 0 },
+                    { label: "實際更新數", children: updatedItems ?? 0 }
+                  ]}
+                />
               </div>
             ),
           });

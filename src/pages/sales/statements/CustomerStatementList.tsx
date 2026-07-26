@@ -149,29 +149,47 @@ export default function CustomerStatementList() {
         />
         
         <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-hidden">
-          <Descriptions bordered size="small" column={4} style={{ flexShrink: 0 }}>
-            <Descriptions.Item label="客戶">
-              {summaryInfo.customerCode} {summaryInfo.customerName ? ` - ${summaryInfo.customerName}` : ''}
-            </Descriptions.Item>
-            <Descriptions.Item label="查詢期間">{summaryInfo.dateRange}</Descriptions.Item>
-            <Descriptions.Item label="客戶數量">{summaryInfo.totalCustomerCount}</Descriptions.Item>
-            <Descriptions.Item label="單據數量">{summaryInfo.totalCount}</Descriptions.Item>
-            <Descriptions.Item label="期間銷貨金額合計">
-              <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                {summaryInfo.totalAmount.toLocaleString()}
-              </span>
-            </Descriptions.Item>
-            <Descriptions.Item label="稅額合計">
-              <span style={{ color: '#2080f0', fontWeight: 'bold' }}>
-                {summaryInfo.totalTax.toLocaleString()}
-              </span>
-            </Descriptions.Item>
-            <Descriptions.Item label="總計金額">
-              <span style={{ color: '#d03050', fontWeight: 'bold' }}>
-                {summaryInfo.grandTotal.toLocaleString()}
-              </span>
-            </Descriptions.Item>
-          </Descriptions>
+          <Descriptions 
+            bordered 
+            size="small" 
+            column={4} 
+            style={{ flexShrink: 0 }}
+            items={[
+              {
+                label: "客戶",
+                children: (
+                  <>{summaryInfo.customerCode} {summaryInfo.customerName ? ` - ${summaryInfo.customerName}` : ''}</>
+                )
+              },
+              { label: "查詢期間", children: summaryInfo.dateRange },
+              { label: "客戶數量", children: summaryInfo.totalCustomerCount },
+              { label: "單據數量", children: summaryInfo.totalCount },
+              {
+                label: "期間銷貨金額合計",
+                children: (
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                    {summaryInfo.totalAmount.toLocaleString()}
+                  </span>
+                )
+              },
+              {
+                label: "稅額合計",
+                children: (
+                  <span style={{ color: '#2080f0', fontWeight: 'bold' }}>
+                    {summaryInfo.totalTax.toLocaleString()}
+                  </span>
+                )
+              },
+              {
+                label: "總計金額",
+                children: (
+                  <span style={{ color: '#d03050', fontWeight: 'bold' }}>
+                    {summaryInfo.grandTotal.toLocaleString()}
+                  </span>
+                )
+              }
+            ]}
+          />
 
           <StandardErpTable
             columns={columns}

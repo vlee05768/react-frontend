@@ -594,7 +594,7 @@ export default function ProductPricingList() {
         {/* Pricing Workspace Area (Symmetric 3-Column Layout: Fits completely on any screen!) */}
         <div className="flex-1">
           {selectedProductCode && bomData ? (
-            <Spin spinning={isPricingBaseLoading || isBomLoading} tip="產品資料重算中...">
+            <Spin spinning={isPricingBaseLoading || isBomLoading} description="產品資料重算中...">
               {pricingBase ? (
                 <Row gutter={[8, 8]}>
                   
@@ -604,28 +604,38 @@ export default function ProductPricingList() {
                     {/* A. Product Info Card */}
                     <Card size="small" className={`shadow-sm ${isDarkMode ? "bg-slate-900 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
                       <DescriptionsTitle title="成品基礎資訊 (BOM 動態滾算)" />
-                      <Descriptions size="small" column={1} className="mt-1 font-semibold compact-descriptions">
-                        <Descriptions.Item label={<span className="text-slate-400 text-xs">成品品號</span>}>
-                          {/* Drills down to warehouse/products/:code in a new tab */}
-                          <a 
-                            href={`/warehouse/products/${pricingBase.productCode}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="font-mono font-bold text-xs text-blue-500 hover:text-blue-400 hover:underline cursor-pointer transition-colors"
-                          >
-                            {pricingBase.productCode}
-                          </a>
-                        </Descriptions.Item>
-                        <Descriptions.Item label={<span className="text-slate-400 text-xs">成品名稱</span>}>
-                          <span className="text-xs text-slate-800 dark:text-slate-100 ellipsis-line">{pricingBase.productName}</span>
-                        </Descriptions.Item>
-                        <Descriptions.Item label={<span className="text-slate-400 text-xs">目前單價</span>}>
-                          <span className="font-mono font-bold text-xs text-slate-700 dark:text-slate-300">{formatCurrency(currentUnitPrice)}</span>
-                        </Descriptions.Item>
-                        <Descriptions.Item label={<span className="text-slate-400 text-xs">材料成本</span>}>
-                          <span className="font-mono font-bold text-xs text-blue-600 dark:text-blue-400">{formatCurrency(standardMaterialCost)}</span>
-                        </Descriptions.Item>
-                      </Descriptions>
+                      <Descriptions 
+                        size="small" 
+                        column={1} 
+                        className="mt-1 font-semibold compact-descriptions"
+                        items={[
+                          {
+                            label: <span className="text-slate-400 text-xs">成品品號</span>,
+                            children: (
+                              <a 
+                                href={`/warehouse/products/${pricingBase.productCode}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="font-mono font-bold text-xs text-blue-500 hover:text-blue-400 hover:underline cursor-pointer transition-colors"
+                              >
+                                {pricingBase.productCode}
+                              </a>
+                            )
+                          },
+                          {
+                            label: <span className="text-slate-400 text-xs">成品名稱</span>,
+                            children: <span className="text-xs text-slate-800 dark:text-slate-100 ellipsis-line">{pricingBase.productName}</span>
+                          },
+                          {
+                            label: <span className="text-slate-400 text-xs">目前單價</span>,
+                            children: <span className="font-mono font-bold text-xs text-slate-700 dark:text-slate-300">{formatCurrency(currentUnitPrice)}</span>
+                          },
+                          {
+                            label: <span className="text-slate-400 text-xs">材料成本</span>,
+                            children: <span className="font-mono font-bold text-xs text-blue-600 dark:text-blue-400">{formatCurrency(standardMaterialCost)}</span>
+                          }
+                        ]}
+                      />
                     </Card>
 
                     {/* A2. BOM Material List Card (Highly compact scroll window - added width column) */}
