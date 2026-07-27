@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Drawer, Space, Button, message, App } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CheckCircleOutlined, SyncOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
 
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { ActionButton } from '@/components/common/ActionButton';
@@ -36,6 +37,23 @@ export default function CustomerMaterialReceiptDrawer() {
   });
 
   const receiptData = (response?.data as any)?.data || response?.data;
+
+  const defaultFormValues = useMemo(() => {
+    if (isCreating) {
+      return {
+        documentNumber: '【系統自動編碼】',
+        documentDate: dayjs(), // Dayjs object!
+        status: 'Unconfirmed',
+      };
+    }
+    if (receiptData) {
+      return {
+        ...receiptData,
+        documentDate: receiptData.documentDate ? dayjs(receiptData.documentDate) : undefined, // Dayjs object!
+      };
+    }
+    return undefined;
+  }, [isCreating, receiptData]);
 
   // Sync automatic edit and tab transition on redirect
   useEffect(() => {
@@ -290,7 +308,7 @@ export default function CustomerMaterialReceiptDrawer() {
                 <DynamicForm
                   formId="master-receipt-form"
                   fields={masterFormConfig(!isEditing)}
-                  defaultValues={receiptData || { documentDate: new Date().toISOString().split('T')[0] }}
+                  defaultValues={defaultFormValues}
                   onSubmit={handleMasterSubmit}
                   hideDefaultFooter
                   isViewMode={!isEditing}
