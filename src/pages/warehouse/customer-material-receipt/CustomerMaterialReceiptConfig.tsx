@@ -217,7 +217,7 @@ export const itemTableColumns = (): TableColumnConfig[] => [
     render: (isRoll: boolean) => (isRoll ? "捲料" : "片料"),
   },
   {
-    label: "卷/包數",
+    label: "包裝數",
     name: "rollCount",
     width: 90,
     align: "right",
@@ -306,7 +306,7 @@ export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
   },
   {
     name: "rollCount",
-    label: "分卷/分包數",
+    label: "包裝數",
     componentType: "InputNumber",
     editable: "always",
     colSpan: 4,
@@ -316,7 +316,7 @@ export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
       precision: 0,
       controls: false,
     },
-    validation: z.number().min(1, "分卷數必須大於等於 1"),
+    validation: z.number().min(1, "包裝數必須大於等於 1"),
   },
   {
     name: "width",
@@ -334,15 +334,21 @@ export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
   },
   {
     name: "length",
-    label: "規格長度 (M)",
+    label: "長度",
     componentType: "InputNumber",
     editable: "always",
     colSpan: 4,
-    componentProps: {
-      disabled: isViewMode,
-      min: 0.1,
-      precision: 4,
-      controls: false,
+    componentProps: (context: any) => {
+      const isRoll = context?.values?.isRoll ?? true;
+      return {
+        disabled: isViewMode,
+        min: 0.1,
+        precision: 4,
+        controls: false,
+        formatter: isViewMode
+          ? (val: any) => val != null ? `${Number(val).toLocaleString()} ${isRoll ? "M" : "mm"}` : ""
+          : undefined
+      };
     },
     validation: z.number().min(0.1, "長度必須大於 0"),
   },
