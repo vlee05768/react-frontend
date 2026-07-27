@@ -136,7 +136,7 @@ export const masterFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
     name: "documentDate",
     label: "單據日期",
     componentType: "DatePicker",
-    colSpan: 6,
+    colSpan: 4,
     componentProps: {
       disabled: isViewMode,
       style: { width: "100%" },
@@ -145,9 +145,9 @@ export const masterFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
   },
   {
     name: "businessPartnerCode",
-    label: "客商代碼 (客戶)",
+    label: "客戶",
     componentType: "AsyncSelect",
-    colSpan: 6,
+    colSpan: 2,
     componentProps: {
       disabled: isViewMode,
       configKey: "CUSTOMER", // 鎖定客戶角色，符合委託代工邏輯
@@ -158,29 +158,29 @@ export const masterFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
     name: "invoiceNumber",
     label: "送貨單號/憑證號",
     componentType: "Input",
-    colSpan: 6,
+    colSpan: 4,
     componentProps: {
       disabled: isViewMode,
       placeholder: "請輸入客戶送貨單號",
     },
     editable: "always",
   },
-  {
-    name: "address",
-    label: "送貨地址",
-    componentType: "Input",
-    colSpan: 6,
-    componentProps: {
-      disabled: isViewMode,
-      placeholder: "請輸入送貨地址",
-    },
-    editable: "always",
-  },
+  // {
+  //   name: "address",
+  //   label: "送貨地址",
+  //   componentType: "Input",
+  //   colSpan: 6,
+  //   componentProps: {
+  //     disabled: isViewMode,
+  //     placeholder: "請輸入送貨地址",
+  //   },
+  //   editable: "always",
+  // },
   {
     name: "notes",
     label: "備註",
     componentType: "TextArea",
-    colSpan: 24,
+    colSpan: 1,
     componentProps: {
       disabled: isViewMode,
       placeholder: "備註資訊",
