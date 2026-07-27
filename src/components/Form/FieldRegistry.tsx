@@ -51,7 +51,7 @@ export const FIELD_REGISTRY: Record<string, FieldRenderer> = {
   AutoComplete: (props) => <AutoCompleteField key={props.configKey} allowClear={true} {...props} />,
   
   InputNumber: (props, options) => {
-    const { onFocus, ...restProps } = props;
+    const { onFocus, allowClear, ...restProps } = props;
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
       try {
