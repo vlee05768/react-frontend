@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Table, Space, Popconfirm, message, App } from 'antd';
+import { Button, Table, Space, Popconfirm, App } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { DynamicForm } from '@/components/Form/DynamicForm';
@@ -20,7 +20,7 @@ export default function CustomerMaterialReceiptItemsTab({
   isMasterViewMode,
   onEditingChange,
 }: CustomerMaterialReceiptItemsTabProps) {
-  const { modal } = App.useApp();
+  const { modal, message } = App.useApp();
   const queryClient = useQueryClient();
   const [editingItem, setEditingItem] = useState<CustomerMaterialReceiptItemDto | null>(null);
   const [isCreatingItem, setIsCreatingItem] = useState(false);

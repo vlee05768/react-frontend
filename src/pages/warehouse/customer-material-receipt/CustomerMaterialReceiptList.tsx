@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import PageCard from '@/components/common/PageCard';
-import { Button, message, Space, Divider, Modal } from 'antd';
+import { Button, App, Space, Divider, Modal } from 'antd';
 import { PlusOutlined, SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -18,6 +18,7 @@ import StandardErpTable from '@/components/Table/StandardErpTable';
 import { MODAL_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT } from '@/constants/ui';
 
 export default function CustomerMaterialReceiptList() {
+  const { message } = App.useApp();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { params, setParams } = useCustomerMaterialReceiptQueryStore();

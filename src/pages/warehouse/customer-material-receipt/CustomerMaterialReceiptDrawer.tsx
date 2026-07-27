@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Drawer, Space, Button, message, App, Spin, Empty } from 'antd';
+import { Drawer, Space, Button, App, Spin, Empty } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CheckCircleOutlined, DeleteOutlined, CloseCircleOutlined } from '@ant-design/icons';
@@ -21,7 +21,7 @@ export default function CustomerMaterialReceiptDrawer() {
   const { documentNumber: routeId } = useParams<{ documentNumber: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { modal } = App.useApp();
+  const { modal, message } = App.useApp();
 
   const isCreating = routeId === 'create' || !routeId;
   const documentNumber = isCreating ? '' : routeId;
