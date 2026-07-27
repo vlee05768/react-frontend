@@ -66,6 +66,16 @@ export default function CustomerMaterialReceiptDrawer() {
     }
   }, [routeId, isCreating]);
 
+  // 如果非新增模式，且資料載入完畢後發現沒有任何明細項目，自動切換至明細分頁以利快速新增
+  useEffect(() => {
+    if (!isCreating && receiptData) {
+      const items = receiptData.items || [];
+      if (items.length === 0) {
+        setActiveTab('items_tab');
+      }
+    }
+  }, [isCreating, receiptData]);
+
   // Mutations
   const createMutation = useMutation({
     mutationFn: (body: any) => postApiV1CustomerMaterialReceipt({ body }),
