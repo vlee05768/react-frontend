@@ -271,7 +271,7 @@ export default function CustomerMaterialReceiptDrawer() {
   return (
     <Drawer
       title={isCreating ? '建立客供料入庫單' : `客供料入庫單明細: [${id}]`}
-      width={1000}
+      size={1000}
       open={true}
       onClose={() => navigate('/warehouse/customer-material-receipt')}
       destroyOnClose
