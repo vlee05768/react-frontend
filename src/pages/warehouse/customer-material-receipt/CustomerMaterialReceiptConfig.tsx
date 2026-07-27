@@ -249,7 +249,7 @@ export const itemTableColumns = (): TableColumnConfig[] => [
     name: "quantity",
     width: 120,
     align: "right",
-    render: (val: number) => <span style={{ fontWeight: 500 }}>{Number(val || 0).toFixed(4)}</span>,
+    render: (val: number) => <span style={{ fontWeight: 500 }}>{Number(val || 0).toFixed(2)}</span>,
   },
   {
     label: "目的儲位",
@@ -397,7 +397,7 @@ export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
         
       return (
         <InputNumber
-          value={Number(totalSqm.toFixed(4))}
+          value={Number(totalSqm.toFixed(2))}
           disabled
           style={{ width: "100%", fontWeight: "bold", color: "#2563eb" }}
           formatter={(val) => val != null ? `${val} SQM` : ""}
