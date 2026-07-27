@@ -13,6 +13,7 @@ export interface AutoCompleteProps {
   disabled?: boolean;
   placeholder?: string;
   onFocus?: React.FocusEventHandler<HTMLInputElement>;
+  allowClear?: boolean;
 }
 
 export const AutoCompleteField: React.FC<AutoCompleteProps> = ({
@@ -23,6 +24,7 @@ export const AutoCompleteField: React.FC<AutoCompleteProps> = ({
   disabled,
   placeholder,
   onFocus,
+  allowClear,
   ...props
 }) => {
   const config = AUTO_COMPLETE_REGISTRY[configKey];
@@ -105,6 +107,7 @@ export const AutoCompleteField: React.FC<AutoCompleteProps> = ({
       onFocus={handleFocus}
       notFoundContent={isFetching ? <Spin size="small" /> : null}
       style={{ width: '100%' }}
+      allowClear={allowClear}
       {...(props as any)}
     />
   );
