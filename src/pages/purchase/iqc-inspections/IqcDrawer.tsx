@@ -413,6 +413,8 @@ export default function IqcDrawer({
             updatedVal = String(coreDiaVal);
           } else if (item.itemCode === "length" && (!updatedVal || updatedVal === "")) {
             updatedVal = String(r.measuredLengthMm ?? detail.standardLength ?? 300);
+          } else if (item.itemCode === "appearance" && (!updatedVal || updatedVal === "" || updatedVal === "正常")) {
+            updatedVal = "Pass";
           }
           return { ...item, measuredValue: updatedVal };
         });
@@ -1424,7 +1426,13 @@ export default function IqcDrawer({
         // 如果是厚度/寬度/長度/管芯，且外觀判定是自訂敘述，則屬於隱藏欄位不檢核
         if (isCustom && ["thickness", "width", "length", "core_dia", "measuredOuterDiaMm"].includes(item.itemCode)) continue;
 
-        if (!item.measuredValue || item.measuredValue.trim() === "") {
+        let measuredVal = item.measuredValue;
+        if (item.itemCode === "appearance" && (!measuredVal || measuredVal.trim() === "" || measuredVal === "正常")) {
+          measuredVal = "Pass";
+          item.measuredValue = "Pass"; // 同步回狀態實體，雙保險防丟失
+        }
+
+        if (!measuredVal || measuredVal.trim() === "") {
           message.warning(
             `請填寫 ${nameLabel} 檢驗項目【${item.itemName}】的「實測值」`,
           );
