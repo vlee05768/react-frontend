@@ -544,7 +544,7 @@ export const getItemFormConfig = (): any[] => [
       const isMold = context?.values?.purchaseOrderType === "Mold";
       return { 
         configKey: isMold ? "MOLD" : "MATERIAL",
-        additionalParams: isMold ? { IsArrived: false } : undefined
+        additionalParams: isMold ? { IsArrived: false } : { IsCustomerSupplied: false }
       };
     },
     colSpan: 4,

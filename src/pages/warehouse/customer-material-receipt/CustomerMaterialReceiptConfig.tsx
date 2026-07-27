@@ -268,7 +268,7 @@ export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
     name: "materialCode",
     label: "原料品編 (預先建檔)",
     componentType: "AsyncSelect",
-    colSpan: 12,
+    colSpan: 4,
     componentProps: {
       disabled: isViewMode,
       configKey: "MATERIAL",
@@ -279,7 +279,7 @@ export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
     name: "targetStorageCode",
     label: "目的儲位",
     componentType: "AsyncSelect",
-    colSpan: 12,
+    colSpan: 4,
     componentProps: {
       disabled: isViewMode,
       configKey: "STORAGE",
@@ -291,7 +291,7 @@ export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
     name: "isRoll",
     label: "物料型態",
     componentType: "Select",
-    colSpan: 12,
+    colSpan: 4,
     componentProps: {
       disabled: isViewMode,
       options: [
@@ -305,7 +305,7 @@ export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
     name: "rollCount",
     label: "分卷/分包數",
     componentType: "InputNumber",
-    colSpan: 12,
+    colSpan: 4,
     componentProps: {
       disabled: isViewMode,
       min: 1,
@@ -317,7 +317,7 @@ export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
     name: "width",
     label: "規格寬度 (mm)",
     componentType: "InputNumber",
-    colSpan: 12,
+    colSpan: 4,
     componentProps: {
       disabled: isViewMode,
       min: 0.1,
@@ -329,7 +329,7 @@ export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
     name: "length",
     label: "規格長度 (捲材米 M / 片材毫米 mm)",
     componentType: "InputNumber",
-    colSpan: 12,
+    colSpan: 4,
     componentProps: {
       disabled: isViewMode,
       min: 0.1,
@@ -341,7 +341,7 @@ export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
     name: "physicalQuantity",
     label: "實物到貨總量 (總米數 / 總張數)",
     componentType: "InputNumber",
-    colSpan: 12,
+    colSpan: 4,
     componentProps: {
       disabled: isViewMode,
       min: 0.1,
@@ -354,7 +354,7 @@ export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
     name: "notes",
     label: "備註",
     componentType: "TextArea",
-    colSpan: 24,
+    colSpan: 1,
     componentProps: {
       disabled: isViewMode,
       placeholder: "項目備註資訊",
