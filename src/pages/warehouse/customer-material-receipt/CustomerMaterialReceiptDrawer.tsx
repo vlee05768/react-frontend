@@ -74,11 +74,14 @@ export default function CustomerMaterialReceiptDrawer() {
       const newId = newRecord?.documentNumber;
       message.success('建立客供料入庫單成功');
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipts'] });
-      // Redirect to newly created view mode
-      navigate(`/warehouse/customer-material-receipt/${newId}`, {
-        replace: true,
-        state: { autoEdit: true },
-      });
+      
+      if (newId) {
+        setTimeout(() => {
+          setActiveTab('items_tab');
+        }, 100);
+        navigate(`/warehouse/customer-material-receipt/${newId}`, { replace: true });
+        setIsEditing(false);
+      }
     },
     onError: (err: any) => message.error(err.response?.data?.message || '建立失敗'),
   });
@@ -254,7 +257,7 @@ export default function CustomerMaterialReceiptDrawer() {
             onClick={() => (document.getElementById('master-receipt-form') as HTMLFormElement)?.requestSubmit()}
             loading={createMutation.isPending || updateMutation.isPending}
           >
-            儲存主檔
+            儲存
           </Button>
           <Button key="cancel" onClick={handleCancelEdit}>
             取消
@@ -270,12 +273,13 @@ export default function CustomerMaterialReceiptDrawer() {
       <Button
         key="edit"
         type="primary"
+        disabled={isDetailEditing}
         onClick={(e) => {
           e.preventDefault();
           setIsEditing(true);
         }}
       >
-        編輯主檔
+        編輯
       </Button>
     );
   };
