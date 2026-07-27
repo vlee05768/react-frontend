@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Drawer, Space, Button, message, App } from 'antd';
+import { Drawer, Space, Button, message, App, Spin, Empty } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { CheckCircleOutlined, SyncOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, DeleteOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 import { DynamicForm } from '@/components/Form/DynamicForm';
@@ -10,11 +10,12 @@ import { ActionButton } from '@/components/common/ActionButton';
 import { ActionBar } from '@/components/common/ActionBar';
 import { DocumentLifecycleBanner } from '@/components/common/DocumentLifecycleBanner';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
+import { DrawerTitle } from '@/components/Form/DrawerTitle';
 
-import { masterFormConfig } from './CustomerMaterialReceiptConfig';
+import { masterFormConfig, getStatusTag } from './CustomerMaterialReceiptConfig';
 import CustomerMaterialReceiptItemsTab from './CustomerMaterialReceiptItemsTab';
 
-import { getApiV1CustomerMaterialReceiptByCode, postApiV1CustomerMaterialReceipt, putApiV1CustomerMaterialReceiptByCode, postApiV1CustomerMaterialReceiptByCodeConfirm, postApiV1CustomerMaterialReceiptByCodeCancelConfirm } from '@/api/generated';
+import { getApiV1CustomerMaterialReceiptByCode, postApiV1CustomerMaterialReceipt, putApiV1CustomerMaterialReceiptByCode, postApiV1CustomerMaterialReceiptByCodeConfirm, postApiV1CustomerMaterialReceiptByCodeCancelConfirm, deleteApiV1CustomerMaterialReceiptByCode } from '@/api/generated';
 
 export default function CustomerMaterialReceiptDrawer() {
   const { id } = useParams<{ id: string }>();
@@ -30,7 +31,7 @@ export default function CustomerMaterialReceiptDrawer() {
   const [isDetailEditing, setIsDetailEditing] = useState(false);
 
   // Fetch Master Data
-  const { data: response } = useQuery({
+  const { data: response, isLoading } = useQuery({
     queryKey: ['customer-material-receipt', documentNumber],
     queryFn: () => getApiV1CustomerMaterialReceiptByCode({ path: { code: documentNumber! } }),
     enabled: !isCreating && !!documentNumber,
@@ -129,6 +130,16 @@ export default function CustomerMaterialReceiptDrawer() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteApiV1CustomerMaterialReceiptByCode({ path: { code: documentNumber! } }),
+    onSuccess: () => {
+      message.success('刪除客供料入庫單成功');
+      queryClient.invalidateQueries({ queryKey: ['customer-material-receipts'] });
+      navigate('/warehouse/customer-material-receipt');
+    },
+    onError: (err: any) => message.error(err.response?.data?.message || '刪除失敗'),
+  });
+
   // Handle Master Save Submit
   const handleMasterSubmit = (values: any) => {
     // Force Financial fields to 0
@@ -186,20 +197,42 @@ export default function CustomerMaterialReceiptDrawer() {
     return (
       <Space>
         {isDraft ? (
-          <ActionButton
-            key="confirm"
-            intent="primary"
-            icon={<CheckCircleOutlined />}
-            disabled={isDetailEditing || itemsCount === 0}
-            onClick={handleConfirmDoc}
-          >
-            確認過帳
-          </ActionButton>
+          <>
+            <ActionButton
+              key="confirm"
+              intent="success"
+              icon={<CheckCircleOutlined />}
+              disabled={isDetailEditing || itemsCount === 0}
+              onClick={handleConfirmDoc}
+            >
+              確認過帳
+            </ActionButton>
+            <ActionButton
+              key="delete"
+              intent="error"
+              icon={<DeleteOutlined />}
+              disabled={isDetailEditing}
+              loading={deleteMutation.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                modal.confirm({
+                  title: '刪除單據',
+                  content: `確定要刪除客供料入庫單 ${receiptData.documentNumber} 嗎？`,
+                  centered: true,
+                  width: 400,
+                  okButtonProps: { danger: true },
+                  onOk: () => deleteMutation.mutate(),
+                });
+              }}
+            >
+              刪除
+            </ActionButton>
+          </>
         ) : (
           <ActionButton
             key="cancel-confirm"
             intent="warning"
-            icon={<SyncOutlined />}
+            icon={<CloseCircleOutlined />}
             disabled={isDetailEditing}
             onClick={handleCancelConfirmDoc}
           >
@@ -270,7 +303,16 @@ export default function CustomerMaterialReceiptDrawer() {
 
   return (
     <Drawer
-      title={isCreating ? '建立客供料入庫單' : `客供料入庫單明細: [${id}]`}
+      title={
+        <DrawerTitle
+          moduleName="客供料入庫單"
+          isCreate={isCreating}
+          isEdit={isEditing}
+          record={receiptData}
+          displayField={(r: any) => r?.documentNumber ? `${r.documentNumber}` : ''}
+          statusTag={(!isCreating && receiptData) ? getStatusTag(receiptData.status, receiptData.confirmDate, receiptData.closeDate) : undefined}
+        />
+      }
       size={1000}
       open={true}
       onClose={() => navigate('/warehouse/customer-material-receipt')}
@@ -280,58 +322,62 @@ export default function CustomerMaterialReceiptDrawer() {
       maskClosable={!isEditing && !isDetailEditing}
       keyboard={!isEditing && !isDetailEditing}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-        {/* Banner area */}
-        <div style={{ padding: '16px 24px 8px 24px', flexShrink: 0 }}>
-          {!isCreating && receiptData && <DocumentLifecycleBanner steps={steps} />}
-          <ActionBar 
-            createdBy={receiptData?.createdBy || undefined}
-            createdAt={receiptData?.createdAt || undefined}
-            updatedBy={receiptData?.updatedBy || undefined}
-            updatedAt={receiptData?.updatedAt || undefined}
-            actions={getActionBarActions()} 
-          />
-        </div>
+      <Spin spinning={!isCreating && isLoading}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          {/* Banner area */}
+          <div style={{ padding: '16px 24px 8px 24px', flexShrink: 0 }}>
+            {!isCreating && receiptData && <DocumentLifecycleBanner steps={steps} />}
+            <ActionBar 
+              createdBy={receiptData?.createdBy || undefined}
+              createdAt={receiptData?.createdAt || undefined}
+              updatedBy={receiptData?.updatedBy || undefined}
+              updatedAt={receiptData?.updatedAt || undefined}
+              actions={getActionBarActions()} 
+            />
+          </div>
 
-        {/* Dynamic tabbed layouts */}
-        <div style={{ flex: 1, overflow: 'hidden', padding: '0 24px 24px 24px' }}>
-          <MasterDetailTabs
-            heightOffset={!isCreating && receiptData ? 280 : 160}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            isCreateMode={isCreating}
-            isEditMode={isEditing}
-            viewId={documentNumber || 'create'}
-            disableTabSwitching={isDetailEditing}
-            masterContent={
-              <div style={{ display: activeTab === 'master_info' ? 'block' : 'none' }}>
-                <DynamicForm
-                  formId="master-receipt-form"
-                  fields={masterFormConfig(!isEditing)}
-                  defaultValues={defaultFormValues}
-                  onSubmit={handleMasterSubmit}
-                  hideDefaultFooter
-                  isViewMode={!isEditing}
-                  isUpdateMode={isEditing && !isCreating}
-                />
-              </div>
-            }
-            detailTabs={[
-              {
-                key: 'items_tab',
-                label: `入庫明細 (${itemsCount})`,
-                children: receiptData ? (
-                  <CustomerMaterialReceiptItemsTab
-                    receiptData={receiptData}
-                    isMasterViewMode={!isEditing}
-                    onEditingChange={setIsDetailEditing}
+          {/* Dynamic tabbed layouts */}
+          <div style={{ flex: 1, overflow: 'hidden', padding: '0 24px 24px 24px' }}>
+            <MasterDetailTabs
+              heightOffset={!isCreating && receiptData ? 280 : 160}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              isCreateMode={isCreating}
+              isEditMode={isEditing}
+              viewId={documentNumber || 'create'}
+              disableTabSwitching={isDetailEditing}
+              masterContent={
+                <div style={{ display: activeTab === 'master_info' ? 'block' : 'none' }}>
+                  <DynamicForm
+                    formId="master-receipt-form"
+                    fields={masterFormConfig(!isEditing)}
+                    defaultValues={defaultFormValues}
+                    onSubmit={handleMasterSubmit}
+                    hideDefaultFooter
+                    isViewMode={!isEditing}
+                    isUpdateMode={isEditing && !isCreating}
                   />
-                ) : <div />,
+                </div>
               }
-            ]}
-          />
+              detailTabs={[
+                {
+                  key: 'items_tab',
+                  label: `入庫明細 (${itemsCount})`,
+                  children: !isCreating && receiptData ? (
+                    <CustomerMaterialReceiptItemsTab
+                      receiptData={receiptData}
+                      isMasterViewMode={!isEditing}
+                      onEditingChange={setIsDetailEditing}
+                    />
+                  ) : (
+                    <Empty description="請先儲存客供料入庫單主檔" />
+                  ),
+                }
+              ]}
+            />
+          </div>
         </div>
-      </div>
+      </Spin>
     </Drawer>
   );
 }
