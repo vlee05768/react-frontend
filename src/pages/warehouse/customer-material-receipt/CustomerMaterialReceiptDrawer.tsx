@@ -50,6 +50,7 @@ export default function CustomerMaterialReceiptDrawer() {
     if (receiptData) {
       return {
         ...receiptData,
+        businessPartnerCode: receiptData.partnerRoleCode || receiptData.businessPartnerCode, // 📌 顯示客戶角色編號（如 C0001），對齊採購進貨單模式
         documentDate: receiptData.documentDate ? dayjs(receiptData.documentDate) : undefined, // Dayjs object!
       };
     }
