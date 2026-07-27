@@ -1,5 +1,5 @@
 import type { TableColumnConfig, FormFieldConfig } from "@/components/Form/types";
-import { Tag, InputNumber } from "antd";
+import { Tag, InputNumber, Input } from "antd";
 import dayjs from "dayjs";
 import { z } from "zod";
 import { Link } from "react-router-dom";
@@ -289,9 +289,20 @@ export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
   {
     name: "unit",
     label: "單位",
-    componentType: "Input",
+    componentType: "Custom",
     editable: "never",
     colSpan: 4,
+    customRender: (_props: any, context: any) => {
+      const isRoll = context?.values?.isRoll ?? true;
+      const unitStr = isRoll ? "卷" : "pcs";
+      return (
+        <Input
+          value={unitStr}
+          disabled
+          style={{ width: "100%", fontWeight: "bold" }}
+        />
+      );
+    }
   },
   {
     name: "targetStorageCode",
