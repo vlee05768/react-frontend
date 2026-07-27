@@ -41,6 +41,7 @@ const StorageList = withSuspense(lazy(() => import('@/pages/basic/storages/Stora
 const StorageInventoryList = withSuspense(lazy(() => import('@/pages/warehouse/inventory/StorageInventoryList')));
 const MaterialInventoryList = withSuspense(lazy(() => import('@/pages/warehouse/material-inventory/MaterialInventoryList')));
 const CustomerMaterialReceiptList = withSuspense(lazy(() => import('@/pages/warehouse/customer-material-receipt/CustomerMaterialReceiptList')));
+const CustomerMaterialReceiptDrawer = withSuspense(lazy(() => import('@/pages/warehouse/customer-material-receipt/CustomerMaterialReceiptDrawer')));
 const QuickRollTransfer = withSuspense(
   lazy(() =>
     import('@/pages/warehouse/material-inventory/QuickRollTransfer').then((module) => ({
@@ -123,6 +124,8 @@ export const router = createBrowserRouter([
       { path: 'warehouse/material-inventory', element: <MaterialInventoryList /> },
       { path: 'warehouse/quick-transfer', element: <QuickRollTransfer /> },
       { path: 'warehouse/customer-material-receipt', element: <CustomerMaterialReceiptList /> },
+      { path: 'warehouse/customer-material-receipt/create', element: <><CustomerMaterialReceiptList /><CustomerMaterialReceiptDrawer /></> },
+      { path: 'warehouse/customer-material-receipt/:documentNumber', element: <><CustomerMaterialReceiptList /><CustomerMaterialReceiptDrawer /></> },
       { path: 'warehouse/inventory-movements', element: <StorageTransactionsList /> },
       { path: 'basic/products/:viewId?', element: <ProductsList /> },
       { path: 'warehouse/inventory-adjustments/:viewId?', element: <InventoryAdjustmentList /> },
