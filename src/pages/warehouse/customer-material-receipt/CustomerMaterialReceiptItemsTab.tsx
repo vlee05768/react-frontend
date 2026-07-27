@@ -7,6 +7,7 @@ import { itemFormConfig, itemTableColumns } from './CustomerMaterialReceiptConfi
 import { buildTableColumns } from '@/utils/tableUtils';
 import type { CustomerMaterialReceiptDto, CustomerMaterialReceiptItemDto, CreateCustomerMaterialReceiptItemDto, UpdateCustomerMaterialReceiptItemDto } from '@/api/generated/types.gen';
 import { postApiV1CustomerMaterialReceiptByCodeItems, putApiV1CustomerMaterialReceiptByCodeItemsByLineNumber, deleteApiV1CustomerMaterialReceiptByCodeItemsByLineNumber } from '@/api/generated';
+import CustomerMaterialPickerModal from './CustomerMaterialPickerModal';
 
 interface CustomerMaterialReceiptItemsTabProps {
   receiptData: CustomerMaterialReceiptDto;
@@ -23,6 +24,7 @@ export default function CustomerMaterialReceiptItemsTab({
   const queryClient = useQueryClient();
   const [editingItem, setEditingItem] = useState<CustomerMaterialReceiptItemDto | null>(null);
   const [isCreatingItem, setIsCreatingItem] = useState(false);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   const documentNumber = receiptData.documentNumber!;
   const isDraft = (receiptData.status || '').toUpperCase() === 'UNCONFIRMED' || !receiptData.confirmDate;
@@ -36,8 +38,7 @@ export default function CustomerMaterialReceiptItemsTab({
   };
 
   const handleStartCreate = () => {
-    setIsCreatingItem(true);
-    updateEditState(true);
+    setIsPickerOpen(true);
   };
 
   const handleStartEdit = (record: CustomerMaterialReceiptItemDto) => {
@@ -94,6 +95,36 @@ export default function CustomerMaterialReceiptItemsTab({
     },
     onError: (err: any) => message.error(err.response?.data?.message || '刪除失敗'),
   });
+
+  const handlePickerConfirm = async (selected: any[]) => {
+    setIsPickerOpen(false);
+    let successCount = 0;
+    
+    try {
+      for (const mat of selected) {
+        const isRoll = mat.materialForm === 'R';
+        const body: CreateCustomerMaterialReceiptItemDto = {
+          materialCode: mat.code,
+          targetStorageCode: 'TW-QC-GEN', // 預設進貨品質待檢驗倉
+          isRoll,
+          rollCount: 1,
+          width: 1000,
+          length: isRoll ? 200 : 1000,
+          physicalQuantity: isRoll ? 200 : 1,
+          notes: '由客供料清單挑選帶入',
+        };
+        
+        await createMutation.mutateAsync(body);
+        successCount++;
+      }
+      
+      if (successCount > 0) {
+        message.success(`成功帶入 ${successCount} 筆客供料項目！`);
+      }
+    } catch (err) {
+      console.error('Batch import failed:', err);
+    }
+  };
 
   const handleSubmit = (values: any) => {
     // 1. 同物料代碼防重驗證 (Client-side integrity check)
@@ -215,6 +246,14 @@ export default function CustomerMaterialReceiptItemsTab({
   // 正常清單視圖
   return (
     <div style={{ marginTop: '16px' }}>
+      <CustomerMaterialPickerModal
+        open={isPickerOpen}
+        onCancel={() => setIsPickerOpen(false)}
+        onConfirm={handlePickerConfirm}
+        customerCode={receiptData.businessPartnerCode!}
+        excludeMaterialCodes={items.map((item) => item.materialCode!)}
+      />
+
       {/* 灰盒操作工具列 (Grey Box Operation Bar) */}
       <div 
         style={{ 

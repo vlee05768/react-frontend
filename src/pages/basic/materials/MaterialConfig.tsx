@@ -194,6 +194,19 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     render: (v) => <DictLabel dictKey="MATERIAL_SUPPLIER" value={v} />,
   },
   {
+    label: "客供料",
+    name: "isCustomerSupplied",
+    width: 180,
+    render: (isCustomerSupplied: boolean, record: any) => {
+      if (!isCustomerSupplied) return "否";
+      return (
+        <span style={{ color: "#1668dc", fontWeight: 500 }}>
+          {record.customerName ? `是 [${record.customerName}]` : `是 [${record.customerCode}]`}
+        </span>
+      );
+    },
+  },
+  {
     label: "啟用",
     name: "isActive",
     width: 80,
@@ -344,6 +357,40 @@ export const mainFormConfig = (
     componentProps: {
       configKey: "MATERIAL_SUPPLIER",
       allowClear: true,
+    },
+  },
+  {
+    name: "isCustomerSupplied",
+    label: "是否為客供料",
+    componentType: "Switch",
+    colSpan: 4,
+    onChange: (val: any, ctx: any, setValue: any) => {
+      setValue("isCustomerSupplied", val);
+      ctx.values.isCustomerSupplied = val;
+      if (!val) {
+        setValue("customerCode", undefined);
+        ctx.values.customerCode = undefined;
+      }
+    },
+  },
+  {
+    name: "customerCode",
+    label: "客供客戶",
+    componentType: "AsyncSelect",
+    colSpan: 4,
+    validation: z.string().optional().nullable(),
+    dynamicValidation: (context: any) => {
+      if (context?.values?.isCustomerSupplied) {
+        return z.string().min(1, "若設定為客供料，則客供客戶必選！");
+      }
+      return z.string().optional().nullable();
+    },
+    componentProps: (context: any) => {
+      return {
+        configKey: "CUSTOMER",
+        allowClear: true,
+        disabled: !context?.values?.isCustomerSupplied,
+      };
     },
   },
   {

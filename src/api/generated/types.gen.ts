@@ -1125,6 +1125,14 @@ export type CreateMaterialDto = {
      */
     unitPrice?: number;
     /**
+     * 是否為客供料
+     */
+    isCustomerSupplied?: boolean;
+    /**
+     * 客供客戶編碼
+     */
+    customerCode?: string | null;
+    /**
      * 標記
      */
     tag?: string | null;
@@ -4429,6 +4437,18 @@ export type MaterialDto = {
      * 每平方米標準成本 (元/SQM)
      */
     unitPrice?: number;
+    /**
+     * 是否為客供料
+     */
+    isCustomerSupplied?: boolean;
+    /**
+     * 客供客戶編碼
+     */
+    customerCode?: string | null;
+    /**
+     * 客供客戶名稱
+     */
+    customerName?: string | null;
     /**
      * 是否啟用
      */
@@ -8799,6 +8819,14 @@ export type UpdateMaterialDto = {
      * 每平方米標準成本 (元/SQM)
      */
     unitPrice?: number | null;
+    /**
+     * 是否為客供料
+     */
+    isCustomerSupplied?: boolean | null;
+    /**
+     * 客供客戶編碼
+     */
+    customerCode?: string | null;
     /**
      * 標記
      */
@@ -16235,6 +16263,14 @@ export type GetApiV1MaterialData = {
          * 其他雜項
          */
         Others?: string;
+        /**
+         * 是否為客供料
+         */
+        IsCustomerSupplied?: boolean;
+        /**
+         * 客供客戶編碼
+         */
+        CustomerCode?: string;
         /**
          * 頁碼
          */
