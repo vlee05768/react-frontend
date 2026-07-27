@@ -142,7 +142,7 @@ export default function CustomerMaterialPickerModal({
         </Space>
       }
     >
-      <Space direction="vertical" style={{ width: '100%' }} size="middle">
+      <Space orientation="vertical" style={{ width: '100%' }} size="middle">
         <Input.Search
           placeholder="請輸入原料編碼或品名搜尋..."
           enterButton="搜尋"
