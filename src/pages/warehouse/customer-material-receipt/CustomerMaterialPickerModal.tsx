@@ -118,7 +118,7 @@ export default function CustomerMaterialPickerModal({
       width={MODAL_WIDTH_PICK}
       open={open}
       onCancel={onCancel}
-      destroyOnClose
+      destroyOnHidden
       centered
       styles={{
         body: {
