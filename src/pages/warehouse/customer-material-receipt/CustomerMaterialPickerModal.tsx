@@ -12,6 +12,7 @@ interface CustomerMaterialPickerModalProps {
   onCancel: () => void;
   onConfirm: (selectedMaterials: MaterialDto[]) => void;
   customerCode: string;
+  customerName?: string;
   excludeMaterialCodes?: string[];
 }
 
@@ -20,6 +21,7 @@ export default function CustomerMaterialPickerModal({
   onCancel,
   onConfirm,
   customerCode,
+  customerName = '',
   excludeMaterialCodes = [],
 }: CustomerMaterialPickerModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -114,7 +116,7 @@ export default function CustomerMaterialPickerModal({
 
   return (
     <Modal
-      title={`選擇客供料原物料 (鎖定客戶: [${customerCode}])`}
+      title={`選擇客供料原物料 (鎖定客戶: [${customerCode}] ${customerName})`}
       width={MODAL_WIDTH_PICK}
       open={open}
       onCancel={onCancel}

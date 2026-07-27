@@ -250,7 +250,8 @@ export default function CustomerMaterialReceiptItemsTab({
         open={isPickerOpen}
         onCancel={() => setIsPickerOpen(false)}
         onConfirm={handlePickerConfirm}
-        customerCode={receiptData.businessPartnerCode!}
+        customerCode={receiptData.partnerRoleCode || receiptData.businessPartnerCode!}
+        customerName={receiptData.businessPartnerName || ''}
         excludeMaterialCodes={items.map((item) => item.materialCode!)}
       />
 
