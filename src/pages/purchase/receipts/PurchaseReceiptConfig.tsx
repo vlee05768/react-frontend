@@ -503,28 +503,28 @@ export const getItemFormConfig = (isMold?: boolean): any[] => {
       label: "項次",
       componentType: "Input",
       editable: "never",
-      colSpan: 3,
+      colSpan: 4,
     },
     {
       name: "materialCode",
       label: isMold ? "模具編碼" : "原料編碼",
       componentType: "Input",
       editable: "never",
-      colSpan: 3,
+      colSpan: 4,
     },
     {
       name: "materialName",
       label: isMold ? "模具名稱" : "原料名稱",
       componentType: "Input",
       editable: "never",
-      colSpan: 3,
+      colSpan: 4,
     },
     {
       name: "unit",
       label: "單位",
       componentType: "Input",
       editable: "never",
-      colSpan: 3,
+      colSpan: 4,
     },
     {
       name: "targetStorageCode",
@@ -534,7 +534,7 @@ export const getItemFormConfig = (isMold?: boolean): any[] => {
       customRender: (field: any) => (
         <DictSelect {...field} dictKey="STORAGE" disabled />
       ),
-      colSpan: 3,
+      colSpan: 4,
       validation: z.string().min(1, "請選擇目的儲位"),
     },
     {
@@ -542,7 +542,7 @@ export const getItemFormConfig = (isMold?: boolean): any[] => {
       label: "單價",
       componentType: "InputNumber",
       editable: "always",
-      colSpan: 3,
+      colSpan: 4,
       componentProps: {
         min: 0,
         precision: 4,
@@ -556,7 +556,7 @@ export const getItemFormConfig = (isMold?: boolean): any[] => {
       label: "拆卷數",
       componentType: "InputNumber",
       editable: "always",
-      colSpan: 3,
+      colSpan: 4,
       componentProps: {
         min: 1,
         precision: 0,
@@ -570,7 +570,7 @@ export const getItemFormConfig = (isMold?: boolean): any[] => {
       label: "規格寬度 (mm)",
       componentType: "InputNumber",
       editable: "always",
-      colSpan: 3,
+      colSpan: 4,
       componentProps: {
         min: 1,
         precision: 4,
@@ -584,7 +584,7 @@ export const getItemFormConfig = (isMold?: boolean): any[] => {
       label: "規格長度 (M)",
       componentType: "InputNumber",
       editable: "always",
-      colSpan: 3,
+      colSpan: 4,
       componentProps: {
         min: 1,
         precision: 4,
@@ -598,7 +598,7 @@ export const getItemFormConfig = (isMold?: boolean): any[] => {
       label: "總長度 (M)",
       componentType: "Custom",
       editable: "always",
-      colSpan: 3,
+      colSpan: 4,
       customRender: (_props: any, context: any) => {
         const isRoll = context?.values?.isRoll ?? true;
         const rollCount = context?.values?.rollCount || 0;

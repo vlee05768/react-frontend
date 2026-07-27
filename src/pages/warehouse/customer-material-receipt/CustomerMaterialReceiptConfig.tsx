@@ -1,9 +1,10 @@
 import type { TableColumnConfig, FormFieldConfig } from "@/components/Form/types";
-import { Tag } from "antd";
+import { Tag, InputNumber } from "antd";
 import dayjs from "dayjs";
 import { z } from "zod";
 import { Link } from "react-router-dom";
 import { EllipsisText } from "@/components/Table/EllipsisText";
+import { DictSelect } from "@/components/Form/DictSelect";
 
 export const customerMaterialReceiptSearchConfig = (): any[] => [
   {
@@ -265,102 +266,135 @@ export const itemTableColumns = (): TableColumnConfig[] => [
 
 export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
   {
-    name: "materialCode",
-    label: "原料品編 (預先建檔)",
-    componentType: "AsyncSelect",
+    name: "lineNumber",
+    label: "項次",
+    componentType: "Input",
+    editable: "never",
     colSpan: 4,
-    componentProps: {
-      disabled: isViewMode,
-      configKey: "MATERIAL",
-    },
-    editable: "createOnly",
+  },
+  {
+    name: "materialCode",
+    label: "原料品編",
+    componentType: "Input",
+    editable: "never",
+    colSpan: 4,
+  },
+  {
+    name: "materialName",
+    label: "原料名稱",
+    componentType: "Input",
+    editable: "never",
+    colSpan: 4,
+  },
+  {
+    name: "unit",
+    label: "單位",
+    componentType: "Input",
+    editable: "never",
+    colSpan: 4,
   },
   {
     name: "targetStorageCode",
     label: "目的儲位",
-    componentType: "AsyncSelect",
+    componentType: "Custom",
+    editable: "never",
+    customRender: (field: any) => (
+      <DictSelect {...field} dictKey="STORAGE" disabled />
+    ),
     colSpan: 4,
-    componentProps: {
-      disabled: isViewMode,
-      configKey: "STORAGE",
-      placeholder: "預設 QC 待驗倉",
-    },
-    editable: "always",
-  },
-  {
-    name: "isRoll",
-    label: "物料型態",
-    componentType: "Select",
-    colSpan: 4,
-    componentProps: {
-      disabled: isViewMode,
-      options: [
-        { label: "捲料 (R)", value: true },
-        { label: "片料 (S)", value: false },
-      ],
-    },
-    editable: "createOnly",
+    validation: z.string().min(1, "請選擇目的儲位"),
   },
   {
     name: "rollCount",
     label: "分卷/分包數",
     componentType: "InputNumber",
+    editable: "always",
     colSpan: 4,
     componentProps: {
       disabled: isViewMode,
       min: 1,
-      style: { width: "100%" },
+      precision: 0,
+      controls: false,
     },
-    editable: "always",
+    validation: z.number().min(1, "分卷數必須大於等於 1"),
   },
   {
     name: "width",
     label: "規格寬度 (mm)",
     componentType: "InputNumber",
+    editable: "always",
     colSpan: 4,
     componentProps: {
       disabled: isViewMode,
       min: 0.1,
-      style: { width: "100%" },
+      precision: 4,
+      controls: false,
     },
-    editable: "always",
+    validation: z.number().min(0.1, "寬度必須大於 0"),
   },
   {
     name: "length",
-    label: "規格長度 (捲材米 M / 片材毫米 mm)",
+    label: "規格長度 (M)",
     componentType: "InputNumber",
+    editable: "always",
     colSpan: 4,
     componentProps: {
       disabled: isViewMode,
       min: 0.1,
-      style: { width: "100%" },
+      precision: 4,
+      controls: false,
     },
-    editable: "always",
+    validation: z.number().min(0.1, "長度必須大於 0"),
   },
   {
     name: "physicalQuantity",
-    label: "實物到貨總量 (總米數 / 總張數)",
+    label: "實物到貨總量 (M / PCS)",
     componentType: "InputNumber",
+    editable: "always",
     colSpan: 4,
     componentProps: {
       disabled: isViewMode,
       min: 0.1,
-      style: { width: "100%" },
-      placeholder: "後端會依此重算總面積 SQM",
+      precision: 4,
+      controls: false,
     },
+    validation: z.number().min(0.1, "到貨量必須大於 0"),
+  },
+  {
+    name: "quantity",
+    label: "預估面積 (SQM)",
+    componentType: "Custom",
     editable: "always",
+    colSpan: 4,
+    customRender: (_props: any, context: any) => {
+      const isRoll = context?.values?.isRoll ?? true;
+      const rollCount = context?.values?.rollCount || 0;
+      const width = context?.values?.width || 0;
+      const length = context?.values?.length || 0;
+      const physicalQuantity = context?.values?.physicalQuantity || 0;
+      
+      const widthM = width / 1000;
+      const totalSqm = isRoll 
+        ? rollCount * length * widthM 
+        : physicalQuantity * widthM;
+        
+      return (
+        <InputNumber
+          value={Number(totalSqm.toFixed(4))}
+          disabled
+          style={{ width: "100%", fontWeight: "bold", color: "#2563eb" }}
+          formatter={(val) => val != null ? `${val} SQM` : ""}
+        />
+      );
+    }
   },
   {
     name: "notes",
     label: "備註",
     componentType: "TextArea",
-    colSpan: 1,
-    componentProps: {
-      disabled: isViewMode,
-      placeholder: "項目備註資訊",
-      rows: 2,
-    },
     editable: "always",
+    componentProps: { disabled: isViewMode, rows: 2 },
+    colSpan: 1,
   },
 ];
 
