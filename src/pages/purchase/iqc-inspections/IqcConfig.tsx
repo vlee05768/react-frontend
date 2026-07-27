@@ -227,7 +227,7 @@ export const getIqcFormFields = (ctx: {
     },
     {
       name: "sourceDocNumber",
-      label: "來源進貨單號",
+      label: "來源單號",
       componentType: "Input",
       editable: "never",
       colSpan: 4,
