@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 import PageCard from '@/components/common/PageCard';
-import { Button, message, Space, Divider } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Button, message, Space, Divider, Modal } from 'antd';
+import { PlusOutlined, SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { useNavigate, Outlet, useLocation } from 'react-router-dom';
+import { useNavigate, Outlet, useLocation, useParams } from 'react-router-dom';
 
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import { getApiV1CustomerMaterialReceipt, deleteApiV1CustomerMaterialReceiptByCode } from '@/api/generated';
@@ -15,12 +15,14 @@ import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
 import { useErpListQuery } from '@/hooks/useErpListQuery';
 import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
 import StandardErpTable from '@/components/Table/StandardErpTable';
+import { MODAL_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT } from '@/constants/ui';
 
 export default function CustomerMaterialReceiptList() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { params, setParams } = useCustomerMaterialReceiptQueryStore();
   const location = useLocation();
+  const { documentNumber: viewId } = useParams();
 
   // Reset query parameters on fresh module visits to prevent stale states
   useEffect(() => {
@@ -98,6 +100,7 @@ export default function CustomerMaterialReceiptList() {
     const pageNumber = pagination.current || 1;
     const pageSize = pagination.pageSize || 20;
     const sortRules = formatSorterToRules(sorter);
+
     setParams({
       pageNumber,
       pageSize,
@@ -108,42 +111,28 @@ export default function CustomerMaterialReceiptList() {
   const columns = buildTableColumns(mainTableColumns(), actionColumn, params.SortRules);
 
   return (
-    <PageCard title="客供料入庫單">
-      <Space direction="vertical" style={{ width: '100%' }} size="medium">
-        {/* Advanced Search Form */}
-        <DynamicSearchForm
-          config={customerMaterialReceiptSearchConfig()}
-          form={listQuery.searchForm}
-          onSearch={listQuery.handleSearch}
-        />
-
-        <Divider style={{ margin: '8px 0' }} />
-
-        {/* Gray Box Actions and Statistics */}
-        <div 
-          style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            padding: '10px 16px',
-            backgroundColor: 'var(--ant-color-fill-alter)',
-            borderRadius: '8px',
-            border: '1px solid var(--ant-color-border-secondary)'
-          }}
-        >
-          <div style={{ color: 'var(--ant-color-text-secondary)' }}>
-            單據共計 <span style={{ fontWeight: 600, color: 'var(--ant-color-primary)' }}>{total}</span> 筆
-          </div>
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />} 
-            onClick={openCreateDrawer}
-          >
-            建立客供料入庫單
-          </Button>
-        </div>
-
-        {/* Active Query Filter Tags */}
+    <div className="p-4 pb-0 flex flex-col h-[calc(100vh-64px)]">
+      <PageCard
+        title="客供料入庫單"
+        extra={
+          <Space separator={<Divider orientation="vertical" />}>
+            <Button
+              type="default"
+              icon={<SearchOutlined />}
+              onClick={listQuery.openSearchModal}
+            >
+              查詢
+            </Button>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={openCreateDrawer}
+            >
+              新增單據
+            </Button>
+          </Space>
+        }
+      >
         <ActiveQueryAndSortTags
           searchConfig={customerMaterialReceiptSearchConfig()}
           tableColumns={mainTableColumns()}
@@ -153,25 +142,63 @@ export default function CustomerMaterialReceiptList() {
           onClearSort={listQuery.handleClearAllSort}
         />
 
-        {/* Standard Data Grid */}
-        <StandardErpTable
-          dataSource={list}
-          columns={columns}
-          rowKey="documentNumber"
-          loading={isLoading || isFetching}
-          pagination={{
-            current: params.pageNumber || 1,
-            pageSize: params.pageSize || 20,
-            total,
-            showSizeChanger: true,
-            showTotal: (t) => `共 ${t} 筆記錄`,
-          }}
-          onChange={handleTableChange}
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <StandardErpTable
+            onChange={handleTableChange}
+            columns={columns}
+            dataSource={list}
+            rowKey="documentNumber"
+            loading={isLoading || isFetching}
+            selectedRowId={viewId}
+            selectedRowKey="documentNumber"
+            pagination={{
+              current: params.pageNumber || 1,
+              pageSize: params.pageSize || 20,
+              total,
+            }}
+          />
+        </div>
+      </PageCard>
+
+      {/* Query Search Modal */}
+      <Modal
+        title={
+          <div className="font-semibold pb-3 mb-2 text-[18px] border-b border-[var(--ant-color-border-secondary)]">
+            查詢條件設定
+          </div>
+        }
+        open={listQuery.isSearchModalOpen}
+        onCancel={() => listQuery.setIsSearchModalOpen(false)}
+        footer={
+          <div className="pt-4 flex justify-end gap-2 border-t border-[var(--ant-color-border-secondary)]">
+            <Button icon={<ClearOutlined />} onClick={listQuery.handleClear}>
+              清除條件
+            </Button>
+            <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
+              執行查詢
+            </Button>
+          </div>
+        }
+        width={MODAL_WIDTH_SEARCH}
+        className="top-[10vh]"
+        styles={{
+          body: {
+            maxHeight: MODAL_BODY_MAX_HEIGHT,
+            overflowY: 'auto',
+            padding: '24px 24px 0 24px'
+          }
+        }}
+        closeIcon={true}
+      >
+        <DynamicSearchForm
+          config={customerMaterialReceiptSearchConfig()}
+          form={listQuery.searchForm}
+          onSearch={listQuery.handleSearch}
         />
-      </Space>
+      </Modal>
 
       {/* Render Sub Router Overlays (Drawer) */}
       <Outlet />
-    </PageCard>
+    </div>
   );
 }
