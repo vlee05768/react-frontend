@@ -18,13 +18,13 @@ import CustomerMaterialReceiptItemsTab from './CustomerMaterialReceiptItemsTab';
 import { getApiV1CustomerMaterialReceiptByCode, postApiV1CustomerMaterialReceipt, putApiV1CustomerMaterialReceiptByCode, postApiV1CustomerMaterialReceiptByCodeConfirm, postApiV1CustomerMaterialReceiptByCodeCancelConfirm, deleteApiV1CustomerMaterialReceiptByCode } from '@/api/generated';
 
 export default function CustomerMaterialReceiptDrawer() {
-  const { id } = useParams<{ id: string }>();
+  const { documentNumber: routeId } = useParams<{ documentNumber: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { modal } = App.useApp();
 
-  const isCreating = id === 'create';
-  const documentNumber = isCreating ? '' : id;
+  const isCreating = routeId === 'create' || !routeId;
+  const documentNumber = isCreating ? '' : routeId;
 
   const [isEditing, setIsEditing] = useState(isCreating);
   const [activeTab, setActiveTab] = useState('master_info');
@@ -64,7 +64,7 @@ export default function CustomerMaterialReceiptDrawer() {
     } else {
       setIsEditing(false);
     }
-  }, [id, isCreating]);
+  }, [routeId, isCreating]);
 
   // Mutations
   const createMutation = useMutation({
