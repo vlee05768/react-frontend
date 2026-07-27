@@ -600,9 +600,9 @@ export const getItemFormConfig = (isMold?: boolean): any[] => {
       editable: "always",
       colSpan: 3,
       customRender: (_props: any, context: any) => {
-        const isRoll = context?.watch("isRoll") ?? true;
-        const rollCount = context?.watch("rollCount") || 0;
-        const length = context?.watch("length") || 0;
+        const isRoll = context?.values?.isRoll ?? true;
+        const rollCount = context?.values?.rollCount || 0;
+        const length = context?.values?.length || 0;
         const total = isRoll ? rollCount * length : 0;
         return (
           <InputNumber
