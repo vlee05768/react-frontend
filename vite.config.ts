@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import viteCompression from 'vite-plugin-compression'
 import path from 'path'
 import packageJson from './package.json'
+import basicSsl from '@vitejs/plugin-basic-ssl'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -18,7 +19,7 @@ export default defineConfig(({ mode }) => {
     define: {
       __APP_VERSION__: JSON.stringify(packageJson.version),
     },
-    plugins: [react(), tailwindcss(), viteCompression()],
+    plugins: [react(), tailwindcss(), viteCompression(), basicSsl()],
     server: {
       host: '0.0.0.0',
       port: 5173,
@@ -26,6 +27,7 @@ export default defineConfig(({ mode }) => {
         '/api': {
           target: env.VITE_DEV_API_TARGET,
           changeOrigin: true,
+          secure: false,
         }
       }
     },
