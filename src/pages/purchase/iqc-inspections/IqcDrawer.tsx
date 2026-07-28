@@ -2573,7 +2573,8 @@ export default function IqcDrawer({
                 onCancel={() => setIsDecisionModalOpen(false)}
                 okText={
                   overallResult === "Concession" &&
-                  detail?.inspectionStatus === "Pending"
+                  detail?.inspectionStatus === "Pending" &&
+                  isRollMaterial
                     ? "確認並啟動 100% 全檢"
                     : overallResult === "Concession"
                       ? "確認並提交特採申請"
@@ -2582,7 +2583,8 @@ export default function IqcDrawer({
                 cancelText="取消"
                 onOk={
                   overallResult === "Concession" &&
-                  detail?.inspectionStatus === "Pending"
+                  detail?.inspectionStatus === "Pending" &&
+                  isRollMaterial
                     ? () => {
                         escalateMutation.mutate(undefined, {
                           onSuccess: () => {
@@ -2594,12 +2596,13 @@ export default function IqcDrawer({
                 }
                 confirmLoading={
                   overallResult === "Concession" &&
-                  detail?.inspectionStatus === "Pending"
+                  detail?.inspectionStatus === "Pending" &&
+                  isRollMaterial
                     ? escalateMutation.isPending
                     : completeMutation.isPending
                 }
                 footer={
-                  overallResult === "Concession" && detail?.inspectionStatus === "Pending" ? (
+                  overallResult === "Concession" && detail?.inspectionStatus === "Pending" && isRollMaterial ? (
                     <div className="flex justify-end gap-2">
                       <Button onClick={() => setIsDecisionModalOpen(false)}>
                         取消
