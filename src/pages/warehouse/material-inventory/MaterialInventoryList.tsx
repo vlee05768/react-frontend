@@ -240,7 +240,8 @@ export default function MaterialInventoryList() {
     RollNo: '',
     MaterialCode: '',
     StorageCode: undefined,
-    RollStatus: ['INSTOCK'] // 預設只顯示在庫的卷卡，方便查庫存
+    RollStatus: ['INSTOCK'], // 預設只顯示在庫的卷卡，方便查庫存
+    MaterialForm: undefined
   });
 
   const rollForm = useForm<{
@@ -248,12 +249,14 @@ export default function MaterialInventoryList() {
     MaterialCode: string;
     StorageCode: string | undefined;
     RollStatus: string[];
+    MaterialForm: string | undefined;
   }>({
     defaultValues: {
       RollNo: '',
       MaterialCode: '',
       StorageCode: undefined,
-      RollStatus: ['INSTOCK']
+      RollStatus: ['INSTOCK'],
+      MaterialForm: undefined
     }
   });
 
@@ -268,6 +271,7 @@ export default function MaterialInventoryList() {
           RollStatus: Array.isArray(rollParams.RollStatus)
             ? (rollParams.RollStatus.length > 0 ? rollParams.RollStatus.join(',') : undefined)
             : rollParams.RollStatus || undefined,
+          MaterialForm: rollParams.MaterialForm || undefined,
           pageNumber: rollParams.pageNumber,
           pageSize: rollParams.pageSize,
         }
@@ -283,7 +287,8 @@ export default function MaterialInventoryList() {
       RollNo: values.RollNo,
       MaterialCode: values.MaterialCode,
       StorageCode: values.StorageCode,
-      RollStatus: values.RollStatus
+      RollStatus: values.RollStatus,
+      MaterialForm: values.MaterialForm
     }));
   };
 
@@ -296,7 +301,8 @@ export default function MaterialInventoryList() {
       RollNo: '',
       MaterialCode: '',
       StorageCode: undefined,
-      RollStatus: []
+      RollStatus: [],
+      MaterialForm: undefined
     });
     setRollParams({
       pageNumber: 1,
@@ -304,7 +310,8 @@ export default function MaterialInventoryList() {
       RollNo: '',
       MaterialCode: '',
       StorageCode: undefined,
-      RollStatus: []
+      RollStatus: [],
+      MaterialForm: undefined
     });
   };
 
@@ -651,6 +658,24 @@ export default function MaterialInventoryList() {
                           name="StorageCode" 
                           control={rollForm.control} 
                           render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" optionsFilter={(opt: any) => opt.type === 'MAT'} placeholder="儲位" className="w-48 min-w-[240px] shrink-0" allowClear />} 
+                        />
+                      </Form.Item>
+                      <Form.Item label="形態">
+                        <Controller 
+                          name="MaterialForm" 
+                          control={rollForm.control} 
+                          render={({field}: any) => (
+                            <Select 
+                              {...field} 
+                              placeholder="全部形態" 
+                              allowClear
+                              className="w-28 min-w-[110px] shrink-0" 
+                              options={[
+                                { label: 'R 捲材', value: 'R' },
+                                { label: 'S 片材', value: 'S' }
+                              ]} 
+                            />
+                          )} 
                         />
                       </Form.Item>
                       <Form.Item label="狀態">
