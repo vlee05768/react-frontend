@@ -1,284 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, Modal, Form, message, Tag, Space, Typography, Tooltip } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, SearchOutlined } from '@ant-design/icons';
+import { Table, Button, Input, Modal, Form, Tag, Space, Typography, Tooltip } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import PageCard from '@/components/common/PageCard';
-import { 
-  getApiV1GeneralTypes, 
-  deleteApiV1GeneralTypesById, 
-  putApiV1GeneralTypesById, 
-  postApiV1GeneralTypes 
-} from '@/api/generated';
-import { useAuthStore } from '@/stores/useAuthStore';
+import { useBrandModels } from './useBrandModels';
 
 const { Text } = Typography;
 
 export default function BrandModelsLayout() {
-  const [brands, setBrands] = useState<any[]>([]);
-  const [models, setModels] = useState<any[]>([]);
-  const [selectedBrand, setSelectedBrand] = useState<any | null>(null);
-  
-  const [loadingBrands, setLoadingBrands] = useState(false);
-  const [loadingModels, setLoadingModels] = useState(false);
-  
-  const [brandSearch, setBrandSearch] = useState('');
-  const [modelSearch, setModelSearch] = useState('');
-
-  // Modals state
-  const [brandModalVisible, setBrandModalVisible] = useState(false);
-  const [modelModalVisible, setModelModalVisible] = useState(false);
-  const [editingBrand, setEditingBrand] = useState<any | null>(null);
-  const [editingModel, setEditingModel] = useState<any | null>(null);
-
-  const [brandForm] = Form.useForm();
-  const [modelForm] = Form.useForm();
-
-  const { hasPermission } = useAuthStore();
-  const canCreate = hasPermission('BasicData.BrandModels.Create');
-  const canUpdate = hasPermission('BasicData.BrandModels.Update');
-  const canDelete = hasPermission('BasicData.BrandModels.Delete');
-
-  useEffect(() => {
-    fetchBrands();
-  }, []);
-
-  useEffect(() => {
-    if (selectedBrand) {
-      fetchModels(selectedBrand.code);
-    } else {
-      setModels([]);
-    }
-  }, [selectedBrand]);
-
-  const fetchBrands = async () => {
-    setLoadingBrands(true);
-    try {
-      const res = await getApiV1GeneralTypes({
-        query: {
-          Type: ['MaterialBrand'],
-          Code: brandSearch || undefined,
-          pageSize: -1, 
-        }
-      });
-      if ((res.data as any)?.success) {
-        setBrands((res.data?.data as any)?.data || []);
-        if (selectedBrand && !(res.data?.data as any)?.data?.find((b: any) => b.code === selectedBrand.code)) {
-          setSelectedBrand(null);
-        }
-      } else {
-        message.error((res.data as any)?.message || '載入廠牌失敗');
-      }
-    } catch (error: any) {
-      message.error(error.message || '載入廠牌失敗');
-    } finally {
-      setLoadingBrands(false);
-    }
-  };
-
-  const fetchModels = async (brandCode: string) => {
-    setLoadingModels(true);
-    try {
-      const res = await getApiV1GeneralTypes({
-        query: {
-          Type: ['MaterialModel'],
-          Code2: brandCode, 
-          Code: modelSearch || undefined,
-          pageSize: -1,
-        }
-      });
-      if ((res.data as any)?.success) {
-        setModels((res.data?.data as any)?.data || []);
-      } else {
-        message.error((res.data as any)?.message || '載入型號失敗');
-      }
-    } catch (error: any) {
-      message.error(error.message || '載入型號失敗');
-    } finally {
-      setLoadingModels(false);
-    }
-  };
-
-  // --- Brand Actions ---
-  const handleAddBrand = () => {
-    setEditingBrand(null);
-    brandForm.resetFields();
-    setBrandModalVisible(true);
-  };
-
-  const handleEditBrand = (e: React.MouseEvent, record: any) => {
-    e.stopPropagation(); 
-    setEditingBrand(record);
-    brandForm.setFieldsValue({
-      code: record.code,
-      desc: record.desc,
-    });
-    setBrandModalVisible(true);
-  };
-
-  const handleDeleteBrand = (e: React.MouseEvent, record: any) => {
-    e.stopPropagation();
-    Modal.confirm({
-      title: '確定要刪除廠牌嗎？',
-      icon: <ExclamationCircleOutlined />,
-      content: `您確定要刪除「${record.desc || record.code}」嗎？若該廠牌下還有綁定型號則無法刪除。`,
-      okText: '刪除',
-      okType: 'danger',
-      cancelText: '取消',
-      async onOk() {
-        try {
-          const checkRes = await getApiV1GeneralTypes({
-             query: {
-               Type: ['MaterialModel'],
-               Code2: record.code,
-               pageSize: 1
-             }
-          });
-          if ((checkRes.data as any)?.data?.data && (checkRes.data as any)?.data?.data.length > 0) {
-             message.error('此廠牌下仍有綁定型號，請先清空型號後再刪除。');
-             return;
-          }
-
-          const res = await deleteApiV1GeneralTypesById({ path: { id: record.id } });
-          if ((res.data as any)?.success) {
-            message.success('廠牌刪除成功');
-            if (selectedBrand?.id === record.id) setSelectedBrand(null);
-            fetchBrands();
-          } else {
-            message.error((res.data as any)?.message || '廠牌刪除失敗');
-          }
-        } catch (error: any) {
-          message.error(error.message || '廠牌刪除失敗');
-        }
-      },
-    });
-  };
-
-  const onBrandModalOk = async () => {
-    try {
-      const values = await brandForm.validateFields();
-      
-      const payload = {
-        type: 'MaterialBrand',
-        code: values.code?.toUpperCase(),
-        desc: values.desc,
-      };
-
-      if (editingBrand) {
-        const res = await putApiV1GeneralTypesById({
-          path: { id: editingBrand.id },
-          body: payload
-        });
-        if ((res.data as any)?.success) {
-          message.success('廠牌更新成功');
-          setBrandModalVisible(false);
-          fetchBrands();
-          if (selectedBrand?.id === editingBrand.id) {
-             setSelectedBrand({ ...selectedBrand, ...payload });
-          }
-        } else {
-          message.error((res.data as any)?.message || '廠牌更新失敗');
-        }
-      } else {
-        const res = await postApiV1GeneralTypes({
-          body: payload
-        });
-        if ((res.data as any)?.success) {
-          message.success('廠牌新增成功');
-          setBrandModalVisible(false);
-          fetchBrands();
-        } else {
-          message.error((res.data as any)?.message || '廠牌新增失敗');
-        }
-      }
-    } catch (error: any) {
-      console.error(error);
-    }
-  };
-
-  // --- Model Actions ---
-  const handleAddModel = () => {
-    if (!selectedBrand) {
-      message.warning('請先選擇左側廠牌');
-      return;
-    }
-    setEditingModel(null);
-    modelForm.resetFields();
-    setModelModalVisible(true);
-  };
-
-  const handleEditModel = (e: React.MouseEvent, record: any) => {
-    e.stopPropagation();
-    setEditingModel(record);
-    modelForm.setFieldsValue({
-      code: record.code,
-      desc: record.desc,
-    });
-    setModelModalVisible(true);
-  };
-
-  const handleDeleteModel = (e: React.MouseEvent, record: any) => {
-    e.stopPropagation();
-    Modal.confirm({
-      title: '確定要刪除型號嗎？',
-      icon: <ExclamationCircleOutlined />,
-      content: `您確定要刪除「${record.code}」嗎？`,
-      okText: '刪除',
-      okType: 'danger',
-      cancelText: '取消',
-      async onOk() {
-        try {
-          const res = await deleteApiV1GeneralTypesById({ path: { id: record.id } });
-          if ((res.data as any)?.success) {
-            message.success('型號刪除成功');
-            fetchModels(selectedBrand.code);
-          } else {
-            message.error((res.data as any)?.message || '型號刪除失敗');
-          }
-        } catch (error: any) {
-          message.error(error.message || '型號刪除失敗');
-        }
-      },
-    });
-  };
-
-  const onModelModalOk = async () => {
-    try {
-      const values = await modelForm.validateFields();
-      
-      const payload = {
-        type: 'MaterialModel',
-        code: values.code?.toUpperCase(),
-        desc: values.desc,
-        code2: selectedBrand.code 
-      };
-
-      if (editingModel) {
-        const res = await putApiV1GeneralTypesById({
-          path: { id: editingModel.id },
-          body: payload
-        });
-        if ((res.data as any)?.success) {
-          message.success('型號更新成功');
-          setModelModalVisible(false);
-          fetchModels(selectedBrand.code);
-        } else {
-          message.error((res.data as any)?.message || '型號更新失敗');
-        }
-      } else {
-        const res = await postApiV1GeneralTypes({
-          body: payload
-        });
-        if ((res.data as any)?.success) {
-          message.success('型號新增成功');
-          setModelModalVisible(false);
-          fetchModels(selectedBrand.code);
-        } else {
-          message.error((res.data as any)?.message || '型號新增失敗');
-        }
-      }
-    } catch (error: any) {
-      console.error(error);
-    }
-  };
+  const {
+    brands,
+    models,
+    selectedBrand,
+    setSelectedBrand,
+    loadingBrands,
+    loadingModels,
+    brandSearch,
+    setBrandSearch,
+    modelSearch,
+    setModelSearch,
+    brandModalVisible,
+    setBrandModalVisible,
+    modelModalVisible,
+    setModelModalVisible,
+    editingBrand,
+    editingModel,
+    brandForm,
+    modelForm,
+    canCreate,
+    canUpdate,
+    canDelete,
+    fetchBrands,
+    fetchModels,
+    handleAddBrand,
+    handleEditBrand,
+    handleDeleteBrand,
+    onBrandModalOk,
+    handleAddModel,
+    handleEditModel,
+    handleDeleteModel,
+    onModelModalOk
+  } = useBrandModels();
 
   const brandColumns = [
     {
@@ -358,7 +118,7 @@ export default function BrandModelsLayout() {
   ];
 
   return (
-    <PageCard title="品牌型號管理">
+    <PageCard title="廠牌型號管理">
       <div className="flex gap-4 h-full w-full overflow-hidden">
         {/* 左側：廠牌清單 */}
         <div className="flex flex-col border-r border-gray-100 dark:border-gray-800 pr-4" style={{ width: '450px', height: '100%', overflow: 'hidden' }}>
@@ -457,22 +217,22 @@ export default function BrandModelsLayout() {
         onCancel={() => setBrandModalVisible(false)}
         destroyOnClose
       >
-        <Form form={brandForm} layout="vertical">
+        <Form form={brandForm} layout="vertical" validateTrigger="onSubmit">
           <Form.Item
             name="code"
             label="廠牌代碼"
             rules={[
               { required: true, message: '請輸入廠牌代碼' },
-              { max: 5, message: '廠牌代碼最多 5 碼' },
-              { pattern: /^[A-Z0-9]+$/, message: '廠牌代碼僅限輸入英文字母與數字' }
+              { max: 15, message: '廠牌代碼最多 15 碼' },
+              { pattern: /^[A-Z0-9#+]+$/, message: '廠牌代碼僅限輸入英文字母、數字、# 與 + 符號' }
             ]}
-            extra="最多 5 碼，僅限英文字母與數字，小寫將自動轉大寫。"
+            extra="最多 15 碼，僅限英文字母、數字、# 與 +，小寫將自動轉大寫。"
           >
             <Input 
               placeholder="例如：3M, NITTO" 
               disabled={!!editingBrand} 
               onChange={(e) => {
-                const val = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+                const val = e.target.value.replace(/[^A-Za-z0-9#+]/g, '').toUpperCase();
                 brandForm.setFieldValue('code', val);
               }}
             />
@@ -495,15 +255,16 @@ export default function BrandModelsLayout() {
         onCancel={() => setModelModalVisible(false)}
         destroyOnClose
       >
-        <Form form={modelForm} layout="vertical">
+        <Form form={modelForm} layout="vertical" validateTrigger="onSubmit">
           <Form.Item
             name="code"
             label="型號代碼"
             rules={[
               { required: true, message: '請輸入型號代碼' },
-              { pattern: /^[A-Za-z0-9_]+$/, message: '型號代碼不可輸入中文或連字號 (-)，僅限英數字與底線 (_)' }
+              { max: 20, message: '型號代碼最多 20 碼' },
+              { pattern: /^[A-Za-z0-9_#+]+$/, message: '型號代碼不可輸入中文或連字號 (-)，僅限英數字、底線 (_)、# 與 + 符號' }
             ]}
-            extra="儲存時英文將自動轉大寫，且不允許包含連字號 (-)。"
+            extra="最多 20 碼，儲存時英文將自動轉大寫，且不允許包含連字號 (-)。"
           >
             <Input 
               placeholder="例如：467MP, 9448A" 

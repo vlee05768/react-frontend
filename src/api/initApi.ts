@@ -10,6 +10,23 @@ export function initializeApi() {
     throwOnError: true
   });
 
+  // 💡 解決 Query 參數中 + 號等特殊字元序列化漏洞（例如 SAD+21313123123 型號）
+  client.instance.defaults.paramsSerializer = {
+    serialize: (params) => {
+      const searchParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          if (Array.isArray(value)) {
+            value.forEach(val => searchParams.append(key, val));
+          } else {
+            searchParams.append(key, String(value));
+          }
+        }
+      });
+      return searchParams.toString();
+    }
+  };
+
   client.instance.interceptors.request.use((request) => {
     // 預設關閉全域 Loading，除非是需要全域鎖死的長時任務才在呼叫時主動呼叫 showLoading()
     // 或是如果未來你想針對 POST/PUT/DELETE 依然使用全域，可以在這裡限制
