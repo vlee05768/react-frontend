@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Tabs, Button, Space, Form, Input, Select, App } from 'antd';
+import { Tabs, Button, Space, Form, Input, Select, App, Tag, Modal } from 'antd';
 import { SyncOutlined, SearchOutlined, ClearOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { PageCard } from '@/components/common/PageCard';
 import { useQuery } from '@tanstack/react-query';
@@ -27,6 +27,109 @@ import { buildTableColumns } from '@/utils/tableUtils';
 export default function MaterialInventoryList() {
   const { modal, message } = App.useApp();
   const [activeTab, setActiveTab] = useState<string>('1');
+
+  // 查詢 Modal 狀態控制
+  const [isTab1SearchOpen, setIsTab1SearchOpen] = useState(false);
+  const [isTab2SearchOpen, setIsTab2SearchOpen] = useState(false);
+  const [isTab3SearchOpen, setIsTab3SearchOpen] = useState(false);
+  const [isTab4SearchOpen, setIsTab4SearchOpen] = useState(false);
+
+  // 清除篩選條件 Tag
+  const handleClearTab1Field = (key: string) => {
+    setRollLogicalParams((prev: any) => {
+      const next = { ...prev, pageNumber: 1 };
+      delete next[key];
+      return next;
+    });
+    rollLogicalForm.setValue(key as any, undefined);
+  };
+
+  const handleClearTab2Field = (key: string) => {
+    setSheetLogicalParams((prev: any) => {
+      const next = { ...prev, pageNumber: 1 };
+      delete next[key];
+      return next;
+    });
+    sheetLogicalForm.setValue(key as any, undefined);
+  };
+
+  const handleClearTab3Field = (key: string) => {
+    setRollParams((prev: any) => {
+      const next = { ...prev, pageNumber: 1 };
+      delete next[key];
+      return next;
+    });
+    rollForm.setValue(key as any, undefined);
+  };
+
+  const handleClearTab4Field = (key: string) => {
+    setTxParams((prev: any) => {
+      const next = { ...prev, pageNumber: 1 };
+      delete next[key];
+      return next;
+    });
+    txForm.setValue(key as any, undefined);
+  };
+
+  const renderQueryTags = (params: any, onClearField: (key: string) => void) => {
+    const activeFields = Object.keys(params).filter(key => {
+      const val = params[key];
+      return val !== undefined && val !== null && val !== '' && key !== 'pageNumber' && key !== 'pageSize';
+    });
+
+    if (activeFields.length === 0) return null;
+
+    const getFieldLabel = (key: string) => {
+      switch (key) {
+        case 'MaterialCode': return '原料品編';
+        case 'StorageCode': return '儲位';
+        case 'RollNo': return '卷卡號';
+        case 'LotNo': return '條碼/批號';
+        case 'RollStatus': return '狀態';
+        case 'MaterialForm': return '形態';
+        case 'DocType': return '交易類型';
+        default: return key;
+      }
+    };
+
+    const getFieldValueDisplay = (key: string, val: any) => {
+      if (key === 'RollStatus') {
+        if (Array.isArray(val)) {
+          return val.map(v => {
+            const opt = rollStateOptions.find(o => o.value === v);
+            return opt ? opt.label : v;
+          }).join(', ');
+        }
+        const opt = rollStateOptions.find(o => o.value === val);
+        return opt ? opt.label : val;
+      }
+      if (key === 'DocType') {
+        const opt = transactionTypeOptions.find(o => o.value === val);
+        return opt ? opt.label : val;
+      }
+      if (key === 'MaterialForm') {
+        return val === 'R' ? 'R 捲材' : val === 'S' ? 'S 片材' : val;
+      }
+      return val;
+    };
+
+    return (
+      <div className="flex items-center flex-wrap gap-2 bg-slate-50 dark:bg-slate-900/50 p-2 px-3 rounded-md border border-slate-100 dark:border-slate-800">
+        <span className="text-xs font-medium text-slate-400">目前篩選：</span>
+        {activeFields.map(key => (
+          <Tag 
+            key={key} 
+            closable 
+            color="blue" 
+            onClose={() => onClearField(key)}
+            className="m-0"
+          >
+            {getFieldLabel(key)}: {getFieldValueDisplay(key, params[key])}
+          </Tag>
+        ))}
+      </div>
+    );
+  };
 
   // ============================================================================
   // 1. 捲材邏輯庫存 (Tab 1) States, Form, Query
@@ -119,6 +222,7 @@ export default function MaterialInventoryList() {
       MaterialCode: values.MaterialCode,
       StorageCode: values.StorageCode
     }));
+    setIsTab1SearchOpen(false);
   };
 
   const handleRollLogicalClear = () => {
@@ -132,6 +236,7 @@ export default function MaterialInventoryList() {
       MaterialCode: '',
       StorageCode: undefined
     });
+    setIsTab1SearchOpen(false);
   };
 
   // ============================================================================
@@ -216,6 +321,7 @@ export default function MaterialInventoryList() {
       MaterialCode: values.MaterialCode,
       StorageCode: values.StorageCode
     }));
+    setIsTab2SearchOpen(false);
   };
 
   const handleSheetLogicalClear = () => {
@@ -229,6 +335,7 @@ export default function MaterialInventoryList() {
       MaterialCode: '',
       StorageCode: undefined
     });
+    setIsTab2SearchOpen(false);
   };
 
   // ============================================================================
@@ -290,6 +397,7 @@ export default function MaterialInventoryList() {
       RollStatus: values.RollStatus,
       MaterialForm: values.MaterialForm
     }));
+    setIsTab3SearchOpen(false);
   };
 
   const handleSelectAllStatuses = () => {
@@ -313,6 +421,7 @@ export default function MaterialInventoryList() {
       RollStatus: [],
       MaterialForm: undefined
     });
+    setIsTab3SearchOpen(false);
   };
 
   // 點擊母卷條碼時，自動追溯查詢
@@ -380,6 +489,7 @@ export default function MaterialInventoryList() {
       SourceDocCode: values.SourceDocCode,
       DocType: values.DocType
     }));
+    setIsTab4SearchOpen(false);
   };
 
   const handleTxClear = () => {
@@ -399,6 +509,7 @@ export default function MaterialInventoryList() {
       SourceDocCode: '',
       DocType: ''
     });
+    setIsTab4SearchOpen(false);
   };
 
   // 🌀 手動報廢/作廢實體卷卡
@@ -517,33 +628,61 @@ export default function MaterialInventoryList() {
                 label: '捲材邏輯庫存總量',
                 children: (
                   <div className="flex-1 flex flex-col overflow-hidden">
-                    {/* Tab 1 Form */}
-                    <Form 
-                      layout="inline" 
-                      className="mb-4 pb-4 border-b border-slate-200 dark:border-slate-800 flex !flex-row !flex-nowrap items-center gap-x-4 gap-y-0 shrink-0 overflow-x-auto overflow-y-hidden" 
-                      onFinish={rollLogicalForm.handleSubmit(handleRollLogicalSearch)}
+                    {/* Tab 1 Query tags and Button */}
+                    <div className="mb-3 flex items-center justify-between gap-4 shrink-0">
+                      <div className="flex-1 min-w-0">
+                        {renderQueryTags(rollLogicalParams, handleClearTab1Field)}
+                      </div>
+                      <Button 
+                        type="default" 
+                        icon={<SearchOutlined />} 
+                        onClick={() => setIsTab1SearchOpen(true)}
+                        className="shrink-0 font-medium"
+                      >
+                        篩選查詢
+                      </Button>
+                    </div>
+
+                    {/* Tab 1 Search Modal */}
+                    <Modal
+                      title={<div className="font-semibold pb-3 mb-2 text-[18px] border-b border-[var(--ant-color-border-secondary)]">捲材邏輯庫存篩選</div>}
+                      open={isTab1SearchOpen}
+                      onCancel={() => setIsTab1SearchOpen(false)}
+                      footer={
+                        <div className="pt-4 flex justify-end gap-2 border-t border-[var(--ant-color-border-secondary)]">
+                          <Button icon={<ClearOutlined />} onClick={handleRollLogicalClear}>
+                            清除條件
+                          </Button>
+                          <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="tab1-search-form" loading={rollLogicalLoading}>
+                            執行查詢
+                          </Button>
+                        </div>
+                      }
+                      width={600}
+                      className="top-[10vh]"
+                      styles={{ body: { padding: '24px 24px 0 24px' } }}
                     >
-                      <Form.Item>
-                        <Space>
-                          <Button type="primary" htmlType="submit" icon={<SearchOutlined />} loading={rollLogicalLoading}>查詢</Button>
-                          <Button onClick={handleRollLogicalClear} icon={<ClearOutlined />}>清除</Button>
-                        </Space>
-                      </Form.Item>
-                      <Form.Item label="原料品編">
-                        <Controller 
-                          name="MaterialCode" 
-                          control={rollLogicalForm.control} 
-                          render={({field}: any) => <Input {...field} placeholder="原料品編" allowClear className="w-36 min-w-[140px] shrink-0" />} 
-                        />
-                      </Form.Item>
-                      <Form.Item label="儲位">
-                        <Controller 
-                          name="StorageCode" 
-                          control={rollLogicalForm.control} 
-                          render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" optionsFilter={(opt: any) => opt.type === 'MAT'} placeholder="選擇儲位" className="w-48 min-w-[240px] shrink-0" allowClear />} 
-                        />
-                      </Form.Item>
-                    </Form>
+                      <Form 
+                        id="tab1-search-form"
+                        layout="vertical" 
+                        onFinish={rollLogicalForm.handleSubmit(handleRollLogicalSearch)}
+                      >
+                        <Form.Item label="原料品編">
+                          <Controller 
+                            name="MaterialCode" 
+                            control={rollLogicalForm.control} 
+                            render={({field}: any) => <Input {...field} placeholder="請輸入原料品編" allowClear />} 
+                          />
+                        </Form.Item>
+                        <Form.Item label="儲位">
+                          <Controller 
+                            name="StorageCode" 
+                            control={rollLogicalForm.control} 
+                            render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" optionsFilter={(opt: any) => opt.type === 'MAT'} placeholder="選擇儲位" allowClear />} 
+                          />
+                        </Form.Item>
+                      </Form>
+                    </Modal>
 
                     {/* Tab 1 Table */}
                     <div className="flex-1 min-h-0 flex flex-col">
@@ -572,33 +711,61 @@ export default function MaterialInventoryList() {
                 label: '片材邏輯庫存總量',
                 children: (
                   <div className="flex-1 flex flex-col overflow-hidden">
-                    {/* Tab 2 Form */}
-                    <Form 
-                      layout="inline" 
-                      className="mb-4 pb-4 border-b border-slate-200 dark:border-slate-800 flex !flex-row !flex-nowrap items-center gap-x-4 gap-y-0 shrink-0 overflow-x-auto overflow-y-hidden" 
-                      onFinish={sheetLogicalForm.handleSubmit(handleSheetLogicalSearch)}
+                    {/* Tab 2 Query tags and Button */}
+                    <div className="mb-3 flex items-center justify-between gap-4 shrink-0">
+                      <div className="flex-1 min-w-0">
+                        {renderQueryTags(sheetLogicalParams, handleClearTab2Field)}
+                      </div>
+                      <Button 
+                        type="default" 
+                        icon={<SearchOutlined />} 
+                        onClick={() => setIsTab2SearchOpen(true)}
+                        className="shrink-0 font-medium"
+                      >
+                        篩選查詢
+                      </Button>
+                    </div>
+
+                    {/* Tab 2 Search Modal */}
+                    <Modal
+                      title={<div className="font-semibold pb-3 mb-2 text-[18px] border-b border-[var(--ant-color-border-secondary)]">片材邏輯庫存篩選</div>}
+                      open={isTab2SearchOpen}
+                      onCancel={() => setIsTab2SearchOpen(false)}
+                      footer={
+                        <div className="pt-4 flex justify-end gap-2 border-t border-[var(--ant-color-border-secondary)]">
+                          <Button icon={<ClearOutlined />} onClick={handleSheetLogicalClear}>
+                            清除條件
+                          </Button>
+                          <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="tab2-search-form" loading={sheetLogicalLoading}>
+                            執行查詢
+                          </Button>
+                        </div>
+                      }
+                      width={600}
+                      className="top-[10vh]"
+                      styles={{ body: { padding: '24px 24px 0 24px' } }}
                     >
-                      <Form.Item>
-                        <Space>
-                          <Button type="primary" htmlType="submit" icon={<SearchOutlined />} loading={sheetLogicalLoading}>查詢</Button>
-                          <Button onClick={handleSheetLogicalClear} icon={<ClearOutlined />}>清除</Button>
-                        </Space>
-                      </Form.Item>
-                      <Form.Item label="原料品編">
-                        <Controller 
-                          name="MaterialCode" 
-                          control={sheetLogicalForm.control} 
-                          render={({field}: any) => <Input {...field} placeholder="原料品編" allowClear className="w-36 min-w-[140px] shrink-0" />} 
-                        />
-                      </Form.Item>
-                      <Form.Item label="儲位">
-                        <Controller 
-                          name="StorageCode" 
-                          control={sheetLogicalForm.control} 
-                          render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" optionsFilter={(opt: any) => opt.type === 'MAT'} placeholder="選擇儲位" className="w-48 min-w-[240px] shrink-0" allowClear />} 
-                        />
-                      </Form.Item>
-                    </Form>
+                      <Form 
+                        id="tab2-search-form"
+                        layout="vertical" 
+                        onFinish={sheetLogicalForm.handleSubmit(handleSheetLogicalSearch)}
+                      >
+                        <Form.Item label="原料品編">
+                          <Controller 
+                            name="MaterialCode" 
+                            control={sheetLogicalForm.control} 
+                            render={({field}: any) => <Input {...field} placeholder="請輸入原料品編" allowClear />} 
+                          />
+                        </Form.Item>
+                        <Form.Item label="儲位">
+                          <Controller 
+                            name="StorageCode" 
+                            control={sheetLogicalForm.control} 
+                            render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" optionsFilter={(opt: any) => opt.type === 'MAT'} placeholder="選擇儲位" allowClear />} 
+                          />
+                        </Form.Item>
+                      </Form>
+                    </Modal>
 
                     {/* Tab 2 Table */}
                     <div className="flex-1 min-h-0 flex flex-col">
@@ -627,78 +794,105 @@ export default function MaterialInventoryList() {
                 label: '原料卷卡號',
                 children: (
                   <div className="flex-1 flex flex-col overflow-hidden">
-                    {/* Tab 3 Form */}
-                    <Form 
-                      layout="inline" 
-                      className="mb-4 pb-4 border-b border-slate-200 dark:border-slate-800 flex !flex-row !flex-nowrap items-center gap-x-2 gap-y-0 shrink-0 overflow-x-auto overflow-y-hidden" 
-                      onFinish={rollForm.handleSubmit(handleRollSearch)}
+                    {/* Tab 3 Query tags and Button */}
+                    <div className="mb-3 flex items-center justify-between gap-4 shrink-0">
+                      <div className="flex-1 min-w-0">
+                        {renderQueryTags(rollParams, handleClearTab3Field)}
+                      </div>
+                      <Button 
+                        type="default" 
+                        icon={<SearchOutlined />} 
+                        onClick={() => setIsTab3SearchOpen(true)}
+                        className="shrink-0 font-medium"
+                      >
+                        篩選查詢
+                      </Button>
+                    </div>
+
+                    {/* Tab 3 Search Modal */}
+                    <Modal
+                      title={<div className="font-semibold pb-3 mb-2 text-[18px] border-b border-[var(--ant-color-border-secondary)]">原料卷卡號篩選</div>}
+                      open={isTab3SearchOpen}
+                      onCancel={() => setIsTab3SearchOpen(false)}
+                      footer={
+                        <div className="pt-4 flex justify-end gap-2 border-t border-[var(--ant-color-border-secondary)]">
+                          <Button icon={<ClearOutlined />} onClick={handleRollClear}>
+                            清除條件
+                          </Button>
+                          <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="tab3-search-form" loading={rollLoading}>
+                            執行查詢
+                          </Button>
+                        </div>
+                      }
+                      width={600}
+                      className="top-[10vh]"
+                      styles={{ body: { padding: '24px 24px 0 24px' } }}
                     >
-                      <Form.Item>
-                        <Space>
-                          <Button type="primary" htmlType="submit" icon={<SearchOutlined />} loading={rollLoading}>查詢</Button>
-                          <Button onClick={handleRollClear} icon={<ClearOutlined />}>清除</Button>
-                        </Space>
-                      </Form.Item>
-                      <Form.Item label="卷卡號">
-                        <Controller 
-                          name="RollNo" 
-                          control={rollForm.control} 
-                          render={({field}: any) => <Input {...field} placeholder="LPN 條碼" allowClear className="w-32 min-w-[120px] shrink-0" />} 
-                        />
-                      </Form.Item>
-                      <Form.Item label="品編">
-                        <Controller 
-                          name="MaterialCode" 
-                          control={rollForm.control} 
-                          render={({field}: any) => <Input {...field} placeholder="原料品編" allowClear className="w-28 min-w-[110px] shrink-0" />} 
-                        />
-                      </Form.Item>
-                      <Form.Item label="儲位">
-                        <Controller 
-                          name="StorageCode" 
-                          control={rollForm.control} 
-                          render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" optionsFilter={(opt: any) => opt.type === 'MAT'} placeholder="儲位" className="w-48 min-w-[240px] shrink-0" allowClear />} 
-                        />
-                      </Form.Item>
-                      <Form.Item label="形態">
-                        <Controller 
-                          name="MaterialForm" 
-                          control={rollForm.control} 
-                          render={({field}: any) => (
-                            <Select 
-                              {...field} 
-                              placeholder="全部形態" 
-                              allowClear
-                              className="w-28 min-w-[110px] shrink-0" 
-                              options={[
-                                { label: 'R 捲材', value: 'R' },
-                                { label: 'S 片材', value: 'S' }
-                              ]} 
-                            />
-                          )} 
-                        />
-                      </Form.Item>
-                      <Form.Item label="狀態">
-                        <Space.Compact className="w-auto">
+                      <Form 
+                        id="tab3-search-form"
+                        layout="vertical" 
+                        onFinish={rollForm.handleSubmit(handleRollSearch)}
+                      >
+                        <Form.Item label="卷卡號">
                           <Controller 
-                            name="RollStatus" 
+                            name="RollNo" 
+                            control={rollForm.control} 
+                            render={({field}: any) => <Input {...field} placeholder="LPN 條碼" allowClear />} 
+                          />
+                        </Form.Item>
+                        <Form.Item label="品編">
+                          <Controller 
+                            name="MaterialCode" 
+                            control={rollForm.control} 
+                            render={({field}: any) => <Input {...field} placeholder="原料品編" allowClear />} 
+                          />
+                        </Form.Item>
+                        <Form.Item label="儲位">
+                          <Controller 
+                            name="StorageCode" 
+                            control={rollForm.control} 
+                            render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" optionsFilter={(opt: any) => opt.type === 'MAT'} placeholder="選擇儲位" allowClear />} 
+                          />
+                        </Form.Item>
+                        <Form.Item label="形態">
+                          <Controller 
+                            name="MaterialForm" 
                             control={rollForm.control} 
                             render={({field}: any) => (
                               <Select 
                                 {...field} 
-                                mode="multiple"
-                                placeholder="全部狀態" 
+                                placeholder="全部形態" 
                                 allowClear
-                                className="w-32 min-w-[120px] shrink-0" 
-                                options={rollStateOptions} 
-                                maxTagCount={1}
+                                options={[
+                                  { label: 'R 捲材', value: 'R' },
+                                  { label: 'S 片材', value: 'S' }
+                                ]} 
                               />
                             )} 
                           />
-                          <Button onClick={handleSelectAllStatuses}>全選</Button>
-                        </Space.Compact>
-                      </Form.Item>
-                    </Form>
+                        </Form.Item>
+                        <Form.Item label="狀態">
+                          <Space.Compact className="w-full">
+                            <Controller 
+                              name="RollStatus" 
+                              control={rollForm.control} 
+                              render={({field}: any) => (
+                                <Select 
+                                  {...field} 
+                                  mode="multiple"
+                                  placeholder="全部狀態" 
+                                  allowClear
+                                  className="w-full"
+                                  options={rollStateOptions} 
+                                  maxTagCount={3}
+                                />
+                              )} 
+                            />
+                            <Button onClick={handleSelectAllStatuses}>全選</Button>
+                          </Space.Compact>
+                        </Form.Item>
+                      </Form>
+                    </Modal>
 
                     {/* Tab 3 Table */}
                     <div className="flex-1 min-h-0 flex flex-col">
@@ -727,55 +921,82 @@ export default function MaterialInventoryList() {
                 label: '庫存異動流水帳',
                 children: (
                   <div className="flex-1 flex flex-col overflow-hidden">
-                    {/* Tab 4 Form */}
-                    <Form 
-                      layout="inline" 
-                      className="mb-4 pb-4 border-b border-slate-200 dark:border-slate-800 flex !flex-row !flex-nowrap items-center gap-x-4 gap-y-0 shrink-0 overflow-x-auto overflow-y-hidden" 
-                      onFinish={txForm.handleSubmit(handleTxSearch)}
+                    {/* Tab 4 Query tags and Button */}
+                    <div className="mb-3 flex items-center justify-between gap-4 shrink-0">
+                      <div className="flex-1 min-w-0">
+                        {renderQueryTags(txParams, handleClearTab4Field)}
+                      </div>
+                      <Button 
+                        type="default" 
+                        icon={<SearchOutlined />} 
+                        onClick={() => setIsTab4SearchOpen(true)}
+                        className="shrink-0 font-medium"
+                      >
+                        篩選查詢
+                      </Button>
+                    </div>
+
+                    {/* Tab 4 Search Modal */}
+                    <Modal
+                      title={<div className="font-semibold pb-3 mb-2 text-[18px] border-b border-[var(--ant-color-border-secondary)]">庫存異動流水帳篩選</div>}
+                      open={isTab4SearchOpen}
+                      onCancel={() => setIsTab4SearchOpen(false)}
+                      footer={
+                        <div className="pt-4 flex justify-end gap-2 border-t border-[var(--ant-color-border-secondary)]">
+                          <Button icon={<ClearOutlined />} onClick={handleTxClear}>
+                            清除條件
+                          </Button>
+                          <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="tab4-search-form" loading={txLoading}>
+                            執行查詢
+                          </Button>
+                        </div>
+                      }
+                      width={600}
+                      className="top-[10vh]"
+                      styles={{ body: { padding: '24px 24px 0 24px' } }}
                     >
-                      <Form.Item>
-                        <Space>
-                          <Button type="primary" htmlType="submit" icon={<SearchOutlined />} loading={txLoading}>查詢</Button>
-                          <Button onClick={handleTxClear} icon={<ClearOutlined />}>清除</Button>
-                        </Space>
-                      </Form.Item>
-                      <Form.Item label="原料品編">
-                        <Controller 
-                          name="MaterialCode" 
-                          control={txForm.control} 
-                          render={({field}: any) => <Input {...field} placeholder="原料品編" allowClear className="w-32 min-w-[120px] shrink-0" />} 
-                        />
-                      </Form.Item>
-                      <Form.Item label="卷卡條碼">
-                        <Controller 
-                          name="LotNo" 
-                          control={txForm.control} 
-                          render={({field}: any) => <Input {...field} placeholder="卷卡號" allowClear className="w-36 min-w-[110px] shrink-0" />} 
-                        />
-                      </Form.Item>
-                      <Form.Item label="異動儲位">
-                        <Controller 
-                          name="StorageCode" 
-                          control={txForm.control} 
-                          render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" optionsFilter={(opt: any) => opt.type === 'MAT'} placeholder="選擇儲位" className="w-48 min-w-[240px] shrink-0" allowClear />} 
-                        />
-                      </Form.Item>
-                      <Form.Item label="交易類型">
-                        <Controller 
-                          name="DocType" 
-                          control={txForm.control} 
-                          render={({field}: any) => (
-                            <Select 
-                              {...field} 
-                              placeholder="交易類型" 
-                              allowClear 
-                              className="w-32 min-w-[180px] shrink-0" 
-                              options={transactionTypeOptions} 
-                            />
-                          )} 
-                        />
-                      </Form.Item>
-                    </Form>
+                      <Form 
+                        id="tab4-search-form"
+                        layout="vertical" 
+                        onFinish={txForm.handleSubmit(handleTxSearch)}
+                      >
+                        <Form.Item label="原料品編">
+                          <Controller 
+                            name="MaterialCode" 
+                            control={txForm.control} 
+                            render={({field}: any) => <Input {...field} placeholder="請輸入原料品編" allowClear />} 
+                          />
+                        </Form.Item>
+                        <Form.Item label="卷卡條碼">
+                          <Controller 
+                            name="LotNo" 
+                            control={txForm.control} 
+                            render={({field}: any) => <Input {...field} placeholder="請輸入卷卡號" allowClear />} 
+                          />
+                        </Form.Item>
+                        <Form.Item label="異動儲位">
+                          <Controller 
+                            name="StorageCode" 
+                            control={txForm.control} 
+                            render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" optionsFilter={(opt: any) => opt.type === 'MAT'} placeholder="選擇儲位" allowClear />} 
+                          />
+                        </Form.Item>
+                        <Form.Item label="交易類型">
+                          <Controller 
+                            name="DocType" 
+                            control={txForm.control} 
+                            render={({field}: any) => (
+                              <Select 
+                                {...field} 
+                                placeholder="選擇交易類型" 
+                                allowClear 
+                                options={transactionTypeOptions} 
+                              />
+                            )} 
+                          />
+                        </Form.Item>
+                      </Form>
+                    </Modal>
 
                     {/* Tab 4 Table */}
                     <div className="flex-1 min-h-0 flex flex-col">
