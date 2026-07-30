@@ -11,6 +11,11 @@ import { DictTag } from "@/components/Form/DictTag";
 import { Link } from "react-router-dom";
 import { EllipsisText } from "@/components/Table/EllipsisText";
 
+export const isRollUnit = (goodsType: string | undefined | null, goodsCode: string | undefined | null) => {
+  if (!goodsType || !goodsCode) return false;
+  return goodsType === "M" && goodsCode.toUpperCase().endsWith("R");
+};
+
 export const getStatusTag = (status: string | null | undefined, closeDate?: string | null) => {
   if (status === 'Finished') {
     return closeDate 
@@ -197,7 +202,7 @@ export const getFormConfig = (): any[] => [
     validation: z.any().optional(),
   },
   {
-    name: "businessPartnerCode",
+    name: "customerCode",
     label: "客戶",
     componentType: "AsyncSelect",
     componentProps: { configKey: "CUSTOMER" },
@@ -232,7 +237,7 @@ export const getFormConfig = (): any[] => [
         value={field.value}
         onChange={field.onChange}
         disabled={field.disabled}
-        businessPartnerCode={context.values.businessPartnerCode}
+        businessPartnerCode={context.values.customerCode}
       />
     ),
     colSpan: 4,
@@ -330,6 +335,96 @@ export const getFormConfig = (): any[] => [
   },
 ];
 
+export const formatOrderQuantity = (val: number | undefined | null, record: any, color?: string) => {
+  if (val == null) return "-";
+  
+  const isM = record?.goodsType === "M";
+  if (isM) {
+    const unitUpper = record?.unit?.toUpperCase() || "";
+    if (unitUpper === "SQM" || unitUpper === "M²" || unitUpper === "M") {
+      const width = record?.widthMm || 0;
+      let area = 0;
+      if (unitUpper === "SQM" || unitUpper === "M²") {
+        area = val;
+      } else {
+        // 歷史數據以長度 M 為單位，需要乘以寬度得出面積
+        area = val * (width / 1000);
+      }
+      const formattedArea = `${Number(area.toFixed(2)).toLocaleString()} m²`;
+      return (
+        <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%', color }}>
+          {formattedArea}
+        </span>
+      );
+    } else if (unitUpper === "PCS") {
+      return (
+        <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%', color }}>
+          {Number(val.toFixed(2)).toLocaleString()} pcs
+        </span>
+      );
+    }
+  }
+  
+  return (
+    <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%', color }}>
+      {Number(val.toFixed(2)).toLocaleString()}
+    </span>
+  );
+};
+
+export const formatRollAndSheetQty = (val: number | undefined | null, record: any, color?: string) => {
+  if (val == null) return "-";
+  
+  const isM = record?.goodsType === "M";
+  if (isM) {
+    const unitUpper = record?.unit?.toUpperCase() || "";
+    if (unitUpper === "SQM" || unitUpper === "M") {
+      const width = record?.widthMm || 0;
+      let area = 0;
+      let lengthM = 0;
+      
+      if (unitUpper === "SQM") {
+        area = val;
+        lengthM = width > 0 ? (val / (width / 1000)) : 0;
+      } else {
+        area = val * (width / 1000);
+        lengthM = val;
+      }
+      
+      const formattedArea = `${Number(area.toFixed(2)).toLocaleString()} m²`;
+      let formattedLength = "";
+      if (width > 0) {
+        formattedLength = `(${Number(lengthM.toFixed(2)).toLocaleString()} m)`;
+      } else {
+        formattedLength = "(寬度未填)";
+      }
+      
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', width: '100%', padding: '2px 0' }}>
+          <span style={{ fontSize: '13px', fontWeight: 'bold', color: color || 'inherit', lineHeight: '1.2' }}>
+            {formattedArea}
+          </span>
+          <span style={{ fontSize: '11px', color: 'var(--ant-color-text-secondary)', lineHeight: '1.2', marginTop: '2px' }}>
+            {formattedLength}
+          </span>
+        </div>
+      );
+    } else if (unitUpper === "PCS") {
+      return (
+        <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%', color }}>
+          {Number(val.toFixed(2)).toLocaleString()} pcs
+        </span>
+      );
+    }
+  }
+  
+  return (
+    <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%', color }}>
+      {Number(val.toFixed(2)).toLocaleString()}
+    </span>
+  );
+};
+
 export const getItemColumns = (
   isViewMode: boolean,
   onEdit: (record: OrderItemDto) => void,
@@ -340,7 +435,7 @@ export const getItemColumns = (
     key: "action",
     width: 80,
     align: "center",
-    fixed: 'right' as const,
+    fixed: 'left' as const,
     render: (_: any, record: OrderItemDto) => {
       if (isViewMode) return null;
       return (
@@ -451,6 +546,97 @@ export const getItemColumns = (
     )
   },
   {
+    title: "寬度(mm)",
+    dataIndex: "widthMm",
+    width: 100,
+    align: "right",
+    ellipsis: true,
+    render: (val: number) => (
+      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%' }}>
+        {val != null ? val.toLocaleString() : "-"}
+      </span>
+    )
+  },
+  {
+    title: "長度",
+    dataIndex: "lengthM",
+    width: 100,
+    align: "right",
+    ellipsis: true,
+    render: (val: number, record: any) => {
+      if (val == null) return "-";
+      const isM = record?.goodsType === "M";
+      if (isM) {
+        const unitUpper = record?.unit?.toUpperCase() || "";
+        const isSheet = unitUpper === "PCS";
+        if (isSheet) {
+          return (
+            <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%' }}>
+              {Number(val.toFixed(2)).toLocaleString()} mm
+            </span>
+          );
+        } else {
+          return (
+            <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%' }}>
+              {Number(val.toFixed(2)).toLocaleString()} m
+            </span>
+          );
+        }
+      }
+      return (
+        <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%' }}>
+          {Number(val.toFixed(2)).toLocaleString()}
+        </span>
+      );
+    }
+  },
+  {
+    title: "優先級",
+    dataIndex: "priority",
+    width: 80,
+    align: "center",
+    ellipsis: true,
+    render: (val: string) => (
+      <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: '24px', verticalAlign: 'middle' }}>
+        {val ? <DictLabel dictKey="ORDER_PRIORITY" value={val} /> : "-"}
+      </div>
+    ),
+  },
+  {
+    title: "產生製令",
+    dataIndex: "generateWorkOrder",
+    width: 90,
+    align: "center",
+    ellipsis: true,
+    render: (v: boolean | undefined | null, record: any) => {
+      if (record?.goodsType === "M") return "-";
+      let icon = null;
+      if (v === true) {
+        icon = <CheckOutlined style={{ color: 'green', fontSize: '14px' }} />;
+      } else if (v === false) {
+        icon = <CloseOutlined style={{ color: 'red', fontSize: '14px' }} />;
+      }
+      return (
+        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: '24px', verticalAlign: 'middle' }}>
+          {icon || "-"}
+        </div>
+      );
+    },
+  },
+  {
+    title: "單價",
+    dataIndex: "unitPrice",
+    width: 100,
+    align: "right",
+    ellipsis: true,
+    render: (val: number) => (
+      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%' }}>
+        {val != null ? Number(val.toFixed(2)).toLocaleString() : "-"}
+      </span>
+    ),
+  },
+
+  {
     title: "單位",
     dataIndex: "unit",
     width: 80,
@@ -461,6 +647,27 @@ export const getItemColumns = (
         {val || "-"}
       </span>
     )
+  },
+
+  {
+    title: "數量",
+    dataIndex: "quantity",
+    width: 100,
+    align: "right",
+    ellipsis: true,
+    render: (val: number, record: any) => formatOrderQuantity(val, record),
+  },
+  {
+    title: "小計",
+    dataIndex: "lineAmount",
+    width: 120,
+    align: "right",
+    ellipsis: true,
+    render: (val: number) => (
+      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%', color: 'var(--ant-color-primary)' }}>
+        {val != null ? Number(val.toFixed(2)).toLocaleString() : "-"}
+      </span>
+    ),
   },
   {
     title: "要求交期",
@@ -485,86 +692,21 @@ export const getItemColumns = (
         {d ? dayjs(d).format("YYYY-MM-DD") : "-"}
       </span>
     ),
-  },
-  {
-    title: "優先級",
-    dataIndex: "priority",
-    width: 80,
-    align: "center",
-    ellipsis: true,
-    render: (val: string) => (
-      <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: '24px', verticalAlign: 'middle' }}>
-        {val ? <DictLabel dictKey="ORDER_PRIORITY" value={val} /> : "-"}
-      </div>
-    ),
-  },
-  {
-    title: "產生製令",
-    dataIndex: "generateWorkOrder",
-    width: 90,
-    align: "center",
-    ellipsis: true,
-    render: (v: boolean | undefined | null) => {
-      let icon = null;
-      if (v === true) {
-        icon = <CheckOutlined style={{ color: 'green', fontSize: '14px' }} />;
-      } else if (v === false) {
-        icon = <CloseOutlined style={{ color: 'red', fontSize: '14px' }} />;
-      }
-      return (
-        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: '24px', verticalAlign: 'middle' }}>
-          {icon || "-"}
-        </div>
-      );
-    },
-  },
-  {
-    title: "數量",
-    dataIndex: "quantity",
-    width: 100,
-    align: "right",
-    ellipsis: true,
-    render: (val: number) => (
-      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%' }}>
-        {val != null ? Number(val.toFixed(2)).toLocaleString() : "-"}
-      </span>
-    ),
-  },
-  {
-    title: "單價",
-    dataIndex: "unitPrice",
-    width: 100,
-    align: "right",
-    ellipsis: true,
-    render: (val: number) => (
-      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%' }}>
-        {val != null ? Number(val.toFixed(2)).toLocaleString() : "-"}
-      </span>
-    ),
-  },
-  {
-    title: "小計",
-    dataIndex: "lineAmount",
-    width: 120,
-    align: "right",
-    ellipsis: true,
-    render: (val: number) => (
-      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%', color: 'var(--ant-color-primary)' }}>
-        {val != null ? Number(val.toFixed(2)).toLocaleString() : "-"}
-      </span>
-    ),
-  },
+  },  
   {
     title: "備品數量",
     dataIndex: "spareQuantity",
     width: 100,
     align: "right",
     ellipsis: true,
-    render: (val: number) => (
-      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%' }}>
-        {val != null ? Number(val.toFixed(2)).toLocaleString() : "-"}
-      </span>
-    ),
+    render: (val: number, record: any) => {
+      if (record?.goodsType === "M") return "-";
+      return (
+        <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%' }}>
+          {val != null ? Number(val.toFixed(2)).toLocaleString() : "-"}
+        </span>
+      );
+    },
   },
   {
     title: "已出貨",
@@ -572,11 +714,7 @@ export const getItemColumns = (
     width: 100,
     align: "right",
     ellipsis: true,
-    render: (val: number) => (
-      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%', color: 'var(--ant-color-success)' }}>
-        {val != null ? Number(val.toFixed(2)).toLocaleString() : "-"}
-      </span>
-    ),
+    render: (val: number, record: any) => formatRollAndSheetQty(val, record, 'var(--ant-color-success)'),
   },
   {
     title: "取消數量",
@@ -584,11 +722,7 @@ export const getItemColumns = (
     width: 100,
     align: "right",
     ellipsis: true,
-    render: (val: number) => (
-      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%', color: 'var(--ant-color-error)' }}>
-        {val != null ? Number(val.toFixed(2)).toLocaleString() : "-"}
-      </span>
-    ),
+    render: (val: number, record: any) => formatRollAndSheetQty(val, record, 'var(--ant-color-error)'),
   },
   {
     title: "剩餘數量",
@@ -596,11 +730,7 @@ export const getItemColumns = (
     width: 100,
     align: "right",
     ellipsis: true,
-    render: (val: number) => (
-      <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%', color: 'var(--ant-color-warning)' }}>
-        {val != null ? Number(val.toFixed(2)).toLocaleString() : "-"}
-      </span>
-    ),
+    render: (val: number, record: any) => formatRollAndSheetQty(val, record, 'var(--ant-color-warning)'),
   },
   { 
     title: "備註", 
@@ -625,7 +755,7 @@ export const getItemFormConfig = (isCreatingMaterial = false): any[] => [
       const isM = context?.values?.goodsType === "M";
       return { configKey: isM ? "MATERIAL" : "PRODUCT" };
     },
-    colSpan: 4,
+    colSpan: 2,
     validation: z.string().min(1, "商品編碼為必填"),
     onChange: (_value: any, context: any, setValue: any, ...args: any[]) => {
       const option = args[1];
@@ -634,20 +764,36 @@ export const getItemFormConfig = (isCreatingMaterial = false): any[] => [
         const isM = context?.values?.goodsType === "M";
         if (isM) {
           setValue("spareQuantity", 0);
-          setValue("unit", option.originalData.primaryUoM || "");
+          setValue("generateWorkOrder", false);
+          const form = option.originalData.materialForm;
+          if (form === "R") {
+            setValue("unit", "m²"); // 💡 捲料原料：一律以平方公尺 (m²) 計價！
+            const defaultWidth = option.originalData.widthMm ?? option.originalData.width ?? 0;
+            const defaultLength = option.originalData.lengthM ?? option.originalData.length ?? 0;
+            setValue("widthMm", defaultWidth); // 預設帶入寬度
+            setValue("lengthM", defaultLength); // 預設帶入長度
+
+            // 💡 捲料原料：自動計算面積和金額，並四捨五入到小數第2位
+            const sqm = Number(((defaultWidth / 1000) * defaultLength).toFixed(2));
+            setValue("quantity", sqm);
+            const price = context?.values?.unitPrice || 0;
+            setValue("lineAmount", Math.round(price * sqm));
+          } else if (form === "S") {
+            setValue("unit", "pcs"); // 💡 片料原料：一律以片數 (pcs) 交易！
+            const defaultWidth = option.originalData.widthMm ?? option.originalData.width ?? 0;
+            const defaultLength = option.originalData.lengthMm ?? option.originalData.length ?? undefined;
+            setValue("widthMm", defaultWidth); // 預設帶入寬度
+            setValue("lengthM", defaultLength); // 預設帶入長度
+          } else {
+            setValue("unit", option.originalData.primaryUoM || "");
+          }
         } else {
           setValue("unit", option.originalData.unit || "");
         }
       }
     }
   },
-  {
-    name: "goodsName",
-    label: "商品名稱",
-    componentType: "Input",
-    colSpan: 4,
-    editable: "never",
-  },
+ 
 
   {
     name: "requestedDeliveryDate",
@@ -663,7 +809,78 @@ export const getItemFormConfig = (isCreatingMaterial = false): any[] => [
     colSpan: 4,
     validation: z.any().optional(),
   },
-
+ {
+    name: "widthMm",
+    label: "規格寬度 (mm)",
+    componentType: "InputNumber",
+    colSpan: 4,
+    hidden: (context: any) => context?.values?.goodsType !== "M",
+    validation: z.union([z.number(), z.null(), z.undefined()]).optional(),
+    dynamicValidation: (context: any) => {
+      const isM = context?.values?.goodsType === "M";
+      if (isM) {
+        return z.number({ required_error: "規格寬度為必填項目", invalid_type_error: "寬度必須為數值" }).min(0.0001, "規格寬度必須大於 0");
+      }
+      return z.union([z.number(), z.null(), z.undefined()]).optional();
+    },
+    onChange: (value: any, context: any, setValue: any) => {
+      const isRoll = isRollUnit(context?.values?.goodsType, context?.values?.goodsCode);
+      if (isRoll) {
+        const w = Number(value) || 0;
+        const l = Number(context.values.lengthM) || 0;
+        const sqm = Number(((w / 1000) * l).toFixed(2));
+        setValue("quantity", sqm);
+        
+        // 重新計算小計
+        const price = context.values.unitPrice || 0;
+        setValue("lineAmount", Math.round(price * sqm));
+      }
+    },
+    componentProps: {
+      placeholder: "輸入寬度(mm)",
+      style: { width: "100%" }
+    }
+  },
+  {
+    name: "lengthM",
+    label: (context: any) => {
+      const isSheet = context?.values?.unit === "PCS" || context?.values?.unit === "pcs";
+      return isSheet ? "規格長度 (mm)" : "規格長度 (m)";
+    },
+    componentType: "InputNumber",
+    colSpan: 4,
+    hidden: (context: any) => context?.values?.goodsType !== "M",
+    validation: z.union([z.number(), z.null(), z.undefined()]).optional(),
+    dynamicValidation: (context: any) => {
+      const isM = context?.values?.goodsType === "M";
+      if (isM) {
+        const isSheet = context?.values?.unit === "PCS" || context?.values?.unit === "pcs";
+        const labelName = isSheet ? "規格長度 (mm)" : "規格長度 (m)";
+        return z.number({ required_error: `${labelName}為必填項目`, invalid_type_error: `${labelName}必須為數值` }).min(0.0001, `${labelName}必須大於 0`);
+      }
+      return z.union([z.number(), z.null(), z.undefined()]).optional();
+    },
+    onChange: (value: any, context: any, setValue: any) => {
+      const isRoll = isRollUnit(context?.values?.goodsType, context?.values?.goodsCode);
+      if (isRoll) {
+        const w = Number(context.values.widthMm) || 0;
+        const l = Number(value) || 0;
+        const sqm = Number(((w / 1000) * l).toFixed(2));
+        setValue("quantity", sqm);
+        
+        // 重新計算小計
+        const price = context.values.unitPrice || 0;
+        setValue("lineAmount", Math.round(price * sqm));
+      }
+    },
+    componentProps: (context: any) => {
+      const isSheet = context?.values?.unit === "PCS" || context?.values?.unit === "pcs";
+      return {
+        placeholder: isSheet ? "輸入長度(mm)" : "輸入長度(m)",
+        style: { width: "100%" }
+      };
+    }
+  },
   {
     name: "unitPrice",
     label: (context: any) => {
@@ -689,20 +906,18 @@ export const getItemFormConfig = (isCreatingMaterial = false): any[] => [
     },
   },
   {
-    name: "unit",
-    label: "單位",
-    componentType: "Input",
-    colSpan: 4,
-    editable: "never",
-    validation: z.string().optional().nullable(),
-  },
-  {
     name: "quantity",
-    label: "數量",
+    label: (context: any) => {
+      const isRoll = isRollUnit(context?.values?.goodsType, context?.values?.goodsCode);
+      return isRoll ? "數量 (平方米)" : "數量";
+    },
     componentType: "InputNumber",
     colSpan: 4,
-    editable: "editOnly",
-    validation: z.number().min(1, "數量必須大於或等於1"),
+    editable: (context: any) => {
+      const isRoll = isRollUnit(context?.values?.goodsType, context?.values?.goodsCode);
+      return isRoll ? "never" : "editOnly";
+    },
+    validation: z.number().min(0.0001, "數量必須大於 0"),
     onChange: (value: any, context: any, setValue: any) => {
       const price = context.values.unitPrice || 0;
       const spareQty = context.values.spareQuantity || 0;
@@ -717,6 +932,14 @@ export const getItemFormConfig = (isCreatingMaterial = false): any[] => [
       style: { width: "100%" },
     },
   },
+  {
+    name: "unit",
+    label: "單位",
+    componentType: "Input",
+    colSpan: 4,
+    editable: "never",
+    validation: z.string().optional().nullable(),
+  },  
   {
     name: "lineAmount",
     label: "小計",
@@ -736,6 +959,7 @@ export const getItemFormConfig = (isCreatingMaterial = false): any[] => [
     label: "備品數量",
     componentType: "InputNumber",
     colSpan: 4,
+    hidden: (context: any) => context?.values?.goodsType === "M",
     editable: (context: any) => {
       return context?.values?.goodsType !== "M";
     },
@@ -760,6 +984,7 @@ export const getItemFormConfig = (isCreatingMaterial = false): any[] => [
     label: "產生製令",
     componentType: "Switch",
     colSpan: 6,
+    hidden: (context: any) => context?.values?.goodsType === "M",
     editable: (context: any) => {
       return context?.values?.goodsType !== "M";
     },
