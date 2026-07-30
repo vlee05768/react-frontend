@@ -775,6 +775,69 @@ export const getItemFormConfig = (onQuantityChange?: (val: number) => void): any
     },
   },
   {
+    name: "widthMm_virtual" as any,
+    label: "規格寬度 (mm)",
+    componentType: "InputNumber",
+    colSpan: 4,
+    editable: "never",
+    hidden: (context: any) => {
+      const isM = context?.values?.inventoryType === "M" || context?.values?.goodsType === "M";
+      return !isM;
+    },
+    componentProps: (context: any) => {
+      const record = context?.values;
+      const width = getDeliveryItemWidth(record);
+      return {
+        value: width > 0 ? width : undefined,
+        placeholder: "未填規格",
+        disabled: true,
+        style: { width: "100%" },
+      };
+    }
+  },
+  {
+    name: "lengthM_virtual" as any,
+    label: "規格長度 (M)",
+    componentType: "InputNumber",
+    colSpan: 4,
+    editable: "never",
+    hidden: (context: any) => {
+      const isM = context?.values?.inventoryType === "M" || context?.values?.goodsType === "M";
+      return !isM;
+    },
+    componentProps: (context: any) => {
+      const record = context?.values;
+      let lengthM = 0;
+      if (record?.extraData) {
+        try {
+          const allocations = Array.isArray(record.extraData)
+            ? record.extraData
+            : typeof record.extraData === "object" && record.extraData !== null
+              ? (record.extraData as any).rootElement
+                ? JSON.parse(JSON.stringify(record.extraData))
+                : record.extraData
+              : JSON.parse(typeof record.extraData === "string" ? record.extraData : "{}");
+              
+          const list = Array.isArray(allocations)
+            ? allocations
+            : (allocations?.data || allocations?.rootElement || allocations || []);
+            
+          if (Array.isArray(list) && list.length > 0) {
+            lengthM = list[0].lengthM ?? list[0].LengthM ?? 0;
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+      return {
+        value: lengthM > 0 ? lengthM : undefined,
+        placeholder: "未填規格",
+        disabled: true,
+        style: { width: "100%" },
+      };
+    }
+  },
+  {
     name: "amount",
     label: "小計",
     componentType: "InputNumber",
