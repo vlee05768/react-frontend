@@ -11,9 +11,20 @@ import { DictTag } from "@/components/Form/DictTag";
 import { Link } from "react-router-dom";
 import { EllipsisText } from "@/components/Table/EllipsisText";
 
-export const isRollUnit = (goodsType: string | undefined | null, goodsCode: string | undefined | null) => {
-  if (!goodsType || !goodsCode) return false;
-  return goodsType === "M" && goodsCode.toUpperCase().endsWith("R");
+export const isRollUnit = (goodsType: string | undefined | null, goodsCode: string | undefined | null, unit?: string | undefined | null) => {
+  if (goodsType === "M" && goodsCode) {
+    const code = goodsCode.trim().toUpperCase();
+    if (code.endsWith("R") || code.startsWith("R-")) {
+      return true;
+    }
+  }
+  if (unit) {
+    const u = unit.trim().toUpperCase();
+    if (u === "SQM" || u === "M²" || u === "M") {
+      return true;
+    }
+  }
+  return false;
 };
 
 export const getStatusTag = (status: string | null | undefined, closeDate?: string | null) => {
@@ -824,7 +835,7 @@ export const getItemFormConfig = (isCreatingMaterial = false): any[] => [
       return z.union([z.number(), z.null(), z.undefined()]).optional();
     },
     onChange: (value: any, context: any, setValue: any) => {
-      const isRoll = isRollUnit(context?.values?.goodsType, context?.values?.goodsCode);
+      const isRoll = isRollUnit(context?.values?.goodsType, context?.values?.goodsCode, context?.values?.unit);
       if (isRoll) {
         const w = Number(value) || 0;
         const l = Number(context.values.lengthM) || 0;
@@ -861,7 +872,7 @@ export const getItemFormConfig = (isCreatingMaterial = false): any[] => [
       return z.union([z.number(), z.null(), z.undefined()]).optional();
     },
     onChange: (value: any, context: any, setValue: any) => {
-      const isRoll = isRollUnit(context?.values?.goodsType, context?.values?.goodsCode);
+      const isRoll = isRollUnit(context?.values?.goodsType, context?.values?.goodsCode, context?.values?.unit);
       if (isRoll) {
         const w = Number(context.values.widthMm) || 0;
         const l = Number(value) || 0;
@@ -908,13 +919,13 @@ export const getItemFormConfig = (isCreatingMaterial = false): any[] => [
   {
     name: "quantity",
     label: (context: any) => {
-      const isRoll = isRollUnit(context?.values?.goodsType, context?.values?.goodsCode);
+      const isRoll = isRollUnit(context?.values?.goodsType, context?.values?.goodsCode, context?.values?.unit);
       return isRoll ? "數量 (平方米)" : "數量";
     },
     componentType: "InputNumber",
     colSpan: 4,
     editable: (context: any) => {
-      const isRoll = isRollUnit(context?.values?.goodsType, context?.values?.goodsCode);
+      const isRoll = isRollUnit(context?.values?.goodsType, context?.values?.goodsCode, context?.values?.unit);
       return isRoll ? "never" : "editOnly";
     },
     validation: z.number().min(0.0001, "數量必須大於 0"),
