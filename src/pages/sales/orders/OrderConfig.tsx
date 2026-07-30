@@ -355,17 +355,34 @@ export const formatOrderQuantity = (val: number | undefined | null, record: any,
     if (unitUpper === "SQM" || unitUpper === "M²" || unitUpper === "M") {
       const width = record?.widthMm || 0;
       let area = 0;
+      let lengthM = 0;
+      
       if (unitUpper === "SQM" || unitUpper === "M²") {
         area = val;
+        lengthM = width > 0 ? (val / (width / 1000)) : 0;
       } else {
         // 歷史數據以長度 M 為單位，需要乘以寬度得出面積
         area = val * (width / 1000);
+        lengthM = val;
       }
+      
       const formattedArea = `${Number(area.toFixed(2)).toLocaleString()} m²`;
+      let formattedLength = "";
+      if (width > 0) {
+        formattedLength = `(${Number(lengthM.toFixed(2)).toLocaleString()} m)`;
+      } else {
+        formattedLength = "(寬度未填)";
+      }
+      
       return (
-        <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%', color }}>
-          {formattedArea}
-        </span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', width: '100%', padding: '2px 0' }}>
+          <span style={{ fontSize: '13px', fontWeight: 'bold', color: color || 'inherit', lineHeight: '1.2' }}>
+            {formattedArea}
+          </span>
+          <span style={{ fontSize: '11px', color: 'var(--ant-color-text-secondary)', lineHeight: '1.2', marginTop: '2px' }}>
+            {formattedLength}
+          </span>
+        </div>
       );
     } else if (unitUpper === "PCS") {
       return (
@@ -804,8 +821,6 @@ export const getItemFormConfig = (isCreatingMaterial = false): any[] => [
       }
     }
   },
- 
-
   {
     name: "requestedDeliveryDate",
     label: "要求交期",
