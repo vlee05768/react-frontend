@@ -33,21 +33,73 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
   const [showPicker, setShowPicker] = useState(false);
   const [editingItem, setEditingItem] = useState<SalesDeliveryItemDto | null>(null);
 
+  // 💡 智慧判定捲料或片料
+  const isRoll = useMemo(() => {
+    if (!editingItem) return false;
+    const code = editingItem.inventoryCode || "";
+    const isCodeRoll = code.toUpperCase().endsWith("R") || code.toUpperCase().startsWith("R-");
+    const unitUpper = (editingItem.unit || "").toUpperCase();
+    const isUnitRoll = unitUpper === "SQM" || unitUpper === "M²" || unitUpper === "M";
+    return isCodeRoll || isUnitRoll;
+  }, [editingItem]);
+
+  // 💡 智慧取得片材規格 (長寬)
+  const sheetSpec = useMemo(() => {
+    if (!editingItem) return { width: 0, length: 0 };
+    if (isRoll) return { width: 0, length: 0 };
+    
+    // Read from extraData first
+    if (editingItem.extraData) {
+      try {
+        const allocations = Array.isArray(editingItem.extraData)
+          ? editingItem.extraData
+          : typeof editingItem.extraData === "object" && editingItem.extraData !== null
+            ? (editingItem.extraData as any).rootElement
+              ? JSON.parse(JSON.stringify(editingItem.extraData))
+              : editingItem.extraData
+            : JSON.parse(typeof editingItem.extraData === "string" ? editingItem.extraData : "{}");
+            
+        const list = Array.isArray(allocations)
+          ? allocations
+          : (allocations?.data || allocations?.rootElement || allocations || []);
+          
+        if (Array.isArray(list) && list.length > 0) {
+          const w = list[0].WidthMm ?? list[0].widthMm ?? 0;
+          const l = list[0].LengthMm ?? list[0].lengthMm ?? list[0].lengthM ?? 0;
+          return { width: w, length: l };
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    
+    const width = getDeliveryItemWidth(editingItem) || 0;
+    return { width, length: 0 };
+  }, [editingItem, isRoll]);
+
   // 💡 LPN 卷卡手動選配狀態
   const [selectedRolls, setSelectedRolls] = useState<any[]>([]);
   const [isLpnModalOpen, setIsLpnModalOpen] = useState(false);
   const [isAllocationModalOpen, setIsAllocationModalOpen] = useState(false);
   const [tempSelectedKeys, setTempSelectedKeys] = useState<React.Key[]>([]);
 
-  // 💡 智慧計算出貨長度與已配長度
+  // 💡 片料手工輸入 LPN 檢貨數量的狀態
+  const [pickedQuantities, setPickedQuantities] = useState<Record<string, number>>({});
+
+  // 💡 智慧計算出貨長度與已配長度/數量
   const calculatedRequiredLength = useMemo(() => {
     if (!editingItem) return 0;
+    if (!isRoll) return editingItem.quantity || 0; // 對於片料，出貨量就是 PCS 總數
+    
     const width = getDeliveryItemWidth(editingItem) || 0;
     return width > 0 ? ((editingItem.quantity || 0) / (width / 1000)) : 0;
-  }, [editingItem]);
+  }, [editingItem, isRoll]);
 
   const calculatedAllocatedLength = useMemo(() => {
-    return selectedRolls.reduce((acc, r) => acc + (Number(r.qtyAux || r.QtyAux || r.currentQtyAux || 0)), 0);
+    return selectedRolls.reduce((acc, r) => {
+      const qty = Number(r.qtyAux || r.QtyAux || r.currentQtyAux || r.quantity || r.Quantity || 0);
+      return acc + qty;
+    }, 0);
   }, [selectedRolls]);
 
   // 當打開 LPN 選擇 Modal 時，將 tempSelectedKeys 初始化為 selectedRolls 已經選中的 LPN
@@ -65,6 +117,25 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
   });
 
   const selectableRollsList = (selectableRollsRes?.data as any)?.data || [];
+
+  // 💡 當打開手動檢貨 Modal 時，如果是片材，自動初始化各個 LPN 的檢貨數量
+  useEffect(() => {
+    if (isLpnModalOpen && !isRoll) {
+      const initial: Record<string, number> = {};
+      selectedRolls.forEach(r => {
+        const rollNo = r.rollNo || r.RollNo;
+        initial[rollNo] = Number(r.qtyAux || r.QtyAux || r.currentQtyAux || r.quantity || r.Quantity || 0);
+      });
+      
+      selectableRollsList.forEach((r: any) => {
+        const rollNo = r.rollNo || r.RollNo;
+        if (tempSelectedKeys.includes(rollNo) && !initial[rollNo]) {
+          initial[rollNo] = Number(r.currentQtyAux || r.CurrentQtyAux || 0);
+        }
+      });
+      setPickedQuantities(initial);
+    }
+  }, [isLpnModalOpen, selectableRollsList, isRoll]);
 
   const currentQuantityRef = useRef<number>(0);
 
@@ -485,14 +556,14 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
             <div className="mt-4 flex justify-between items-center p-3 rounded-md" style={{ border: '1px solid var(--ant-color-border-secondary)', backgroundColor: 'var(--ant-color-fill-alter)' }}>
               <div className="flex items-center gap-2">
                 <span className="font-semibold" style={{ color: 'var(--ant-color-text-secondary)' }}>
-                  📦 實物卡分配 (LPN)
+                  📦 檢貨狀況(LPN)
                 </span>
                 <Tag color={selectedRolls.length > 0 ? "success" : "warning"}>
                   {selectedRolls.length > 0 ? `已配 ${selectedRolls.length} 卷` : "未分配"}
                 </Tag>
               </div>
               <Button type="primary" onClick={() => setIsAllocationModalOpen(true)}>
-                管理分配 LPN 卷卡
+                LPN檢貨
               </Button>
             </div>
           )}
@@ -675,7 +746,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
       <Modal
         title={
           <div className="flex items-center gap-2">
-            <span>📦 實物卡分配管理</span>
+            <span>📦 實物卡檢貨管理</span>
             <span className="text-xs text-gray-400 font-normal">({editingItem?.lineNumber})</span>
           </div>
         }
@@ -694,33 +765,52 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
             <Descriptions column={1} size="small" items={[
               { label: '商品料號', children: editingItem?.inventoryCode },
               { label: '商品名稱', children: editingItem?.inventoryName },
-              { label: '出貨數量', children: `${Number(editingItem?.quantity || 0).toLocaleString()} m²` },
-              { label: '出貨長度 (M)', children: `${Number(calculatedRequiredLength.toFixed(2)).toLocaleString()} M` },
-              { label: '已配長度 (M)', children: (
-                <span style={{ color: Math.abs(calculatedAllocatedLength - calculatedRequiredLength) < 0.1 ? 'var(--ant-color-success)' : 'var(--ant-color-warning)', fontWeight: 'bold' }}>
-                  {Number(calculatedAllocatedLength.toFixed(2)).toLocaleString()} M
-                </span>
-              )}
+              { 
+                label: '出貨量', 
+                children: isRoll 
+                  ? `${Number(editingItem?.quantity || 0).toLocaleString()} m²` 
+                  : `${Number(editingItem?.quantity || 0).toLocaleString()} pcs` 
+              },
+              { 
+                label: '出貨規格', 
+                children: isRoll 
+                  ? `${getDeliveryItemWidth(editingItem) || 0}mm * ${Number(calculatedRequiredLength.toFixed(2)).toLocaleString()} M` 
+                  : `${getDeliveryItemWidth(editingItem) || 0}mm * ${sheetSpec.length}mm` 
+              },
+              { 
+                label: '已檢貨量', 
+                children: isRoll ? (
+                  <span style={{ color: Math.abs(calculatedAllocatedLength - calculatedRequiredLength) < 0.1 ? 'var(--ant-color-success)' : 'var(--ant-color-warning)', fontWeight: 'bold' }}>
+                    {Number(calculatedAllocatedLength.toFixed(2)).toLocaleString()} m
+                  </span>
+                ) : (
+                  <span style={{ color: calculatedAllocatedLength === (editingItem?.quantity || 0) ? 'var(--ant-color-success)' : 'var(--ant-color-warning)', fontWeight: 'bold' }}>
+                    {Number(calculatedAllocatedLength).toLocaleString()} pcs
+                  </span>
+                )
+              }
             ]} />
           </div>
           
           <div className="flex justify-between items-center mb-3">
             <span className="font-semibold" style={{ color: 'var(--ant-color-text-secondary)' }}>
-              分配明細 ({selectedRolls.length} 卷)
+              檢貨明細 ({selectedRolls.length} {isRoll ? '卷' : '筆'})
             </span>
             <Space>
-              <Button type="primary" size="small" onClick={handleAutoAllocate}>
-                自動分配 (智慧配料)
-              </Button>
+              {isRoll && (
+                <Button type="primary" size="small" onClick={handleAutoAllocate}>
+                  自動檢貨
+                </Button>
+              )}
               <Button type="dashed" size="small" onClick={() => setIsLpnModalOpen(true)}>
-                手動挑選/調整 LPN
+                人工檢貨/調整
               </Button>
             </Space>
           </div>
 
           {selectedRolls.length === 0 ? (
             <div style={{ color: 'var(--ant-color-text-quaternary)', textAlign: 'center', padding: '24px', border: '1px dashed var(--ant-color-border-secondary)', borderRadius: '6px' }}>
-              目前尚未分配任何 LPN 卷卡，請點擊「自動分配」或「手動挑選」
+              目前尚未檢貨任何 LPN 卷卡，請點擊「人工檢貨/調整」{isRoll && "或「自動檢貨」"}
             </div>
           ) : (
             <div style={{ 
@@ -734,15 +824,15 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
               <div className="flex flex-wrap gap-2">
                 {selectedRolls.map((r, idx) => {
                   const rollNo = r.rollNo || r.RollNo;
-                  const qty = Number(r.qtyAux || r.QtyAux || r.currentQtyAux || 0);
+                  const qty = Number(r.qtyAux || r.QtyAux || r.currentQtyAux || r.quantity || r.Quantity || 0);
                   const width = r.widthMm || r.WidthMm || 0;
                   return (
                     <Tooltip 
                       key={idx} 
-                      title={`寬度: ${width}mm, 成本: ${r.costPerSqm || r.CostPerSqm || 0} SQM/NTD`}
+                      title={isRoll ? `寬度: ${width}mm, 成本: ${r.costPerSqm || r.CostPerSqm || 0} SQM/NTD` : `規格: ${width}mm * ${sheetSpec.length}mm`}
                     >
                       <Tag color="blue" style={{ fontSize: '13px', padding: '4px 8px' }}>
-                        🎫 {rollNo} ({qty.toLocaleString()} M)
+                        🎫 {rollNo} ({qty.toLocaleString()} {isRoll ? 'M' : 'pcs'})
                       </Tag>
                     </Tooltip>
                   );
@@ -754,7 +844,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
       </Modal>
 
       <Modal
-        title={`手動挑選 LPN 卷卡 (物料: ${editingItem?.inventoryCode || ''})`}
+        title={`手動檢貨 LPN (物料: ${editingItem?.inventoryCode || ''})`}
         open={isLpnModalOpen}
         width={850}
         centered
@@ -767,16 +857,52 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
         onOk={() => {
           // 當點擊確認時，將勾選的 LPN 資訊回填給 selectedRolls
           const selected = selectableRollsList.filter((r: any) => tempSelectedKeys.includes(r.rollNo || r.RollNo));
-          // 將其轉為與 RequisitionRollDetailDto 一致的格式：{ rollNo, qtyAux, widthMm, costPerSqm }
-          const mappedSelected = selected.map((r: any) => ({
-            rollNo: r.rollNo || r.RollNo,
-            qtyAux: r.currentQtyAux || r.CurrentQtyAux || 0,
-            widthMm: r.widthMm || r.WidthMm || 0,
-            costPerSqm: r.costPerSqm || r.CostPerSqm || 0,
-          }));
-          setSelectedRolls(mappedSelected);
-          setIsLpnModalOpen(false);
-          message.success(`手動調整成功！已選擇 ${mappedSelected.length} 卷卷卡，總計 ${mappedSelected.reduce((acc: number, r: any) => acc + r.qtyAux, 0).toLocaleString()} M`);
+          
+          if (!isRoll) {
+            // 片料檢驗：每個 LPN 檢貨數量驗證
+            for (const r of selected) {
+              const rNo = r.rollNo || r.RollNo;
+              const maxQty = Number(r.currentQtyAux || r.CurrentQtyAux || 0);
+              const pickQty = pickedQuantities[rNo] || 0;
+              if (pickQty <= 0) {
+                message.error(`卷卡 ${rNo} 的檢貨數量必須大於 0！`);
+                return;
+              }
+              if (pickQty > maxQty) {
+                message.error(`卷卡 ${rNo} 的檢貨數量 (${pickQty}) 超出了其最大可用數量 (${maxQty})！`);
+                return;
+              }
+            }
+            
+            // 總數量驗證
+            const totalPicked = selected.reduce((acc: number, r: any) => acc + (pickedQuantities[r.rollNo || r.RollNo] || 0), 0);
+            const requiredQty = editingItem?.quantity || 0;
+            if (totalPicked > requiredQty) {
+              message.error(`檢貨總數量 (${totalPicked.toLocaleString()} PCS) 不可超過出貨量 (${requiredQty.toLocaleString()} PCS)！`);
+              return;
+            }
+            
+            const mappedSelected = selected.map((r: any) => ({
+              rollNo: r.rollNo || r.RollNo,
+              qtyAux: pickedQuantities[r.rollNo || r.RollNo] || 0,
+              widthMm: r.widthMm || r.WidthMm || 0,
+              costPerSqm: r.costPerSqm || r.CostPerSqm || 0,
+            }));
+            setSelectedRolls(mappedSelected);
+            setIsLpnModalOpen(false);
+            message.success(`手動檢貨成功！已檢貨 ${mappedSelected.length} 筆，總計 ${totalPicked.toLocaleString()} PCS`);
+          } else {
+            // 捲料處理
+            const mappedSelected = selected.map((r: any) => ({
+              rollNo: r.rollNo || r.RollNo,
+              qtyAux: r.currentQtyAux || r.CurrentQtyAux || 0,
+              widthMm: r.widthMm || r.WidthMm || 0,
+              costPerSqm: r.costPerSqm || r.CostPerSqm || 0,
+            }));
+            setSelectedRolls(mappedSelected);
+            setIsLpnModalOpen(false);
+            message.success(`手動檢貨成功！已檢貨 ${mappedSelected.length} 卷，總計 ${mappedSelected.reduce((acc: number, r: any) => acc + r.qtyAux, 0).toLocaleString()} M`);
+          }
         }}
         onCancel={() => setIsLpnModalOpen(false)}
         destroyOnHidden
@@ -798,12 +924,42 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
               { title: '🎫 卷卡號 (LPN)', dataIndex: 'rollNo', key: 'rollNo' },
               { title: '寬度(mm)', dataIndex: 'widthMm', key: 'widthMm', align: 'right' },
               { 
-                title: '剩餘長度(M)', 
+                title: isRoll ? '剩餘長度(M)' : '剩餘數量(pcs)', 
                 dataIndex: 'currentQtyAux', 
                 key: 'currentQtyAux', 
                 align: 'right',
                 render: (val: any) => Number(val).toLocaleString() 
               },
+              ...(!isRoll ? [{
+                title: '本次檢貨數量(pcs)',
+                key: 'pickedQty',
+                width: 160,
+                align: 'right' as const,
+                render: (_: any, r: any) => {
+                  const rollNo = r.rollNo || r.RollNo;
+                  const isChecked = tempSelectedKeys.includes(rollNo);
+                  const maxQty = r.currentQtyAux || r.CurrentQtyAux || 0;
+                  const val = pickedQuantities[rollNo] ?? 0;
+                  
+                  return (
+                    <InputNumberComponent
+                      size="small"
+                      min={1}
+                      max={maxQty}
+                      disabled={!isChecked}
+                      value={isChecked ? val : undefined}
+                      onChange={(newVal: any) => {
+                        const num = Number(newVal) || 0;
+                        setPickedQuantities(prev => ({
+                          ...prev,
+                          [rollNo]: num
+                        }));
+                      }}
+                      style={{ width: '100%' }}
+                    />
+                  );
+                }
+              }] : []),
               { 
                 title: '是否用過', 
                 key: 'isUsed', 
@@ -817,22 +973,50 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
             ]}
             rowSelection={{
               selectedRowKeys: tempSelectedKeys,
-              onChange: (keys) => setTempSelectedKeys(keys),
+              onChange: (keys) => {
+                setTempSelectedKeys(keys);
+                if (!isRoll) {
+                  setPickedQuantities(prev => {
+                    const next = { ...prev };
+                    keys.forEach(k => {
+                      const keyStr = String(k);
+                      if (next[keyStr] === undefined || next[keyStr] === 0) {
+                        const lpn = selectableRollsList.find((r: any) => (r.rollNo || r.RollNo) === keyStr);
+                        next[keyStr] = Number(lpn?.currentQtyAux || lpn?.CurrentQtyAux || 0);
+                      }
+                    });
+                    // Clean up unchecked keys
+                    Object.keys(next).forEach(k => {
+                      if (!keys.includes(k)) {
+                        delete next[k];
+                      }
+                    });
+                    return next;
+                  });
+                }
+              },
             }}
           />
           </div>
           
           <div className="mt-4 flex justify-between" style={{ fontSize: '14px', borderTop: '1px solid var(--ant-color-border-secondary)', paddingTop: '12px', flexShrink: 0 }}>
             <span style={{ color: 'var(--ant-color-text-secondary)' }}>
-              目前在庫符合卷數: <strong>{selectableRollsList.length}</strong> 卷
+              目前在庫符合卷數: <strong>{selectableRollsList.length}</strong> 卷/筆
             </span>
             <span style={{ color: 'var(--ant-color-text-primary)' }}>
-              已勾選: <strong className="text-blue-600">{tempSelectedKeys.length}</strong> 卷，
-              出貨長度小計: <strong className="text-green-600">
-                {selectableRollsList
-                  .filter((r: any) => tempSelectedKeys.includes(r.rollNo || r.RollNo))
-                  .reduce((acc: number, r: any) => acc + (Number(r.currentQtyAux) || 0), 0)
-                  .toLocaleString()} M
+              已勾選: <strong className="text-blue-600">{tempSelectedKeys.length}</strong> 卷/筆，
+              {isRoll ? "出貨長度小計" : "出貨數量小計"}: <strong className="text-green-600">
+                {isRoll ? (
+                  selectableRollsList
+                    .filter((r: any) => tempSelectedKeys.includes(r.rollNo || r.RollNo))
+                    .reduce((acc: number, r: any) => acc + (Number(r.currentQtyAux) || 0), 0)
+                    .toLocaleString() + " M"
+                ) : (
+                  selectableRollsList
+                    .filter((r: any) => tempSelectedKeys.includes(r.rollNo || r.RollNo))
+                    .reduce((acc: number, r: any) => acc + (pickedQuantities[r.rollNo || r.RollNo] || 0), 0)
+                    .toLocaleString() + " PCS"
+                )}
               </strong>
             </span>
           </div>
