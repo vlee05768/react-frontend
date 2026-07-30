@@ -761,7 +761,10 @@ export const getItemColumns = (
   },
 ];
 
-export const getItemFormConfig = (onQuantityChange?: (val: number) => void): any[] => [
+export const getItemFormConfig = (
+  onQuantityChange?: (val: number) => void,
+  isQuantityDisabled?: boolean
+): any[] => [
   {
     name: "referenceNumber",
     label: "來源單號",
@@ -833,6 +836,7 @@ export const getItemFormConfig = (onQuantityChange?: (val: number) => void): any
     componentType: "InputNumber",
     colSpan: 4,
     validation: z.number().min(0, "數量必須大於或等於0"),
+    editable: isQuantityDisabled ? "never" : undefined,
     onChange: (value: any, context: any, setValue: any) => {
       const price = context.values.unitPrice || 0;
       const amount = Math.round(price * (value || 0));
@@ -842,6 +846,7 @@ export const getItemFormConfig = (onQuantityChange?: (val: number) => void): any
       }
     },
     componentProps: {
+      disabled: isQuantityDisabled,
       formatter: (value: any) =>
         `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ","),
       parser: (value: any) =>

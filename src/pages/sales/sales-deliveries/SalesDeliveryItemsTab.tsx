@@ -541,7 +541,10 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
           </div>
           <DynamicForm
             formId="itemForm"
-            fields={getItemFormConfig((val) => { currentQuantityRef.current = val; })}
+            fields={getItemFormConfig(
+              (val) => { currentQuantityRef.current = val; },
+              editingItem?.inventoryType === 'M' && selectedRolls.length > 0
+            )}
             defaultValues={editingItem || undefined}
             isViewMode={false}
             isUpdateMode={true}
