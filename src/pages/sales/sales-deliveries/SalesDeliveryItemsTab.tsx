@@ -314,7 +314,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
       try {
         const res = await getApiV1StorageInventory({
           query: {
-            StorageCode: 'TW-GEN-SCRAP',
+            StorageCode: 'TW-SCRAP-GEN',
             InventoryCode: record.inventoryCode || '',
           }
         });
@@ -473,7 +473,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
             <div className="mt-4 p-4 rounded-md" style={{ border: '1px solid var(--ant-color-border-secondary)', backgroundColor: 'var(--ant-color-fill-alter)' }}>
               <div className="flex justify-between items-center mb-3">
                 <span className="font-semibold" style={{ color: 'var(--ant-color-text-secondary)' }}>
-                  📦 實物卡分配 (LPN 一卷一卡)
+                  📦 實物卡分配 (LPN 一卷一卡) {selectedRolls.length > 0 && <span className="ml-2 text-xs text-blue-500 font-normal">已配 {selectedRolls.length} 卷</span>}
                 </span>
                 <Space>
                   <Button 
@@ -498,22 +498,31 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
                   目前尚未分配任何 LPN 卷卡
                 </div>
               ) : (
-                <div className="flex flex-wrap gap-2">
-                  {selectedRolls.map((r, idx) => {
-                    const rollNo = r.rollNo || r.RollNo;
-                    const qty = Number(r.qtyAux || r.QtyAux || r.currentQtyAux || 0);
-                    const width = r.widthMm || r.WidthMm || 0;
-                    return (
-                      <Tooltip 
-                        key={idx} 
-                        title={`寬度: ${width}mm, 成本: ${r.costPerSqm || r.CostPerSqm || 0} SQM/NTD`}
-                      >
-                        <Tag color="blue" style={{ fontSize: '13px', padding: '4px 8px' }}>
-                          🎫 {rollNo} ({qty.toLocaleString()} M)
-                        </Tag>
-                      </Tooltip>
-                    );
-                  })}
+                <div style={{ 
+                  maxHeight: '110px', 
+                  overflowY: 'auto', 
+                  border: '1px solid var(--ant-color-border-secondary)', 
+                  borderRadius: '6px', 
+                  padding: '8px', 
+                  backgroundColor: 'var(--ant-color-bg-container)' 
+                }}>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedRolls.map((r, idx) => {
+                      const rollNo = r.rollNo || r.RollNo;
+                      const qty = Number(r.qtyAux || r.QtyAux || r.currentQtyAux || 0);
+                      const width = r.widthMm || r.WidthMm || 0;
+                      return (
+                        <Tooltip 
+                          key={idx} 
+                          title={`寬度: ${width}mm, 成本: ${r.costPerSqm || r.CostPerSqm || 0} SQM/NTD`}
+                        >
+                          <Tag color="blue" style={{ fontSize: '13px', padding: '4px 8px' }}>
+                            🎫 {rollNo} ({qty.toLocaleString()} M)
+                          </Tag>
+                        </Tooltip>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -591,7 +600,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
                 items={[
                   { label: "品名", children: addSpareItem.inventoryName },
                   { label: "料號", children: addSpareItem.inventoryCode },
-                  { label: "來源儲位", children: "報廢倉 (TW-GEN-SCRAP)" },
+                  { label: "來源儲位", children: "報廢倉 (TW-SCRAP-GEN)" },
                   { 
                     label: "報廢倉現有庫存", 
                     children: (
@@ -605,7 +614,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
 
               {scrapStock !== null && scrapStock <= 0 ? (
                 <div className="text-red-500 font-medium text-center py-2 px-3" style={{ backgroundColor: 'var(--ant-color-error-bg-hover)', borderRadius: '4px' }}>
-                  ⚠️ 目前該產品在報廢倉 (TW-GEN-SCRAP) 中無庫存，無法新增備品。
+                  ⚠️ 目前該產品在報廢倉 (TW-SCRAP-GEN) 中無庫存，無法新增備品。
                 </div>
               ) : (
                 <Form form={spareForm} layout="vertical">
