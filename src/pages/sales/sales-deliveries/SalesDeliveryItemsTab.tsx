@@ -424,16 +424,20 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
       if (record.extraData) {
         try {
           const raw = record.extraData as any;
-          rolls = Array.isArray(raw) 
+          const parsed = Array.isArray(raw) 
             ? raw 
             : (raw.rootElement 
                 ? JSON.parse(raw.rootElement.getRawText()) 
                 : JSON.parse(typeof raw === 'string' ? raw : '[]'));
+          
+          if (Array.isArray(parsed)) {
+            rolls = parsed.filter((r: any) => r?.rollNo || r?.RollNo);
+          }
         } catch (e) {
           console.warn('解析 extraData 失敗:', e);
         }
       }
-      setSelectedRolls(Array.isArray(rolls) ? rolls : []);
+      setSelectedRolls(rolls);
     }
   };
 

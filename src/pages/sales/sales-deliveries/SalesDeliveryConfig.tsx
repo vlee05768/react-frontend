@@ -421,21 +421,13 @@ export const getPickingInfo = (record: any) => {
     }
     
     const hasRollNo = list.some(item => item?.rollNo || item?.RollNo);
-    const hasSheetSpec = list.some(item => (item?.WidthMm && item?.LengthMm) || (item?.widthMm && item?.lengthM));
     
     if (hasRollNo) {
+      const isPcs = record.unit?.toUpperCase() === 'PCS';
       const details = list
         .filter(item => item?.rollNo || item?.RollNo)
-        .map(item => `🎫 ${item.rollNo || item.RollNo} (${Number(item.qtyAux || item.QtyAux || item.currentQtyAux || 0).toLocaleString()} M)`);
-      return { isPicked: true, applicable: true, type: "Roll", details };
-    }
-    
-    if (hasSheetSpec) {
-      const first = list[0];
-      const w = first.WidthMm || first.widthMm || 0;
-      const l = first.LengthMm || first.lengthMm || first.lengthM || 0;
-      const details = [`📏 規格: ${w}mm * ${l}mm` + (first.Quantity ? ` | 數量: ${Number(first.Quantity).toLocaleString()} PCS` : "")];
-      return { isPicked: true, applicable: true, type: "Sheet", details };
+        .map(item => `🎫 ${item.rollNo || item.RollNo} (${Number(item.qtyAux || item.QtyAux || item.currentQtyAux || 0).toLocaleString()} ${isPcs ? 'pcs' : 'M'})`);
+      return { isPicked: true, applicable: true, type: isPcs ? "Sheet" : "Roll", details };
     }
     
   } catch (e) {
