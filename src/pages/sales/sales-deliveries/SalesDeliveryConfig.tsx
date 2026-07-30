@@ -558,15 +558,19 @@ export const getItemColumns = (
               <div style={{ padding: "2px 0" }}>{sourceItems}</div>
             );
 
-            if (list.length > 1) {
+            // 💡 對於原料 (M)，不應使用 LPN 數量作為訂單合併數判定，來源單號應保持挑單新增後的原有值 val
+            const isM = record.inventoryType === "M" || record.goodsType === "M";
+            if (list.length > 1 && !isM) {
               isMerged = true;
               displayText = `[合併 ${list.length} 筆訂單]`;
-            } else {
+            } else if (!isM) {
               displayText =
                 list[0].OrderItemLineNumber ||
                 list[0].orderItemLineNumber ||
                 val ||
                 "-";
+            } else {
+              displayText = val || "-";
             }
           }
         } catch (e) {
