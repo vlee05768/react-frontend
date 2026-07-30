@@ -332,6 +332,14 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
     onConfirm(salesDeliveryItems);
   };
 
+  const isRollRow = (row: UndeliveredOrderItemsDto) => {
+    const unitUpper = (row.unit || "").toUpperCase();
+    const codeUpper = (row.goodsCode || "").toUpperCase();
+    const isCodeRoll = codeUpper.endsWith("R") || codeUpper.startsWith("R-");
+    const isUnitRoll = unitUpper === "SQM" || unitUpper === "M²" || unitUpper === "M";
+    return isCodeRoll || isUnitRoll;
+  };
+
   const columns = useMemo(() => {
     const configs: TableColumnConfig<UndeliveredOrderItemsDto>[] = [
       { label: '訂單單號項次', name: 'lineNumber', width: 160, fixed: 'left' },
@@ -357,28 +365,45 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
       { 
         label: '訂單數量', 
         name: 'quantity', 
-        width: 100, 
+        width: 120, 
         align: 'right', 
         render: (_: any, row: UndeliveredOrderItemsDto) => {
           const qty = (row.quantity || 0) + (row.spareQuantity || 0);
-          return qty.toLocaleString();
+          const suffix = isRollRow(row) ? ' m²' : ' pcs';
+          return `${qty.toLocaleString()}${suffix}`;
         } 
       },
-      { label: '已出貨數量', name: 'quantityShipped', width: 100, align: 'right', render: (val: any) => val != null ? Number(val).toLocaleString() : '0' },
+      { 
+        label: '已出貨數量', 
+        name: 'quantityShipped', 
+        width: 120, 
+        align: 'right', 
+        render: (val: any, row: UndeliveredOrderItemsDto) => {
+          const qty = val != null ? Number(val) : 0;
+          const suffix = isRollRow(row) ? ' m²' : ' pcs';
+          return `${qty.toLocaleString()}${suffix}`;
+        } 
+      },
       { 
         label: '剩餘數量', 
         name: 'quantityRemaining', 
-        width: 100, 
+        width: 120, 
         align: 'right', 
-        render: (val: any) => <span style={{ fontWeight: 'bold', color: '#18a058' }}>{val != null ? Number(val).toLocaleString() : '0'}</span> 
+        render: (val: any, row: UndeliveredOrderItemsDto) => {
+          const qty = val != null ? Number(val) : 0;
+          const suffix = isRollRow(row) ? ' m²' : ' pcs';
+          return <span style={{ fontWeight: 'bold', color: '#18a058' }}>{qty.toLocaleString()}{suffix}</span>;
+        } 
       },
       { 
         label: '現有庫存量', 
         name: 'stockQuantity', 
-        width: 100, 
+        width: 120, 
         align: 'right', 
-        render: (val: any) => {
-          return <span style={{ fontWeight: 'bold', color: '#faad14' }}>{val != null ? Number(val).toLocaleString() : '0'}</span>;
+        render: (val: any, row: UndeliveredOrderItemsDto) => {
+          const qty = val != null ? Number(val) : 0;
+          const suffix = isRollRow(row) ? ' m²' : ' pcs';
+          return <span style={{ fontWeight: 'bold', color: '#faad14' }}>{qty.toLocaleString()}{suffix}</span>;
         } 
       },
       { label: '要求交期', name: 'requestedDeliveryDate', width: 100, render: (val: any) => val ? dayjs(val).format('YYYY-MM-DD') : '' },
