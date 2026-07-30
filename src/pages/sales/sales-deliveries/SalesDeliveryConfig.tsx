@@ -317,6 +317,83 @@ export const getFormConfig = (): any[] => [
   },
 ];
 
+export const getDeliveryItemWidth = (record: any): number => {
+  if (!record?.extraData) return 0;
+  try {
+    const allocations = Array.isArray(record.extraData)
+      ? record.extraData
+      : typeof record.extraData === "object" && record.extraData !== null
+        ? (record.extraData as any).rootElement
+          ? JSON.parse(JSON.stringify(record.extraData))
+          : record.extraData
+        : JSON.parse(typeof record.extraData === "string" ? record.extraData : "{}");
+        
+    const list = Array.isArray(allocations)
+      ? allocations
+      : (allocations?.data || allocations?.rootElement || allocations || []);
+      
+    if (Array.isArray(list) && list.length > 0) {
+      return list[0].widthMm ?? list[0].WidthMm ?? 0;
+    }
+  } catch (e) {
+    // ignore
+  }
+  return 0;
+};
+
+export const formatDeliveryQuantity = (val: number | undefined | null, record: any, color?: string) => {
+  if (val == null) return "-";
+  
+  const isM = record?.inventoryType === "M" || record?.goodsType === "M";
+  if (isM) {
+    const unitUpper = record?.unit?.toUpperCase() || "";
+    if (unitUpper === "SQM" || unitUpper === "M²" || unitUpper === "M") {
+      const width = getDeliveryItemWidth(record);
+      let area = 0;
+      let lengthM = 0;
+      
+      if (unitUpper === "SQM" || unitUpper === "M²") {
+        area = val;
+        lengthM = width > 0 ? (val / (width / 1000)) : 0;
+      } else {
+        area = val * (width / 1000);
+        lengthM = val;
+      }
+      
+      const formattedArea = `${Number(area.toFixed(2)).toLocaleString()} m²`;
+      let formattedLength = "";
+      if (width > 0) {
+        formattedLength = `(${Number(lengthM.toFixed(2)).toLocaleString()} m)`;
+      } else {
+        formattedLength = "(寬度未填)";
+      }
+      
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', width: '100%', padding: '2px 0' }}>
+          <span style={{ fontSize: '13px', fontWeight: 'bold', color: color || 'inherit', lineHeight: '1.2' }}>
+            {formattedArea}
+          </span>
+          <span style={{ fontSize: '11px', color: 'var(--ant-color-text-secondary)', lineHeight: '1.2', marginTop: '2px' }}>
+            {formattedLength}
+          </span>
+        </div>
+      );
+    } else if (unitUpper === "PCS") {
+      return (
+        <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%', color }}>
+          {Number(val.toFixed(2)).toLocaleString()} pcs
+        </span>
+      );
+    }
+  }
+  
+  return (
+    <span style={{ display: 'inline-block', lineHeight: '24px', verticalAlign: 'middle', textAlign: 'right', width: '100%', color }}>
+      {Number(val.toFixed(2)).toLocaleString()}
+    </span>
+  );
+};
+
 export const getItemColumns = (
   isViewMode: boolean,
   onEdit: (record: SalesDeliveryItemDto) => void,
@@ -584,8 +661,7 @@ export const getItemColumns = (
     width: 100,
     align: "right",
     ellipsis: true,
-    render: (val: any) =>
-      val != null ? Number(Number(val).toFixed(2)).toLocaleString() : "-",
+    render: (val: any, record: any) => formatDeliveryQuantity(val, record),
   },
   {
     title: "小計",
@@ -610,7 +686,7 @@ export const getItemColumns = (
   },
 ];
 
-export const getItemFormConfig = (): any[] => [
+export const getItemFormConfig = (onQuantityChange?: (val: number) => void): any[] => [
   {
     name: "referenceNumber",
     label: "來源單號",
@@ -686,6 +762,9 @@ export const getItemFormConfig = (): any[] => [
       const price = context.values.unitPrice || 0;
       const amount = Math.round(price * (value || 0));
       setValue("amount", amount);
+      if (onQuantityChange) {
+        onQuantityChange(Number(value) || 0);
+      }
     },
     componentProps: {
       formatter: (value: any) =>
