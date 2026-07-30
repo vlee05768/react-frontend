@@ -563,13 +563,21 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
         let finalValues = { ...values };
         if (editingItem.inventoryType === 'M') {
           // 💡 如果是物料，將我們手動調整的 LPN rolls 分配、數量、面積覆蓋提交！
-          const isRoll = editingItem.unit === 'M' || editingItem.inventoryCode?.startsWith('R');
-          if (isRoll && selectedRolls.length > 0) {
-            const totalLen = selectedRolls.reduce((acc, r) => acc + (Number(r.qtyAux) || Number(r.currentQtyAux) || 0), 0);
-            const totalArea = totalLen * ((Number(selectedRolls[0].widthMm || 500)) / 1000);
-            finalValues.quantity = totalLen;
-            finalValues.referenceQuantity1 = totalArea;
+          if (selectedRolls.length > 0) {
+            if (isRoll) {
+              const totalLen = selectedRolls.reduce((acc, r) => acc + (Number(r.qtyAux) || Number(r.currentQtyAux) || 0), 0);
+              const totalArea = totalLen * ((Number(selectedRolls[0].widthMm || 500)) / 1000);
+              finalValues.quantity = totalLen;
+              finalValues.referenceQuantity1 = totalArea;
+            } else {
+              // 對於片料，出貨數量就是所有所選 LPN 的檢貨數量總和！
+              const totalQty = selectedRolls.reduce((acc, r) => acc + (Number(r.qtyAux || r.QtyAux || r.currentQtyAux || 0)), 0);
+              finalValues.quantity = totalQty;
+            }
             finalValues.extraData = selectedRolls;
+          } else {
+            // 如果清空了 LPN 檢貨內容，則需要將 extraData 清空 (重置為空)
+            finalValues.extraData = null;
           }
         }
         await updateMutation.mutateAsync({ lineNumber: editingItem.lineNumber!, values: finalValues });
