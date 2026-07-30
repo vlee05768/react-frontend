@@ -394,6 +394,57 @@ export const formatDeliveryQuantity = (val: number | undefined | null, record: a
   );
 };
 
+export const getPickingInfo = (record: any) => {
+  if (record?.inventoryType !== "M" && record?.goodsType !== "M") {
+    return { isPicked: false, applicable: false, details: [] as string[] };
+  }
+  
+  if (!record?.extraData) {
+    return { isPicked: false, applicable: true, details: [] as string[] };
+  }
+  
+  try {
+    const allocations = Array.isArray(record.extraData)
+      ? record.extraData
+      : typeof record.extraData === "object" && record.extraData !== null
+        ? (record.extraData as any).rootElement
+          ? JSON.parse(JSON.stringify(record.extraData))
+          : record.extraData
+        : JSON.parse(typeof record.extraData === "string" ? record.extraData : "{}");
+        
+    const list = Array.isArray(allocations)
+      ? allocations
+      : (allocations?.data || allocations?.rootElement || allocations || []);
+      
+    if (!Array.isArray(list) || list.length === 0) {
+      return { isPicked: false, applicable: true, details: [] as string[] };
+    }
+    
+    const hasRollNo = list.some(item => item?.rollNo || item?.RollNo);
+    const hasSheetSpec = list.some(item => (item?.WidthMm && item?.LengthMm) || (item?.widthMm && item?.lengthM));
+    
+    if (hasRollNo) {
+      const details = list
+        .filter(item => item?.rollNo || item?.RollNo)
+        .map(item => `🎫 ${item.rollNo || item.RollNo} (${Number(item.qtyAux || item.QtyAux || item.currentQtyAux || 0).toLocaleString()} M)`);
+      return { isPicked: true, applicable: true, type: "Roll", details };
+    }
+    
+    if (hasSheetSpec) {
+      const first = list[0];
+      const w = first.WidthMm || first.widthMm || 0;
+      const l = first.LengthMm || first.lengthMm || first.lengthM || 0;
+      const details = [`📏 規格: ${w}mm * ${l}mm` + (first.Quantity ? ` | 數量: ${Number(first.Quantity).toLocaleString()} PCS` : "")];
+      return { isPicked: true, applicable: true, type: "Sheet", details };
+    }
+    
+  } catch (e) {
+    // ignore
+  }
+  
+  return { isPicked: false, applicable: true, details: [] as string[] };
+};
+
 export const getItemColumns = (
   isViewMode: boolean,
   onEdit: (record: SalesDeliveryItemDto) => void,
@@ -662,6 +713,38 @@ export const getItemColumns = (
     align: "right",
     ellipsis: true,
     render: (val: any, record: any) => formatDeliveryQuantity(val, record),
+  },
+  {
+    title: "檢貨狀態",
+    key: "pickingStatus",
+    width: 120,
+    align: "center",
+    render: (_: any, record: any) => {
+      const info = getPickingInfo(record);
+      if (!info.applicable) return "-";
+      if (!info.isPicked) {
+        return <Tag color="warning" className="m-0">未檢貨</Tag>;
+      }
+      
+      const tooltipContent = (
+        <div style={{ padding: "4px" }}>
+          <div className="font-semibold mb-1" style={{ borderBottom: "1px solid rgba(255,255,255,0.2)", paddingBottom: "2px" }}>
+            檢貨明細：
+          </div>
+          {info.details.map((d: string, i: number) => (
+            <div key={i} className="text-xs py-0.5">{d}</div>
+          ))}
+        </div>
+      );
+      
+      return (
+        <Tooltip title={tooltipContent} placement="top" mouseEnterDelay={0.1}>
+          <Tag color="success" className="m-0" style={{ cursor: "pointer" }}>
+            已檢貨 ({info.details.length} 筆)
+          </Tag>
+        </Tooltip>
+      );
+    },
   },
   {
     title: "小計",
