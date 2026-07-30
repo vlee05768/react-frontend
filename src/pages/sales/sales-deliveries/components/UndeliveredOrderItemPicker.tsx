@@ -377,10 +377,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
         name: 'stockQuantity', 
         width: 100, 
         align: 'right', 
-        render: (val: any, row: UndeliveredOrderItemsDto) => {
-          if (row.goodsType === 'M') {
-            return <span style={{ color: 'var(--ant-color-text-secondary)' }}>-</span>;
-          }
+        render: (val: any) => {
           return <span style={{ fontWeight: 'bold', color: '#faad14' }}>{val != null ? Number(val).toLocaleString() : '0'}</span>;
         } 
       },
