@@ -836,7 +836,21 @@ export const getItemFormConfig = (
     componentType: "InputNumber",
     colSpan: 4,
     validation: z.number().min(0, "數量必須大於或等於0"),
-    editable: isQuantityDisabled ? "never" : undefined,
+    editable: (context: any) => {
+      if (isQuantityDisabled) return "never";
+      
+      const values = context?.values || {};
+      const isM = values.inventoryType === "M" || values.goodsType === "M";
+      if (!isM) return undefined;
+      
+      const unitUpper = (values.unit || "").toUpperCase();
+      const codeUpper = (values.inventoryCode || values.goodsCode || "").toUpperCase();
+      const isCodeRoll = codeUpper.endsWith("R") || codeUpper.startsWith("R-");
+      const isUnitRoll = unitUpper === "SQM" || unitUpper === "M²" || unitUpper === "M";
+      const isRollRaw = isCodeRoll || isUnitRoll;
+      
+      return isRollRaw ? "never" : undefined;
+    },
     onChange: (value: any, context: any, setValue: any) => {
       const price = context.values.unitPrice || 0;
       const amount = Math.round(price * (value || 0));
@@ -845,13 +859,28 @@ export const getItemFormConfig = (
         onQuantityChange(Number(value) || 0);
       }
     },
-    componentProps: {
-      disabled: isQuantityDisabled,
-      formatter: (value: any) =>
-        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-      parser: (value: any) =>
-        value!.replace(/\$\s?|(,*)/g, "") as unknown as number,
-      style: { width: "100%" },
+    componentProps: (context: any) => {
+      const values = context?.values || {};
+      const isM = values.inventoryType === "M" || values.goodsType === "M";
+      let isQtyDisabled = isQuantityDisabled;
+      if (isM) {
+        const unitUpper = (values.unit || "").toUpperCase();
+        const codeUpper = (values.inventoryCode || values.goodsCode || "").toUpperCase();
+        const isCodeRoll = codeUpper.endsWith("R") || codeUpper.startsWith("R-");
+        const isUnitRoll = unitUpper === "SQM" || unitUpper === "M²" || unitUpper === "M";
+        const isRollRaw = isCodeRoll || isUnitRoll;
+        if (isRollRaw) {
+          isQtyDisabled = true;
+        }
+      }
+      return {
+        disabled: isQtyDisabled,
+        formatter: (value: any) =>
+          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+        parser: (value: any) =>
+          value!.replace(/\$\s?|(,*)/g, "") as unknown as number,
+        style: { width: "100%" },
+      };
     },
   },
   {
