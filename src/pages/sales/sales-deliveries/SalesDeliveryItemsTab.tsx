@@ -13,7 +13,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { getApiErrorMessage } from '@/utils/apiError';
 import UndeliveredOrderItemPicker from './components/UndeliveredOrderItemPicker';
 import { DynamicForm } from '@/components/Form/DynamicForm';
-import { getItemColumns, getItemFormConfig } from './SalesDeliveryConfig';
+import { getItemColumns, getItemFormConfig, getDeliveryItemWidth } from './SalesDeliveryConfig';
 
 const { Text } = Typography;
 
@@ -36,7 +36,19 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
   // 💡 LPN 卷卡手動選配狀態
   const [selectedRolls, setSelectedRolls] = useState<any[]>([]);
   const [isLpnModalOpen, setIsLpnModalOpen] = useState(false);
+  const [isAllocationModalOpen, setIsAllocationModalOpen] = useState(false);
   const [tempSelectedKeys, setTempSelectedKeys] = useState<React.Key[]>([]);
+
+  // 💡 智慧計算出貨長度與已配長度
+  const calculatedRequiredLength = useMemo(() => {
+    if (!editingItem) return 0;
+    const width = getDeliveryItemWidth(editingItem) || 0;
+    return width > 0 ? ((editingItem.quantity || 0) / (width / 1000)) : 0;
+  }, [editingItem]);
+
+  const calculatedAllocatedLength = useMemo(() => {
+    return selectedRolls.reduce((acc, r) => acc + (Number(r.qtyAux || r.QtyAux || r.currentQtyAux || 0)), 0);
+  }, [selectedRolls]);
 
   // 當打開 LPN 選擇 Modal 時，將 tempSelectedKeys 初始化為 selectedRolls 已經選中的 LPN
   useEffect(() => {
@@ -470,61 +482,18 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
           />
 
           {editingItem && editingItem.inventoryType === 'M' && (
-            <div className="mt-4 p-4 rounded-md" style={{ border: '1px solid var(--ant-color-border-secondary)', backgroundColor: 'var(--ant-color-fill-alter)' }}>
-              <div className="flex justify-between items-center mb-3">
+            <div className="mt-4 flex justify-between items-center p-3 rounded-md" style={{ border: '1px solid var(--ant-color-border-secondary)', backgroundColor: 'var(--ant-color-fill-alter)' }}>
+              <div className="flex items-center gap-2">
                 <span className="font-semibold" style={{ color: 'var(--ant-color-text-secondary)' }}>
-                  📦 實物卡分配 (LPN 一卷一卡) {selectedRolls.length > 0 && <span className="ml-2 text-xs text-blue-500 font-normal">已配 {selectedRolls.length} 卷</span>}
+                  📦 實物卡分配 (LPN)
                 </span>
-                <Space>
-                  <Button 
-                    type="primary" 
-                    size="small"
-                    onClick={handleAutoAllocate}
-                  >
-                    自動分配 (智慧配料)
-                  </Button>
-                  <Button 
-                    type="dashed" 
-                    size="small"
-                    onClick={() => setIsLpnModalOpen(true)}
-                  >
-                    手動挑選/調整 LPN 卷卡
-                  </Button>
-                </Space>
+                <Tag color={selectedRolls.length > 0 ? "success" : "warning"}>
+                  {selectedRolls.length > 0 ? `已配 ${selectedRolls.length} 卷` : "未分配"}
+                </Tag>
               </div>
-              
-              {selectedRolls.length === 0 ? (
-                <div style={{ color: 'var(--ant-color-text-quaternary)', textAlign: 'center', padding: '8px' }}>
-                  目前尚未分配任何 LPN 卷卡
-                </div>
-              ) : (
-                <div style={{ 
-                  maxHeight: '110px', 
-                  overflowY: 'auto', 
-                  border: '1px solid var(--ant-color-border-secondary)', 
-                  borderRadius: '6px', 
-                  padding: '8px', 
-                  backgroundColor: 'var(--ant-color-bg-container)' 
-                }}>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedRolls.map((r, idx) => {
-                      const rollNo = r.rollNo || r.RollNo;
-                      const qty = Number(r.qtyAux || r.QtyAux || r.currentQtyAux || 0);
-                      const width = r.widthMm || r.WidthMm || 0;
-                      return (
-                        <Tooltip 
-                          key={idx} 
-                          title={`寬度: ${width}mm, 成本: ${r.costPerSqm || r.CostPerSqm || 0} SQM/NTD`}
-                        >
-                          <Tag color="blue" style={{ fontSize: '13px', padding: '4px 8px' }}>
-                            🎫 {rollNo} ({qty.toLocaleString()} M)
-                          </Tag>
-                        </Tooltip>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+              <Button type="primary" onClick={() => setIsAllocationModalOpen(true)}>
+                管理分配 LPN 卷卡
+              </Button>
             </div>
           )}
         </div>
@@ -701,6 +670,87 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
             />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title={
+          <div className="flex items-center gap-2">
+            <span>📦 實物卡分配管理</span>
+            <span className="text-xs text-gray-400 font-normal">({editingItem?.lineNumber})</span>
+          </div>
+        }
+        open={isAllocationModalOpen}
+        onCancel={() => setIsAllocationModalOpen(false)}
+        width={650}
+        centered
+        footer={[
+          <Button key="ok" type="primary" onClick={() => setIsAllocationModalOpen(false)}>
+            確認並關閉
+          </Button>
+        ]}
+      >
+        <div style={{ padding: '12px 0' }}>
+          <div className="mb-4 p-3 rounded-md" style={{ backgroundColor: 'var(--ant-color-fill-alter)', border: '1px solid var(--ant-color-border-secondary)' }}>
+            <Descriptions column={1} size="small" items={[
+              { label: '商品料號', children: editingItem?.inventoryCode },
+              { label: '商品名稱', children: editingItem?.inventoryName },
+              { label: '出貨數量', children: `${Number(editingItem?.quantity || 0).toLocaleString()} m²` },
+              { label: '出貨長度 (M)', children: `${Number(calculatedRequiredLength.toFixed(2)).toLocaleString()} M` },
+              { label: '已配長度 (M)', children: (
+                <span style={{ color: Math.abs(calculatedAllocatedLength - calculatedRequiredLength) < 0.1 ? 'var(--ant-color-success)' : 'var(--ant-color-warning)', fontWeight: 'bold' }}>
+                  {Number(calculatedAllocatedLength.toFixed(2)).toLocaleString()} M
+                </span>
+              )}
+            ]} />
+          </div>
+          
+          <div className="flex justify-between items-center mb-3">
+            <span className="font-semibold" style={{ color: 'var(--ant-color-text-secondary)' }}>
+              分配明細 ({selectedRolls.length} 卷)
+            </span>
+            <Space>
+              <Button type="primary" size="small" onClick={handleAutoAllocate}>
+                自動分配 (智慧配料)
+              </Button>
+              <Button type="dashed" size="small" onClick={() => setIsLpnModalOpen(true)}>
+                手動挑選/調整 LPN
+              </Button>
+            </Space>
+          </div>
+
+          {selectedRolls.length === 0 ? (
+            <div style={{ color: 'var(--ant-color-text-quaternary)', textAlign: 'center', padding: '24px', border: '1px dashed var(--ant-color-border-secondary)', borderRadius: '6px' }}>
+              目前尚未分配任何 LPN 卷卡，請點擊「自動分配」或「手動挑選」
+            </div>
+          ) : (
+            <div style={{ 
+              maxHeight: '220px', 
+              overflowY: 'auto', 
+              border: '1px solid var(--ant-color-border-secondary)', 
+              borderRadius: '6px', 
+              padding: '12px', 
+              backgroundColor: 'var(--ant-color-bg-container)' 
+            }}>
+              <div className="flex flex-wrap gap-2">
+                {selectedRolls.map((r, idx) => {
+                  const rollNo = r.rollNo || r.RollNo;
+                  const qty = Number(r.qtyAux || r.QtyAux || r.currentQtyAux || 0);
+                  const width = r.widthMm || r.WidthMm || 0;
+                  return (
+                    <Tooltip 
+                      key={idx} 
+                      title={`寬度: ${width}mm, 成本: ${r.costPerSqm || r.CostPerSqm || 0} SQM/NTD`}
+                    >
+                      <Tag color="blue" style={{ fontSize: '13px', padding: '4px 8px' }}>
+                        🎫 {rollNo} ({qty.toLocaleString()} M)
+                      </Tag>
+                    </Tooltip>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
       </Modal>
 
       <Modal
