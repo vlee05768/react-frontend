@@ -72,7 +72,8 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
         query: {
           materialCode: editingItem.inventoryCode || '',
           requiredLength: reqQty,
-          requiredWidth: undefined
+          requiredWidth: undefined,
+          orderLineNumber: editingItem.referenceNumber || undefined
         } as any
       });
       const rolls = (allocRes.data as any)?.data || [];
