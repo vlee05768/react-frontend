@@ -950,6 +950,9 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
               rollNo: r.rollNo || r.RollNo,
               qtyAux: pickedQuantities[r.rollNo || r.RollNo] || 0,
               widthMm: r.widthMm || r.WidthMm || 0,
+              WidthMm: r.widthMm || r.WidthMm || 0,
+              lengthMm: r.lengthMm || r.LengthMm || 0,
+              LengthMm: r.lengthMm || r.LengthMm || 0,
               costPerSqm: r.costPerSqm || r.CostPerSqm || 0,
             }));
             setSelectedRolls(mappedSelected);
