@@ -567,8 +567,8 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
             if (isRoll) {
               const totalLen = selectedRolls.reduce((acc, r) => acc + (Number(r.qtyAux) || Number(r.currentQtyAux) || 0), 0);
               const totalArea = totalLen * ((Number(selectedRolls[0].widthMm || 500)) / 1000);
-              finalValues.quantity = totalLen;
-              finalValues.referenceQuantity1 = totalArea;
+              finalValues.quantity = totalArea;
+              finalValues.referenceQuantity1 = totalLen;
             } else {
               // 對於片料，出貨數量就是所有所選 LPN 的檢貨數量總和！
               const totalQty = selectedRolls.reduce((acc, r) => acc + (Number(r.qtyAux || r.QtyAux || r.currentQtyAux || 0)), 0);
