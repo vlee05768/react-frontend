@@ -176,6 +176,8 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
       quantity: number;
       unit?: string;
       notes?: string;
+      widthMm?: number;
+      lengthM?: number;
     }
 
     const allocationUnits: AllocationUnit[] = [];
@@ -207,6 +209,8 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
             quantity: remainingRegularQty,
             unit: unit,
             notes: item.notes || '',
+            widthMm: (item as any).widthMm || (item as any).WidthMm,
+            lengthM: (item as any).lengthM || (item as any).LengthM,
           });
         }
 
@@ -224,6 +228,8 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
             quantity: spareQtyToShip,
             unit: unit,
             notes: item.notes || '',
+            widthMm: (item as any).widthMm || (item as any).WidthMm,
+            lengthM: (item as any).lengthM || (item as any).LengthM,
           });
         }
       } else {
@@ -241,6 +247,8 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
             quantity: deliveryQty,
             unit: unit,
             notes: item.notes || '',
+            widthMm: (item as any).widthMm || (item as any).WidthMm,
+            lengthM: (item as any).lengthM || (item as any).LengthM,
           });
         }
       }
@@ -286,6 +294,10 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
       const extraDataList = g.units.map(u => ({
         OrderItemLineNumber: u.orderItemLineNumber,
         Quantity: u.quantity,
+        WidthMm: u.widthMm,
+        widthMm: u.widthMm,
+        LengthM: u.lengthM,
+        lengthM: u.lengthM,
       }));
 
       // 客戶訂單號 (多筆合併時，將多張 PO 串接去重，方便畫面識別)
@@ -328,6 +340,19 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
         }
       },      { label: '商品編碼', name: 'goodsCode', width: 150, ellipsis: true  },
       { label: '商品名稱', name: 'goodsName', width: 200, ellipsis: true },
+      { 
+        label: '規格 (寬*長)', 
+        name: 'specification' as any, 
+        width: 130, 
+        render: (_: any, row: UndeliveredOrderItemsDto) => {
+          if (row.goodsType === 'M') {
+            const w = (row as any).widthMm || (row as any).WidthMm;
+            const l = (row as any).lengthM || (row as any).LengthM;
+            return `${w ? `${w}mm` : '-'}${l ? ` * ${l}M` : ''}`;
+          }
+          return '-';
+        } 
+      },
 
       { 
         label: '訂單數量', 
