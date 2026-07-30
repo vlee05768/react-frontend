@@ -564,17 +564,31 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
         if (editingItem.inventoryType === 'M') {
           // 💡 如果是物料，將我們手動調整的 LPN rolls 分配、數量、面積覆蓋提交！
           if (selectedRolls.length > 0) {
+            // 💡 智慧映射：注入 OrderItemLineNumber 與 Quantity，使 LPN 條目完美兼顧「來源單號與訂單分攤扣減」和「LPN實物卡檢貨」雙重角色！
+            const processedRolls = selectedRolls.map(r => {
+              const len = Number(r.qtyAux || r.QtyAux || r.currentQtyAux || 0);
+              const w = Number(r.widthMm || r.WidthMm || 0);
+              const area = len * (w / 1000);
+              return {
+                ...r,
+                OrderItemLineNumber: editingItem.referenceNumber,
+                orderItemLineNumber: editingItem.referenceNumber,
+                Quantity: isRoll ? area : len,
+                quantity: isRoll ? area : len
+              };
+            });
+
             if (isRoll) {
-              const totalLen = selectedRolls.reduce((acc, r) => acc + (Number(r.qtyAux) || Number(r.currentQtyAux) || 0), 0);
-              const totalArea = totalLen * ((Number(selectedRolls[0].widthMm || 500)) / 1000);
+              const totalLen = processedRolls.reduce((acc, r) => acc + (Number(r.qtyAux) || Number(r.currentQtyAux) || 0), 0);
+              const totalArea = totalLen * ((Number(processedRolls[0].widthMm || 500)) / 1000);
               finalValues.quantity = totalArea;
               finalValues.referenceQuantity1 = totalLen;
             } else {
               // 對於片料，出貨數量就是所有所選 LPN 的檢貨數量總和！
-              const totalQty = selectedRolls.reduce((acc, r) => acc + (Number(r.qtyAux || r.QtyAux || r.currentQtyAux || 0)), 0);
+              const totalQty = processedRolls.reduce((acc, r) => acc + (Number(r.qtyAux || r.QtyAux || r.currentQtyAux || 0)), 0);
               finalValues.quantity = totalQty;
             }
-            finalValues.extraData = selectedRolls;
+            finalValues.extraData = processedRolls;
           } else {
             // 如果清空了 LPN 檢貨內容，則需要將 extraData 清空 (重置為空)
             finalValues.extraData = null;
