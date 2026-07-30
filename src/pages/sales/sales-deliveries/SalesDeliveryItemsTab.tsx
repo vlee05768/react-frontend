@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Table, Button, App, Space, Typography, Modal, InputNumber, Input, Form, Spin, Descriptions, Select, Tag, Tooltip } from 'antd';
+import { Table, Button, App, Space, Typography, Modal, InputNumber, Input, Form, Spin, Descriptions, Select, Tag } from 'antd';
 import type { SalesDeliveryItemDto, CreateSalesDeliveryItemDto } from '@/api/generated/types.gen';
 import { 
   deleteApiV1SalesDeliveryByMovementNumberItemsByLineNumber,
@@ -101,6 +101,57 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
       return acc + qty;
     }, 0);
   }, [selectedRolls]);
+
+  // 💡 智慧計算已檢原料捲料總面積 (SQM)
+  const calculatedAllocatedArea = useMemo(() => {
+    if (!isRoll) return 0;
+    return selectedRolls.reduce((acc, r) => {
+      const len = Number(r.qtyAux || r.QtyAux || r.currentQtyAux || 0);
+      const w = Number(r.widthMm || r.WidthMm || 0);
+      return acc + (len * (w / 1000));
+    }, 0);
+  }, [selectedRolls, isRoll]);
+
+  // 💡 實物卡已檢貨明細 Table 欄位定義
+  const allocatedTableColumns = useMemo(() => {
+    return [
+      { title: '🎫 卷卡號 (LPN)', dataIndex: 'rollNo', key: 'rollNo', render: (val: any) => val || '-' },
+      { title: '寬度(mm)', dataIndex: 'widthMm', key: 'widthMm', align: 'right' as const, render: (val: any) => `${val || 0} mm` },
+      { 
+        title: isRoll ? '長度(M)' : '檢貨數量(pcs)', 
+        key: 'qty', 
+        align: 'right' as const,
+        render: (_: any, r: any) => {
+          const qty = Number(r.qtyAux || r.QtyAux || r.currentQtyAux || 0);
+          return `${qty.toLocaleString()} ${isRoll ? 'M' : 'pcs'}`;
+        }
+      },
+      { title: '批號', dataIndex: 'lotNo', key: 'lotNo', render: (val: any) => val || '-' },
+      { title: '成本(SQM)', dataIndex: 'costPerSqm', key: 'costPerSqm', align: 'right' as const, render: (val: any) => val != null ? `${Number(val).toLocaleString()} SQM/NTD` : '-' },
+      {
+        title: '操作',
+        key: 'action',
+        width: 80,
+        align: 'center' as const,
+        render: (_: any, r: any) => {
+          const rNo = r.rollNo || r.RollNo;
+          return (
+            <Button 
+              type="link" 
+              danger 
+              size="small" 
+              onClick={() => {
+                setSelectedRolls(prev => prev.filter(x => (x.rollNo || x.RollNo) !== rNo));
+                setTempSelectedKeys(prev => prev.filter(k => String(k) !== String(rNo)));
+              }}
+            >
+              移除
+            </Button>
+          );
+        }
+      }
+    ];
+  }, [isRoll, setSelectedRolls, setTempSelectedKeys]);
 
   // 當打開 LPN 選擇 Modal 時，將 tempSelectedKeys 初始化為 selectedRolls 已經選中的 LPN
   useEffect(() => {
@@ -752,16 +803,23 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
         }
         open={isAllocationModalOpen}
         onCancel={() => setIsAllocationModalOpen(false)}
-        width={650}
+        width="70vw"
         centered
+        styles={{
+          body: {
+            height: 'calc(80vh - 120px)',
+            display: 'flex',
+            flexDirection: 'column',
+          }
+        }}
         footer={[
           <Button key="ok" type="primary" onClick={() => setIsAllocationModalOpen(false)}>
             確認並關閉
           </Button>
         ]}
       >
-        <div style={{ padding: '12px 0' }}>
-          <div className="mb-4 p-3 rounded-md" style={{ backgroundColor: 'var(--ant-color-fill-alter)', border: '1px solid var(--ant-color-border-secondary)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '12px 0 0 0' }}>
+          <div className="mb-4 p-3 rounded-md" style={{ backgroundColor: 'var(--ant-color-fill-alter)', border: '1px solid var(--ant-color-border-secondary)', flexShrink: 0 }}>
             <Descriptions column={1} size="small" items={[
               { label: '商品料號', children: editingItem?.inventoryCode },
               { label: '商品名稱', children: editingItem?.inventoryName },
@@ -781,7 +839,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
                 label: '已檢貨量', 
                 children: isRoll ? (
                   <span style={{ color: Math.abs(calculatedAllocatedLength - calculatedRequiredLength) < 0.1 ? 'var(--ant-color-success)' : 'var(--ant-color-warning)', fontWeight: 'bold' }}>
-                    {Number(calculatedAllocatedLength.toFixed(2)).toLocaleString()} m
+                    {Number(calculatedAllocatedLength.toFixed(2)).toLocaleString()} m ({Number(calculatedAllocatedArea.toFixed(2)).toLocaleString()} m²)
                   </span>
                 ) : (
                   <span style={{ color: calculatedAllocatedLength === (editingItem?.quantity || 0) ? 'var(--ant-color-success)' : 'var(--ant-color-warning)', fontWeight: 'bold' }}>
@@ -792,7 +850,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
             ]} />
           </div>
           
-          <div className="flex justify-between items-center mb-3">
+          <div className="flex justify-between items-center mb-3" style={{ flexShrink: 0 }}>
             <span className="font-semibold" style={{ color: 'var(--ant-color-text-secondary)' }}>
               檢貨明細 ({selectedRolls.length} {isRoll ? '卷' : '筆'})
             </span>
@@ -809,35 +867,19 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
           </div>
 
           {selectedRolls.length === 0 ? (
-            <div style={{ color: 'var(--ant-color-text-quaternary)', textAlign: 'center', padding: '24px', border: '1px dashed var(--ant-color-border-secondary)', borderRadius: '6px' }}>
+            <div style={{ color: 'var(--ant-color-text-quaternary)', textAlign: 'center', padding: '48px', border: '1px dashed var(--ant-color-border-secondary)', borderRadius: '6px', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               目前尚未檢貨任何 LPN 卷卡，請點擊「人工檢貨/調整」{isRoll && "或「自動檢貨」"}
             </div>
           ) : (
-            <div style={{ 
-              maxHeight: '220px', 
-              overflowY: 'auto', 
-              border: '1px solid var(--ant-color-border-secondary)', 
-              borderRadius: '6px', 
-              padding: '12px', 
-              backgroundColor: 'var(--ant-color-bg-container)' 
-            }}>
-              <div className="flex flex-wrap gap-2">
-                {selectedRolls.map((r, idx) => {
-                  const rollNo = r.rollNo || r.RollNo;
-                  const qty = Number(r.qtyAux || r.QtyAux || r.currentQtyAux || r.quantity || r.Quantity || 0);
-                  const width = r.widthMm || r.WidthMm || 0;
-                  return (
-                    <Tooltip 
-                      key={idx} 
-                      title={isRoll ? `寬度: ${width}mm, 成本: ${r.costPerSqm || r.CostPerSqm || 0} SQM/NTD` : `規格: ${width}mm * ${sheetSpec.length}mm`}
-                    >
-                      <Tag color="blue" style={{ fontSize: '13px', padding: '4px 8px' }}>
-                        🎫 {rollNo} ({qty.toLocaleString()} {isRoll ? 'M' : 'pcs'})
-                      </Tag>
-                    </Tooltip>
-                  );
-                })}
-              </div>
+            <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', border: '1px solid var(--ant-color-border-secondary)', borderRadius: '6px' }}>
+              <Table
+                size="small"
+                dataSource={selectedRolls}
+                columns={allocatedTableColumns}
+                rowKey={(record: any) => record.rollNo || record.RollNo}
+                pagination={false}
+                scroll={{ y: 'calc(80vh - 350px)' }}
+              />
             </div>
           )}
         </div>
