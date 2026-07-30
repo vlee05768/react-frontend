@@ -53,7 +53,7 @@ export const DICTIONARY_REGISTRY = {
   PRODUCT_TYPE: {
     queryFn: async () => [
       { text: '產品', val: 'P', color: 'orange', icon: 'BoxPlot' },
-      { text: '材料', val: 'M', color: 'cyan', icon: 'Database' },
+      { text: '原料', val: 'M', color: 'cyan', icon: 'Database' },
       { text: '半成品', val: 'S', color: 'purple', icon: 'Branches' },
       { text: '自訂', val: 'O', color: 'default', icon: 'Build' },
     ],
