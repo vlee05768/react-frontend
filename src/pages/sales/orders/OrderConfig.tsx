@@ -378,12 +378,12 @@ export const formatRollAndSheetQty = (val: number | undefined | null, record: an
   const isM = record?.goodsType === "M";
   if (isM) {
     const unitUpper = record?.unit?.toUpperCase() || "";
-    if (unitUpper === "SQM" || unitUpper === "M") {
+    if (unitUpper === "SQM" || unitUpper === "M²" || unitUpper === "M") {
       const width = record?.widthMm || 0;
       let area = 0;
       let lengthM = 0;
       
-      if (unitUpper === "SQM") {
+      if (unitUpper === "SQM" || unitUpper === "M²") {
         area = val;
         lengthM = width > 0 ? (val / (width / 1000)) : 0;
       } else {
