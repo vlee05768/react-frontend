@@ -126,16 +126,9 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
         const rollNo = r.rollNo || r.RollNo;
         initial[rollNo] = Number(r.qtyAux || r.QtyAux || r.currentQtyAux || r.quantity || r.Quantity || 0);
       });
-      
-      selectableRollsList.forEach((r: any) => {
-        const rollNo = r.rollNo || r.RollNo;
-        if (tempSelectedKeys.includes(rollNo) && !initial[rollNo]) {
-          initial[rollNo] = Number(r.currentQtyAux || r.CurrentQtyAux || 0);
-        }
-      });
       setPickedQuantities(initial);
     }
-  }, [isLpnModalOpen, selectableRollsList, isRoll]);
+  }, [isLpnModalOpen, isRoll]);
 
   const currentQuantityRef = useRef<number>(0);
 
@@ -939,7 +932,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
                   const rollNo = r.rollNo || r.RollNo;
                   const isChecked = tempSelectedKeys.includes(rollNo);
                   const maxQty = r.currentQtyAux || r.CurrentQtyAux || 0;
-                  const val = pickedQuantities[rollNo] ?? 0;
+                  const val = pickedQuantities[rollNo] ?? maxQty;
                   
                   return (
                     <InputNumberComponent
