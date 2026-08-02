@@ -180,9 +180,11 @@ export default function MainLayout() {
     if (loading) return true; // 等待載入完成
     if (location.pathname === ROUTES.HOME) return true; // Dashboard 皆可存取
     
-    const matchedEntry = Object.entries(ROUTE_PERMISSION_MAP).find(([path]) => 
-      location.pathname.startsWith(path)
-    );
+    const matchedEntry = Object.entries(ROUTE_PERMISSION_MAP)
+      .sort((a, b) => b[0].length - a[0].length)
+      .find(([path]) => 
+        location.pathname.startsWith(path)
+      );
     
     if (matchedEntry) {
       const [, requiredPerm] = matchedEntry;
@@ -196,7 +198,9 @@ export default function MainLayout() {
   useEffect(() => {
     if (collapsed) return; // 避免在縮合狀態下設定 openKeys，導致浮動選單跳出
     
-    const matchedEntry = Object.entries(ROUTE_MAPPING).find(([, path]) => location.pathname.startsWith(path));
+    const matchedEntry = Object.entries(ROUTE_MAPPING)
+      .sort((a, b) => b[1].length - a[1].length)
+      .find(([, path]) => location.pathname.startsWith(path));
     if (matchedEntry) {
       const [key] = matchedEntry;
       const parentKey = key.split('.')[0];
@@ -352,7 +356,9 @@ export default function MainLayout() {
     }
 
     // 反查當前路徑對應的 Permission Key
-    const matchedEntry = Object.entries(ROUTE_MAPPING).find(([, path]) => location.pathname.startsWith(path));
+    const matchedEntry = Object.entries(ROUTE_MAPPING)
+      .sort((a, b) => b[1].length - a[1].length)
+      .find(([, path]) => location.pathname.startsWith(path));
     
     let pageTitle = '';
     
