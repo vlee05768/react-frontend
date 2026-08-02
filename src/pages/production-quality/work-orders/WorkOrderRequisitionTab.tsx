@@ -763,7 +763,7 @@ export function WorkOrderRequisitionTab({
           ) : null;
 
           return (
-            <Tooltip title={tooltipContent} overlayStyle={{ maxWidth: 300 }}>
+            <Tooltip title={tooltipContent} styles={{ root: { maxWidth: 300 } }}>
               <div style={{ cursor: hasExtra ? "pointer" : "default" }}>
                 <Tag color="cyan">捲材</Tag>
                 {hasExtra ? (
