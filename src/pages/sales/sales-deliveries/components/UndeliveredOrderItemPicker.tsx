@@ -7,6 +7,7 @@ import { getApiV1OrdersCustomerByCustomerCodeUndeliveredItems } from '@/api/gene
 import type { TableColumnConfig } from '@/components/Form/types';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { DictTag } from '@/components/Form/DictTag';
+import { MaterialLogisticsCore } from '@/utils/materialLogistics';
 
 interface Props {
   open: boolean;
@@ -333,11 +334,7 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
   };
 
   const isRollRow = (row: UndeliveredOrderItemsDto) => {
-    const unitUpper = (row.unit || "").toUpperCase();
-    const codeUpper = (row.goodsCode || "").toUpperCase();
-    const isCodeRoll = codeUpper.endsWith("R") || codeUpper.startsWith("R-");
-    const isUnitRoll = unitUpper === "SQM" || unitUpper === "M²" || unitUpper === "M";
-    return isCodeRoll || isUnitRoll;
+    return MaterialLogisticsCore.isRollMaterial(row.goodsCode, row.unit);
   };
 
   const columns = useMemo(() => {

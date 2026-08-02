@@ -11,6 +11,7 @@ import {
 } from '@/api/generated/sdk.gen';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { getApiErrorMessage } from '@/utils/apiError';
+import { MaterialLogisticsCore } from '@/utils/materialLogistics';
 import UndeliveredOrderItemPicker from './components/UndeliveredOrderItemPicker';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { getItemColumns, getItemFormConfig, getDeliveryItemWidth } from './SalesDeliveryConfig';
@@ -36,11 +37,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
   // 💡 智慧判定捲料或片料
   const isRoll = useMemo(() => {
     if (!editingItem) return false;
-    const code = editingItem.inventoryCode || "";
-    const isCodeRoll = code.toUpperCase().endsWith("R") || code.toUpperCase().startsWith("R-");
-    const unitUpper = (editingItem.unit || "").toUpperCase();
-    const isUnitRoll = unitUpper === "SQM" || unitUpper === "M²" || unitUpper === "M";
-    return isCodeRoll || isUnitRoll;
+    return MaterialLogisticsCore.isRollMaterial(editingItem.inventoryCode, editingItem.unit);
   }, [editingItem]);
 
   // 💡 智慧取得片材規格 (長寬)
@@ -89,28 +86,17 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
   // 💡 智慧計算出貨長度與已配長度/數量
   const calculatedRequiredLength = useMemo(() => {
     if (!editingItem) return 0;
-    if (!isRoll) return editingItem.quantity || 0; // 對於片料，出貨量就是 PCS 總數
-    
     const width = getDeliveryItemWidth(editingItem) || 0;
-    return width > 0 ? ((editingItem.quantity || 0) / (width / 1000)) : 0;
+    return MaterialLogisticsCore.convertAreaToLength(isRoll, editingItem.quantity || 0, width);
   }, [editingItem, isRoll]);
 
-  const calculatedAllocatedLength = useMemo(() => {
-    return selectedRolls.reduce((acc, r) => {
-      const qty = Number(r.qtyAux || r.QtyAux || r.currentQtyAux || r.quantity || r.Quantity || 0);
-      return acc + qty;
-    }, 0);
-  }, [selectedRolls]);
-
-  // 💡 智慧計算已檢原料捲料總面積 (SQM)
-  const calculatedAllocatedArea = useMemo(() => {
-    if (!isRoll) return 0;
-    return selectedRolls.reduce((acc, r) => {
-      const len = Number(r.qtyAux || r.QtyAux || r.currentQtyAux || 0);
-      const w = Number(r.widthMm || r.WidthMm || 0);
-      return acc + (len * (w / 1000));
-    }, 0);
+  // 💡 智慧計算已檢量與已檢面積 (使用領域核心)
+  const allocatedTotals = useMemo(() => {
+    return MaterialLogisticsCore.calculateTotalAreaAndLength(isRoll, selectedRolls);
   }, [selectedRolls, isRoll]);
+
+  const calculatedAllocatedLength = isRoll ? allocatedTotals.totalLengthM : allocatedTotals.totalQtyPcs;
+  const calculatedAllocatedArea = allocatedTotals.totalAreaSqm;
 
   // 💡 實物卡已檢貨明細 Table 欄位定義
   const allocatedTableColumns = useMemo(() => {
@@ -566,27 +552,24 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
           if (selectedRolls.length > 0) {
             // 💡 智慧映射：注入 OrderItemLineNumber 與 Quantity，使 LPN 條目完美兼顧「來源單號與訂單分攤扣減」和「LPN實物卡檢貨」雙重角色！
             const processedRolls = selectedRolls.map(r => {
-              const len = Number(r.qtyAux || r.QtyAux || r.currentQtyAux || 0);
-              const w = Number(r.widthMm || r.WidthMm || 0);
-              const area = len * (w / 1000);
+              const len = Number(r.qtyAux ?? r.QtyAux ?? r.currentQtyAux ?? 0);
+              const w = Number(r.widthMm ?? r.WidthMm ?? 0);
+              const area = isRoll ? len * (w / 1000) : len;
               return {
                 ...r,
                 OrderItemLineNumber: editingItem.referenceNumber,
                 orderItemLineNumber: editingItem.referenceNumber,
-                Quantity: isRoll ? area : len,
-                quantity: isRoll ? area : len
+                Quantity: area,
+                quantity: area
               };
             });
 
+            const totals = MaterialLogisticsCore.calculateTotalAreaAndLength(isRoll, processedRolls);
             if (isRoll) {
-              const totalLen = processedRolls.reduce((acc, r) => acc + (Number(r.qtyAux) || Number(r.currentQtyAux) || 0), 0);
-              const totalArea = totalLen * ((Number(processedRolls[0].widthMm || 500)) / 1000);
-              finalValues.quantity = totalArea;
-              finalValues.referenceQuantity1 = totalLen;
+              finalValues.quantity = totals.totalAreaSqm;
+              finalValues.referenceQuantity1 = totals.totalLengthM;
             } else {
-              // 對於片料，出貨數量就是所有所選 LPN 的檢貨數量總和！
-              const totalQty = processedRolls.reduce((acc, r) => acc + (Number(r.qtyAux || r.QtyAux || r.currentQtyAux || 0)), 0);
-              finalValues.quantity = totalQty;
+              finalValues.quantity = totals.totalQtyPcs;
             }
             finalValues.extraData = processedRolls;
           } else {

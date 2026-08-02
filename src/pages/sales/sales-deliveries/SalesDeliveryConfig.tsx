@@ -17,6 +17,7 @@ import type {
   SalesDeliveryItemDto,
 } from "@/api/generated/types.gen";
 import dayjs from "dayjs";
+import { MaterialLogisticsCore } from '@/utils/materialLogistics';
 import { ContactSelectWithCreate } from "../orders/components/ContactSelectWithCreate";
 import { DictTag } from "@/components/Form/DictTag";
 // import { DictLabel } from "@/components/Form/DictLabel";
@@ -847,12 +848,7 @@ export const getItemFormConfig = (
       const isM = values.inventoryType === "M" || values.goodsType === "M";
       if (!isM) return undefined;
       
-      const unitUpper = (values.unit || "").toUpperCase();
-      const codeUpper = (values.inventoryCode || values.goodsCode || "").toUpperCase();
-      const isCodeRoll = codeUpper.endsWith("R") || codeUpper.startsWith("R-");
-      const isUnitRoll = unitUpper === "SQM" || unitUpper === "M²" || unitUpper === "M";
-      const isRollRaw = isCodeRoll || isUnitRoll;
-      
+      const isRollRaw = MaterialLogisticsCore.isRollMaterial(values.inventoryCode || values.goodsCode, values.unit);
       return isRollRaw ? "never" : undefined;
     },
     onChange: (value: any, context: any, setValue: any) => {
@@ -868,11 +864,7 @@ export const getItemFormConfig = (
       const isM = values.inventoryType === "M" || values.goodsType === "M";
       let isQtyDisabled = isQuantityDisabled;
       if (isM) {
-        const unitUpper = (values.unit || "").toUpperCase();
-        const codeUpper = (values.inventoryCode || values.goodsCode || "").toUpperCase();
-        const isCodeRoll = codeUpper.endsWith("R") || codeUpper.startsWith("R-");
-        const isUnitRoll = unitUpper === "SQM" || unitUpper === "M²" || unitUpper === "M";
-        const isRollRaw = isCodeRoll || isUnitRoll;
+        const isRollRaw = MaterialLogisticsCore.isRollMaterial(values.inventoryCode || values.goodsCode, values.unit);
         if (isRollRaw) {
           isQtyDisabled = true;
         }
