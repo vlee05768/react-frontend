@@ -111,11 +111,36 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
     const formattedValues = {
       ...values,
       generateWorkOrder: values.goodsType === 'M' ? false : values.generateWorkOrder,
+      spareQuantity: values.goodsType === 'M' ? 0 : values.spareQuantity,
       requestedDeliveryDate: values.requestedDeliveryDate ? dayjs(values.requestedDeliveryDate).format('YYYY-MM-DD') : undefined,
       promisedDeliveryDate: values.promisedDeliveryDate ? dayjs(values.promisedDeliveryDate).format('YYYY-MM-DD') : undefined,
     };
 
-    // 移除了重複商品代碼的限制，允許同商品多筆不同交期明細
+    // 💡 檢查原料訂單明細不可重複 (同一個原料編號、要求交期)
+    if (formattedValues.goodsType === 'M') {
+      const isDuplicate = listData.some(item => {
+        // 如果是編輯模式，排除目前正在編輯的項目
+        if (editingItem && item.lineNumber === editingItem.lineNumber) {
+          return false;
+        }
+        
+        const sameCode = item.goodsCode === formattedValues.goodsCode;
+        const itemDate = item.requestedDeliveryDate ? dayjs(item.requestedDeliveryDate).format('YYYY-MM-DD') : '';
+        const newDate = formattedValues.requestedDeliveryDate || '';
+        const sameDate = itemDate === newDate;
+        
+        return sameCode && sameDate;
+      });
+      
+      if (isDuplicate) {
+        modal.error({
+          centered: true,
+          title: '重複項目提示',
+          content: `原料明細中已存在相同項目：原料編碼 [${formattedValues.goodsCode}]、要求交期為 [${formattedValues.requestedDeliveryDate || '未填'}]，不可重複建立！`
+        });
+        return; // 攔截阻擋
+      }
+    }
 
     try {
       if (isCreating) {
@@ -255,12 +280,14 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
                     quantity: 1, 
                     unitPrice: 0, 
                     generateWorkOrder: false,
+                    spareQuantity: 0,
                     requestedDeliveryDate: orderData.requestedDeliveryDate ? dayjs(orderData.requestedDeliveryDate) : undefined,
                     promisedDeliveryDate: orderData.promisedDeliveryDate ? dayjs(orderData.promisedDeliveryDate) : undefined,
                     priority: '0001'
                   } 
                 : editingItem ? {
                     ...editingItem,
+                    unit: (editingItem.goodsType === 'M' && (editingItem.unit?.toUpperCase() === 'M' || editingItem.unit?.toUpperCase() === 'SQM' || editingItem.unit?.toUpperCase() === 'M²')) ? 'm²' : editingItem.unit,
                     requestedDeliveryDate: editingItem.requestedDeliveryDate ? dayjs(editingItem.requestedDeliveryDate) : undefined,
                     promisedDeliveryDate: editingItem.promisedDeliveryDate ? dayjs(editingItem.promisedDeliveryDate) : undefined,
                   } : undefined

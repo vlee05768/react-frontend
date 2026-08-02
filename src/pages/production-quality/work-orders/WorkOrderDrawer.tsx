@@ -90,7 +90,7 @@ export function WorkOrderDrawer({
     productionDate: rawData.productionDate ? dayjs(rawData.productionDate) : undefined,
     _ui_editMode: editMode,
   } : isCreateMode ? {
-    storageCode: 'TW-GEN-QC',
+    storageCode: 'TW-QC-GEN',
     _ui_editMode: editMode,
   } : undefined;
 

@@ -73,7 +73,7 @@ export default function OrdersList() {
       width: 150, // 檢視 + 刪除 + 關注 三按鈕，寬度設為 150
       fixed: 'right' as const,
       render: (_: any, record: OrderDto) => {
-        const canView = hasPermission('Sales.Orders.View');
+        const canView = hasPermission('Sales.Orders.View') || !!record.orderNumber; // 💡 智慧降級防呆：防止權限同步延遲或開發階段 Table 眼睛 icon 消失
         const canUpdate = hasPermission('Sales.Orders.Update');
         const canDelete = hasPermission('Sales.Orders.Delete');
         const isDraft = record.status === 'Draft';

@@ -360,11 +360,11 @@ export const getSheetLogicalColumns = (): TableColumnConfig<any>[] => [
 // ============================================================================
 
 export const rollStateOptions = [
-  { label: "待驗 (Uninspected)", value: "Uninspected" },
-  { label: "在庫 (INSTOCK)", value: "INSTOCK" },
-  { label: "車間 WIP (WIP)", value: "WIP" },
-  { label: "已報廢 (Scrapped)", value: "Scrapped" },
-  { label: "已消耗 (CONSUMED)", value: "CONSUMED" }
+  { label: "待驗", value: "Uninspected", color: "processing" },
+  { label: "在庫", value: "Available", color: "success" },
+  { label: "車間生產中", value: "WIP", color: "warning" },
+  { label: "已報廢", value: "Scrapped", color: "error" },
+  { label: "已消耗", value: "CONSUMED", color: "default" }
 ];
 
 export const rollSearchFields: SearchFieldConfig[] = [
@@ -412,24 +412,26 @@ export const getRollColumns = (
     render: (val: string) => <span className="font-mono font-bold text-slate-800 dark:text-slate-100">{val || "-"}</span>,
   },
   {
+    label: "原料品編",
+    name: "materialCode",
+    width: 150,
+    fixed: "left",
+  },
+  {
     label: "狀態",
     name: "rollStatus",
     width: 120,
     align: "center",
     render: (val: any) => {
       const upper = String(val || '').toUpperCase();
-      if (upper === 'UNINSPECTED') return <Tag color="processing">待驗 (Uninspected)</Tag>;
-      if (upper === 'INSTOCK') return <Tag color="success">在庫 (INSTOCK)</Tag>;
-      if (upper === 'WIP') return <Tag color="warning">車間 WIP</Tag>;
-      if (upper === 'CONSUMED') return <Tag color="default">已消耗</Tag>;
-      if (upper === 'SCRAPPED' || upper === 'SCRAP') return <Tag color="error">已報廢</Tag>;
+      // 容錯支援舊資料 SCRAP 映射為 Scrapped 狀態
+      const searchVal = upper === 'SCRAP' ? 'SCRAPPED' : upper;
+      const matched = rollStateOptions.find(opt => opt.value.toUpperCase() === searchVal);
+      if (matched) {
+        return <Tag color={matched.color}>{matched.label} ({matched.value})</Tag>;
+      }
       return <Tag color="default">{val || '-'}</Tag>;
     }
-  },
-  {
-    label: "原料品編",
-    name: "materialCode",
-    width: 180,
   },
   {
     label: "原料名稱",
@@ -568,7 +570,7 @@ export const getRollColumns = (
     fixed: "right",
     render: (_, record: any) => {
       const upper = String(record.rollStatus || '').toUpperCase();
-      const canScrap = upper === 'INSTOCK' || upper === 'AVAILABLE';
+      const canScrap = upper === 'AVAILABLE';
       
       return (
         <Space size={8}>
@@ -623,6 +625,7 @@ export const transactionTypeDict: Record<string, { label: string; color: string 
   SCRAP: { label: "報廢", color: "error" },
   WT_CONSUME: { label: "製令消耗", color: "cyan" },
   TR: { label: "原料調撥", color: "geekblue" },
+  SA: { label: "銷貨", color: "volcano" },
 };
 
 export const transactionTypeOptions = [
@@ -634,7 +637,8 @@ export const transactionTypeOptions = [
   { label: "分切加工 (SPLIT)", value: "SPLIT" },
   { label: "庫存調整 (ADJUST / ADJUSTMENT / ADJ)", value: "ADJ" },
   { label: "製令消耗 (WT_CONSUME)", value: "WT_CONSUME" },
-  { label: "報廢 (SCRAP)", value: "SCRAP" }
+  { label: "報廢 (SCRAP)", value: "SCRAP" },
+  { label: "銷貨 (SA)", value: "SA" }
 ];
 
 export const txSearchFields: SearchFieldConfig[] = [

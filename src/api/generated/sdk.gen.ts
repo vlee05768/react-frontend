@@ -3253,3 +3253,23 @@ export const getApiV1WorkOrderReturnWipRolls = <ThrowOnError extends boolean = f
     url: '/api/v1/WorkOrderReturn/wip-rolls',
     ...options
 });
+
+/**
+ * 取得原料銷貨可挑選的卷卡清單
+ */
+export const getApiV1SalesDeliverySelectableRolls = <ThrowOnError extends boolean = false>(options?: Options<any, ThrowOnError>) => (options?.client ?? client).get<any, unknown, ThrowOnError>({
+    responseType: 'json',
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/api/v1/SalesDelivery/selectable-rolls',
+    ...options
+});
+
+/**
+ * 原料銷貨自動分配卷卡
+ */
+export const getApiV1SalesDeliveryAllocatedRolls = <ThrowOnError extends boolean = false>(options?: Options<any, ThrowOnError>) => (options?.client ?? client).get<any, unknown, ThrowOnError>({
+    responseType: 'json',
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/api/v1/SalesDelivery/allocated-rolls',
+    ...options
+});

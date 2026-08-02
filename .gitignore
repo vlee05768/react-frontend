@@ -23,6 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 temp_scripts/
+.pnpm-store/
 
 # Docker volumes and temp files
 deploy/prod/postgres/data/

@@ -347,7 +347,7 @@ export default function MaterialInventoryList() {
     RollNo: '',
     MaterialCode: '',
     StorageCode: undefined,
-    RollStatus: ['INSTOCK'], // 預設只顯示在庫的卷卡，方便查庫存
+    RollStatus: ['Available'], // 預設只顯示在庫的卷卡，方便查庫存
     MaterialForm: undefined
   });
 
@@ -362,7 +362,7 @@ export default function MaterialInventoryList() {
       RollNo: '',
       MaterialCode: '',
       StorageCode: undefined,
-      RollStatus: ['INSTOCK'],
+      RollStatus: ['Available'],
       MaterialForm: undefined
     }
   });

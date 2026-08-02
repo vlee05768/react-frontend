@@ -1,5 +1,5 @@
 import { defineConfig, loadEnv } from 'vite'
-import react from '@vitejs/plugin-react-swc'
+import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import viteCompression from 'vite-plugin-compression'
 import path from 'path'
@@ -19,10 +19,21 @@ export default defineConfig(({ mode }) => {
     define: {
       __APP_VERSION__: JSON.stringify(packageJson.version),
     },
-    plugins: [react(), tailwindcss(), viteCompression(), basicSsl()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      viteCompression(),
+      // 預設啟用 basicSsl() 以保持既有行為。如需關閉（改用 HTTP 避免自簽章憑證阻擋 WSS），可在 .env.local 設定 VITE_DEV_HTTPS=false
+      ...(env.VITE_DEV_HTTPS !== 'false' ? [basicSsl()] : []),
+    ],
     server: {
       host: '0.0.0.0',
       port: 5173,
+      // 支援在虛擬機、WSL 跨檔案系統或網路磁碟下啟用輪詢監聽 (可在 .env.local 設定 VITE_USE_POLLING=true)
+      watch: env.VITE_USE_POLLING === 'true' ? {
+        usePolling: true,
+        interval: 100,
+      } : undefined,
       proxy: {
         '/api': {
           target: env.VITE_DEV_API_TARGET,

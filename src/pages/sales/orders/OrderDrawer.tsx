@@ -84,6 +84,7 @@ export default function OrderDrawer() {
     if (orderData) {
       return {
         ...orderData,
+        customerCode: orderData.customerCode || orderData.businessPartnerCode,
         orderDate: orderData.orderDate ? dayjs(orderData.orderDate) : undefined,
         requestedDeliveryDate: orderData.requestedDeliveryDate ? dayjs(orderData.requestedDeliveryDate) : undefined,
         promisedDeliveryDate: orderData.promisedDeliveryDate ? dayjs(orderData.promisedDeliveryDate) : undefined,
@@ -93,7 +94,13 @@ export default function OrderDrawer() {
   }, [isCreating, orderData, user]);
 
   const createMutation = useMutation({
-    mutationFn: (data: CreateOrderDto) => postApiV1Orders({ body: data }),
+    mutationFn: (data: CreateOrderDto) => {
+      const payload = {
+        ...data,
+        businessPartnerCode: (data as any).customerCode
+      };
+      return postApiV1Orders({ body: payload as any });
+    },
     onSuccess: (res) => {
       message.success('新增成功');
       queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -113,7 +120,13 @@ export default function OrderDrawer() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: UpdateOrderDto) => putApiV1OrdersByOrderNumber({ path: { orderNumber: id! }, body: data }),
+    mutationFn: (data: UpdateOrderDto) => {
+      const payload = {
+        ...data,
+        businessPartnerCode: (data as any).customerCode
+      };
+      return putApiV1OrdersByOrderNumber({ path: { orderNumber: id! }, body: payload as any });
+    },
     onSuccess: () => {
       message.success('更新成功');
       queryClient.invalidateQueries({ queryKey: ['order', id] });
