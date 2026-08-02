@@ -8,18 +8,17 @@ import {
   Empty,
   App,
   Spin,
-  Modal,
   InputNumber,
   Input,
   Select,
   Tooltip,
 } from "antd";
 import {
-  PlusOutlined,
-  DeleteOutlined,
-  EditOutlined,
   SaveOutlined,
+  EditOutlined,
+  DeleteOutlined,
   SyncOutlined,
+  BarcodeOutlined,
 } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -30,7 +29,6 @@ import {
   postApiV1WorkOrderReturnByDocumentNumberCancel,
   deleteApiV1WorkOrderReturnByDocumentNumber,
   getApiV1WorkOrderReturnWipRolls,
-  getApiV1WorkOrderRequisitionWoByWorkOrderNumber,
   getApiV1Storage,
 } from "@/api/generated/sdk.gen";
 import { getApiErrorMessage } from "@/utils/apiError";
@@ -44,70 +42,42 @@ interface WorkOrderReturnTabProps {
   onEditingChange?: (editing: boolean) => void;
 }
 
+// 扁平化 LPN 卷卡介面定義
+interface FlatReturnRoll {
+  materialCode: string;
+  materialName: string;
+  rollNo: string;
+  widthMm: number;
+  thicknessMm: number;
+  coreDiaMm: number;
+  originalQtyAux: number;
+  wipQtyAux: number; // 領用長度 (WIP)
+  qtyAux: number; // 退回長度 (預設為 0)
+  measuredDiaMm: number | null; // 實測外徑
+  storageCode: string; // 目的儲位
+  costPerSqm: number;
+  remainingMaterialCost: number; // 餘料成本 (整數)
+  notes?: string;
+}
+
 export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderReturnTabProps) {
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
 
   const [isCreating, setIsCreating] = useState(false);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
-  const justCreatedRef = useRef(false);
 
   // 退料主檔表頭編輯狀態
   const [docDate, setDocDate] = useState<dayjs.Dayjs>(dayjs());
   const [docNotes, setDocNotes] = useState("");
 
-  // 明細項目狀態
-  const [items, setItems] = useState<any[]>([]);
+  // 核心扁平化明細管理
+  const [flatRolls, setFlatRolls] = useState<FlatReturnRoll[]>([]);
 
-  // 彈窗控制狀態
-  const [itemModalOpen, setItemModalOpen] = useState(false);
-  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
-
-  // 彈窗內的暫存狀態
-  const [wipRolls, setWipRolls] = useState<any[]>([]);
-  const [wipLoading, setWipLoading] = useState(false);
-
-  // 💡 取得已加入退料明細的 LPN 列表，以便候選清單中剔除，避免重複退料
-  const addedRollNos = useMemo(() => {
-    const nos = new Set<string>();
-    items.forEach((item: any) => {
-      if (item.extra) {
-        item.extra.forEach((r: any) => {
-          if (r.rollNo) {
-            nos.add(r.rollNo);
-          }
-        });
-      }
-    });
-    return nos;
-  }, [items]);
-
-  const availableWipRolls = useMemo(() => {
-    return wipRolls.filter((r: any) => !addedRollNos.has(r.rollNo));
-  }, [wipRolls, addedRollNos]);
-
-  // 💡 新增掃描與直徑反算狀態及 Ref
-  const scanInputRef = useRef<any>(null);
-  const diaInputRef = useRef<any>(null);
+  // 條碼槍快速掃描狀態
   const [scanRollNo, setScanRollNo] = useState("");
-  const [measuredDia, setMeasuredDia] = useState<number | null>(null);
-  const [activeScanRoll, setActiveScanRoll] = useState<any | null>(null);
-  const [calcResult, setCalcResult] = useState<{
-    returnedLen: number;
-    returnedArea: number;
-    consumedLen: number;
-    consumedPercent: number;
-  } | null>(null);
-  const [scanStorageCode, setScanStorageCode] = useState<string>("");
-  const [scanCoreDia, setScanCoreDia] = useState<number | null>(null);
-  const [lpnError, setLpnError] = useState<string>("");
-
-  // 💡 用於在 Dialog/Modal 中以 Table 檢視已退回的 LPN 明細
-  const [viewingExtraRolls, setViewingExtraRolls] = useState<any[] | null>(null);
-  const [viewingExtraOpen, setViewingExtraOpen] = useState(false);
-  const [viewingMaterialCode, setViewingMaterialCode] = useState("");
-  const [isEditingDialogList, setIsEditingDialogList] = useState(false);
-  const [dialogEditRolls, setDialogEditRolls] = useState<any[] | null>(null);
+  const [lpnError, setLpnError] = useState("");
+  const scanInputRef = useRef<any>(null);
 
   // 1. 取得該製令的退料單列表 (1對1，拿第一筆)
   const {
@@ -127,7 +97,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
   const activeDocNo =
     returnList.length > 0 ? returnList[0].documentNumber : null;
 
-  // 💡 取得所有原料儲位 (用來提供入庫儲位下拉選單)
+  // 2. 取得所有物料儲位選項
   const { data: storageResponse } = useQuery({
     queryKey: ["raw-storages-direct", masterData.workOrderNumber],
     queryFn: () => getApiV1Storage({ query: { Type: "MAT" } }),
@@ -142,7 +112,11 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     }));
   }, [storageResponse]);
 
-  // 2. 取得單據詳情
+  const defaultStorageCode = useMemo(() => {
+    return storageOptions[0]?.value || "";
+  }, [storageOptions]);
+
+  // 3. 取得退料單詳情
   const {
     data: detailResponse,
     isLoading: detailLoading,
@@ -156,17 +130,12 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     enabled: !!activeDocNo,
   });
 
-  const { data: requisitionsResponse } = useQuery({
-    queryKey: ["requisitions", masterData.workOrderNumber],
-    queryFn: () =>
-      getApiV1WorkOrderRequisitionWoByWorkOrderNumber({
-        path: { workOrderNumber: masterData.workOrderNumber! },
-      }),
-    enabled: !!masterData.workOrderNumber,
-  });
+  const activeRecord = (detailResponse?.data as any)?.data || undefined;
+  const isPosted = activeRecord && !!activeRecord.confirmDate;
+  const isEditable = isCreating || isHeaderEditing;
 
-  // 3. 取得該製令在車間領料的所有 WIP 卷卡 (用來判斷是否已全數辦理退料)
-  const { data: allWipRollsRes } = useQuery({
+  // 4. 取得此製令在現場的所有 WIP 卷卡
+  const { data: wipRollsRes } = useQuery({
     queryKey: ["wipRollsAll", masterData.workOrderNumber],
     queryFn: () => getApiV1WorkOrderReturnWipRolls({
       query: { workOrderNumber: masterData.workOrderNumber!, materialCode: "" }
@@ -174,80 +143,93 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     enabled: !!masterData.workOrderNumber,
   });
 
-  const allWipRolls = (allWipRollsRes?.data as any)?.data || [];
-  
-  const remainingWipCount = useMemo(() => {
-    return allWipRolls.filter((r: any) => !addedRollNos.has(r.rollNo)).length;
-  }, [allWipRolls, addedRollNos]);
+  const allWipRolls = (wipRollsRes?.data as any)?.data || [];
 
-  const isAllWipReturned = allWipRolls.length > 0 && remainingWipCount === 0;
+  // 計算動態總餘料成本
+  const calculatedTotalCost = useMemo(() => {
+    return flatRolls.reduce((sum, r) => sum + r.remainingMaterialCost, 0);
+  }, [flatRolls]);
 
-  const activeRecord = (detailResponse?.data as any)?.data || undefined;
+  // 💡 物理公式反算：L = π * (Do^2 - Di^2) / (4000 * t)
+  const calculateQtyFromDia = (dia: number, roll: any) => {
+    const Do = dia; // 實測外徑
+    const Di = Number(roll.coreDiaMm || 86); // 紙芯外徑 (預設86)
+    const t = Number(roll.thicknessMm || 0.05); // 厚度 (mm)
+    const maxWipQty = Number(roll.wipQtyAux); // 現場上限長度
 
-  // 初始化或載入表頭/明細
+    if (Do < Di) {
+      return 0;
+    }
+
+    const calculatedLength = (Math.PI * (Do * Do - Di * Di)) / (4000 * t);
+    return Math.max(0, Math.min(maxWipQty, parseFloat(calculatedLength.toFixed(2))));
+  };
+
+  // 當 activeRecord (草稿載入) 變更時，初始化狀態與扁平化明細
   useEffect(() => {
-    if (activeRecord) {
+    if (activeRecord && !isCreating) {
       setDocDate(dayjs(activeRecord.documentDate));
       setDocNotes(activeRecord.notes || "");
       setIsHeaderEditing(false);
 
-      const mappedItems = (activeRecord.items || []).map((it: any) => {
-        const extra: any[] = (() => {
+      const loadedRolls: FlatReturnRoll[] = [];
+      (activeRecord.items || []).forEach((item: any) => {
+        if (item.extraDataJson) {
           try {
-            if (it.extraDataJson) {
-              const rawExtra = JSON.parse(it.extraDataJson);
-              if (Array.isArray(rawExtra)) {
-                return rawExtra.map((r: any) => ({
-                  materialCode: r.materialCode ?? r.MaterialCode,
+            const extra = JSON.parse(item.extraDataJson);
+            if (Array.isArray(extra)) {
+              extra.forEach((r: any) => {
+                const qty = r.qtyAux ?? r.QtyAux ?? 0;
+                const width = r.widthMm ?? r.WidthMm ?? 0;
+                const costSqm = r.costPerSqm ?? r.CostPerSqm ?? 0;
+                loadedRolls.push({
+                  materialCode: r.materialCode ?? r.MaterialCode ?? item.materialCode,
+                  materialName: item.materialName || "",
                   rollNo: r.rollNo ?? r.RollNo,
-                  widthMm: r.widthMm ?? r.WidthMm,
-                  qtyAux: r.qtyAux ?? r.QtyAux,
-                  thicknessMm: r.thicknessMm ?? r.ThicknessMm,
-                  coreDiaMm: r.coreDiaMm ?? r.CoreDiaMm,
-                  originalQtyAux: r.originalQtyAux ?? r.OriginalQtyAux,
-                  wipQtyAux: r.wipQtyAux ?? r.WipQtyAux,
-                  costPerSqm: r.costPerSqm ?? r.CostPerSqm,
-                  storageCode: r.storageCode ?? r.StorageCode,
-                  measuredDiaMm: r.measuredDiaMm ?? r.MeasuredDiaMm,
-                }));
-              }
+                  widthMm: width,
+                  thicknessMm: r.thicknessMm ?? r.ThicknessMm ?? 0.05,
+                  coreDiaMm: r.coreDiaMm ?? r.CoreDiaMm ?? 86,
+                  originalQtyAux: r.originalQtyAux ?? r.OriginalQtyAux ?? qty,
+                  wipQtyAux: r.wipQtyAux ?? r.WipQtyAux ?? qty,
+                  qtyAux: qty,
+                  measuredDiaMm: r.measuredDiaMm ?? r.MeasuredDiaMm ?? null,
+                  storageCode: r.storageCode ?? r.StorageCode ?? item.targetStorageCode ?? defaultStorageCode,
+                  costPerSqm: costSqm,
+                  remainingMaterialCost: Math.round(qty * (width / 1000) * costSqm),
+                  notes: r.notes ?? "",
+                });
+              });
             }
           } catch (e) {
-            // ignore
+            console.error("解析 LPN 詳情 JSON 失敗：", e);
           }
-          return [];
-        })();
-        return {
-          materialCode: it.materialCode,
-          materialName: it.materialName,
-          unit: it.unit,
-          quantity: it.quantity,
-          referenceQuantity1: it.referenceQuantity1,
-          targetStorageCode: it.targetStorageCode || "",
-          notes: it.notes || "",
-          extra,
-        };
+        }
       });
-      setItems(mappedItems);
+      setFlatRolls(loadedRolls);
     }
-  }, [activeRecord]);
+  }, [activeRecord, isCreating, defaultStorageCode]);
 
+  // 監聽編輯狀態
   useEffect(() => {
     onEditingChange?.(isCreating || isHeaderEditing);
   }, [isCreating, isHeaderEditing, onEditingChange]);
 
-  // 3. Mutations
+  // 💡 自動 Focus 條碼槍掃描框
+  useEffect(() => {
+    if (isEditable && scanInputRef.current) {
+      setTimeout(() => {
+        scanInputRef.current?.focus();
+      }, 300);
+    }
+  }, [isEditable]);
+
+  // 5. Mutations 定義
   const createMutation = useMutation({
     mutationFn: (values: any) => postApiV1WorkOrderReturn({ body: values }),
     onSuccess: () => {
       message.success("退料單建立成功！");
-      queryClient.invalidateQueries({
-        queryKey: ["returns", masterData.workOrderNumber],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["wipRollsAll", masterData.workOrderNumber],
-      });
-      justCreatedRef.current = false;
+      queryClient.invalidateQueries({ queryKey: ["returns", masterData.workOrderNumber] });
+      queryClient.invalidateQueries({ queryKey: ["wipRollsAll", masterData.workOrderNumber] });
       setIsCreating(false);
       setIsHeaderEditing(false);
       refetchList();
@@ -270,12 +252,8 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     onSuccess: () => {
       message.success("儲存修改成功！");
       queryClient.invalidateQueries({ queryKey: ["return", activeDocNo] });
-      queryClient.invalidateQueries({
-        queryKey: ["returns", masterData.workOrderNumber],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["wipRollsAll", masterData.workOrderNumber],
-      });
+      queryClient.invalidateQueries({ queryKey: ["returns", masterData.workOrderNumber] });
+      queryClient.invalidateQueries({ queryKey: ["wipRollsAll", masterData.workOrderNumber] });
       setIsHeaderEditing(false);
       refetchDetail();
       refetchList();
@@ -296,17 +274,14 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
       }),
     onSuccess: () => {
       message.success("退料單刪除成功");
-      queryClient.invalidateQueries({
-        queryKey: ["returns", masterData.workOrderNumber],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["wipRollsAll", masterData.workOrderNumber],
-      });
+      queryClient.invalidateQueries({ queryKey: ["returns", masterData.workOrderNumber] });
+      queryClient.invalidateQueries({ queryKey: ["wipRollsAll", masterData.workOrderNumber] });
       queryClient.invalidateQueries({ queryKey: ["workorders"] });
       if (masterData?.workOrderNumber) {
         queryClient.invalidateQueries({ queryKey: ["workorder", masterData.workOrderNumber] });
       }
       setIsCreating(false);
+      setFlatRolls([]);
       refetchList();
     },
     onError: (error) => {
@@ -318,8 +293,6 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     },
   });
 
-  // confirmMutation was moved to WorkOrderDrawer header action "還料入庫"
-
   const cancelMutation = useMutation({
     mutationFn: () =>
       postApiV1WorkOrderReturnByDocumentNumberCancel({
@@ -328,12 +301,8 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     onSuccess: () => {
       message.success("取消退料過帳成功！LPN 已恢復為車間 WIP 狀態");
       queryClient.invalidateQueries({ queryKey: ["return", activeDocNo] });
-      queryClient.invalidateQueries({
-        queryKey: ["returns", masterData.workOrderNumber],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["wipRollsAll", masterData.workOrderNumber],
-      });
+      queryClient.invalidateQueries({ queryKey: ["returns", masterData.workOrderNumber] });
+      queryClient.invalidateQueries({ queryKey: ["wipRollsAll", masterData.workOrderNumber] });
       queryClient.invalidateQueries({ queryKey: ["workorders"] });
       if (masterData?.workOrderNumber) {
         queryClient.invalidateQueries({ queryKey: ["workorder", masterData.workOrderNumber] });
@@ -350,45 +319,84 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     },
   });
 
-  // handleConfirmPost was moved to WorkOrderDrawer header action "還料入庫"
-
+  // 6. UI 事件與操作處理
   const handleCreateNewClick = () => {
     setIsCreating(true);
     setDocDate(dayjs());
     setDocNotes("");
-    setItems([]);
+
+    // 💡 領料載入明細：自動預載該製令的所有 WIP 卷卡，且「預設剩餘長度 = 0 (耗盡狀態)」
+    if (allWipRolls.length === 0) {
+      message.warning("此製令目前車間（WIP）無任何可退回物料卷卡。");
+    }
+
+    const preloaded = allWipRolls.map((r: any) => ({
+      materialCode: r.materialCode,
+      materialName: r.materialName || r.name || "",
+      rollNo: r.rollNo,
+      widthMm: r.widthMm,
+      thicknessMm: r.thicknessMm || 0.1,
+      coreDiaMm: r.coreDiaMm || 86.0,
+      originalQtyAux: r.originalQtyAux,
+      wipQtyAux: r.qtyAux, // wip當前最大長度
+      qtyAux: 0, // 預設 0M (耗盡)
+      measuredDiaMm: null,
+      storageCode: r.storageCode || defaultStorageCode,
+      costPerSqm: r.costPerSqm || 0,
+      remainingMaterialCost: 0,
+      notes: "",
+    }));
+
+    setFlatRolls(preloaded);
   };
 
   const handleSave = (formValues: any) => {
-    for (let i = 0; i < items.length; i++) {
-      const it = items[i];
-      if (!it.materialCode) {
-        message.warning("明細中的物料代碼不得為空！");
-        return;
-      }
-      if (it.quantity <= 0) {
-        message.warning(
-          `物料 ${it.materialCode} 的退回長度必須大於 0，請勾選下方 WIP 卷卡並輸入退回長度！`,
-        );
-        return;
-      }
+    if (flatRolls.length === 0) {
+      message.warning("請確保有可退回的卷卡資料！");
+      return;
     }
 
-    const savedDate = formValues.documentDate
-      ? dayjs(formValues.documentDate)
-      : docDate;
+    // 將扁平化明細依 MaterialCode 進行分群，打包回後端所需的 Items 結構
+    const grouped: { [key: string]: FlatReturnRoll[] } = {};
+    flatRolls.forEach((r) => {
+      if (!grouped[r.materialCode]) {
+        grouped[r.materialCode] = [];
+      }
+      grouped[r.materialCode].push(r);
+    });
+
+    const savedDate = formValues.documentDate ? dayjs(formValues.documentDate) : docDate;
     const savedNotes = formValues.notes || "";
+
+    const itemsPayload = Object.keys(grouped).map((matCode) => {
+      const rolls = grouped[matCode];
+
+      return {
+        materialCode: matCode,
+        targetStorageCode: rolls[0]?.storageCode || defaultStorageCode, // 後端儲存備用
+        notes: "",
+        extraDataJson: JSON.stringify(rolls.map(r => ({
+          materialCode: r.materialCode,
+          rollNo: r.rollNo,
+          widthMm: r.widthMm,
+          qtyAux: r.qtyAux,
+          thicknessMm: r.thicknessMm,
+          coreDiaMm: r.coreDiaMm,
+          originalQtyAux: r.originalQtyAux,
+          wipQtyAux: r.wipQtyAux,
+          costPerSqm: r.costPerSqm,
+          remainingMaterialCost: r.remainingMaterialCost,
+          storageCode: r.storageCode,
+          measuredDiaMm: r.measuredDiaMm,
+        }))),
+      };
+    });
 
     const postData = {
       referenceNumber: masterData.workOrderNumber!,
       documentDate: savedDate.format("YYYY-MM-DD"),
       notes: savedNotes || "",
-      items: items.map((it) => ({
-        materialCode: it.materialCode,
-        targetStorageCode: it.targetStorageCode,
-        notes: it.notes,
-        extraDataJson: JSON.stringify(it.extra),
-      })),
+      items: itemsPayload,
     };
 
     if (isCreating) {
@@ -398,451 +406,307 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     }
   };
 
-  const handleAddNewItemClick = () => {
-    if (isAllWipReturned) {
-      message.warning("車間領料之所有卷卡已全數加入退料明細中，無法再新增項目");
-      return;
-    }
-    setEditingItemIndex(null);
-    setWipRolls([]);
-    setItemModalOpen(true);
-    setScanRollNo("");
-    setActiveScanRoll(null);
-    setMeasuredDia(null);
-    setCalcResult(null);
-    setScanStorageCode("");
-    setScanCoreDia(null);
-    setLpnError("");
-    fetchWipRolls("");
-  };
-
-  // 💡 在已退回卷卡 (LPN) 明細彈窗中的編輯、刪除、儲存函式
-  const handleDialogRollFieldChange = (rollNo: string, field: string, value: any) => {
-    if (!dialogEditRolls) return;
-    const updated = dialogEditRolls.map((r: any) => {
-      if (r.rollNo === rollNo) {
-        const nr = { ...r, [field]: value };
-        // 當變更「實測外徑」時，即時重算「退回長度 (M)」
-        if (field === "measuredDiaMm") {
-          const Do = Number(value || 0);
-          const Di = Number(nr.coreDiaMm || 86);
-          const t = Number(nr.thicknessMm || 0.05);
-          const maxWipQty = Number(nr.wipQtyAux ?? nr.qtyAux ?? 0);
-          
-          if (Do < Di) {
-            nr.qtyAux = 0;
-          } else {
-            const calculatedLength = (Math.PI * (Do * Do - Di * Di)) / (4000 * t);
-            nr.qtyAux = Math.max(0, Math.min(maxWipQty, parseFloat(calculatedLength.toFixed(2))));
-          }
+  // 行內：外徑輸入異動
+  const handleDiaChange = (rollNo: string, val: number | null) => {
+    setFlatRolls(prev =>
+      prev.map(r => {
+        if (r.rollNo === rollNo) {
+          const qty = val !== null ? calculateQtyFromDia(val, r) : 0;
+          return {
+            ...r,
+            measuredDiaMm: val,
+            qtyAux: qty,
+            remainingMaterialCost: Math.round(qty * (r.widthMm / 1000) * r.costPerSqm),
+          };
         }
-        return nr;
-      }
-      return r;
-    });
-    setDialogEditRolls(updated);
+        return r;
+      })
+    );
   };
 
-  const handleDialogRollDelete = (rollNo: string) => {
-    if (!dialogEditRolls) return;
-    modal.confirm({
-      title: "確認刪除",
-      content: `確定要自此退料明細中移除卷卡「${rollNo}」嗎？`,
-      okText: "確定",
-      cancelText: "取消",
-      centered: true,
-      onOk: () => {
-        const updated = dialogEditRolls.filter((r: any) => r.rollNo !== rollNo);
-        setDialogEditRolls(updated);
-      }
-    });
-  };
-
-  const handleDialogSave = () => {
-    if (!dialogEditRolls) return;
-
-    const updatedItems = items.map((it: any) => {
-      if (it.materialCode === viewingMaterialCode) {
-        const totalQty = dialogEditRolls.reduce((sum: number, r: any) => sum + (r.qtyAux ?? 0), 0);
-        return {
-          ...it,
-          quantity: totalQty,
-          extra: dialogEditRolls,
-        };
-      }
-      return it;
-    });
-
-    const finalItems = updatedItems.filter((it: any) => it.extra && it.extra.length > 0);
-
-    setItems(finalItems);
-    saveItemsDirectly(finalItems);
-    
-    setViewingExtraRolls(dialogEditRolls);
-    setIsEditingDialogList(false);
-    message.success("已成功儲存並更新退回明細與長度！");
-  };
-
-  const saveItemsDirectly = (newItems: any[]) => {
-    const postData = {
-      referenceNumber: masterData.workOrderNumber!,
-      documentDate: docDate.format("YYYY-MM-DD"),
-      notes: docNotes || "",
-      items: newItems.map((it) => ({
-        materialCode: it.materialCode,
-        targetStorageCode: it.targetStorageCode,
-        notes: it.notes,
-        extraDataJson: JSON.stringify(it.extra),
-      })),
-    };
-    updateMutation.mutate(postData);
-  };
-
-  const handleRemoveItem = (index: number) => {
-    modal.confirm({
-      title: "確認刪除",
-      content: `確定要刪除物料 ${items[index]?.materialCode} 的退料明細嗎？`,
-      okText: "確認",
-      cancelText: "取消",
-      centered: true,
-      onOk: () => {
-        const updated = [...items];
-        updated.splice(index, 1);
-        setItems(updated);
-        saveItemsDirectly(updated);
-      },
-    });
-  };
-
-  // 當退料料號變更時，自動獲取該料號在該製令 WIP 狀態中的所有可用卷卡 LPN
-  const fetchWipRolls = async (val: string) => {
-    try {
-      setWipLoading(true);
-      const res: any = await getApiV1WorkOrderReturnWipRolls({
-        query: {
-          workOrderNumber: masterData.workOrderNumber!,
-          materialCode: val,
-        },
-      });
-      const wipList = res.data?.data || [];
-      setWipRolls(wipList);
-      if (wipList.length === 0) {
-        message.warning(
-          `注意：${val ? "該料號 " + val : "本製令"} 目前在車間 WIP 現場無任何未結案的物料卷卡！`,
-        );
-        setItemModalOpen(false);
-      } else {
-        // 💡 檢查扣除已勾選後，是否還有未加入的可用 LPN
-        const currentAddedNos = new Set<string>();
-        items.forEach((item: any) => {
-          if (item.extra) {
-            item.extra.forEach((r: any) => {
-              if (r.rollNo) currentAddedNos.add(r.rollNo);
-            });
-          }
-        });
-        const remainingCount = wipList.filter((r: any) => !currentAddedNos.has(r.rollNo)).length;
-        if (remainingCount === 0) {
-          message.warning(`注意：車間現場所有可退回卷卡已全數加入退料單明細中！`);
-          setItemModalOpen(false);
+  // 行內：退回剩長輸入異動
+  const handleQtyChange = (rollNo: string, val: number | null) => {
+    setFlatRolls(prev =>
+      prev.map(r => {
+        if (r.rollNo === rollNo) {
+          const qty = val !== null ? Math.max(0, Math.min(r.wipQtyAux, val)) : 0;
+          return {
+            ...r,
+            measuredDiaMm: null, // 手動改長度時清除實測外徑
+            qtyAux: qty,
+            remainingMaterialCost: Math.round(qty * (r.widthMm / 1000) * r.costPerSqm),
+          };
         }
-      }
-      return wipList;
-    } catch (e) {
-      message.error("獲取 WIP 卷卡失敗：" + getApiErrorMessage(e));
-      return [];
-    } finally {
-      setWipLoading(false);
-    }
+        return r;
+      })
+    );
   };
 
-
-
-  const handleScanRollConfirm = () => {
-    if (!scanRollNo) return;
-    
-    const match = availableWipRolls.find((x: any) => x.rollNo.toUpperCase() === scanRollNo.toUpperCase().trim());
-    if (!match) {
-      message.error(`警告：卷號「${scanRollNo}」不在此製令的可退車間 WIP 列表中（或已被加入退料明細）！`);
-      setScanRollNo("");
-      scanInputRef.current?.focus();
-      return;
-    }
-    
-    setActiveScanRoll(match);
-    setScanStorageCode(match.storageCode || "");
-    setScanCoreDia(match.coreDiaMm || 86);
-    setMeasuredDia(null);
-    setCalcResult(null);
-    
-    // 自動焦點轉移至「直徑輸入框」
-    setTimeout(() => {
-      diaInputRef.current?.focus();
-    }, 100);
+  // 行內：一鍵「耗盡 (0 M)」
+  const handleDeplete = (rollNo: string) => {
+    setFlatRolls(prev =>
+      prev.map(r => {
+        if (r.rollNo === rollNo) {
+          return {
+            ...r,
+            measuredDiaMm: null,
+            qtyAux: 0,
+            remainingMaterialCost: 0,
+          };
+        }
+        return r;
+      })
+    );
   };
 
-  const calculateLengthOnTheFly = (roll: any, dia: number, coreDia: number = (scanCoreDia as number) || 86) => {
-    const Do = dia; // 實測外徑
-    const Di = coreDia; // 紙芯外徑
-    const t = Number(roll.thicknessMm || 0.05); // 厚度 (mm)
-    
-    if (Do < Di) {
-      setCalcResult(null);
-      return;
-    }
-    
-    // 💡 核心物理公式反算長度 (M)
-    const calculatedLength = (Math.PI * (Do * Do - Di * Di)) / (4000 * t);
-    
-    // 限制長度上限不可超過該卷卡在 WIP 的最大殘留量 (防呆)
-    const maxWipQty = Number(roll.qtyAux);
-    const finalQty = Math.max(0, Math.min(maxWipQty, parseFloat(calculatedLength.toFixed(2))));
-    
-    const finalArea = parseFloat(((finalQty * Number(roll.widthMm)) / 1000).toFixed(2));
-    
-    // 💡 自動計算該製令在這一卷上的「實質耗用量」
-    const originalQty = Number(roll.originalQtyAux || maxWipQty);
-    const consumedQty = parseFloat((maxWipQty - finalQty).toFixed(2));
-    const consumedPct = parseFloat(((consumedQty / originalQty) * 100).toFixed(1));
-    
-    setCalcResult({
-      returnedLen: finalQty,
-      returnedArea: finalArea,
-      consumedLen: consumedQty,
-      consumedPercent: consumedPct
-    });
+  // 行內：一鍵「全退」
+  const handleFullReturn = (rollNo: string) => {
+    setFlatRolls(prev =>
+      prev.map(r => {
+        if (r.rollNo === rollNo) {
+          const qty = r.wipQtyAux;
+          return {
+            ...r,
+            measuredDiaMm: null,
+            qtyAux: qty,
+            remainingMaterialCost: Math.round(qty * (r.widthMm / 1000) * r.costPerSqm),
+          };
+        }
+        return r;
+      })
+    );
   };
 
-  const handleScanAndCalcSave = () => {
-    if (!activeScanRoll || !measuredDia || !scanStorageCode || !scanCoreDia) {
-      message.warning("請確保已輸入卷卡、測量直徑、內管芯外徑並選擇入庫儲位！");
-      return;
-    }
-    
-    const Do = measuredDia; // 實測外徑
-    const Di = scanCoreDia; // 紙芯直徑
-    const t = Number(activeScanRoll.thicknessMm || 0.05); // 厚度 (mm)
-    
-    if (Do < Di) {
-      message.error(`輸入直徑 (${Do}mm) 低於紙管芯外徑 (${Di}mm)，請重新測量！`);
-      return;
-    }
-    
-    const calculatedLength = (Math.PI * (Do * Do - Di * Di)) / (4000 * t);
-    const maxWipQty = Number(activeScanRoll.qtyAux);
-    const finalQty = Math.max(0, Math.min(maxWipQty, parseFloat(calculatedLength.toFixed(2))));
-    const finalArea = parseFloat(((finalQty * Number(activeScanRoll.widthMm)) / 1000).toFixed(2));
-    
-    const materialCode = activeScanRoll.materialCode ?? activeScanRoll.MaterialCode;
-    const existingIndex = items.findIndex((x: any) => x.materialCode === materialCode);
-    
-    const rollDetail = {
-      materialCode: activeScanRoll.materialCode ?? activeScanRoll.MaterialCode,
-      rollNo: activeScanRoll.rollNo ?? activeScanRoll.RollNo,
-      widthMm: activeScanRoll.widthMm ?? activeScanRoll.WidthMm,
-      qtyAux: finalQty,
-      thicknessMm: activeScanRoll.thicknessMm ?? activeScanRoll.ThicknessMm,
-      coreDiaMm: scanCoreDia || 86,
-      originalQtyAux: activeScanRoll.originalQtyAux ?? activeScanRoll.OriginalQtyAux,
-      wipQtyAux: activeScanRoll.wipQtyAux ?? activeScanRoll.WipQtyAux ?? activeScanRoll.qtyAux ?? activeScanRoll.QtyAux,
-      costPerSqm: activeScanRoll.costPerSqm ?? activeScanRoll.CostPerSqm,
-      storageCode: scanStorageCode,
-      measuredDiaMm: Do, // 實測外徑
-    };
-    
-    let updatedItems = [...items];
-    
-    if (existingIndex > -1) {
-      const existingItem = updatedItems[existingIndex];
-      let updatedExtra = [...(existingItem.extra || [])];
-      
-      const rollIndex = updatedExtra.findIndex((x: any) => x.rollNo === activeScanRoll.rollNo);
-      if (rollIndex > -1) {
-        updatedExtra[rollIndex] = rollDetail;
-      } else {
-        updatedExtra.push(rollDetail);
-      }
-      
-      const totalLen = updatedExtra.reduce((sum: number, r: any) => sum + r.qtyAux, 0);
-      const totalArea = updatedExtra.reduce((sum: number, r: any) => sum + r.qtyAux * (r.widthMm / 1000), 0);
-      
-      updatedItems[existingIndex] = {
-        ...existingItem,
-        quantity: parseFloat(totalLen.toFixed(4)),
-        referenceQuantity1: parseFloat(totalArea.toFixed(4)),
-        targetStorageCode: scanStorageCode || "",
-        extra: updatedExtra,
-      };
-    } else {
-      const matchedRequisitionItem = reqItems.find((x: any) => x.materialCode === materialCode);
-      const materialName = matchedRequisitionItem?.materialName || matchedRequisitionItem?.inventoryName || activeScanRoll.materialCode;
-      
-      updatedItems.push({
-        materialCode: materialCode,
-        materialName: materialName,
-        unit: "M",
-        quantity: finalQty,
-        referenceQuantity1: finalArea,
-        targetStorageCode: scanStorageCode || "",
-        extra: [rollDetail],
-      });
-    }
-    
-    setItems(updatedItems);
-    saveItemsDirectly(updatedItems);
-    message.success(`卷卡 ${activeScanRoll.rollNo} 自動計算並成功加入退料！`);
-    
-    // 💡 檢查扣除新加入的這卷後，是否還有任何未加入的可用 WIP 卷卡
-    const updatedAddedNos = new Set<string>();
-    updatedItems.forEach((item: any) => {
-      if (item.extra) {
-        item.extra.forEach((r: any) => {
-          if (r.rollNo) updatedAddedNos.add(r.rollNo);
-        });
-      }
-    });
-    const remainingCount = wipRolls.filter((r: any) => !updatedAddedNos.has(r.rollNo)).length;
+  // 行內：自訂儲位變更
+  const handleRollStorageChange = (rollNo: string, val: string) => {
+    setFlatRolls(prev =>
+      prev.map(r => (r.rollNo === rollNo ? { ...r, storageCode: val } : r))
+    );
+  };
 
-    if (remainingCount === 0) {
-      setItemModalOpen(false);
-      message.info("車間現場所有可退回卷卡已全數加入退料單明細，已自動關閉彈窗！");
-      // Reset scanner inputs
-      setScanRollNo("");
-      setActiveScanRoll(null);
-      setMeasuredDia(null);
-      setCalcResult(null);
-      setScanStorageCode("");
-      setScanCoreDia(86);
-    } else {
-      // Reset scanner inputs
-      setScanRollNo("");
-      setActiveScanRoll(null);
-      setMeasuredDia(null);
-      setCalcResult(null);
-      setScanStorageCode("");
-      setScanCoreDia(86);
+  // 條碼槍掃描即時判定與跳轉
+  const handleScannerChange = (val: string) => {
+    setScanRollNo(val);
+    if (!val) return;
+
+    const trimmed = val.trim().toUpperCase();
+    const match = flatRolls.find(x => x.rollNo.toUpperCase() === trimmed);
+
+    if (match) {
+      setLpnError("");
+      message.success(`成功尋標卷號 ${match.rollNo}！游標已自動定位行內編輯。`);
       
-      // Refocus on scanner input
+      // 💡 智慧定位、閃爍高亮與自動 Select-All
       setTimeout(() => {
-        scanInputRef.current?.focus();
+        const inputId = `dia-input-${match.rollNo}`;
+        const el = document.getElementById(inputId);
+        if (el) {
+          el.focus();
+          if (el instanceof HTMLInputElement) {
+            el.select();
+          }
+          // 橫列高亮視覺回饋
+          const rowEl = el.closest("tr");
+          if (rowEl) {
+            rowEl.classList.add("bg-green-500/10", "transition-all", "duration-500");
+            setTimeout(() => {
+              rowEl.classList.remove("bg-green-500/10");
+            }, 1500);
+          }
+        }
       }, 100);
+    } else {
+      const isExistAny = allWipRolls.some((x: any) => x.rollNo.toUpperCase() === trimmed);
+      if (isExistAny) {
+        setLpnError("此卷卡已清退，無法重複加入。");
+      } else {
+        setLpnError("卷號不屬於此製令車間領用清單！");
+      }
     }
   };
 
-  const requisitionList = (requisitionsResponse?.data as any)?.data || [];
-  const reqItems = requisitionList.flatMap((r: any) => r.items || []);
-
-  const showHeaderForm = isCreating || !!activeDocNo;
-  const isEditable = isCreating || isHeaderEditing;
-  const isPosted = activeRecord && !!activeRecord.confirmDate;
-
-  // 定義明細表格欄位
-  const itemColumns = [
+  // 定義扁平化 LPN 明細橫列
+  const columns = [
     {
-      title: "操作",
-      key: "action",
-      width: 80,
-      render: (_: any, __: any, index: number) => {
-        if (isPosted) return null;
-        return (
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleRemoveItem(index)}
-          />
-        );
-      },
+      title: "卷卡號 (LPN)",
+      dataIndex: "rollNo",
+      key: "rollNo",
+      width: 170,
+      render: (v: string) => <strong className="text-slate-800 dark:text-slate-200">{v}</strong>,
     },
     {
-      title: "原料料號",
-      dataIndex: "materialCode",
-      key: "materialCode",
-      width: 180,
-      ellipsis: true,
+      title: "原物料料號 / 規格名稱",
+      key: "material",
+      width: 250,
+      render: (_: any, r: FlatReturnRoll) => (
+        <Space direction="vertical" size={0}>
+          <span className="text-xs text-slate-400 font-mono">{r.materialCode}</span>
+          <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">{r.materialName}</span>
+        </Space>
+      ),
     },
     {
-      title: "原料名稱",
-      dataIndex: "materialName",
-      key: "materialName",
-      width: 200,
-      ellipsis: true,
-    },
-    {
-      title: "幅寬(mm)",
+      title: "幅寬 (mm)",
+      dataIndex: "widthMm",
       key: "widthMm",
+      width: 95,
+      align: "right" as const,
+      render: (v: number) => `${v} mm`,
+    },
+    {
+      title: "領用長度 (M)",
+      dataIndex: "wipQtyAux",
+      key: "wipQtyAux",
+      width: 110,
+      align: "right" as const,
+      render: (v: number) => <span className="text-blue-500 dark:text-blue-400 font-bold">{v} M</span>,
+    },
+    {
+      title: "實測外徑 (Do, mm)",
+      dataIndex: "measuredDiaMm",
+      key: "measuredDiaMm",
+      width: 130,
+      render: (v: number | null, r: FlatReturnRoll) => (
+        <InputNumber
+          id={`dia-input-${r.rollNo}`}
+          size="small"
+          placeholder="量測外徑"
+          value={v}
+          min={0}
+          max={999}
+          precision={1}
+          style={{ width: "100%" }}
+          disabled={!isEditable || isPosted}
+          onChange={val => handleDiaChange(r.rollNo, val)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              setScanRollNo("");
+              scanInputRef.current?.focus();
+              message.success("輸入完成，已跳回掃描框");
+            }
+          }}
+        />
+      ),
+    },
+    {
+      title: "退回長度 (M)",
+      dataIndex: "qtyAux",
+      key: "qtyAux",
+      width: 130,
+      render: (v: number, r: FlatReturnRoll) => (
+        <InputNumber
+          size="small"
+          value={v}
+          min={0}
+          max={r.wipQtyAux}
+          precision={2}
+          style={{ width: "100%" }}
+          disabled={!isEditable || isPosted}
+          onChange={val => handleQtyChange(r.rollNo, val)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              setScanRollNo("");
+              scanInputRef.current?.focus();
+              message.success("輸入完成，已跳回掃描框");
+            }
+          }}
+        />
+      ),
+    },
+    {
+      title: "退回面積",
+      key: "areaSqm",
+      width: 110,
+      align: "right" as const,
+      render: (_: any, r: FlatReturnRoll) => (
+        <span className="text-slate-500">
+          {((r.qtyAux * r.widthMm) / 1000).toFixed(2)} ㎡
+        </span>
+      ),
+    },
+    {
+      title: "餘料成本",
+      dataIndex: "remainingMaterialCost",
+      key: "remainingMaterialCost",
       width: 100,
       align: "right" as const,
-      render: (_: any, record: any) => {
-        const width = record.extra?.[0]?.widthMm;
-        return <span>{width ? `${width} mm` : "-"}</span>;
-      },
+      render: (v: number) => (
+        <span className="font-bold text-green-500 dark:text-green-400">
+          ${v.toLocaleString()}
+        </span>
+      ),
     },
     {
-      title: "退回長度(M)",
-      dataIndex: "quantity",
-      align: "right" as const,
-      key: "quantity",
-      width: 120,
-      render: (v: number) => <strong>{v}</strong>,
+      title: "退回目的儲位",
+      dataIndex: "storageCode",
+      key: "storageCode",
+      width: 170,
+      render: (v: string, r: FlatReturnRoll) => (
+        <Select
+          size="small"
+          options={storageOptions}
+          value={v}
+          style={{ width: "100%" }}
+          disabled={!isEditable || isPosted}
+          onChange={val => handleRollStorageChange(r.rollNo, val)}
+        />
+      ),
     },
     {
-      title: "退回面積(SQM)",
-      dataIndex: "referenceQuantity1",
-      align: "right" as const,
-      key: "referenceQuantity1",
-      width: 140,
-      render: (v: number) => v?.toFixed(2),
-    },
-    {
-      title: "餘料成本小計",
-      key: "remainingMaterialCost",
-      width: 140,
-      align: "right" as const,
-      render: (_: any, record: any) => {
-        const calculatedCost = record.extra?.reduce((sum: number, r: any) => {
-          const area = (r.qtyAux ?? 0) * ((r.widthMm ?? 0) / 1000);
-          return sum + area * (r.costPerSqm ?? 0);
-        }, 0) ?? 0;
-        const displayCost = record.remainingMaterialCost ?? calculatedCost;
+      title: "快捷操作",
+      key: "quickActions",
+      width: 150,
+      render: (_: any, r: FlatReturnRoll) => {
+        if (!isEditable || isPosted) return null;
         return (
-          <span className="font-bold text-green-500 dark:text-green-400">
-            {displayCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
+          <Space size="small">
+            <Button
+              type="primary"
+              danger
+              size="small"
+              onClick={() => handleDeplete(r.rollNo)}
+            >
+              耗盡 🔴
+            </Button>
+            <Button
+              type="primary"
+              ghost
+              size="small"
+              onClick={() => handleFullReturn(r.rollNo)}
+            >
+              全退 🔵
+            </Button>
+          </Space>
         );
       },
     },
     {
-      title: "退回卷卡明細",
-      key: "details",
-      width: 180,
-      ellipsis: true,
-      render: (_: any, record: any) => {
-        const hasExtra = record.extra && record.extra.length > 0;
+      title: "狀態判定",
+      key: "statusTag",
+      width: 110,
+      align: "right" as const,
+      render: (_: any, r: FlatReturnRoll) => {
+        const isDepleted = r.qtyAux === 0;
+        const text = isDepleted ? "● 已消耗" : "● 剩餘退回";
+        const color = isDepleted ? "error" : "success";
         return (
-          <div className="inline-block">
-            {hasExtra ? (
-              <span 
-                className="text-xs text-orange-400 underline decoration-dotted hover:text-orange-500 cursor-pointer font-semibold"
-                onClick={() => {
-                  setViewingExtraRolls(record.extra || []);
-                  setViewingMaterialCode(record.materialCode);
-                  setViewingExtraOpen(true);
-                }}
-              >
-                🔍 已辦退 {record.extra.length} 卷 LPN (點擊檢視)
-              </span>
-            ) : (
-              <span className="text-xs text-red-400 font-medium">尚未勾選任何 WIP 卷卡</span>
-            )}
-          </div>
+          <Tooltip title={`原領用 ${r.wipQtyAux}M，退回 ${r.qtyAux}M，車間耗用 ${(r.wipQtyAux - r.qtyAux).toFixed(2)}M`} style={{ whiteSpace: "nowrap" }}>
+            <span style={{ display: "inline-block", textAlign: "right", width: "100%" }}>
+              <Tag color={color} style={{ marginRight: 0, fontWeight: 600 }}>{text}</Tag>
+            </span>
+          </Tooltip>
         );
       },
     },
   ];
 
+  const showHeaderForm = isCreating || !!activeDocNo;
+
   return (
     <div className="flex flex-col gap-4">
+      {/* 車間殘留原料警告橫幅 */}
       {(masterData.pendingWipRollsCount ?? 0) > 0 ? (
         <div className="p-3 bg-orange-50 border border-orange-200 rounded dark:bg-orange-950/20 dark:border-orange-900/50 flex justify-between items-center">
           <span className="text-xs text-orange-600 dark:text-orange-400">
@@ -861,16 +725,17 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
           </span>
         </div>
       ) : null)}
+
       <Spin spinning={listLoading || detailLoading}>
         {!showHeaderForm ? (
-          <Empty description="尚未建立退料表" className="mt-10">
+          <Empty description="尚未建立退料單" className="mt-10">
             <Button type="primary" onClick={handleCreateNewClick}>
               產生退料單
             </Button>
           </Empty>
         ) : (
           <div className="flex flex-col gap-4">
-            {/* 退料單表頭 採用 DynamicForm */}
+            {/* 1. 退料單表頭 採用 DynamicForm */}
             <Card
               size="small"
               title={
@@ -901,19 +766,20 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
                             ) as HTMLFormElement
                           )?.requestSubmit()
                         }
-                        loading={
-                          createMutation.isPending || updateMutation.isPending
-                        }
+                        loading={createMutation.isPending || updateMutation.isPending}
                       >
                         儲存草稿
                       </Button>
                       <Button
                         size="small"
-                        onClick={() =>
-                          isCreating
-                            ? setIsCreating(false)
-                            : setIsHeaderEditing(false)
-                        }
+                        onClick={() => {
+                          if (isCreating) {
+                            setIsCreating(false);
+                            setFlatRolls([]);
+                          } else {
+                            setIsHeaderEditing(false);
+                          }
+                        }}
                       >
                         取消
                       </Button>
@@ -937,8 +803,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
                             onClick={() => {
                               modal.confirm({
                                 title: "刪除確認",
-                                content:
-                                  "確定要刪除這張退料單草稿嗎？此操作不可逆。",
+                                content: "確定要刪除這張退料單草稿嗎？此操作不可逆。",
                                 centered: true,
                                 onOk: () => deleteMutation.mutate(),
                               });
@@ -957,8 +822,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
                           onClick={() => {
                             modal.confirm({
                               title: "取消過帳確認",
-                              content:
-                                "確定要取消此退料單過帳嗎？這會把卷卡重新轉回 WIP 現場狀態。",
+                              content: "確定要取消此退料單過帳嗎？這會把卷卡重新轉回 WIP 現場狀態。",
                               centered: true,
                               onOk: () => cancelMutation.mutate(),
                             });
@@ -979,7 +843,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
                 defaultValues={{
                   documentDate: docDate as any,
                   notes: docNotes,
-                  totalRemainingMaterialCost: Math.round(activeRecord?.totalRemainingMaterialCost ?? 0),
+                  totalRemainingMaterialCost: calculatedTotalCost,
                 }}
                 onSubmit={handleSave}
                 isViewMode={!isEditable}
@@ -987,608 +851,57 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
               />
             </Card>
 
-            {/* 退料明細 採用與 BOM 一致的 Table & Modal 架構 */}
+            {/* 2. 📱 掃描與盲操快速控制台 */}
+            {isEditable && (
+              <Card
+                size="small"
+                className="bg-slate-950 text-slate-100 border-slate-800 shadow-inner"
+              >
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-4 py-1">
+                  <div className="text-xs font-bold text-slate-300 whitespace-nowrap flex items-center gap-1.5 uppercase tracking-wider">
+                    <BarcodeOutlined className="text-green-400 text-sm" />
+                    條碼掃描槍 blind-flow：
+                  </div>
+                  <div className="flex-1 w-full flex items-center gap-2">
+                    <Input
+                      id="barcode-scanner"
+                      ref={scanInputRef}
+                      placeholder="請直接掃描或輸入實物 LPN 卷卡號..."
+                      value={scanRollNo}
+                      className="bg-slate-900 border-slate-800 text-white placeholder-slate-500 font-mono text-xs h-8"
+                      onChange={e => handleScannerChange(e.target.value)}
+                      allowClear
+                    />
+                    {lpnError && (
+                      <span className="text-xs text-red-400 whitespace-nowrap animate-pulse font-medium">
+                        {lpnError}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            {/* 3. 扁平化行內明細表格 */}
             <Card
               size="small"
-              title={<strong>📋 退回物料明細 (*僅支援卷料)</strong>}
-              extra={
-                !isPosted &&
-                activeDocNo && (
-                  <Tooltip title={isAllWipReturned ? "車間領料之所有卷卡已全數加入退料明細中，無法再新增項目" : ""}>
-                    <Button
-                      type="primary"
-                      size="small"
-                      icon={<PlusOutlined />}
-                      disabled={isAllWipReturned}
-                      onClick={handleAddNewItemClick}
-                    >
-                      新增退回物料
-                    </Button>
-                  </Tooltip>
-                )
-              }
+              title={<strong>📋 車間領用原料還料明細列表 (*卷材 LPN 級別)</strong>}
             >
               <Table
                 size="small"
-                dataSource={items}
-                columns={itemColumns}
+                dataSource={flatRolls}
+                columns={columns}
                 pagination={false}
-                scroll={{ x: "max-content", y: 350 }}
-                rowKey="materialCode"
+                scroll={{ x: "max-content", y: 400 }}
+                rowKey="rollNo"
                 locale={{
-                  emptyText: !activeDocNo
-                    ? "⚠️ 請先點擊右上方「儲存草稿」保存表頭，即可開始新增退回物料明細。"
-                    : "尚未加入任何退料明細項目，請點選右上方新增項目。",
+                  emptyText: "本製令領料單目前沒有任何現場 WIP 卷卡。",
                 }}
               />
             </Card>
           </div>
         )}
       </Spin>
-
-      {/* 退料明細項目編輯彈窗 採用 DynamicForm */}
-      {itemModalOpen && (
-        <Modal
-          title={editingItemIndex !== null ? "編輯退回原料" : "新增退回原料"}
-          open={itemModalOpen}
-          onCancel={() => setItemModalOpen(false)}
-          okText="確定"
-          cancelText="取消"
-          onOk={() => setItemModalOpen(false)}
-          width="70vw"
-          destroyOnHidden
-        >
-          <div className="py-4 space-y-4">
-            {/* 📱 掃描卷卡與直徑反算快捷控制台 */}
-            <div className="p-4 bg-slate-950 text-slate-100 rounded-lg shadow-inner border border-slate-800">
-              <div className="text-sm font-bold text-slate-300 mb-4 uppercase tracking-wider flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse" />
-                📱 模切捲料「掃描條碼 ➔ 實測外徑」快速退料過帳系統
-              </div>
-              
-              <div className="grid grid-cols-12 gap-4 items-end">
-                {/* 1. 掃描或輸入卷號 */}
-                <div className="col-span-3 flex flex-col gap-1.5">
-                  <span className="text-[11px] text-slate-400 font-medium">第一步：掃描原料二維碼/條碼</span>
-                  <Input
-                    ref={scanInputRef}
-                    placeholder="請掃描或輸入卷號 (Roll No)..."
-                    value={scanRollNo}
-                    status={lpnError ? "error" : undefined}
-                    allowClear={true}
-                    onChange={e => {
-                      const val = e.target.value;
-                      setScanRollNo(val);
-                      
-                      // 💡 實時自動檢查候選清單：若與 LPN 清單吻合，效果等同點擊「選擇」！
-                      if (val) {
-                        const matched = availableWipRolls.find(
-                          (x: any) => x.rollNo.toUpperCase() === val.toUpperCase().trim()
-                        );
-                        if (matched) {
-                          setActiveScanRoll(matched);
-                          setScanStorageCode(matched.storageCode || "");
-                          setScanCoreDia(matched.coreDiaMm || 86);
-                          setMeasuredDia(null);
-                          setCalcResult(null);
-                          setLpnError("");
-                          
-                          // 自動焦點轉移至「直徑輸入框」
-                          setTimeout(() => {
-                            diaInputRef.current?.focus();
-                          }, 100);
-                        } else {
-                          setActiveScanRoll(null);
-                          setCalcResult(null);
-                          
-                          // 💡 實時檢查是否存在於全量 WIP 中 (若在，表示已加入；否則為不屬於此製令)
-                          const existsInOriginal = wipRolls.some(
-                            (x: any) => x.rollNo.toUpperCase() === val.toUpperCase().trim()
-                          );
-                          if (existsInOriginal) {
-                            setLpnError("此卷卡已加入退料明細，不可重複退料！");
-                          } else {
-                            setLpnError("此卷卡不屬於此製令領料單，或已在其他單據退回！");
-                          }
-                        }
-                      } else {
-                        setActiveScanRoll(null);
-                        setCalcResult(null);
-                        setLpnError("");
-                        setScanStorageCode("");
-                        setScanCoreDia(null);
-                        setMeasuredDia(null);
-                      }
-                    }}
-                    onPressEnter={handleScanRollConfirm}
-                    className="bg-slate-900 text-slate-100 border-slate-700 focus:border-blue-500 font-mono text-xs h-9"
-                  />
-                  {lpnError && (
-                    <div className="text-red-500 text-[10px] leading-tight mt-1 animate-pulse">
-                      ⚠️ {lpnError}
-                    </div>
-                  )}
-                </div>
-
-                {/* 2. 使用卡尺量測目前直徑 */}
-                <div className="col-span-2 flex flex-col gap-1.5">
-                  <span className="text-[11px] text-slate-400 font-medium">第二步：實測外徑(mm)</span>
-                  <div className="flex gap-1.5 items-center w-full">
-                    <InputNumber
-                      ref={diaInputRef}
-                      placeholder="實測外徑"
-                      value={measuredDia}
-                      disabled={!activeScanRoll}
-                      min={0}
-                      addonAfter="mm"
-                      onChange={val => {
-                        setMeasuredDia(val);
-                        if (val && activeScanRoll) {
-                          calculateLengthOnTheFly(activeScanRoll, val, (scanCoreDia || 86) as number);
-                        } else {
-                          setCalcResult(null);
-                        }
-                      }}
-                      onPressEnter={handleScanAndCalcSave}
-                      className="bg-slate-900 text-slate-100 border-slate-700 focus:border-blue-500 font-mono text-xs flex-1 h-9"
-                    />
-                    {activeScanRoll && (
-                      <Button
-                        type="primary"
-                        danger
-                        className="h-9 px-2.5 bg-red-600 hover:bg-red-500 border-red-600 text-xs font-semibold text-white shrink-0 rounded"
-                        onClick={() => {
-                          const coreDia = (scanCoreDia || 86) as number;
-                          setMeasuredDia(coreDia);
-                          calculateLengthOnTheFly(activeScanRoll, coreDia, coreDia);
-                        }}
-                      >
-                        耗盡
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                {/* 3. 管芯直徑 */}
-                <div className="col-span-2 flex flex-col gap-1.5">
-                  <span className="text-[11px] text-slate-400 font-medium">第三步：管芯直徑(mm)</span>
-                  <InputNumber
-                    placeholder="管芯直徑"
-                    value={scanCoreDia}
-                    disabled={true}
-                    min={0}
-                    addonAfter="mm"
-                    className="bg-slate-900 text-slate-100 border-slate-700 focus:border-blue-500 font-mono text-xs w-full h-9"
-                  />
-                </div>
-
-                {/* 4. 指定入庫目的儲位 */}
-                <div className="col-span-3 flex flex-col gap-1.5">
-                  <span className="text-[11px] text-slate-400 font-medium">第四步：指定入庫目的儲位</span>
-                  <Select
-                    placeholder="請選擇入庫儲位"
-                    options={storageOptions}
-                    value={scanStorageCode || undefined}
-                    disabled={!activeScanRoll}
-                    onChange={val => setScanStorageCode(val as string)}
-                    className="bg-slate-900 text-slate-100 border-slate-700 focus:border-blue-500 font-mono text-xs w-full h-9"
-                    dropdownStyle={{ zIndex: 1100 }}
-                    getPopupContainer={triggerNode => triggerNode.parentElement}
-                  />
-                </div>
-
-                {/* 5. 確認並加入退料按鈕 */}
-                <div className="col-span-2">
-                  <Button 
-                    type="primary" 
-                    className="w-full h-9 font-medium bg-blue-600 hover:bg-blue-500 border-blue-600"
-                    disabled={!activeScanRoll || !measuredDia || !scanStorageCode || !scanCoreDia}
-                    onClick={handleScanAndCalcSave}
-                  >
-                    確認並加入
-                  </Button>
-                </div>
-              </div>
-
-              {activeScanRoll && (
-                <div className="mt-4 p-3 bg-slate-900 rounded border border-slate-800 grid grid-cols-2 gap-4 text-xs font-mono">
-                  <div className="border-r border-slate-800 pr-4 space-y-1.5 text-slate-300">
-                    <div>🔍 <strong>原料編號：</strong> <span className="text-slate-100">{activeScanRoll.materialCode}</span></div>
-                    <div>🏷️ <strong>選中卷卡：</strong> <span className="text-blue-400 font-bold">{activeScanRoll.rollNo}</span></div>
-                    <div>📐 <strong>物理參數：</strong> 厚度 {activeScanRoll.thicknessMm}mm | 原管芯 {activeScanRoll.coreDiaMm}mm</div>
-                    <div>📦 <strong>來源儲位：</strong> <span className="text-yellow-500 font-semibold">{activeScanRoll.storageCode}</span></div>
-                  </div>
-                  
-                  <div className="flex flex-col justify-center pl-2 space-y-1.5">
-                    {calcResult ? (
-                      <>
-                        <div className="text-green-400 font-bold text-sm">
-                          ✓ 計算退回庫存量: <span className="underline decoration-double">{calcResult.returnedLen} M</span> ({calcResult.returnedArea} SQM)
-                        </div>
-                        <div className="text-slate-400 text-[10px]">
-                          (💡 實測長度為計算得出，不可手動修改)
-                        </div>
-                        <div className="text-orange-400 mt-1">
-                          📊 本次製令消耗量: {calcResult.consumedLen} M ({calcResult.consumedPercent}%)
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-slate-500 italic animate-pulse">⏳ 請輸入當前外徑直徑...</div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 選擇車間現場正在 WIP 狀態的 LPN 列表 */}
-            <div className="bg-[var(--ant-color-fill-alter)] p-4 rounded-md border border-[var(--ant-color-border-secondary)]">
-              <div className="text-xs font-bold text-[var(--ant-color-text-secondary)] mb-3 flex justify-between items-center">
-                <span>🌀 車間現場可退回卷卡 (LPN) 列表</span>
-                <span className="text-gray-400 font-normal">本製令共 {availableWipRolls.length} 卷現場物料</span>
-              </div>
-              <Spin spinning={wipLoading}>
-                <Table
-                  size="small"
-                  dataSource={availableWipRolls}
-                  pagination={{ pageSize: 5 }}
-                  rowKey="rollNo"
-                  locale={{
-                    emptyText: "目前在 WIP 現場無任何可供退回的卷卡",
-                  }}
-                  columns={[
-                    {
-                      title: "原料編號",
-                      dataIndex: "materialCode",
-                      key: "materialCode",
-                      width: 150,
-                    },
-                    {
-                      title: "物料卷卡號 (LPN)",
-                      dataIndex: "rollNo",
-                      key: "rollNo",
-                      width: 150,
-                    },
-                    {
-                      title: "寬度",
-                      dataIndex: "widthMm",
-                      key: "widthMm",
-                      width: 100,
-                      render: (v) => `${v} mm`,
-                    },
-                    {
-                      title: "內管芯外徑(mm)",
-                      key: "coreDia",
-                      width: 130,
-                      render: (_, rec: any) => `${rec.coreDiaMm ?? 86} mm`,
-                    },
-                    {
-                      title: "儲位",
-                      dataIndex: "storageCode",
-                      key: "storageCode",
-                      width: 120,
-                    },
-                    {
-                      title: "領料時長度",
-                      dataIndex: "qtyAux",
-                      key: "qtyAux",
-                      width: 120,
-                      render: (v) => <span className="text-blue-400 font-semibold">{v} M</span>,
-                    },
-                    {
-                      title: "初始長度",
-                      dataIndex: "originalQtyAux",
-                      key: "originalQtyAux",
-                      width: 120,
-                      render: (v) => <span>{v} M</span>,
-                    },
-                    {
-                      title: "操作",
-                      key: "select",
-                      width: 80,
-                      render: (_, rec: any) => (
-                        <Button
-                          type="primary"
-                          size="small"
-                          onClick={() => {
-                            setActiveScanRoll(rec);
-                            setScanRollNo(rec.rollNo);
-                            setScanStorageCode(rec.storageCode || "");
-                            setScanCoreDia(rec.coreDiaMm || 86);
-                            setMeasuredDia(null);
-                            setCalcResult(null);
-                            setTimeout(() => diaInputRef.current?.focus(), 100);
-                          }}
-                        >
-                          選擇
-                        </Button>
-                      )
-                    }
-                  ]}
-                />
-              </Spin>
-            </div>
-          </div>
-        </Modal>
-      )}
-
-      {/* 🔍 已退回 LPN 明細彈窗 (以 Table 呈現) */}
-      {viewingExtraOpen && (
-        <Modal
-          title={
-            <div className="text-slate-100 font-bold flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-              📦 已退回卷卡 (LPN) 明細 — 原料料號: <span className="text-blue-400 font-mono text-sm font-bold">{viewingMaterialCode}</span>
-              {isEditingDialogList && <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded font-normal">編輯中</span>}
-            </div>
-          }
-          open={viewingExtraOpen}
-          onCancel={() => {
-            setViewingExtraOpen(false);
-            setViewingExtraRolls(null);
-            setViewingMaterialCode("");
-            setIsEditingDialogList(false);
-            setDialogEditRolls(null);
-          }}
-          footer={
-            isEditingDialogList
-              ? [
-                  <Button key="save" type="primary" onClick={handleDialogSave} className="bg-green-600 hover:bg-green-500 border-green-600">
-                    儲存
-                  </Button>,
-                  <Button key="cancel" danger onClick={() => setIsEditingDialogList(false)}>
-                    取消
-                  </Button>
-                ]
-              : [
-                  !isPosted && (
-                    <Button
-                      key="edit"
-                      type="primary"
-                      onClick={() => {
-                        setIsEditingDialogList(true);
-                        setDialogEditRolls(JSON.parse(JSON.stringify(viewingExtraRolls || [])));
-                      }}
-                      className="bg-blue-600 hover:bg-blue-500 border-blue-600"
-                    >
-                      編輯
-                    </Button>
-                  ),
-                  <Button key="close" onClick={() => {
-                    setViewingExtraOpen(false);
-                    setViewingExtraRolls(null);
-                    setViewingMaterialCode("");
-                  }}>
-                    關閉
-                  </Button>
-                ].filter(Boolean)
-          }
-          width="75vw"
-          centered
-          destroyOnHidden
-        >
-          <div className="py-4">
-            <Table
-              size="small"
-              dataSource={isEditingDialogList ? (dialogEditRolls || []) : (viewingExtraRolls || [])}
-              pagination={false}
-              rowKey="rollNo"
-              columns={
-                isEditingDialogList
-                  ? [
-                      {
-                        title: "卷卡號 (LPN)",
-                        dataIndex: "rollNo",
-                        key: "rollNo",
-                        width: 180,
-                        render: (v: string) => <span className="font-mono font-bold text-slate-800 dark:text-slate-100">{v || "-"}</span>,
-                      },
-                      {
-                        title: "退回儲位",
-                        dataIndex: "storageCode",
-                        key: "storageCode",
-                        width: 150,
-                        render: (v: string, r: any) => (
-                          <Select
-                            size="small"
-                            className="w-full min-w-[120px]"
-                            options={storageOptions}
-                            value={v}
-                            onChange={(val) => handleDialogRollFieldChange(r.rollNo, "storageCode", val)}
-                          />
-                        ),
-                      },
-                      {
-                        title: "領料時長度",
-                        dataIndex: "wipQtyAux",
-                        key: "wipQtyAux",
-                        width: 110,
-                        align: "right" as const,
-                        render: (v: number) => <span className="text-blue-500 font-semibold">{v ? `${v.toFixed(2)} M` : "-"}</span>,
-                      },
-                      {
-                        title: "退回長度 (M)",
-                        dataIndex: "qtyAux",
-                        key: "qtyAux",
-                        width: 110,
-                        align: "right" as const,
-                        render: (v: number) => <strong>{v?.toFixed(2)} M</strong>,
-                      },
-                      {
-                        title: "退回面積 (SQM)",
-                        key: "area",
-                        width: 120,
-                        align: "right" as const,
-                        render: (_: any, r: any) => {
-                          const area = (r.qtyAux ?? 0) * ((r.widthMm ?? 0) / 1000);
-                          return <span className="font-semibold text-blue-500 dark:text-blue-400">{area.toFixed(2)} m²</span>;
-                        },
-                      },
-                      {
-                        title: "幅寬",
-                        dataIndex: "widthMm",
-                        key: "widthMm",
-                        width: 100,
-                        align: "right" as const,
-                        render: (v: number) => <span>{v} mm</span>,
-                      },
-                      {
-                        title: "厚度",
-                        dataIndex: "thicknessMm",
-                        key: "thicknessMm",
-                        width: 100,
-                        align: "right" as const,
-                        render: (v: number) => <span>{v ? `${v} mm` : "-"}</span>,
-                      },
-                      {
-                        title: "實測外徑",
-                        dataIndex: "measuredDiaMm",
-                        key: "measuredDiaMm",
-                        width: 130,
-                        align: "right" as const,
-                        render: (v: number, r: any) => (
-                          <InputNumber
-                            size="small"
-                            className="w-full min-w-[80px]"
-                            min={0}
-                            placeholder="外徑 (mm)"
-                            value={v}
-                            onChange={(val) => handleDialogRollFieldChange(r.rollNo, "measuredDiaMm", val)}
-                            onFocus={(e) => e.target.select()}
-                          />
-                        ),
-                      },
-                      {
-                        title: "管芯直徑",
-                        dataIndex: "coreDiaMm",
-                        key: "coreDiaMm",
-                        width: 100,
-                        align: "right" as const,
-                        render: (v: number) => <span>{v ? `${v} mm` : "86 mm"}</span>,
-                      },
-                      {
-                        title: "餘料成本小計",
-                        key: "cost",
-                        width: 140,
-                        align: "right" as const,
-                        render: (_: any, r: any) => {
-                          const area = (r.qtyAux ?? 0) * ((r.widthMm ?? 0) / 1000);
-                          const cost = area * (r.costPerSqm ?? 0);
-                          return (
-                            <span className="font-bold text-green-500 dark:text-green-400">
-                              {cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </span>
-                          );
-                        },
-                      },
-                      {
-                        title: "操作",
-                        key: "dialogAction",
-                        width: 85,
-                        align: "center" as const,
-                        render: (_: any, r: any) => (
-                          <Button
-                            type="text"
-                            danger
-                            icon={<DeleteOutlined />}
-                            onClick={() => handleDialogRollDelete(r.rollNo)}
-                          />
-                        ),
-                      }
-                    ]
-                  : [
-                      {
-                        title: "卷卡號 (LPN)",
-                        dataIndex: "rollNo",
-                        key: "rollNo",
-                        width: 180,
-                        render: (v: string) => <span className="font-mono font-bold text-slate-800 dark:text-slate-100">{v || "-"}</span>,
-                      },
-                      {
-                        title: "退回儲位",
-                        dataIndex: "storageCode",
-                        key: "storageCode",
-                        width: 120,
-                        render: (v: string) => <span className="font-mono text-yellow-500 font-semibold">{v || "-"}</span>,
-                      },
-                      {
-                        title: "領料時長度",
-                        dataIndex: "wipQtyAux",
-                        key: "wipQtyAux",
-                        width: 110,
-                        align: "right" as const,
-                        render: (v: number) => <span className="text-blue-500 font-semibold">{v ? `${v.toFixed(2)} M` : "-"}</span>,
-                      },
-                      {
-                        title: "退回長度 (M)",
-                        dataIndex: "qtyAux",
-                        key: "qtyAux",
-                        width: 110,
-                        align: "right" as const,
-                        render: (v: number) => <strong>{v?.toFixed(2)} M</strong>,
-                      },
-                      {
-                        title: "退回面積 (SQM)",
-                        key: "area",
-                        width: 120,
-                        align: "right" as const,
-                        render: (_: any, r: any) => {
-                          const area = (r.qtyAux ?? 0) * ((r.widthMm ?? 0) / 1000);
-                          return <span className="font-semibold text-blue-500 dark:text-blue-400">{area.toFixed(2)} m²</span>;
-                        },
-                      },
-                      {
-                        title: "幅寬",
-                        dataIndex: "widthMm",
-                        key: "widthMm",
-                        width: 100,
-                        align: "right" as const,
-                        render: (v: number) => <span>{v} mm</span>,
-                      },
-                      {
-                        title: "厚度",
-                        dataIndex: "thicknessMm",
-                        key: "thicknessMm",
-                        width: 100,
-                        align: "right" as const,
-                        render: (v: number) => <span>{v ? `${v} mm` : "-"}</span>,
-                      },
-                      {
-                        title: "實測外徑",
-                        dataIndex: "measuredDiaMm",
-                        key: "measuredDiaMm",
-                        width: 110,
-                        align: "right" as const,
-                        render: (v: number) => <span>{v ? `${v} mm` : "-"}</span>,
-                      },
-                      {
-                        title: "管芯直徑",
-                        dataIndex: "coreDiaMm",
-                        key: "coreDiaMm",
-                        width: 100,
-                        align: "right" as const,
-                        render: (v: number) => <span>{v ? `${v} mm` : "86 mm"}</span>,
-                      },
-                      {
-                        title: "餘料成本小計",
-                        key: "cost",
-                        width: 140,
-                        align: "right" as const,
-                        render: (_: any, r: any) => {
-                          const area = (r.qtyAux ?? 0) * ((r.widthMm ?? 0) / 1000);
-                          const cost = area * (r.costPerSqm ?? 0);
-                          return (
-                            <span className="font-bold text-green-500 dark:text-green-400">
-                              {cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </span>
-                          );
-                        },
-                      }
-                    ]
-              }
-            />
-          </div>
-        </Modal>
-      )}
     </div>
   );
 }
