@@ -539,10 +539,10 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
       key: "material",
       width: 250,
       render: (_: any, r: FlatReturnRoll) => (
-        <Space direction="vertical" size={0}>
+        <div className="flex flex-col gap-0">
           <span className="text-xs text-slate-400 font-mono">{r.materialCode}</span>
           <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">{r.materialName}</span>
-        </Space>
+        </div>
       ),
     },
     {
