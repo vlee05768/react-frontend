@@ -4,7 +4,7 @@ import {
   postApiV1DocumentSubscriptionToggle,
   getApiV1DocumentSubscriptionMy,
 } from '@/api/generated/sdk.gen';
-import { message } from 'antd';
+import { antdGlobal } from '@/utils/antdGlobal';
 
 interface DocumentSubscriptionStore {
   subscriptions: DocumentSubscriptionDto[];
@@ -81,18 +81,18 @@ export const useDocumentSubscriptionStore = create<DocumentSubscriptionStore>((s
         await get().fetchMySubscriptions(true);
         
         if (isSubscribedNow) {
-          message.success(`成功關注單據 ${documentKey}！相關異動將會發送郵件通知。`);
+          antdGlobal.message?.success(`成功關注單據 ${documentKey}！相關異動將會發送郵件通知。`);
         } else {
-          message.info(`已取消關注單據 ${documentKey}。`);
+          antdGlobal.message?.info(`已取消關注單據 ${documentKey}。`);
         }
         return !!isSubscribedNow;
       } else {
-        message.error(`關注設定失敗: ${response.data?.message || '未知錯誤'}`);
+        antdGlobal.message?.error(`關注設定失敗: ${response.data?.message || '未知錯誤'}`);
         return false;
       }
     } catch (error: any) {
       console.error('Failed to toggle subscription:', error);
-      message.error(`操作失敗: ${error.message || '連線錯誤'}`);
+      antdGlobal.message?.error(`操作失敗: ${error.message || '連線錯誤'}`);
       return false;
     } finally {
       set({ isLoading: false });

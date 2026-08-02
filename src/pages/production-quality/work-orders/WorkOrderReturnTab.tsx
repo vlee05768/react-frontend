@@ -1036,7 +1036,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
           cancelText="取消"
           onOk={() => setItemModalOpen(false)}
           width="70vw"
-          destroyOnClose
+          destroyOnHidden
         >
           <div className="py-4 space-y-4">
             {/* 📱 掃描卷卡與直徑反算快捷控制台 */}
@@ -1364,7 +1364,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
           }
           width="75vw"
           centered
-          destroyOnClose
+          destroyOnHidden
         >
           <div className="py-4">
             <Table

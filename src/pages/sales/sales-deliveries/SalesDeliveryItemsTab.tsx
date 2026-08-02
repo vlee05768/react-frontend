@@ -703,6 +703,11 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
         destroyOnHidden
       >
         <Spin spinning={loadingStock} tip="正在查詢報廢倉庫存...">
+          {!addSpareItem && (
+            <div style={{ display: 'none' }}>
+              <Form form={spareForm} />
+            </div>
+          )}
           {addSpareItem && (
             <div className="py-4">
               <Descriptions 

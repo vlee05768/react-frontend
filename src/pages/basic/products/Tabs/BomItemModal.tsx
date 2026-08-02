@@ -58,7 +58,7 @@ export default function BomItemModal({ open, onClose, productCode, initialData, 
       okButtonProps={{ form: 'bomItemForm', htmlType: 'submit' }}
       cancelButtonProps={{ onClick: onClose }}
       confirmLoading={loading}
-      destroyOnClose
+      destroyOnHidden
       width={"50vw"}
     >
       <div className="pt-4">

@@ -215,7 +215,7 @@ export default function BrandModelsLayout() {
         open={brandModalVisible}
         onOk={onBrandModalOk}
         onCancel={() => setBrandModalVisible(false)}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={brandForm} layout="vertical" validateTrigger="onSubmit">
           <Form.Item
@@ -253,7 +253,7 @@ export default function BrandModelsLayout() {
         open={modelModalVisible}
         onOk={onModelModalOk}
         onCancel={() => setModelModalVisible(false)}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={modelForm} layout="vertical" validateTrigger="onSubmit">
           <Form.Item

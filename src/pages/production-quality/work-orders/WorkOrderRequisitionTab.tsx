@@ -1020,10 +1020,10 @@ export function WorkOrderRequisitionTab({
               overflowY: "hidden",
               overflowX: "hidden",
               paddingRight: "4px",
-            },
-          }}
-          destroyOnClose
-        >
+              },
+              }}
+              destroyOnHidden
+              >
           <div className="py-4 space-y-4">
             {/* 💡 計算後需求量展示區 */}
             {matchedMaterial && (

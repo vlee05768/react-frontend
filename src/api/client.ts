@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '../stores/useAuthStore';
-import { message } from 'antd';
+import { antdGlobal } from '../utils/antdGlobal';
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5160',
@@ -26,7 +26,7 @@ apiClient.interceptors.response.use(
   (error) => {
     // 統一錯誤提取
     const errorMsg = error.response?.data?.message || error.message || '系統發生錯誤';
-    message.error(errorMsg);
+    antdGlobal.message?.error(errorMsg);
     if (error.response?.status === 401) {
       useAuthStore.getState().logout();
       if (window.location.pathname !== '/login') {
