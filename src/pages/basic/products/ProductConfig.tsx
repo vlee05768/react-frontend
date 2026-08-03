@@ -530,6 +530,7 @@ export const bomHeaderFormConfig = (): FormFieldConfig[] => [
     componentType: "DictSelect",
     componentProps: { dictKey: "MACHINE", showSearch: true, optionFilterProp: "_displayName" },
     editable: "always",
+    validation: z.string().min(1, "請選擇機台"),
     colSpan: 4,
   },
   {
@@ -537,6 +538,9 @@ export const bomHeaderFormConfig = (): FormFieldConfig[] => [
     label: "跳距(mm)",
     componentType: "InputNumber",
     editable: "always",
+    validation: z
+      .number({ required_error: "請輸入跳距", invalid_type_error: "請輸入跳距" })
+      .gt(0, "跳距必須大於 0"),
     colSpan: 4,
   },
   {
@@ -544,6 +548,10 @@ export const bomHeaderFormConfig = (): FormFieldConfig[] => [
     label: "刀穴數",
     componentType: "InputNumber",
     editable: "always",
+    validation: z
+      .number({ required_error: "請輸入刀穴數", invalid_type_error: "請輸入刀穴數" })
+      .int("刀穴數必須為整數")
+      .gt(0, "刀穴數必須大於 0"),
     colSpan: 4,
   },
   {
