@@ -528,6 +528,54 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
   // 定義扁平化 LPN 明細橫列
   const columns = [
     {
+      title: "快捷操作",
+      key: "quickActions",
+      width: 150,
+      fixed: "left" as const,
+      render: (_: any, r: FlatReturnRoll) => {
+        if (!isEditable || isPosted) return null;
+        return (
+          <Space size="small">
+            <Button
+              type="primary"
+              danger
+              size="small"
+              onClick={() => handleDeplete(r.rollNo)}
+            >
+              耗盡 🔴
+            </Button>
+            <Button
+              type="primary"
+              ghost
+              size="small"
+              onClick={() => handleFullReturn(r.rollNo)}
+            >
+              全退 🔵
+            </Button>
+          </Space>
+        );
+      },
+    },
+    {
+      title: "狀態判定",
+      key: "statusTag",
+      width: 110,
+      fixed: "left" as const,
+      align: "right" as const,
+      render: (_: any, r: FlatReturnRoll) => {
+        const isDepleted = r.qtyAux === 0;
+        const text = isDepleted ? "● 已消耗" : "● 剩餘退回";
+        const color = isDepleted ? "error" : "success";
+        return (
+          <Tooltip title={`原領用 ${r.wipQtyAux}M，退回 ${r.qtyAux}M，車間耗用 ${(r.wipQtyAux - r.qtyAux).toFixed(2)}M`} style={{ whiteSpace: "nowrap" }}>
+            <span style={{ display: "inline-block", textAlign: "right", width: "100%" }}>
+              <Tag color={color} style={{ marginRight: 0, fontWeight: 600 }}>{text}</Tag>
+            </span>
+          </Tooltip>
+        );
+      },
+    },
+    {
       title: "卷卡號 (LPN)",
       dataIndex: "rollNo",
       key: "rollNo",
@@ -537,7 +585,9 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     {
       title: "原物料料號 / 規格名稱",
       key: "material",
-      width: 250,
+      width: 120,
+      ellipsis: { showTitle: false },
+      
       render: (_: any, r: FlatReturnRoll) => (
         <div className="flex flex-col gap-0">
           <span className="text-xs text-slate-400 font-mono">{r.materialCode}</span>
@@ -562,7 +612,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
       render: (v: number) => <span className="text-blue-500 dark:text-blue-400 font-bold">{v} M</span>,
     },
     {
-      title: "實測外徑 (Do, mm)",
+      title: "實測外徑",
       dataIndex: "measuredDiaMm",
       key: "measuredDiaMm",
       width: 130,
@@ -615,17 +665,17 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
         />
       ),
     },
-    {
-      title: "退回面積",
-      key: "areaSqm",
-      width: 110,
-      align: "right" as const,
-      render: (_: any, r: FlatReturnRoll) => (
-        <span className="text-slate-500">
-          {((r.qtyAux * r.widthMm) / 1000).toFixed(2)} ㎡
-        </span>
-      ),
-    },
+    // {
+    //   title: "退回面積",
+    //   key: "areaSqm",
+    //   width: 110,
+    //   align: "right" as const,
+    //   render: (_: any, r: FlatReturnRoll) => (
+    //     <span className="text-slate-500">
+    //       {((r.qtyAux * r.widthMm) / 1000).toFixed(2)} ㎡
+    //     </span>
+    //   ),
+    // },
     {
       title: "餘料成本",
       dataIndex: "remainingMaterialCost",
@@ -653,52 +703,6 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
           onChange={val => handleRollStorageChange(r.rollNo, val)}
         />
       ),
-    },
-    {
-      title: "快捷操作",
-      key: "quickActions",
-      width: 150,
-      render: (_: any, r: FlatReturnRoll) => {
-        if (!isEditable || isPosted) return null;
-        return (
-          <Space size="small">
-            <Button
-              type="primary"
-              danger
-              size="small"
-              onClick={() => handleDeplete(r.rollNo)}
-            >
-              耗盡 🔴
-            </Button>
-            <Button
-              type="primary"
-              ghost
-              size="small"
-              onClick={() => handleFullReturn(r.rollNo)}
-            >
-              全退 🔵
-            </Button>
-          </Space>
-        );
-      },
-    },
-    {
-      title: "狀態判定",
-      key: "statusTag",
-      width: 110,
-      align: "right" as const,
-      render: (_: any, r: FlatReturnRoll) => {
-        const isDepleted = r.qtyAux === 0;
-        const text = isDepleted ? "● 已消耗" : "● 剩餘退回";
-        const color = isDepleted ? "error" : "success";
-        return (
-          <Tooltip title={`原領用 ${r.wipQtyAux}M，退回 ${r.qtyAux}M，車間耗用 ${(r.wipQtyAux - r.qtyAux).toFixed(2)}M`} style={{ whiteSpace: "nowrap" }}>
-            <span style={{ display: "inline-block", textAlign: "right", width: "100%" }}>
-              <Tag color={color} style={{ marginRight: 0, fontWeight: 600 }}>{text}</Tag>
-            </span>
-          </Tooltip>
-        );
-      },
     },
   ];
 
