@@ -1,8 +1,9 @@
+import React from "react";
 import type { TableColumnConfig, SearchFieldConfig } from "@/components/Form/types";
 import type { 
   MaterialInventoryTransactionDto 
 } from "@/api/generated/types.gen";
-import { Tag, Tooltip, Button, Space } from "antd";
+import { Tag, Tooltip, Button, Space, theme } from "antd";
 import { PrinterOutlined, DeleteOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
@@ -364,8 +365,35 @@ export const rollStateOptions = [
   { label: "在庫", value: "Available", color: "success" },
   { label: "車間生產中", value: "WIP", color: "warning" },
   { label: "已報廢", value: "Scrapped", color: "error" },
-  { label: "已消耗", value: "CONSUMED", color: "#595959" }
+  { label: "已消耗", value: "CONSUMED", color: "default" }
 ];
+
+export const RollStatusTag: React.FC<{ value: any }> = ({ value }) => {
+  const { token } = theme.useToken();
+  const upper = String(value || '').toUpperCase();
+  const searchVal = upper === 'SCRAP' ? 'SCRAPPED' : upper;
+  const matched = rollStateOptions.find(opt => opt.value.toUpperCase() === searchVal);
+  
+  if (matched) {
+    if (matched.value === 'CONSUMED') {
+      return (
+        <Tag 
+          bordered={false} 
+          style={{ 
+            backgroundColor: token.colorBgContainerDisabled, 
+            color: token.colorTextDisabled,
+            marginRight: 0,
+            fontWeight: 600
+          }}
+        >
+          {matched.label} ({matched.value})
+        </Tag>
+      );
+    }
+    return <Tag color={matched.color} style={{ marginRight: 0 }}>{matched.label} ({matched.value})</Tag>;
+  }
+  return <Tag color="default" style={{ marginRight: 0 }}>{value || '-'}</Tag>;
+};
 
 export const rollSearchFields: SearchFieldConfig[] = [
   {
@@ -422,16 +450,7 @@ export const getRollColumns = (
     name: "rollStatus",
     width: 120,
     align: "center",
-    render: (val: any) => {
-      const upper = String(val || '').toUpperCase();
-      // 容錯支援舊資料 SCRAP 映射為 Scrapped 狀態
-      const searchVal = upper === 'SCRAP' ? 'SCRAPPED' : upper;
-      const matched = rollStateOptions.find(opt => opt.value.toUpperCase() === searchVal);
-      if (matched) {
-        return <Tag color={matched.color}>{matched.label} ({matched.value})</Tag>;
-      }
-      return <Tag color="default">{val || '-'}</Tag>;
-    }
+    render: (val: any) => <RollStatusTag value={val} />
   },
   {
     label: "原料名稱",
