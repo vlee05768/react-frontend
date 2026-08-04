@@ -321,17 +321,77 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     },
   });
 
+  // 💡 一鍵智慧預估退料 (理論用料順序扣減演算法)
+  const handleAutoCalculateReturn = () => {
+    if (flatRolls.length === 0) {
+      message.warning("明細列表無任何卷卡，無法進行估算。");
+      return;
+    }
+
+    // 1. 整理各原料在工單中的理論消耗量
+    const usageMap: { [key: string]: number } = {};
+    masterData.items?.forEach(item => {
+      if (item.materialCode) {
+        // 優先使用 totalLength (捲材)，次之使用 requiredAmount (片材/通用)
+        const usage = item.totalLength && item.totalLength > 0 ? item.totalLength : (item.requiredAmount || 0);
+        usageMap[item.materialCode] = usage;
+      }
+    });
+
+    // 2. 按 materialCode 進行智慧扣減 (先進先出/順序消耗)
+    const updatedRolls = [...flatRolls];
+    
+    // 依據原料分群
+    const matGroups: { [key: string]: number[] } = {};
+    updatedRolls.forEach((r: FlatReturnRoll, idx: number) => {
+      if (!matGroups[r.materialCode]) {
+        matGroups[r.materialCode] = [];
+      }
+      matGroups[r.materialCode].push(idx);
+    });
+
+    Object.keys(matGroups).forEach(matCode => {
+      const indices = matGroups[matCode];
+      let theoreticalUsage = usageMap[matCode] || 0;
+
+      indices.forEach(idx => {
+        const r = updatedRolls[idx];
+        const wipQty = r.wipQtyAux;
+
+        let qty = 0;
+        if (theoreticalUsage >= wipQty) {
+          qty = 0;
+          theoreticalUsage -= wipQty;
+        } else {
+          qty = wipQty - theoreticalUsage;
+          theoreticalUsage = 0;
+        }
+
+        const roundedQty = Math.round(qty * 100) / 100;
+        updatedRolls[idx] = {
+          ...r,
+          measuredDiaMm: null,
+          qtyAux: roundedQty,
+          remainingMaterialCost: Math.round(roundedQty * (r.widthMm / 1000) * r.costPerSqm),
+        };
+      });
+    });
+
+    setFlatRolls(updatedRolls);
+    message.success("💡 已完成理論用料智慧估算！已依 BOM 消耗額度自動填入各 LPN 預估剩長。");
+  };
+
   // 6. UI 事件與操作處理
   const handleCreateNewClick = () => {
     setIsCreating(true);
     setDocDate(dayjs());
     setDocNotes("");
 
-    // 💡 領料載入明細：自動預載該製令的所有 WIP 卷卡，且「預設剩餘長度 = 0 (耗盡狀態)」
     if (allWipRolls.length === 0) {
       message.warning("此製令目前車間（WIP）無任何可退回物料卷卡。");
     }
 
+    // 💡 預載所有 WIP 卷卡
     const preloaded = allWipRolls.map((r: any) => ({
       materialCode: r.materialCode,
       materialName: r.materialName || r.name || "",
@@ -341,7 +401,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
       coreDiaMm: r.coreDiaMm || 86.0,
       originalQtyAux: r.originalQtyAux,
       wipQtyAux: r.qtyAux, // wip當前最大長度
-      qtyAux: 0, // 預設 0M (耗盡)
+      qtyAux: 0, // 暫時預設 0
       measuredDiaMm: null,
       storageCode: r.storageCode || defaultStorageCode,
       costPerSqm: r.costPerSqm || 0,
@@ -349,7 +409,51 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
       notes: "",
     }));
 
+    // 💡 依據理論用料智慧預填估算
+    const usageMap: { [key: string]: number } = {};
+    masterData.items?.forEach(item => {
+      if (item.materialCode) {
+        const usage = item.totalLength && item.totalLength > 0 ? item.totalLength : (item.requiredAmount || 0);
+        usageMap[item.materialCode] = usage;
+      }
+    });
+
+    const matGroups: { [key: string]: number[] } = {};
+    preloaded.forEach((r: FlatReturnRoll, idx: number) => {
+      if (!matGroups[r.materialCode]) {
+        matGroups[r.materialCode] = [];
+      }
+      matGroups[r.materialCode].push(idx);
+    });
+
+    Object.keys(matGroups).forEach(matCode => {
+      const indices = matGroups[matCode];
+      let theoreticalUsage = usageMap[matCode] || 0;
+
+      indices.forEach(idx => {
+        const r = preloaded[idx];
+        const wipQty = r.wipQtyAux;
+
+        let qty = 0;
+        if (theoreticalUsage >= wipQty) {
+          qty = 0;
+          theoreticalUsage -= wipQty;
+        } else {
+          qty = wipQty - theoreticalUsage;
+          theoreticalUsage = 0;
+        }
+
+        const roundedQty = Math.round(qty * 100) / 100;
+        preloaded[idx] = {
+          ...r,
+          qtyAux: roundedQty,
+          remainingMaterialCost: Math.round(roundedQty * (r.widthMm / 1000) * r.costPerSqm),
+        };
+      });
+    });
+
     setFlatRolls(preloaded);
+    message.success("已自動帶入 WIP 卷卡，並完成理論用料估算。");
   };
 
   const handleSave = (formValues: any) => {
@@ -894,6 +998,19 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
             <Card
               size="small"
               title={<strong>📋 車間領用原料還料明細列表 (*卷材 LPN 級別)</strong>}
+              extra={
+                isEditable && !isPosted && (
+                  <Button
+                    type="primary"
+                    ghost
+                    size="small"
+                    icon={<SyncOutlined />}
+                    onClick={handleAutoCalculateReturn}
+                  >
+                    💡 依理論用料智慧估算退料
+                  </Button>
+                )
+              }
             >
               <Table
                 size="small"
