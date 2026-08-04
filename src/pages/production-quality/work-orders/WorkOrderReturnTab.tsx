@@ -19,6 +19,8 @@ import {
   DeleteOutlined,
   SyncOutlined,
   BarcodeOutlined,
+  FireOutlined,
+  RollbackOutlined,
 } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -540,17 +542,19 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
               type="primary"
               danger
               size="small"
+              icon={<FireOutlined />}
               onClick={() => handleDeplete(r.rollNo)}
             >
-              耗盡 🔴
+              耗盡
             </Button>
             <Button
               type="primary"
               ghost
               size="small"
+              icon={<RollbackOutlined />}
               onClick={() => handleFullReturn(r.rollNo)}
             >
-              全退 🔵
+              全退
             </Button>
           </Space>
         );
@@ -559,7 +563,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     {
       title: "狀態判定",
       key: "statusTag",
-      width: 110,
+      width: 80,
       fixed: "left" as const,
       align: "right" as const,
       render: (_: any, r: FlatReturnRoll) => {
