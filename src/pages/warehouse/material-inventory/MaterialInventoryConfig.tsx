@@ -374,25 +374,63 @@ export const RollStatusTag: React.FC<{ value: any }> = ({ value }) => {
   const searchVal = upper === 'SCRAP' ? 'SCRAPPED' : upper;
   const matched = rollStateOptions.find(opt => opt.value.toUpperCase() === searchVal);
   
+  // 💡 外框樣式：圓角、細邊框、自適應當前主題的精美容器
+  const wrapperStyle: React.CSSProperties = {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "2px 6px",
+    borderRadius: "4px",
+    border: `1px solid ${token.colorBorderSecondary}`, // 完美的自適應細框
+    backgroundColor: token.colorBgContainerDisabled, // 低調的背景襯托
+    minWidth: "115px",
+    textAlign: "center",
+  };
+
   if (matched) {
     if (matched.value === 'CONSUMED') {
       return (
+        <div style={wrapperStyle}>
+          <Tag 
+            bordered={false} 
+            style={{ 
+              backgroundColor: "transparent", // 外框下背景設為透明避免繁雜
+              color: token.colorTextDisabled,
+              marginRight: 0,
+              fontWeight: 600,
+              fontSize: "11px",
+              padding: 0
+            }}
+          >
+            {matched.label} ({matched.value})
+          </Tag>
+        </div>
+      );
+    }
+    return (
+      <div style={wrapperStyle}>
         <Tag 
-          bordered={false} 
+          bordered={false} // 去除內層 Tag 邊框，防範雙重框線
+          color={matched.color} 
           style={{ 
-            backgroundColor: token.colorBgContainerDisabled, 
-            color: token.colorTextDisabled,
-            marginRight: 0,
-            fontWeight: 600
+            marginRight: 0, 
+            fontWeight: 600,
+            fontSize: "11px",
+            lineHeight: "16px"
           }}
         >
           {matched.label} ({matched.value})
         </Tag>
-      );
-    }
-    return <Tag color={matched.color} style={{ marginRight: 0 }}>{matched.label} ({matched.value})</Tag>;
+      </div>
+    );
   }
-  return <Tag color="default" style={{ marginRight: 0 }}>{value || '-'}</Tag>;
+  return (
+    <div style={wrapperStyle}>
+      <Tag bordered={false} color="default" style={{ marginRight: 0, fontSize: "11px" }}>
+        {value || '-'}
+      </Tag>
+    </div>
+  );
 };
 
 export const rollSearchFields: SearchFieldConfig[] = [
