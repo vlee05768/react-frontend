@@ -720,7 +720,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
       render: (v: number) => <span className="text-blue-500 dark:text-blue-400 font-bold">{v} M</span>,
     },
     {
-      title: "實測外徑",
+      title: "實測外徑(mm)",
       dataIndex: "measuredDiaMm",
       key: "measuredDiaMm",
       width: 130,
@@ -784,18 +784,18 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     //     </span>
     //   ),
     // },
-    {
-      title: "餘料成本",
-      dataIndex: "remainingMaterialCost",
-      key: "remainingMaterialCost",
-      width: 100,
-      align: "right" as const,
-      render: (v: number) => (
-        <span className="font-bold text-green-500 dark:text-green-400">
-          ${v.toLocaleString()}
-        </span>
-      ),
-    },
+    // {
+    //   title: "餘料成本",
+    //   dataIndex: "remainingMaterialCost",
+    //   key: "remainingMaterialCost",
+    //   width: 100,
+    //   align: "right" as const,
+    //   render: (v: number) => (
+    //     <span className="font-bold text-green-500 dark:text-green-400">
+    //       ${v.toLocaleString()}
+    //     </span>
+    //   ),
+    // },
     {
       title: "退回目的儲位",
       dataIndex: "storageCode",
@@ -812,7 +812,12 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
         />
       ),
     },
-  ];
+  ].filter(col => {
+    if (col.key === "quickActions") {
+      return isEditable && !isPosted;
+    }
+    return true;
+  });
 
   const showHeaderForm = isCreating || !!activeDocNo;
 
