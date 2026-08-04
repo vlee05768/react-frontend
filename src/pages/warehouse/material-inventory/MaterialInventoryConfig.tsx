@@ -364,7 +364,7 @@ export const rollStateOptions = [
   { label: "在庫", value: "Available", color: "success" },
   { label: "車間生產中", value: "WIP", color: "warning" },
   { label: "已報廢", value: "Scrapped", color: "error" },
-  { label: "已消耗", value: "CONSUMED", color: "default" }
+  { label: "已消耗", value: "CONSUMED", color: "#d9d9d9" }
 ];
 
 export const rollSearchFields: SearchFieldConfig[] = [
