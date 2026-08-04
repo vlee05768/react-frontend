@@ -532,30 +532,30 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     {
       title: "快捷操作",
       key: "quickActions",
-      width: 150,
+      width: 90,
       fixed: "left" as const,
       render: (_: any, r: FlatReturnRoll) => {
         if (!isEditable || isPosted) return null;
         return (
           <Space size="small">
-            <Button
-              type="primary"
-              danger
-              size="small"
-              icon={<FireOutlined />}
-              onClick={() => handleDeplete(r.rollNo)}
-            >
-              耗盡
-            </Button>
-            <Button
-              type="primary"
-              ghost
-              size="small"
-              icon={<RollbackOutlined />}
-              onClick={() => handleFullReturn(r.rollNo)}
-            >
-              全退
-            </Button>
+            <Tooltip title="一鍵耗盡：此卷原料已全部耗用">
+              <Button
+                type="primary"
+                danger
+                size="small"
+                icon={<FireOutlined />}
+                onClick={() => handleDeplete(r.rollNo)}
+              />
+            </Tooltip>
+            <Tooltip title="一鍵全退：此卷原料未耗用，全數退庫">
+              <Button
+                type="primary"
+                ghost
+                size="small"
+                icon={<RollbackOutlined />}
+                onClick={() => handleFullReturn(r.rollNo)}
+              />
+            </Tooltip>
           </Space>
         );
       },
