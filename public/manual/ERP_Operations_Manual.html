@@ -9,142 +9,433 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
+        :root {
+            /* Dark Mode (Default - Catppuccin Mocha) */
+            --bg-color: #1e1e2e;
+            --text-color: #cdd6f4;
+            --sidebar-bg: #11111b;
+            --border-color: #313244;
+            --nav-link-color: #a6adc8;
+            --nav-link-hover-bg: #313244;
+            --nav-link-hover-text: #89b4fa;
+            --nav-link-active-bg: #89b4fa;
+            --nav-link-active-text: #11111b;
+            --h1-color: #89b4fa;
+            --h2-color: #f5c2e7;
+            --h3-color: #94e2d5;
+            --h4-color: #f9e2af;
+            --table-bg: #181825;
+            --th-bg: #313244;
+            --th-text: #cdd6f4;
+            --tr-hover: #313244;
+            --code-bg: #313244;
+            --code-color: #f38ba8;
+            --pre-bg: #11111b;
+            --card-bg: #181825;
+            --shadow-color: rgba(0, 0, 0, 0.4);
+            --accent-color: #89b4fa;
+            --scrollbar-bg: #1e1e2e;
+            --scrollbar-thumb: #313244;
+        }
+
+        :root.light {
+            /* Light Mode (Modern Slate) */
+            --bg-color: #F8FAFC;
+            --text-color: #1E293B;
+            --sidebar-bg: #FFFFFF;
+            --border-color: #E2E8F0;
+            --nav-link-color: #475569;
+            --nav-link-hover-bg: #F1F5F9;
+            --nav-link-hover-text: #2563EB;
+            --nav-link-active-bg: #2563EB;
+            --nav-link-active-text: #FFFFFF;
+            --h1-color: #1E3A8A;
+            --h2-color: #0F766E;
+            --h3-color: #0369A1;
+            --h4-color: #B45309;
+            --table-bg: #FFFFFF;
+            --th-bg: #F1F5F9;
+            --th-text: #1E293B;
+            --tr-hover: #F8FAFC;
+            --code-bg: #F1F5F9;
+            --code-color: #DC2626;
+            --pre-bg: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --accent-color: #2563EB;
+            --scrollbar-bg: #F1F5F9;
+            --scrollbar-thumb: #CBD5E1;
+        }
+
         html {
             scroll-behavior: smooth;
-            scroll-padding-top: 80px;
+            scroll-padding-top: 100px;
         }
+        
         body {
-            background-color: #1e1e2e;
-            color: #cdd6f4;
-            font-family: 'Segoe UI', Microsoft JhengHei, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, Microsoft JhengHei, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
+
+        /* Reading Progress Indicator */
+        .progress-bar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: transparent;
+            z-index: 1000;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--accent-color);
+            transition: width 0.1s ease;
+        }
+
         /* Sidebar Styling */
         .sidebar {
-            background-color: #11111b;
-            border-right: 1px solid #313244;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
             height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
-            width: 280px;
+            width: 300px;
             overflow-y: auto;
             padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            z-index: 100;
         }
+        
         .main-content {
-            margin-left: 280px;
-            padding: 2.5rem;
-            max-width: 1000px;
+            margin-left: 300px;
+            padding: 3rem;
+            max-width: 1100px;
+            transition: margin-left 0.3s ease;
         }
+
         .nav-link {
             display: block;
             padding: 0.5rem 0.75rem;
             border-radius: 0.375rem;
-            color: #a6adc8;
-            transition: all 0.2s;
+            color: var(--nav-link-color);
+            transition: all 0.2s ease;
             margin-bottom: 0.25rem;
+            text-decoration: none;
+            cursor: pointer;
         }
+        
         .nav-link:hover {
-            background-color: #313244;
-            color: #89b4fa;
+            background-color: var(--nav-link-hover-bg);
+            color: var(--nav-link-hover-text);
         }
+
+        .nav-link.active-section {
+            background-color: var(--nav-link-active-bg) !important;
+            color: var(--nav-link-active-text) !important;
+            font-weight: bold;
+        }
+
+        /* Search input inside sidebar */
+        .search-container {
+            position: relative;
+            margin-bottom: 1.25rem;
+        }
+        .search-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+        }
+
+        /* Typography */
         h1 {
-            color: #89b4fa;
-            border-bottom: 2px solid #313244;
+            color: var(--h1-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.75rem;
+            margin-top: 2.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            transition: color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        h2 {
+            color: var(--h2-color);
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 0.5rem;
             margin-top: 2rem;
-            margin-bottom: 1.5rem;
-            font-size: 2.25rem;
+            margin-bottom: 1.25rem;
+            font-size: 1.75rem;
             font-weight: 700;
+            transition: color 0.3s ease, border-color 0.3s ease;
         }
-        h2 {
-            color: #f5c2e7;
-            border-bottom: 1px solid #313244;
-            padding-bottom: 0.35rem;
-            margin-top: 1.75rem;
-            margin-bottom: 1rem;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
+        
         h3 {
-            color: #94e2d5;
+            color: var(--h3-color);
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.35rem;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        
+        h4 {
+            color: var(--h4-color);
             margin-top: 1.25rem;
             margin-bottom: 0.75rem;
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             font-weight: 600;
+            transition: color 0.3s ease;
         }
-        h4 {
-            color: #f9e2af;
-            margin-top: 1rem;
+
+        p, ul, ol {
+            line-height: 1.75;
+            margin-bottom: 1.25rem;
+            font-size: 1rem;
+        }
+
+        ul, ol {
+            padding-left: 1.5rem;
+        }
+
+        li {
             margin-bottom: 0.5rem;
-            font-size: 1.1rem;
-            font-weight: 600;
         }
+
+        hr {
+            border: 0;
+            border-top: 1px solid var(--border-color);
+            margin: 2.5rem 0;
+            transition: border-color 0.3s ease;
+        }
+
+        /* Beautiful styled tables */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 1.25rem 0;
-            background-color: #181825;
-            border: 1px solid #313244;
-            border-radius: 0.375rem;
+            margin: 1.5rem 0;
+            background-color: var(--table-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
             overflow: hidden;
+            box-shadow: 0 4px 6px -1px var(--shadow-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
+        
         th, td {
-            padding: 0.75rem 1rem;
+            padding: 0.875rem 1.25rem;
             text-align: left;
-            border-bottom: 1px solid #313244;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.925rem;
         }
+        
         th {
-            background-color: #313244;
-            color: #cdd6f4;
-            font-weight: 600;
+            background-color: var(--th-bg);
+            color: var(--th-text);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
         }
+        
         tr:hover {
-            background-color: #313244;
+            background-color: var(--tr-hover);
         }
+
+        /* Styling code & pre */
         code {
-            background-color: #313244;
-            color: #f38ba8;
-            padding: 0.125rem 0.25rem;
+            background-color: var(--code-bg);
+            color: var(--code-color);
+            padding: 0.2rem 0.4rem;
             border-radius: 0.25rem;
-            font-family: monospace;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.85em;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
+        
         pre {
-            background-color: #11111b;
-            padding: 1rem;
-            border-radius: 0.375rem;
+            background-color: var(--pre-bg);
+            padding: 1.25rem;
+            border-radius: 0.5rem;
             overflow-x: auto;
-            border: 1px solid #313244;
-            margin: 1rem 0;
+            border: 1px solid var(--border-color);
+            margin: 1.5rem 0;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
+        
         pre code {
-            background-color: transparent;
-            color: #cdd6f4;
-            padding: 0;
+            background-color: transparent !important;
+            color: var(--text-color) !important;
+            padding: 0 !important;
+            font-size: 0.9em;
         }
+
+        /* Image styling */
         img {
             max-width: 100%;
-            border-radius: 0.5rem;
-            border: 1px solid #313244;
-            margin: 1.5rem 0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            margin: 2rem 0;
+            box-shadow: 0 10px 15px -3px var(--shadow-color);
+            transition: border-color 0.3s ease;
         }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--scrollbar-bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-color);
+        }
+
+        /* Mobile Layout */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                width: 260px;
+                box-shadow: 4px 0 10px var(--shadow-color);
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+            .mobile-header {
+                display: flex !important;
+            }
+        }
+
+        /* Mobile header and hamburger button */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background-color: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 99;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.25rem;
+        }
+        .hamburger-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        /* Theme toggle button in sidebar footer */
+        .sidebar-footer {
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .theme-toggle-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .theme-toggle-btn:hover {
+            background-color: var(--nav-link-hover-bg);
+            border-color: var(--accent-color);
+        }
+
         .toc-list {
             list-style: none;
             padding-left: 0;
+            margin: 0;
         }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <div class="mb-6">
-            <h2 class="text-xl font-bold text-blue-400 border-none m-0 p-0">TUNGFU 東富電子</h2>
-            <span class="text-xs text-gray-500">標準作業程序 (SOP) 手冊</span>
+    <!-- Reading Progress Indicator -->
+    <div class="progress-bar-container">
+        <div id="progress" class="progress-bar"></div>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <button class="hamburger-btn" onclick="toggleMobileSidebar()">
+            <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
+        <span class="font-bold text-sm" style="color: var(--h1-color);">東富電子 ERP 操作手冊</span>
+        <div style="width: 32px;"></div>
+    </div>
+
+    <div id="sidebar" class="sidebar">
+        <div>
+            <div class="mb-4">
+                <h2 class="text-lg font-black m-0 p-0" style="color: var(--accent-color); border: none;">TUNGFU 東富電子</h2>
+                <span class="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">標準作業程序 (SOP) 手冊</span>
+            </div>
+            
+            <!-- Search Box -->
+            <div class="search-container">
+                <input type="text" id="search-nav" class="search-input" placeholder="🔍 搜尋章節與 SOP..." onkeyup="filterNavigation()">
+            </div>
+            
+            <nav>
+                <ul id="dynamic-nav" class="toc-list">
+                    <!-- Navigation links will be dynamically populated -->
+                </ul>
+            </nav>
         </div>
-        <nav>
-            <ul id="dynamic-nav" class="toc-list">
-                <!-- Navigation links will be dynamically populated -->
-            </ul>
-        </nav>
+        
+        <!-- Sidebar Footer with Theme Toggle -->
+        <div class="sidebar-footer">
+            <span class="text-xs text-gray-400">v1.7 (2026)</span>
+            <button class="theme-toggle-btn" onclick="toggleTheme()">
+                <span id="theme-btn-icon">☀️</span>
+                <span id="theme-btn-text">亮色模式</span>
+            </button>
+        </div>
     </div>
     <div class="main-content">
         <h1>📖 東富電子模切業 ERP 系統標準操作手冊 (Operations Manual)</h1>
@@ -891,10 +1182,79 @@
     </div>
     
     <script>
-        // Dynamic Navigation Auto-Binder
+        // UI-UX-Pro-Max Design Intelligence Script
+
+        // 1. Theme Toggle Persistence (Light / Dark Mode)
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            if (savedTheme === 'light') {
+                document.documentElement.classList.add('light');
+                updateThemeToggleUI(true);
+            } else {
+                document.documentElement.classList.remove('light');
+                updateThemeToggleUI(false);
+            }
+        }
+
+        function toggleTheme() {
+            const isLight = document.documentElement.classList.toggle('light');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            updateThemeToggleUI(isLight);
+        }
+
+        function updateThemeToggleUI(isLight) {
+            const icon = document.getElementById('theme-btn-icon');
+            const text = document.getElementById('theme-btn-text');
+            if (icon && text) {
+                icon.textContent = isLight ? '🌙' : '☀️';
+                text.textContent = isLight ? '深色模式' : '亮色模式';
+            }
+        }
+
+        // 2. Scroll Progress Bar
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
+            const progressBar = document.getElementById('progress');
+            if (progressBar) {
+                progressBar.style.width = scrolled + '%';
+            }
+        });
+
+        // 3. Mobile Sidebar Toggle
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('mobile-open');
+            }
+        }
+
+        // 4. Instant Real-time Search Box Filter
+        function filterNavigation() {
+            const query = document.getElementById('search-nav').value.trim().toLowerCase();
+            const navLinks = document.querySelectorAll('#dynamic-nav li');
+            
+            navLinks.forEach(li => {
+                const a = li.querySelector('a');
+                if (a) {
+                    const text = a.textContent.toLowerCase();
+                    if (text.includes(query)) {
+                        li.style.display = '';
+                    } else {
+                        li.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        // 5. Dynamic Navigation Generator & Active Section Highlighting
         document.addEventListener("DOMContentLoaded", function() {
+            initTheme();
+
             const headings = document.querySelectorAll(".main-content h2, .main-content h3");
             const navContainer = document.getElementById("dynamic-nav");
+            const observerEntries = [];
             
             headings.forEach((heading, idx) => {
                 // Generate a unique ID if not present
@@ -911,18 +1271,68 @@
                 const a = document.createElement("a");
                 a.href = "#" + heading.id;
                 a.textContent = heading.textContent;
+                a.id = "nav-link-" + heading.id;
                 
-                // Nest indentations
+                // Nest indentations and apply styles based on theme colors
                 if (heading.tagName === "H2") {
-                    a.className = "nav-link font-semibold text-pink-300";
-                    li.className = "mt-4";
+                    a.className = "nav-link font-semibold text-[13px]";
+                    a.style.color = "var(--h2-color)";
+                    li.className = "mt-3";
                 } else {
-                    a.className = "nav-link text-sm pl-6 text-gray-400";
+                    a.className = "nav-link text-xs pl-5";
+                    a.style.color = "var(--nav-link-color)";
                     li.className = "pl-2";
                 }
                 
+                // Close mobile sidebar on link click
+                a.addEventListener('click', () => {
+                    const sidebar = document.getElementById('sidebar');
+                    if (sidebar) {
+                        sidebar.classList.remove('mobile-open');
+                    }
+                });
+
                 li.appendChild(a);
                 navContainer.appendChild(li);
+                observerEntries.push({ heading, link: a });
+            });
+
+            // 6. IntersectionObserver for active link highlighting
+            const observerOptions = {
+                root: null,
+                rootMargin: '-10% 0px -75% 0px', // Trigger near top of viewport
+                threshold: 0
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Remove active class from all links
+                        document.querySelectorAll('.nav-link').forEach(link => {
+                            link.classList.remove('active-section');
+                        });
+
+                        // Add active class to corresponding link
+                        const activeLink = document.getElementById("nav-link-" + entry.target.id);
+                        if (activeLink) {
+                            activeLink.classList.add('active-section');
+                            
+                            // Scroll the active link into sidebar view if needed
+                            const sidebar = document.getElementById('sidebar');
+                            if (sidebar) {
+                                const rect = activeLink.getBoundingClientRect();
+                                const sidebarRect = sidebar.getBoundingClientRect();
+                                if (rect.top < sidebarRect.top || rect.bottom > sidebarRect.bottom) {
+                                    activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                                }
+                            }
+                        }
+                    }
+                });
+            }, observerOptions);
+
+            headings.forEach(heading => {
+                observer.observe(heading);
             });
         });
     </script>
