@@ -14,7 +14,8 @@ import {
   SettingOutlined,
   ContactsOutlined,
   ExclamationCircleFilled,
-  HomeOutlined
+  HomeOutlined,
+  BookOutlined
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -325,6 +326,18 @@ export default function MainLayout() {
     };
 
     items.push(...mapNodes(permissionTree));
+
+    // 📖 靜態追加安全且溫暖的系統操作手冊連結 (以新分頁開啟)
+    items.push({
+      key: 'operations-manual',
+      icon: <BookOutlined />,
+      label: (
+        <a href="/manual/ERP_Operations_Manual.html" target="_blank" rel="noopener noreferrer">
+          系統操作手冊
+        </a>
+      )
+    });
+
     return items;
   };
 
