@@ -20,6 +20,7 @@ import {
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useThemeStore } from '@/stores/useThemeStore';
+import { useErpConfigStore } from '@/stores/useErpConfigStore';
 import { ROUTES } from '@/constants/routes';
 import { useSystemVersion } from '@/hooks/useSystemVersion';
 
@@ -111,6 +112,8 @@ export default function MainLayout() {
   const location = useLocation();
   const { user, permissionTree, fetchUserProfile, logout, hasPermission } = useAuthStore();
   const { mode, toggleTheme } = useThemeStore();
+  const companyName = useErpConfigStore((state) => state.getCompanyName());
+  const getLogoUrl = useErpConfigStore((state) => state.getLogoUrl);
   const [loading, setLoading] = useState(true);
   const { frontendVersion, backendVersion } = useSystemVersion();
 
@@ -173,6 +176,10 @@ export default function MainLayout() {
   }, []);
 
   const handleMenuClick = ({ key }: { key: string }) => {
+    if (key === 'operations-manual') {
+      // 💡 靜態手冊連結不參與 React Router 導覽，直接 return 讓 <a> 標籤的預設 href 點擊行為 (新分頁開啟) 順利執行
+      return;
+    }
     navigate(key);
   };
 
@@ -458,11 +465,7 @@ export default function MainLayout() {
             onClick={() => setCollapsed(!collapsed)}
             title="切換選單"
           >
-            {collapsed ? (
-              <img src={mode === 'dark' ? (import.meta.env.VITE_LOGO_DARK || '/assets/tungfu-logo-dark.svg') : (import.meta.env.VITE_LOGO_LIGHT || '/assets/tungfu-logo-light.svg')} alt="Logo" className="w-8 h-8 object-cover object-left" />
-            ) : (
-              <img src={mode === 'dark' ? (import.meta.env.VITE_LOGO_DARK || '/assets/tungfu-logo-dark.svg') : (import.meta.env.VITE_LOGO_LIGHT || '/assets/tungfu-logo-light.svg')} alt="Logo" className="h-8 w-auto" />
-            )}
+            <img src={getLogoUrl(mode)} alt="Logo" className="h-8 w-auto flex-shrink-0 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" />
           </div>
           <div className="flex-1 overflow-y-auto overflow-x-hidden">
             <Menu
@@ -476,10 +479,15 @@ export default function MainLayout() {
               style={{ borderRight: 0 }}
             />
           </div>
-          <div className={`p-4 text-center text-xs flex-shrink-0 transition-opacity duration-300 ${collapsed ? 'opacity-0 pointer-events-none h-0 p-0 overflow-hidden' : 'opacity-100'} ${mode === 'dark' ? 'text-gray-500 border-t border-[#303030] bg-[#141414]' : 'text-gray-400 border-t border-gray-200 bg-[#ffffff]'}`}>
-            <div className="flex flex-col space-y-1">
-              <div>前端: <span className="font-mono">{frontendVersion}</span></div>
-              <div>後端: <span className="font-mono">{backendVersion}</span></div>
+          <div className={`p-4 text-center text-xs flex-shrink-0 transition-all duration-300 ${collapsed ? 'opacity-0 pointer-events-none h-0 p-0 overflow-hidden border-t-0' : 'opacity-100'} ${mode === 'dark' ? 'text-gray-500 border-t border-[#303030] bg-[#141414]' : 'text-gray-400 border-t border-gray-200 bg-[#ffffff]'}`}>
+            <div className="flex flex-col space-y-1.5">
+              <div className="font-bold tracking-wider mb-0.5 truncate text-sm select-none" style={{ color: mode === 'dark' ? '#bfbfbf' : '#434343' }} title={companyName}>
+                {companyName}
+              </div>
+              <div className="flex justify-center gap-3 text-[10px] opacity-85">
+                <div>前端: <span className="font-mono">{frontendVersion}</span></div>
+                <div>後端: <span className="font-mono">{backendVersion}</span></div>
+              </div>
             </div>
           </div>
         </div>

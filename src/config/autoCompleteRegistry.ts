@@ -1,4 +1,4 @@
-import { getApiV1Customers, getApiV1CustomersByCode, getApiV1MaterialSuppliers, getApiV1MaterialSuppliersByCode, getApiV1OutsourceVendors, getApiV1OutsourceVendorsByCode, getApiV1ToolingSuppliers, getApiV1ToolingSuppliersByCode, getApiV1Material, getApiV1MaterialByCode, getApiV1Product, getApiV1ProductByCode, getApiV1BusinessPartnersByCode, getApiV1BusinessPartnersByBusinessPartnerCodeContacts, getApiV1BusinessPartnersByBusinessPartnerCodeContactsByContactId, getApiV1Mold, getApiV1MoldByCode, getApiV1Storage, getApiV1StorageByCode, getApiV1Employee } from '@/api/generated';
+import { getApiV1Customers, getApiV1CustomersByCode, getApiV1MaterialSuppliers, getApiV1MaterialSuppliersByCode, getApiV1OutsourceVendors, getApiV1OutsourceVendorsByCode, getApiV1ToolingSuppliers, getApiV1ToolingSuppliersByCode, getApiV1Material, getApiV1MaterialByCode, getApiV1Product, getApiV1ProductByCode, getApiV1BusinessPartnersByCode, getApiV1BusinessPartnersByBusinessPartnerCodeContacts, getApiV1BusinessPartnersByBusinessPartnerCodeContactsByContactId, getApiV1Mold, getApiV1MoldByCode, getApiV1Storage, getApiV1StorageByCode, getApiV1Employee, getApiV1MaterialInventoryRolls } from '@/api/generated';
 import { BusinessPartnerRoleTypes } from '@/constants';
 
 export interface AutoCompleteConfig {
@@ -188,6 +188,46 @@ export const AUTO_COMPLETE_REGISTRY: Record<string, AutoCompleteConfig> = {
     fieldNames: {
       label: 'name',
       value: 'code'
+    },
+    triggerLength: 0
+  },
+  MATERIAL_ROLL: {
+    queryFn: async (keyword: string, additionalParams?: any) => {
+      // 1. 優先以 LPN 卷卡號 (RollNo) 進行模糊檢索
+      let res = await getApiV1MaterialInventoryRolls({
+        query: {
+          RollNo: keyword || undefined,
+          RollStatus: 'Available',
+          pageSize: -1,
+          ...additionalParams
+        } as any
+      });
+      let data = (res.data as any)?.data?.data || (res.data as any)?.data || [];
+      
+      // 2. 若查無此卡號，則以原料品編或原料名稱 (MaterialCode) 進行聯動檢索，帶出符合條件的卷卡
+      if (data.length === 0 && keyword) {
+        res = await getApiV1MaterialInventoryRolls({
+          query: {
+            MaterialCode: keyword,
+            RollStatus: 'Available',
+            pageSize: -1,
+            ...additionalParams
+          } as any
+        });
+        data = (res.data as any)?.data?.data || (res.data as any)?.data || [];
+      }
+      return data;
+    },
+    fetchByValue: async (rollNo: string) => {
+      const res = await getApiV1MaterialInventoryRolls({
+        query: { RollNo: rollNo, pageSize: 1 } as any
+      });
+      const list = (res.data as any)?.data?.data || (res.data as any)?.data || [];
+      return list[0] || null;
+    },
+    fieldNames: {
+      label: (item: any) => `${item.rollNo} [${item.materialName || item.materialCode}] - 寬:${item.widthMm}mm / 餘:${item.currentQtyAux || 0}${item.rollNo.includes('-S') ? 'PCS' : 'M'}`,
+      value: 'rollNo'
     },
     triggerLength: 0
   },

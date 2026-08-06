@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './router';
 import { useThemeStore } from './stores/useThemeStore';
+import { useErpConfigStore } from './stores/useErpConfigStore';
 import { useEffect } from 'react';
 import { DevBanner } from './components/DevBanner';
 import { antdGlobal } from './utils/antdGlobal';
@@ -35,6 +36,19 @@ export default function App() {
   const { mode } = useThemeStore();
   const requestCount = useLoadingStore((state) => state.requestCount);
   const loadingMessage = useLoadingStore((state) => state.loadingMessage);
+  
+  const fetchErpSettings = useErpConfigStore((state) => state.fetchErpSettings);
+  const companyName = useErpConfigStore((state) => state.getCompanyName());
+
+  useEffect(() => {
+    fetchErpSettings();
+  }, [fetchErpSettings]);
+
+  useEffect(() => {
+    if (companyName) {
+      document.title = `${companyName} ERP`;
+    }
+  }, [companyName]);
 
   useEffect(() => {
     if (mode === 'dark') {

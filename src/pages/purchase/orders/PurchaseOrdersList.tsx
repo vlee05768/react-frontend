@@ -2,7 +2,7 @@
 import PageCard from '@/components/common/PageCard';
 import { useMemo } from 'react';
 import { Button, Space, App, Divider, Modal } from 'antd';
-import { PlusOutlined, SearchOutlined, ClearOutlined } from '@ant-design/icons';
+import { PlusOutlined, SearchOutlined, ClearOutlined, PrinterOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -21,6 +21,8 @@ import { useErpListQuery } from '@/hooks/useErpListQuery';
 import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
 import StandardErpTable from '@/components/Table/StandardErpTable';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
+import { useFileDownload } from '@/hooks/useFileDownload';
+import { getApiV1PurchaseOrderByCodePdf } from '@/api/generated/sdk.gen';
 
 export default function PurchaseOrdersList() {
   const navigate = useNavigate();
@@ -29,6 +31,20 @@ export default function PurchaseOrdersList() {
   const { modal, message } = App.useApp();
   const { hasPermission } = useAuthStore();
   const { params, setParams } = usePurchaseOrderQueryStore();
+
+  const { downloadFile } = useFileDownload();
+
+  const handlePrintPo = (code: string) => {
+    downloadFile({
+      apiFunction: () => getApiV1PurchaseOrderByCodePdf({
+        path: { code },
+        responseType: "blob"
+      }),
+      successMessage: "採購單報表 PDF 導出成功！",
+      filename: `PO-${code}.pdf`,
+      openInNewTab: true
+    });
+  };
 
   const listQuery = useErpListQuery({
     params,
@@ -85,18 +101,29 @@ export default function PurchaseOrdersList() {
             recordName={`採購單 ${record.code}`}
             deleteConfirmType="modal"
             extra={
-              <DocumentWatchButton
-                documentType="PurchaseOrder"
-                documentKey={record.code}
-                compact={true}
-              />
+              <Space size={4}>
+                <DocumentWatchButton
+                  documentType="PurchaseOrder"
+                  documentKey={record.code}
+                  compact={true}
+                />
+                {!isDraft && (
+                  <Button
+                    size="small"
+                    type="text"
+                    icon={<PrinterOutlined style={{ color: '#722ed1' }} />}
+                    onClick={() => handlePrintPo(record.code!)}
+                    title="列印採購報表"
+                  />
+                )}
+              </Space>
             }
           />
         );
       },
     };
     return buildTableColumns(baseColumns, actionColumn, params.SortRules);
-  }, [hasPermission, navigate, modal, deleteMutation, params.SortRules]);
+  }, [hasPermission, navigate, modal, deleteMutation, params.SortRules, handlePrintPo]);
 
   return (
     <div className="p-4 pb-0 flex flex-col h-[calc(100vh-64px)]">

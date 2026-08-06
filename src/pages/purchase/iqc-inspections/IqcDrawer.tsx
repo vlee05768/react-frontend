@@ -298,19 +298,19 @@ export default function IqcDrawer({
 
   // 💡 根據標準厚度、標準長度與內紙管芯外徑動態反算出「預設實測外徑 (Do)」
   const defaultOuterDia = useMemo(() => {
-    const Di = detail?.measuredCoreDiaMm ?? 86.0;
-    const L = standardLength ?? detail?.standardLength ?? 300.0;
-    const t = detail?.standardThickness ?? 0.050;
+    const Di = Number(detail?.measuredCoreDiaMm ?? 86.0);
+    const L = Number(standardLength ?? detail?.standardLength ?? 300.0);
+    const t = Number(detail?.standardThickness ?? 0.050);
 
-    if (!Di || !L || !t || Di <= 0 || L <= 0 || t <= 0) return 250.0;
+    if (isNaN(Di) || isNaN(L) || isNaN(t) || Di <= 0 || L <= 0 || t <= 0) return 250.0;
     try {
-      const insideSq = Math.pow(Number(Di), 2) + ((Number(L) * 4000.0 * Number(t)) / Math.PI);
+      const insideSq = Math.pow(Di, 2) + ((L * 4000.0 * t) / Math.PI);
       const Do = Math.sqrt(insideSq);
       return Math.round(Do * 10) / 10;
     } catch {
       return 250.0;
     }
-  }, [detail]);
+  }, [detail, standardLength]); // 💡 納入 standardLength 確保狀態載入後即時重算
 
   const currentStatus = localStatus || detail?.inspectionStatus || "Pending";
   const isReadOnlyPermanent =
@@ -325,8 +325,13 @@ export default function IqcDrawer({
   // ==========================================
   // 💡 捲料物理長度即時逆算公式與狀態連動 (Caliper Length Calculation Helpers)
   // ==========================================
-  const calculateRollLength = useCallback((Do: number, Di: number, t: number): number => {
-    if (!Do || !Di || !t) return 0;
+  const calculateRollLength = useCallback((DoInput: any, DiInput: any, tInput: any): number => {
+    // 💡 剛性防呆：強制轉為 Number，防範 JavaScript "120.0" <= "86.0" 進行 Alphabetical 字母比較導致恆為 True 的惡性 Bug！
+    const Do = Number(DoInput);
+    const Di = Number(DiInput);
+    const t = Number(tInput);
+
+    if (isNaN(Do) || isNaN(Di) || isNaN(t) || !Do || !Di || !t) return 0;
     if (Do <= Di || t <= 0) return 0;
     const length = (Math.PI * (Math.pow(Do, 2) - Math.pow(Di, 2))) / (4000 * t);
     return Math.round(length * 10) / 10; // 四捨五入到小數點第一位，與 UI 規格 100% 物理對齊
@@ -335,13 +340,13 @@ export default function IqcDrawer({
   const recalculateRollLengthForRoll = useCallback((r: any, standardThickness?: number) => {
     if (!isRollMaterial) return r;
 
-    const Do = r.measuredOuterDiaMm ?? defaultOuterDia;
+    const Do = Number(r.measuredOuterDiaMm ?? defaultOuterDia);
 
     const DiItem = r.inspectionItems?.find((i: any) => i.itemCode === "core_dia");
-    const Di = parseFloat(DiItem?.measuredValue) || 86.00;
+    const Di = Number(DiItem?.measuredValue ?? 86.00);
 
     const tItem = r.inspectionItems?.find((i: any) => i.itemCode === "thickness");
-    const t = parseFloat(tItem?.measuredValue) || standardThickness || 0.050;
+    const t = Number(tItem?.measuredValue ?? standardThickness ?? 0.050);
 
     const calculatedMeters = calculateRollLength(Do, Di, t);
 
@@ -353,7 +358,12 @@ export default function IqcDrawer({
       return i;
     });
 
-    return { ...r, inspectionItems: updatedItems };
+    return { 
+      ...r, 
+      inspectionItems: updatedItems,
+      measuredLengthMm: calculatedMeters, // 💡 剛性同步：將逆算出的長度（公尺）直接同步更新到最上端屬性
+      lengthMm: calculatedMeters,         // 💡 同步長度屬性，保障儲存與 IQC 過帳正常
+    };
   }, [isRollMaterial, calculateRollLength, defaultOuterDia]);
 
   const sampleCount = isReadOnlyPermanent
@@ -2012,7 +2022,7 @@ export default function IqcDrawer({
         render: (val: number, record: any) => (
           <InputNumber
             size="small"
-            value={val !== undefined && val !== null ? val : defaultOuterDia}
+            value={val !== undefined && val !== null ? val : undefined} // 💡 UX 拋光：允許為空，使使用者在倒退 (Backspace) 清除時，輸入框能保持空白，絕不突兀塞入預設值
             placeholder="實測外徑"
             disabled={isReadOnly}
             min={0}
@@ -2023,7 +2033,8 @@ export default function IqcDrawer({
               setRolls((prevRolls) =>
                 prevRolls.map((r) => {
                   if (r.rollNo === record.rollNo) {
-                    const updated = { ...r, measuredOuterDiaMm: num || defaultOuterDia };
+                    // 💡 UX 拋光：當 num 為 null 時，直接設定為 null，允許使用者清除後重新輸入
+                    const updated = { ...r, measuredOuterDiaMm: num };
                     return recalculateRollLengthForRoll(updated, detail?.standardThickness);
                   }
                   return r;

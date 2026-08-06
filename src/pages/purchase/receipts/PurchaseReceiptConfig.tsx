@@ -389,9 +389,9 @@ export const getItemColumns = (
       align: "right" as const,
       render: (val: number, record: any) => (
         <span className="font-semibold text-[var(--ant-color-success)]">
-          {val != null ? Number(val.toFixed(4)).toLocaleString("zh-TW") : "0"}
+          {val != null ? Number(val.toFixed(2)).toLocaleString("zh-TW") : "0"}
           <span className="text-xs text-gray-500 ml-1 font-normal">
-            {isMold ? " pcs" : (record.isRoll ? " m²" : " pcs")}
+            {isMold ? " pcs" : (record.isRoll ? " 卷" : " pcs")}
           </span>
         </span>
       ),
@@ -413,43 +413,12 @@ export const getItemColumns = (
       }
     },    
     {
-      title: "面積(m²)",
-      dataIndex: "quantity",
-      width: 100,
-      align: "right" as const,
-      render: (val: number, record: any) => {
-        if (isMold) return "-";
-        if (record.isRoll) {
-          return (
-            <span className="font-semibold text-indigo-600 dark:text-indigo-400">
-              {val != null ? Number(val.toFixed(4)).toLocaleString("zh-TW") : "0"} m²
-            </span>
-          );
-        }
-        const width = record.extraData?.width || record.width || 0;
-        const length = record.extraData?.length || record.length || 0;
-        const pcs = record.quantity || 0;
-        const area = pcs * (width / 1000) * (length / 1000);
-        return (
-          <span className="text-gray-400">
-            {area > 0 ? `${Number(area.toFixed(4)).toLocaleString("zh-TW")} m²` : "-"}
-          </span>
-        );
-      }
-    },
-    {
       title: "金額小計",
       dataIndex: "amount",
       width: 100,
       align: "right" as const,
       render: (val: number) =>
         val != null ? Number(val).toLocaleString("zh-TW") : "0",
-    },
-    {
-      title: "卷/包",
-      dataIndex: "rollCount",
-      width: 60,
-      align: "right" as const,
     },
     {
       title: "規格寬度(mm)",

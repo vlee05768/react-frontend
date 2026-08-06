@@ -154,6 +154,39 @@ export const mainTableColumns = (): TableColumnConfig[] => [
       return <Tag color="default">{form || '-'}</Tag>;
     }
   },
+  { 
+    label: '標準規格', 
+    name: 'standardSpec', 
+    width: 140,
+    render: (_: any, record: any) => {
+      const isRoll = record.materialForm === 'R';
+      const width = record.standardWidth;
+      const length = record.standardLength;
+      
+      if (width == null || length == null) return "-";
+
+      const formattedWidth = Number(width).toLocaleString();
+      const formattedLength = Number(length).toLocaleString();
+      
+      if (isRoll) {
+        return (
+          <div className="flex items-center gap-1 font-mono font-medium">
+            <span className="text-indigo-600 dark:text-indigo-400">{formattedWidth} mm</span>
+            <span className="text-gray-400">x</span>
+            <span className="text-emerald-600 dark:text-emerald-400">{formattedLength} m</span>
+          </div>
+        );
+      } else {
+        return (
+          <div className="flex items-center gap-1 font-mono font-medium">
+            <span className="text-indigo-600 dark:text-indigo-400">{formattedWidth} mm</span>
+            <span className="text-gray-400">x</span>
+            <span className="text-indigo-600 dark:text-indigo-400">{formattedLength} mm</span>
+          </div>
+        );
+      }
+    }
+  },
   { label: '原料名稱', name: 'materialName', width: 180, ellipsis: true },
   { 
     label: '到貨總量', 

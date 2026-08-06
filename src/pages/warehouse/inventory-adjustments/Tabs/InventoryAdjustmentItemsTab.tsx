@@ -28,6 +28,7 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
   const queryClient = useQueryClient();
   
   const [isCreating, setIsCreating] = useState(false);
+  const [creatingType, setCreatingType] = useState<'P' | 'M'>('P');
   const [editingItem, setEditingItem] = useState<any>(null);
 
   // Queries
@@ -129,10 +130,30 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
       return;
     }
 
+    const payload = { ...values };
+    if (values.inventoryType === 'M') {
+      // 🔮 模切業專屬：自動建置符合後端 ProcessMaterialAdjustmentConfirmAsync 預期之 ExtraData JSON
+      payload.extraData = {
+        materialForm: "R", // 預設為捲料，本資料結構亦完美相容 R 與 S 的後端解析
+        rollNo: values.inventoryCode,
+        widthMm: Number(values.widthMm || 0),
+        lengthMm: Number(values.lengthMm || 0),
+        adjustQty: Number(values.quantity || 0),
+        adjustedRolls: [
+          {
+            rollNo: values.inventoryCode,
+            adjustQty: Number(values.quantity || 0),
+            widthMm: Number(values.widthMm || 0),
+            notes: values.notes || ""
+          }
+        ]
+      };
+    }
+
     if (isCreating) {
-      createMutation.mutate(values);
+      createMutation.mutate(payload);
     } else if (editingItem) {
-      updateMutation.mutate({ lineNumber: editingItem.lineNumber, values });
+      updateMutation.mutate({ lineNumber: editingItem.lineNumber, values: payload });
     }
   };
 
@@ -144,6 +165,32 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
   // If in create or edit mode, show form
   if (isCreating || editingItem) {
     const readonly = !canEdit;
+    const currentType = editingItem ? editingItem.inventoryType : creatingType;
+
+    const getFormDefaultValues = () => {
+      if (editingItem) {
+        let extra: any = null;
+        if (editingItem.extraData) {
+          if (typeof editingItem.extraData === "string") {
+            try {
+              extra = JSON.parse(editingItem.extraData);
+            } catch {}
+          } else {
+            extra = editingItem.extraData;
+          }
+        }
+        return {
+          ...editingItem,
+          widthMm: extra?.widthMm || 0
+        };
+      }
+      return { 
+        inventoryType: creatingType, 
+        quantity: 1, 
+        targetStorageCode: creatingType === 'M' ? 'TW-GEN-01' : 'TW-FG-GEN' 
+      };
+    };
+
     return (
       <div className={readonly ? "view-mode-form" : ""}>
         <div className="flex justify-between mb-4">
@@ -166,8 +213,8 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
         </div>
         <DynamicForm
           formId="inventoryAdjustmentItemForm"
-          fields={itemFormConfig(!isCreating)}
-          defaultValues={editingItem || { inventoryType: 'P', quantity: 1, unitPrice: 0, targetStorageCode: 'TW-FG-GEN' }}
+          fields={itemFormConfig(!isCreating, currentType)}
+          defaultValues={getFormDefaultValues()}
           onSubmit={handleSubmit}
           hideDefaultFooter
           isViewMode={readonly}
@@ -187,9 +234,29 @@ export default function InventoryAdjustmentItemsTab({ documentNumber, isMasterVi
         </div>
         <div>
           {canEdit && (
-            <Button type="primary" icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={() => setIsCreating(true)}>
-              新增明細
-            </Button>
+            <Space>
+              <Button 
+                type="primary" 
+                icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
+                onClick={() => {
+                  setCreatingType('P');
+                  setIsCreating(true);
+                }}
+              >
+                新增產品明細
+              </Button>
+              <Button 
+                type="default" 
+                style={{ color: '#52c41a', borderColor: '#52c41a' }}
+                icon={<PlusOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} 
+                onClick={() => {
+                  setCreatingType('M');
+                  setIsCreating(true);
+                }}
+              >
+                新增原料明細
+              </Button>
+            </Space>
           )}
         </div>
       </div>

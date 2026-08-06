@@ -117,115 +117,163 @@ export const itemTableColumns = (): TableColumnConfig[] => [
     }
   },
   { label: "產品/原料代碼", name: "inventoryCode", width: 140 },
-  { label: "品名", name: "inventoryName", width: 180, render: (val: string) => <EllipsisText text={val} maxWidth={160} /> },
   { 
-    label: "單價", 
-    name: "unitPrice", 
-    width: 100, 
-    align: "right",
-    render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : "-"
+    label: "品名", 
+    name: "inventoryName", 
+    width: 220, 
+    render: (val: string, record: any) => {
+      let suffix = "";
+      if (record?.inventoryType === "M") {
+        let extra: any = null;
+        if (record?.extraData) {
+          if (typeof record.extraData === "string") {
+            try {
+              extra = JSON.parse(record.extraData);
+            } catch {}
+          } else {
+            extra = record.extraData;
+          }
+        }
+        const width = extra?.widthMm;
+        if (width != null) {
+          suffix = ` (W:${width}mm)`;
+        }
+      }
+      const displayVal = (val || "") + suffix;
+      return <EllipsisText text={displayVal} maxWidth={200} />;
+    }
   },
   { 
     label: "數量", 
     name: "quantity", 
-    width: 100, 
+    width: 120, 
     align: "right",
-    render: (val: number) => val != null ? Number(val.toFixed(2)).toLocaleString() : "-"
+    render: (val: number, record: any) => {
+      if (val == null) return "-";
+      const formatted = Number(val.toFixed(2)).toLocaleString();
+      return record?.inventoryType === "M" ? `${formatted} m` : formatted;
+    }
   },
   { label: "調整庫位", name: "targetStorageCode", width: 110, align: "center" },
   { label: "備註", name: "notes", width: 150, render: (val: string) => <EllipsisText text={val} maxWidth={130} /> },
 ];
 
-export const itemFormConfig = (_isUpdateMode: boolean = false): FormFieldConfig[] => [
-
-  {
-    name: "inventoryCode",
-    label: "產品代碼",
-    componentType: "Custom",
-    editable: "createOnly",
-    validation: z.string().min(1, "請選擇存貨"),
-    customRender: (field, context, setValue) => {
-      const type = context.values.inventoryType;
-      const configKey = type === "M" ? "MATERIAL" : (type === "S" ? "SEMI_FINISHED" : "PRODUCT");
-      return (
-        <AsyncSelect
-          {...field}
-          configKey={configKey as any}
-          disabled={field.disabled || !type}
-          onChange={(val: any, opt: any) => {
-            field.onChange(val);
-            if (opt?.originalData) {
-              setValue("inventoryName", opt.originalData.name);
-              setValue("unitPrice", opt.originalData.unitPrice || opt.originalData.unitCost || 0);
-            } else {
-              setValue("inventoryName", "");
-            }
-          }}
-        />
-      );
-    },
-    colSpan: 2,
-  },
-  {
-    name: "inventoryName",
-    label: "品名",
-    componentType: "Input",
-    editable: "never",
-    componentProps: { placeholder: "自動帶入" },
-    colSpan: 2,
-  },
+export const itemFormConfig = (_isUpdateMode: boolean = false, currentType?: string): FormFieldConfig[] => {
+  const fields: FormFieldConfig[] = [
     {
-    name: "inventoryType",
-    label: "庫存類型",
-    componentType: "Select",
-    editable: "never",
-    componentProps: {
-      options: [
-        { label: "商品", value: "P" },
-        { label: "原料", value: "M" },
-        { label: "半成品", value: "S" },
-      ]
+      name: "inventoryCode",
+      label: currentType === "M" ? "LPN卷卡號" : "產品代碼",
+      componentType: "Custom",
+      editable: "createOnly",
+      validation: z.string().min(1, currentType === "M" ? "請選擇或輸入 LPN 卷卡號" : "請選擇存貨"),
+      customRender: (field, context, setValue) => {
+        const type = context.values.inventoryType;
+        const configKey = type === "M" ? "MATERIAL_ROLL" : (type === "S" ? "SEMI_FINISHED" : "PRODUCT");
+        return (
+          <AsyncSelect
+            {...field}
+            configKey={configKey as any}
+            disabled={field.disabled || !type}
+            onChange={(val: any, opt: any) => {
+              field.onChange(val);
+              if (opt?.originalData) {
+                const name = opt.originalData.materialName || opt.originalData.name;
+                setValue("inventoryName", name);
+                if (type === "M") {
+                  setValue("widthMm", opt.originalData.widthMm || 0);
+                  setValue("quantity", opt.originalData.currentQtyAux || 0);
+                  setValue("targetStorageCode", opt.originalData.storageCode || "");
+                }
+              } else {
+                setValue("inventoryName", "");
+                if (type === "M") {
+                  setValue("widthMm", 0);
+                  setValue("quantity", 0);
+                  setValue("targetStorageCode", "");
+                }
+              }
+            }}
+          />
+        );
+      },
+      colSpan: 2,
     },
-    validation: z.string().min(1, "請選擇存貨類型"),
-    colSpan: 4,
-  },
-  {
-    name: "targetStorageCode",
-    label: "調整庫位",
-    componentType: "Custom",
-    editable: "never",
-    validation: z.string().min(1, "請選擇庫位"),
-    customRender: (field) => (
-      <DictSelect
-        {...field}
-        dictKey="STORAGE"
-      />
-    ),
-    colSpan: 4,
-  },
-  {
-    name: "quantity",
-    label: "調整數量",
-    componentType: "InputNumber",
-    editable: "always",
-    componentProps: { className: "w-full" },
-    validation: z.number({ required_error: "請輸入數量" }).refine(val => val !== 0, "數量不能為 0"),
-    colSpan: 4,
-  },
-  {
-    name: "unitPrice",
-    label: "單價",
-    componentType: "InputNumber",
-    editable: "always",
-    componentProps: { className: "w-full", min: 0 },
-    colSpan: 4,
-  },
-  {
+    {
+      name: "inventoryType",
+      label: "庫存類型",
+      componentType: "Select",
+      editable: "never",
+      componentProps: {
+        options: [
+          { label: "商品", value: "P" },
+          { label: "原料", value: "M" },
+          { label: "半成品", value: "S" },
+        ]
+      },
+      validation: z.string().min(1, "請選擇存貨類型"),
+      colSpan: 4,
+    },
+    {
+      name: "targetStorageCode",
+      label: "調整庫位",
+      componentType: "Custom",
+      editable: (context: any) => {
+        const type = context?.values?.inventoryType;
+        return type === "P" ? "always" : "never";
+      },
+      validation: z.string().min(1, "請選擇庫位"),
+      customRender: (field, context) => {
+        const type = context?.values?.inventoryType;
+        return (
+          <DictSelect
+            {...field}
+            dictKey="STORAGE"
+            disabled={field.disabled || type !== "P"}
+            optionsFilter={(opt: any) => {
+              // 調整產品 (P) 時，儲位只能選擇產品類 (FG) 的儲位
+              if (type === "P") {
+                return opt.type === "FG";
+              }
+              return true;
+            }}
+          />
+        );
+      },
+      colSpan: 4,
+    },
+    {
+      name: "quantity",
+      label: currentType === "M" ? "調整長度(m)" : "調整數量",
+      componentType: "InputNumber",
+      editable: "always",
+      componentProps: { className: "w-full" },
+      validation: z.number({ required_error: "請輸入數量" }).refine(val => val !== 0, "數值不能為 0"),
+      colSpan: 4,
+    }
+  ];
+
+  // 調整明細為原料明細時，額外顯示規格寬度欄位 (寬度為 LPN 固定屬性，不可任意修改)
+  if (currentType === "M") {
+    fields.push(
+      {
+        name: "widthMm",
+        label: "規格：寬度 (mm)",
+        componentType: "InputNumber",
+        editable: "never",
+        componentProps: { className: "w-full", min: 0 },
+        colSpan: 4,
+      }
+    );
+  }
+
+  fields.push({
     name: "notes",
     label: "備註",
     componentType: "TextArea",
     editable: "always",
     componentProps: { rows: 4 },
     colSpan: 1,
-  },
-];
+  });
+
+  return fields;
+};

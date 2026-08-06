@@ -1,9 +1,12 @@
 import { Outlet } from 'react-router-dom';
 import { useSystemVersion } from '@/hooks/useSystemVersion';
+import { useErpConfigStore } from '@/stores/useErpConfigStore';
 
 export default function AuthLayout() {
-  const logoSrc = import.meta.env.VITE_LOGO_DARK || '/assets/tungfu-logo-dark.svg';
+  const getLogoUrl = useErpConfigStore((state) => state.getLogoUrl);
+  const logoSrc = getLogoUrl('dark'); // 登入畫面為深色高對比背景，一律採用暗色 Logo
   const { frontendVersion, backendVersion } = useSystemVersion();
+  const companyName = useErpConfigStore((state) => state.getCompanyName());
 
   return (
     <div className="bg-[#0B0F19] text-slate-100 min-h-screen flex flex-col justify-between items-center py-12 px-4 relative w-screen overflow-hidden">
@@ -14,8 +17,9 @@ export default function AuthLayout() {
       {/* Main Content Area */}
       <div className="my-auto w-full max-w-[440px] z-10 flex flex-col items-center">
         {/* Corporate Logo */}
-        <div className="mb-8 transition-transform duration-300 hover:scale-[1.01]">
-          <img src={logoSrc} alt="Tungfu Logo" className="h-11 w-auto filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]" />
+        <div className="mb-8 transition-transform duration-300 hover:scale-[1.01] flex flex-col items-center">
+          <img src={logoSrc} alt="Logo" className="h-11 w-auto filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]" />
+          <h1 className="text-xl font-bold text-slate-200 mt-4 tracking-wider">{companyName}</h1>
         </div>
 
         {/* High Density Auth Card with Zero CLS space */}
@@ -31,7 +35,7 @@ export default function AuthLayout() {
           <span className="w-1 h-1 rounded-full bg-slate-700"></span>
           <span>API 版本: <span className="font-mono text-emerald-400 font-medium">{backendVersion}</span></span>
         </div>
-        <p className="mt-2 text-[10px] text-slate-600">© 2026 東富電子有限公司. All rights reserved.</p>
+        <p className="mt-2 text-[10px] text-slate-600">© 2026 {companyName}. All rights reserved.</p>
       </div>
 
     </div>

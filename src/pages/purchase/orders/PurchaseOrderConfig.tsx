@@ -7,6 +7,8 @@ import type { PurchaseOrderDto, PurchaseOrderItemDto } from "@/api/generated/typ
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import { EllipsisText } from "@/components/Table/EllipsisText";
+import { getApiV1MaterialByCode, getApiV1MoldByCode } from "@/api/generated/sdk.gen";
+import { ContactSelectWithCreate } from "@/pages/sales/orders/components/ContactSelectWithCreate";
 
 export const getStatusTag = (status: string | null | undefined, closeDate?: string | null) => {
   const statusUpper = (status || '').toUpperCase();
@@ -119,6 +121,21 @@ export const getColumns = (): TableColumnConfig<PurchaseOrderDto>[] => [
     },
   },
   {
+    label: "廠商聯絡人",
+    name: "partnerContactName",
+    width: 120,
+    render: (val: string) => val || "-",
+  },
+  {
+    label: "採購人",
+    name: "purchaserEmployeeName",
+    width: 110,
+    render: (val: string, record: any) => {
+      const code = record.purchaserEmployeeCode;
+      return val && code ? `${val} (${code})` : (val || code || "-");
+    },
+  },
+  {
     label: "未稅小計",
     name: "subTotalAmount",
     width: 120,
@@ -202,6 +219,32 @@ export const getFormConfig = (): any[] => [
     editable: "createOnly",
     colSpan: 4,
     validation: z.string().min(1, "供應商為必填"),
+    onChange: (_value: any, _context: any, setValue: any) => {
+      setValue("partnerContactId", undefined);
+    }
+  },
+  {
+    name: "partnerContactId",
+    label: "廠商聯絡人",
+    componentType: "Custom",
+    customRender: (field: any, context: any) => (
+      <ContactSelectWithCreate
+        value={field.value}
+        onChange={field.onChange}
+        disabled={field.disabled}
+        businessPartnerCode={context?.values?.businessPartnerCode}
+        contactType="purchasing"
+      />
+    ),
+    colSpan: 4,
+  },
+  {
+    name: "purchaserEmployeeCode",
+    label: "採購人",
+    componentType: "AsyncSelect",
+    componentProps: { configKey: "EMPLOYEE" },
+    colSpan: 4,
+    validation: z.string().min(1, "採購人為必填"),
   },
   {
     name: "currency",
@@ -348,7 +391,7 @@ export const getItemColumns = (
     },
   },
   {
-    title: "序號",
+    title: "項次",
     dataIndex: "lineNumber",
     width: 60,
     align: "left",
@@ -405,7 +448,11 @@ export const getItemColumns = (
     align: "right",
     render: (val: number, record: any) => {
       if (record.purchaseOrderType === "Mold" || val == null) return "-";
-      return Number(val.toFixed(4)).toLocaleString();
+      return (
+        <span className="text-indigo-600 dark:text-indigo-400 font-mono font-medium">
+          {Number(val.toFixed(2)).toLocaleString()} mm
+        </span>
+      );
     }
   },
   {
@@ -415,20 +462,21 @@ export const getItemColumns = (
     align: "right",
     render: (val: number, record: any) => {
       if (record.purchaseOrderType === "Mold" || val == null) return "-";
-      const isRoll = record.materialForm === "R" || record.goodsCode?.startsWith("R-") || record.goodsCode?.endsWith("-R") || record.unit === "m2";
+      const isRoll = record.materialForm === "R" || record.goodsCode?.startsWith("R-") || record.goodsCode?.endsWith("-R") || record.unit === "卷" || record.unit === "roll" || record.unit === "m2";
       const isSheet = record.materialForm === "S" || record.goodsCode?.startsWith("S-") || record.goodsCode?.endsWith("-S") || record.unit === "pcs";
-      const formattedVal = Number(val.toFixed(4)).toLocaleString();
+      const formattedVal = Number(val.toFixed(2)).toLocaleString();
       
       if (isRoll) {
         return (
-          <span className="text-blue-600 dark:text-blue-400 font-mono font-medium">
+          <span className="text-emerald-600 dark:text-emerald-400 font-mono font-medium">
             {formattedVal} m
           </span>
         );
       }
       if (isSheet) {
+        // 💡 單位相同的用一樣的顏色：片材長度為 mm，故與寬度 (mm) 統一採用高質感靛藍色 (Indigo)
         return (
-          <span className="text-amber-600 dark:text-amber-400 font-mono font-medium">
+          <span className="text-indigo-600 dark:text-indigo-400 font-mono font-medium">
             {formattedVal} mm
           </span>
         );
@@ -456,29 +504,73 @@ export const getItemColumns = (
     render: (val: number) => (val != null ? Number(val.toFixed(2)).toLocaleString() : "0"),
   },
   {
-    title: "數量",
-    dataIndex: "quantity",
-    width: 100,
+    title: "平方米單價",
+    key: "unitPricePerSqm",
+    width: 120,
     align: "right",
-    render: (val: number) => (val != null ? Number(val.toFixed(4)).toLocaleString() : "0"),
+    render: (_: any, record: any) => {
+      const isRoll = record.materialForm === "R" || record.goodsCode?.startsWith("R-") || record.goodsCode?.endsWith("-R") || record.unit === "卷" || record.unit === "roll" || record.unit === "m2";
+      if (!isRoll) return "-";
+      
+      const width = record.width || 0;
+      const length = record.length || 0;
+      const unitPrice = record.unitPrice || 0;
+      
+      const sqmAreaPerRoll = (width / 1000) * length;
+      if (sqmAreaPerRoll <= 0) return "-";
+      
+      const pricePerSqm = unitPrice / sqmAreaPerRoll;
+      return (
+        <span className="text-blue-600 dark:text-blue-400 font-mono font-medium">
+          {Number(pricePerSqm.toFixed(2)).toLocaleString()}/m²
+        </span>
+      );
+    }
+  },
+  {
+    title: "採購數量",
+    dataIndex: "quantity",
+    width: 110,
+    align: "right",
+    render: (val: number, record: any) => {
+      if (val == null) return "0";
+      const isRoll = record.materialForm === "R" || record.goodsCode?.startsWith("R-") || record.goodsCode?.endsWith("-R") || record.unit === "卷" || record.unit === "roll" || record.unit === "m2";
+      const unitStr = isRoll ? " 卷" : (record.purchaseOrderType === "Mold" ? " pcs" : ` ${record.unit || "pcs"}`);
+      return (
+        <span className="font-semibold text-gray-900 dark:text-gray-100">
+          {Number(val.toFixed(2)).toLocaleString()}
+          <span className="text-xs text-gray-500 ml-0.5 font-normal">{unitStr}</span>
+        </span>
+      );
+    }
   },
   {
     title: "已到貨數量",
     dataIndex: "receivedQuantity",
-    width: 100,
+    width: 110,
     align: "right",
-    render: (val: number) => (val != null ? Number(val.toFixed(4)).toLocaleString() : "0"),
+    render: (val: number, record: any) => {
+      if (val == null) return "0";
+      const isRoll = record.materialForm === "R" || record.goodsCode?.startsWith("R-") || record.goodsCode?.endsWith("-R") || record.unit === "卷" || record.unit === "roll" || record.unit === "m2";
+      const unitStr = isRoll ? " 卷" : (record.purchaseOrderType === "Mold" ? " pcs" : ` ${record.unit || "pcs"}`);
+      return (
+        <span className="font-medium text-emerald-600 dark:text-emerald-400">
+          {Number(val.toFixed(2)).toLocaleString()}
+          <span className="text-xs text-gray-500 ml-0.5 font-normal">{unitStr}</span>
+        </span>
+      );
+    }
   },
   {
-    title: "採購計價單位",
+    title: "計價單位",
     dataIndex: "unit",
-    width: 80,
+    width: 90,
     align: "center",
     render: (val: string, record: any) => {
-      if (record.purchaseOrderType === "Mold") return val || "-";
-      const isRoll = record.materialForm === "R" || record.goodsCode?.startsWith("R-") || record.goodsCode?.endsWith("-R") || val === "m2";
-      if (isRoll) return "m²";
-      return val || "-";
+      if (record.purchaseOrderType === "Mold") return val || "pcs";
+      const isRoll = record.materialForm === "R" || record.goodsCode?.startsWith("R-") || record.goodsCode?.endsWith("-R") || val === "卷" || val === "roll" || val === "m2";
+      if (isRoll) return "卷";
+      return val || "pcs";
     }
   },
   {
@@ -495,8 +587,14 @@ export const getItemColumns = (
   },
   ];
 
+  let resultCols = cols;
+  if (isViewMode) {
+    // 💡 採購單如果已確認 (非 Draft 狀態，即唯讀模式)，則從 Table columns 中徹底過濾並隱藏「操作」欄位
+    resultCols = cols.filter(col => col.key !== "action");
+  }
+
   if (purchaseOrderType === "Material") {
-    return cols.filter(
+    return resultCols.filter(
       (col) => {
         const key = col.key || (col as any).dataIndex;
         return key !== "customerCode" && key !== "productCode";
@@ -505,15 +603,47 @@ export const getItemColumns = (
   }
 
   if (purchaseOrderType === "Mold") {
-    return cols.filter(
+    return resultCols.filter(
       (col) => {
         const key = col.key || (col as any).dataIndex;
-        return key !== "width" && key !== "length";
+        return key !== "width" && key !== "length" && key !== "unitPricePerSqm";
       }
     );
   }
 
-  return cols;
+  return resultCols;
+};
+
+/**
+ * 💡 規格與名稱同步連動核心處理函式 (將物料主檔規格自動回寫至表單欄位)
+ */
+const syncMaterialSpecifications = (mat: any, setValue: any, context: any) => {
+  setValue("goodsName", mat.name || "");
+  const form = mat.materialForm; // "R" = 捲材, "S" = 片材
+  setValue("materialForm", form);
+  setValue("unit", form === "R" ? "卷" : "pcs");
+
+  const defaultWidth = mat.width ?? mat.widthMm ?? mat.productWidth;
+  const defaultLength = mat.length ?? mat.lengthMm;
+  
+  if (defaultWidth !== undefined && defaultWidth !== null) {
+    setValue("width", defaultWidth);
+  }
+  if (defaultLength !== undefined && defaultLength !== null) {
+    setValue("length", defaultLength);
+  }
+
+  if (form === "R") {
+    // 💡 卷料模式下，數量(quantity)代表採購卷數，預設為 1，不自動覆寫為面積 SQM
+    const currentQty = context?.values?.quantity || 1;
+    setValue("quantity", currentQty);
+    const price = context?.values?.unitPrice ?? 0;
+    setValue("subTotal", Math.round(price * currentQty));
+  } else {
+    if (defaultLength === undefined || defaultLength === null) {
+      setValue("length", undefined);
+    }
+  }
 };
 
 export const getItemFormConfig = (): any[] => [
@@ -539,7 +669,7 @@ export const getItemFormConfig = (): any[] => [
       const isMold = context?.values?.purchaseOrderType === "Mold";
       return isMold ? "模具編碼" : "原料編碼";
     },
-    componentType: "AutoComplete",
+    componentType: "AsyncSelect",
     componentProps: (context: any) => {
       const isMold = context?.values?.purchaseOrderType === "Mold";
       return { 
@@ -547,58 +677,49 @@ export const getItemFormConfig = (): any[] => [
         additionalParams: isMold ? { IsArrived: false } : { IsCustomerSupplied: false }
       };
     },
-    colSpan: 4,
+    colSpan: 2,
     validation: z.string().min(1, "編碼為必填"),
     onChange: (_value: any, _context: any, setValue: any, ...args: any[]) => {
       const option = args[1];
+      const isMold = _context?.values?.purchaseOrderType === "Mold";
+      const code = _value?.trim();
+
       if (option && option.originalData) {
-        setValue("goodsName", option.originalData.name || "");
-        
-        const isMaterial = _context?.values?.purchaseOrderType === "Material";
-        if (isMaterial) {
-          const form = option.originalData.materialForm; // "R" = 捲材, "S" = 片材
-          setValue("materialForm", form);
-          setValue("unit", form === "R" ? "m2" : "pcs");
-
-          // 💡 2.挑選原料後,要把原料的長寬都自動帶過來
-          const defaultWidth = option.originalData.width ?? option.originalData.widthMm ?? option.originalData.productWidth;
-          const defaultLength = option.originalData.length ?? option.originalData.lengthMm;
-          
-          if (defaultWidth !== undefined && defaultWidth !== null) {
-            setValue("width", defaultWidth);
-          }
-          if (defaultLength !== undefined && defaultLength !== null) {
-            setValue("length", defaultLength);
-          }
-
-          if (form === "R") {
-            const widthVal = defaultWidth ?? _context?.values?.width ?? 0;
-            const lengthVal = defaultLength ?? _context?.values?.length ?? 0;
-            const m2 = Math.round(((widthVal / 1000) * lengthVal) * 100) / 100;
-            setValue("quantity", m2);
-            const price = _context?.values?.unitPrice ?? 0;
-            setValue("subTotal", Math.round(price * m2));
-          } else {
-            if (defaultLength === undefined || defaultLength === null) {
-              setValue("length", undefined);
-            }
-          }
+        // 💡 1. 透過下拉選單選取時 (有 option，直接同步更新)
+        if (!isMold) {
+          syncMaterialSpecifications(option.originalData, setValue, _context);
         } else {
+          setValue("goodsName", option.originalData.name || "");
           setValue("materialForm", undefined);
           setValue("unit", "pcs");
           setValue("length", null);
           setValue("width", null);
         }
+      } else if (code) {
+        // 💡 2. 手動鍵入或掃描條碼時 (無 option)，自動發送 API 進行規格與品名同軌聯動
+        if (isMold) {
+          getApiV1MoldByCode({ path: { code } }).then((res: any) => {
+            const mold = res?.data?.data;
+            if (mold && mold.code === code) {
+              setValue("goodsName", mold.name || "");
+              setValue("materialForm", undefined);
+              setValue("unit", "pcs");
+              setValue("length", null);
+              setValue("width", null);
+            }
+          }).catch(() => {});
+        } else {
+          getApiV1MaterialByCode({ path: { code } }).then((res: any) => {
+            const mat = res?.data?.data;
+            if (mat && mat.code === code) {
+              syncMaterialSpecifications(mat, setValue, _context);
+            }
+          }).catch(() => {});
+        }
       }
     }
   },
-  {
-    name: "goodsName",
-    label: "商品名稱",
-    componentType: "Input",
-    colSpan: 4,
-    editable: "never",
-  },
+
   {
     name: "requestedDeliveryDate",
     label: "預計交期",
@@ -606,6 +727,14 @@ export const getItemFormConfig = (): any[] => [
     colSpan: 4,
     validation: z.any().optional(),
   },
+  {
+    name: "unit",
+    label: "採購單位",
+    componentType: "Input",
+    colSpan: 4,
+    editable: "never",
+    validation: z.string().nullable().optional(),
+  },  
   {
     name: "width",
     label: "寬度 (mm)",
@@ -625,16 +754,8 @@ export const getItemFormConfig = (): any[] => [
       }
       return z.union([z.number(), z.null(), z.undefined()]).optional();
     },
-    onChange: (value: any, context: any, setValue: any) => {
-      const isRollMaterial = context?.values?.purchaseOrderType === "Material" && context?.values?.materialForm === "R";
-      if (isRollMaterial) {
-        const width = value || 0;
-        const length = context.values.length || 0;
-        const m2 = Math.round(((width / 1000) * length) * 100) / 100;
-        setValue("quantity", m2);
-        const price = context.values.unitPrice || 0;
-        setValue("subTotal", Math.round(price * m2));
-      }
+    onChange: (_value: any, _context: any, _setValue: any) => {
+      // 💡 卷料採購改為「卷」計價後，寬度不影響採購卷數(Quantity)與總價，故在此不進行自動連動計算
     },
   },
   {
@@ -662,16 +783,8 @@ export const getItemFormConfig = (): any[] => [
       }
       return z.union([z.number(), z.null(), z.undefined()]).optional();
     },
-    onChange: (value: any, context: any, setValue: any) => {
-      const isRollMaterial = context?.values?.purchaseOrderType === "Material" && context?.values?.materialForm === "R";
-      if (isRollMaterial) {
-        const width = context.values.width || 0;
-        const length = value || 0;
-        const m2 = Math.round(((width / 1000) * length) * 100) / 100;
-        setValue("quantity", m2);
-        const price = context.values.unitPrice || 0;
-        setValue("subTotal", Math.round(price * m2));
-      }
+    onChange: (_value: any, _context: any, _setValue: any) => {
+      // 💡 卷料採購改為「卷」計價後，長度不影響採購卷數(Quantity)與總價，故在此不進行自動連動計算
     },
   },
   {
@@ -737,20 +850,20 @@ export const getItemFormConfig = (): any[] => [
     name: "quantity",
     label: (context: any) => {
       const isRoll = context?.values?.purchaseOrderType === "Material" && context?.values?.materialForm === "R";
-      return isRoll ? "m²" : "數量";
+      return isRoll ? "採購卷數" : "數量";
     },
     componentType: "InputNumber",
     colSpan: 4,
-    disabled: (context: any) => {
-      return context?.values?.purchaseOrderType === "Material" && context?.values?.materialForm === "R";
+    disabled: (_context: any) => {
+      return false; // 💡 卷料計價模式下，開放輸入採購卷數，絕不唯讀
     },
-    validation: z.number().min(0.0001, "數量必須大於0"),
+    validation: z.number().int("數量必須為整數").min(1, "數量必須大於 0"),
     dynamicValidation: (context: any) => {
       const isMaterial = context?.values?.purchaseOrderType === "Material";
       if (isMaterial) {
-        return z.number({ required_error: "數量為必填項目", invalid_type_error: "數量必須為數值" }).min(0.0001, "數量必須大於 0");
+        return z.number({ required_error: "數量為必填項目", invalid_type_error: "數量必須為數值" }).int("數量必須為整數").min(1, "數量必須大於 0");
       }
-      return z.number().min(0.0001, "數量必須大於0");
+      return z.number().int("數量必須為整數").min(1, "數量必須大於 0");
     },
     onChange: (value: any, context: any, setValue: any) => {
       const qty = value || 0;
@@ -762,18 +875,11 @@ export const getItemFormConfig = (): any[] => [
       return {
         controls: false,
         style: { width: "100%" },
-        disabled: isRoll,
-        placeholder: isRoll ? "自動計算 (寬度 x 長度)" : "請輸入數量",
+        disabled: false, // 💡 卷料下單必須手動輸入卷數，此處絕不唯讀
+        precision: 0, // 💡 限制隻能輸入整數
+        placeholder: isRoll ? "請輸入採購卷數" : "請輸入數量",
       };
     }
-  },
-  {
-    name: "unit",
-    label: "採購單位",
-    componentType: "Input",
-    colSpan: 4,
-    editable: "never",
-    validation: z.string().min(1, "採購單位為必填"),
   },
   {
     name: "subTotal",
@@ -785,7 +891,8 @@ export const getItemFormConfig = (): any[] => [
       controls: false,
       style: { width: "100%" }
     }
-  },
+  },  
+
   {
     name: "notes",
     label: "備註",

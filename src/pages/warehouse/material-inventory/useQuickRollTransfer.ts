@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { App } from 'antd';
 import { apiClient } from '@/api/client';
 import { useDeviceDetect } from '@/hooks/useDeviceDetect';
+import { useErpConfigStore } from '@/stores/useErpConfigStore';
 
 // 轉倉批次歷史紀錄型別
 export interface TransferItemLog {
@@ -110,9 +111,10 @@ export const useQuickRollTransfer = () => {
     resumeSession();
   }, []);
 
-  // 當 activeTransfer 變更且有輸入框時，自動 focus 到 LPN 欄位
+  // 當 activeTransfer 變更且有輸入框時，自動 focus 到 LPN 欄位 (根據 YAML 設定)
   useEffect(() => {
-    if (activeTransfer && rollInputRef.current) {
+    const autoFocusEnabled = useErpConfigStore.getState().getAutoFocusLpn();
+    if (autoFocusEnabled && activeTransfer && rollInputRef.current) {
       setTimeout(() => {
         rollInputRef.current.focus();
       }, 100);
@@ -358,7 +360,8 @@ export const useQuickRollTransfer = () => {
         setItemNotes('');
         setRollInfo(null);
 
-        if (rollInputRef.current) {
+        const autoFocusEnabled = useErpConfigStore.getState().getAutoFocusLpn();
+        if (autoFocusEnabled && rollInputRef.current) {
           rollInputRef.current.focus();
         }
       } else {

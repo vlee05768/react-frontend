@@ -212,12 +212,10 @@ export default function StorageList() {
     fixed: 'right' as const,
     width: 120,
     render: (_: any, record: any) => {
-      const showEdit = !isReserved(record.code) && hasPermission('BasicData.Storages.Update');
       const showDelete = !isReserved(record.code) && hasPermission('BasicData.Storages.Delete');
       return (
         <TableActions
           onView={hasPermission('BasicData.Storages.View') ? () => openViewDrawer(record) : undefined}
-          onEdit={showEdit ? () => { openViewDrawer(record); setTimeout(() => startEditMode(), 100); } : undefined}
           onDelete={showDelete ? () => {
             Modal.confirm({
               title: `確定要刪除儲位 ${record.code} 嗎？`,
