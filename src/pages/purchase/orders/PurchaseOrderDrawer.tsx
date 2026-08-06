@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Drawer, Space, Button, App, Spin, Empty } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CheckCircleOutlined, SyncOutlined, LockOutlined, UnlockOutlined, DeleteOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, SyncOutlined, LockOutlined, UnlockOutlined, DeleteOutlined, PrinterOutlined, MailOutlined } from '@ant-design/icons';
 import { ActionButton } from '@/components/common/ActionButton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -13,8 +13,11 @@ import {
   postApiV1PurchaseOrderByCodeCancelConfirm,
   postApiV1PurchaseOrderByCodeForceClose,
   postApiV1PurchaseOrderByCodeCancelClose,
-  deleteApiV1PurchaseOrderByCode
+  deleteApiV1PurchaseOrderByCode,
+  getApiV1PurchaseOrderByCodePdf,
+  postApiV1PurchaseOrderByCodeSendEmail
 } from '@/api/generated/sdk.gen';
+import { useFileDownload } from '@/hooks/useFileDownload';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { ActionBar } from '@/components/common/ActionBar';
@@ -33,7 +36,7 @@ export default function PurchaseOrderDrawer() {
   const { id } = useParams();
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
-  const { hasPermission } = useAuthStore();
+  const { hasPermission, user } = useAuthStore();
 
   const isCreating = id === 'create';
   const [isEditing, setIsEditing] = useState(isCreating);
@@ -79,6 +82,7 @@ export default function PurchaseOrderDrawer() {
         exchangeRate: 1,
         taxRate: 5,
         taxType: 'Taxable',
+        purchaserEmployeeCode: user?.employeeCode || undefined, // 💡 預設打單人員為採購人
       };
     }
     if (purchaseOrderData) {
@@ -183,6 +187,46 @@ export default function PurchaseOrderDrawer() {
       modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
     }
   });
+
+  const { downloadFile } = useFileDownload();
+
+  const sendEmailMutation = useMutation({
+    mutationFn: () => postApiV1PurchaseOrderByCodeSendEmail({ path: { code: id! } }),
+    onSuccess: (res: any) => {
+      message.success(res?.data?.message || '採購單已成功發送給廠商聯絡人！');
+      queryClient.invalidateQueries({ queryKey: ['purchase-order', id] });
+      queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
+    },
+    onError: (error) => {
+      modal.error({ centered: true, title: '發送失敗', content: `發送郵件失敗: ${getApiErrorMessage(error)}` });
+    }
+  });
+
+  const handlePrintPo = () => {
+    downloadFile({
+      apiFunction: () => getApiV1PurchaseOrderByCodePdf({
+        path: { code: id! },
+        responseType: "blob"
+      }),
+      successMessage: "採購單報表 PDF 導出成功！",
+      filename: `PO-${id}.pdf`,
+      openInNewTab: true
+    });
+  };
+
+  const handleSendEmail = () => {
+    modal.confirm({
+      title: '發送採購單 Email',
+      content: `確定要發送採購單 ${id} 給廠商聯絡人嗎？此操作會產生 PDF 並發送，且會累計發送次數。`,
+      centered: true,
+      width: 420,
+      okText: '確認發送',
+      cancelText: '取消',
+      onOk: () => {
+        sendEmailMutation.mutate();
+      }
+    });
+  };
 
   const handleSubmit = async (values: any) => {
     const formattedValues = {
@@ -343,6 +387,37 @@ export default function PurchaseOrderDrawer() {
               取消結案
             </ActionButton>
           </span>
+        )}
+
+        {!isDraft && (
+          <ActionButton
+            key="send-email"
+            intent="primary"
+            icon={<MailOutlined />}
+            disabled={isDetailEditing}
+            loading={sendEmailMutation.isPending}
+            onClick={(e) => {
+              e.preventDefault();
+              handleSendEmail();
+            }}
+          >
+            發送郵件 {((purchaseOrderData as any)?.emailSentCount && (purchaseOrderData as any).emailSentCount > 0) ? `(${(purchaseOrderData as any).emailSentCount}次)` : ''}
+          </ActionButton>
+        )}
+
+        {!isDraft && (
+          <ActionButton
+            key="print"
+            intent="primary"
+            icon={<PrinterOutlined />}
+            disabled={isDetailEditing}
+            onClick={(e) => {
+              e.preventDefault();
+              handlePrintPo();
+            }}
+          >
+            列印報表
+          </ActionButton>
         )}
       </Space>
     );
