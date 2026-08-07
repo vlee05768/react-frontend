@@ -3,6 +3,7 @@ import { EllipsisText } from '@/components/Table/EllipsisText';
 import React from 'react';
 import { Tooltip } from 'antd';
 import dayjs from 'dayjs';
+import { TableActions } from './tableActions';
 
 /**
  * 將 FieldConfig 陣列轉換為 Ant Design Table 支援的 columns 格式。
@@ -313,5 +314,132 @@ export function getColumnLabel(field: string, columnConfigs: any[]): string {
   
   const config = columnConfigs.find(c => c.name === field || c.key === field || c.dataIndex === field);
   return config ? (config.label || config.title) : field;
+}
+
+export interface StandardActionColumnOptions<T = any> {
+  title?: string;
+  width?: number;
+  fixed?: 'left' | 'right' | boolean;
+  align?: 'left' | 'center' | 'right';
+  onView?: (record: T) => void;
+  onEdit?: (record: T) => void;
+  onDelete?: (record: T) => void;
+  onPrint?: (record: T) => void;
+  onConfirm?: (record: T) => void;
+  onCancelConfirm?: (record: T) => void;
+  showView?: (record: T) => boolean;
+  showEdit?: (record: T) => boolean;
+  showDelete?: (record: T) => boolean;
+  showPrint?: (record: T) => boolean;
+  showConfirm?: (record: T) => boolean;
+  showCancelConfirm?: (record: T) => boolean;
+  getRecordName?: (record: T) => string;
+  deleteConfirmType?: 'popconfirm' | 'modal' | ((record: T) => 'popconfirm' | 'modal');
+  isPrinting?: boolean | ((record: T) => boolean);
+  isConfirming?: boolean | ((record: T) => boolean);
+  isCanceling?: boolean | ((record: T) => boolean);
+  extra?: (record: T) => React.ReactNode;
+}
+
+/**
+ * 統一全站 Table 操作欄位構建器 (Unified Action Column Builder)
+ * 深層模組：隱藏所有 Ant Design 欄位聲明細節，自動計算最佳寬度，強迫右固定與置中對齊，實現操作體驗一致。
+ */
+export function buildStandardActionColumn<T = any>(
+  options: StandardActionColumnOptions<T>
+) {
+  // 1. 自動依按鈕啟用個數動態配平最佳寬度 (不因行級 showXxx 看守而動態改變列寬，以維持 Table 的視覺對齊與橫向流暢)
+  const defaultWidth = (() => {
+    const activeActionsCount = [
+      options.onView,
+      options.onEdit,
+      options.onDelete,
+      options.onPrint,
+      options.onConfirm,
+      options.onCancelConfirm
+    ].filter(Boolean).length;
+
+    // 基礎寬度 50px (內距、欄位間隙) + 每個圖示按鈕 35px
+    let calculated = 50 + activeActionsCount * 35;
+    
+    // 如果有自訂的額外動作，多預留 40px
+    if (options.extra) {
+      calculated += 40;
+    }
+    
+    // 設定下限 100px 確保表頭「操作」中文字置中不折行
+    return Math.max(100, calculated);
+  })();
+
+  return {
+    title: options.title || '操作',
+    key: 'actions',
+    fixed: (options.fixed !== undefined ? options.fixed : 'right') as any,
+    width: options.width || defaultWidth,
+    align: options.align || 'center',
+    render: (_value: any, record: T) => {
+      // 2. 動態行級(Row-level)防呆看守
+      const onViewHandler = options.onView && (!options.showView || options.showView(record)) 
+        ? () => options.onView!(record) 
+        : undefined;
+
+      const onEditHandler = options.onEdit && (!options.showEdit || options.showEdit(record))
+        ? () => options.onEdit!(record)
+        : undefined;
+
+      const onDeleteHandler = options.onDelete && (!options.showDelete || options.showDelete(record))
+        ? () => options.onDelete!(record)
+        : undefined;
+
+      const onPrintHandler = options.onPrint && (!options.showPrint || options.showPrint(record))
+        ? () => options.onPrint!(record)
+        : undefined;
+
+      const onConfirmHandler = options.onConfirm && (!options.showConfirm || options.showConfirm(record))
+        ? () => options.onConfirm!(record)
+        : undefined;
+
+      const onCancelConfirmHandler = options.onCancelConfirm && (!options.showCancelConfirm || options.showCancelConfirm(record))
+        ? () => options.onCancelConfirm!(record)
+        : undefined;
+
+      // 3. 處理動態屬性(函數或靜態值均相容)
+      const recordName = options.getRecordName ? options.getRecordName(record) : undefined;
+      
+      const deleteConfirmType = typeof options.deleteConfirmType === 'function'
+        ? options.deleteConfirmType(record)
+        : options.deleteConfirmType;
+
+      const isPrinting = typeof options.isPrinting === 'function'
+        ? options.isPrinting(record)
+        : options.isPrinting;
+
+      const isConfirming = typeof options.isConfirming === 'function'
+        ? options.isConfirming(record)
+        : options.isConfirming;
+
+      const isCanceling = typeof options.isCanceling === 'function'
+        ? options.isCanceling(record)
+        : options.isCanceling;
+
+      const extraNode = options.extra ? options.extra(record) : undefined;
+
+      // 4. 委託給中央統一的 TableActions 元件渲染，保證外觀、動畫、圖示一體化
+      return React.createElement(TableActions, {
+        onView: onViewHandler,
+        onEdit: onEditHandler,
+        onDelete: onDeleteHandler,
+        onPrint: onPrintHandler,
+        onConfirm: onConfirmHandler,
+        onCancelConfirm: onCancelConfirmHandler,
+        recordName,
+        deleteConfirmType,
+        isPrinting,
+        isConfirming,
+        isCanceling,
+        extra: extraNode
+      });
+    }
+  };
 }
 

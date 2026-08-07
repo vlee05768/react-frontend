@@ -24,8 +24,7 @@ import { DynamicForm } from '@/components/Form/DynamicForm';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { mainFormConfig, mainTableColumns, productSearchFormConfig } from './ProductConfig';
-import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
-import { TableActions } from '@/utils/tableActions';
+import { buildTableColumns, formatSorterToRules, buildStandardActionColumn } from '@/utils/tableUtils';
 import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 
 // Detail Tabs
@@ -185,21 +184,6 @@ export default function ProductsList() {
     }
   };
 
-  const actionColumn = {
-    title: '操作',
-    key: 'actions',
-    fixed: 'right' as const,
-    width: 120, // 雙按鈕設為 120
-    render: (_: any, record: any) => (
-      <TableActions
-        onView={() => openViewDrawer(record)}
-        onDelete={() => deleteMutation.mutate(record.code)}
-        recordName={`產品 ${record.code}`}
-        deleteConfirmType="popconfirm"
-      />
-    ),
-  };
-
     const handleTableChange = (pagination: any, _filters: any, sorter: any) => {
     const pageNumber = pagination.current || 1;
     const pageSize = pagination.pageSize || 20;
@@ -211,7 +195,16 @@ export default function ProductsList() {
     });
   };
 
-  const columns = buildTableColumns(mainTableColumns(), actionColumn, params.SortRules);
+  const columns = buildTableColumns(
+    mainTableColumns(),
+    buildStandardActionColumn({
+      onView: openViewDrawer,
+      onDelete: (record) => deleteMutation.mutate(record.code),
+      getRecordName: (record) => `產品 ${record.code}`,
+      deleteConfirmType: 'popconfirm'
+    }),
+    params.SortRules
+  );
 
 
 

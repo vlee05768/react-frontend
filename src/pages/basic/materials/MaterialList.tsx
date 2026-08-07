@@ -26,7 +26,7 @@ import { useErpListQuery } from '@/hooks/useErpListQuery';
 import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
 import StandardErpTable from '@/components/Table/StandardErpTable';
 import { mainFormConfig, mainTableColumns, materialSearchFormConfig } from './MaterialConfig';
-import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
+import { buildTableColumns, formatSorterToRules, buildStandardActionColumn } from '@/utils/tableUtils';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
@@ -263,21 +263,6 @@ export default function MaterialList() {
     }
   };
 
-  const actionColumn = {
-    title: '操作',
-    key: 'actions',
-    fixed: 'right' as const,
-    width: 120,
-    render: (_: any, record: any) => (
-      <TableActions
-        onView={hasPermission('BasicData.Materials.View') ? () => openViewDrawer(record) : undefined}
-        onDelete={hasPermission('BasicData.Materials.Delete') ? () => deleteMutation.mutate(record.code) : undefined}
-        recordName={record.name || record.code}
-        deleteConfirmType="popconfirm"
-      />
-    ),
-  };
-
   const handleTableChange = (pagination: any, _filters: any, sorter: any) => {
     const pageNumber = pagination.current || 1;
     const pageSize = pagination.pageSize || 20;
@@ -289,7 +274,16 @@ export default function MaterialList() {
     });
   };
 
-  const columns = buildTableColumns(mainTableColumns(), actionColumn, params.SortRules);
+  const columns = buildTableColumns(
+    mainTableColumns(),
+    buildStandardActionColumn({
+      onView: hasPermission('BasicData.Materials.View') ? openViewDrawer : undefined,
+      onDelete: hasPermission('BasicData.Materials.Delete') ? (record) => deleteMutation.mutate(record.code) : undefined,
+      getRecordName: (record) => record.name || record.code,
+      deleteConfirmType: 'popconfirm'
+    }),
+    params.SortRules
+  );
 
   return (
     <div className="p-4 pb-0 flex flex-col h-[calc(100vh-64px)]">

@@ -12,8 +12,7 @@ import {
 } from "@/api/generated/sdk.gen";
 import type { WorkOrderDto } from "@/api/generated/types.gen";
 import DynamicSearchForm from "@/components/Form/DynamicSearchForm";
-import { buildTableColumns, formatSorterToRules } from "@/utils/tableUtils";
-import { TableActions } from "@/utils/tableActions";
+import { buildTableColumns, formatSorterToRules, buildStandardActionColumn } from "@/utils/tableUtils";
 import { DocumentWatchButton } from "@/components/common/DocumentWatchButton";
 import { searchConfig, tableColumns } from "./WorkOrderConfig";
 import { useWorkOrderQueryStore } from "./useWorkOrderQueryStore";
@@ -99,40 +98,6 @@ export const WorkOrdersList: React.FC = () => {
     navigate(`/production-quality/work-orders`);
   };
 
-  const actionColumn = {
-    title: "操作",
-    key: "action",
-    fixed: 'right' as const,
-    width: 160, // 檢視/列印/刪除/關注 多重按鈕，設為 160
-    render: (_: any, record: WorkOrderDto) => (
-      <TableActions
-        onView={() => openDrawer(record.workOrderNumber || undefined)}
-        onPrint={record.status !== "Draft" ? () => {
-          downloadFile({
-            apiFunction: () => getApiV1WorkOrderByWorkOrderNumberReport({ 
-              path: { workOrderNumber: record.workOrderNumber as string },
-              // @ts-ignore
-              responseType: 'blob' 
-            }),
-            successMessage: '製令單已於新分頁開啟',
-            openInNewTab: true
-          });
-        } : undefined}
-        onDelete={record.status === "Draft" ? () => deleteMutation.mutate(record.workOrderNumber as string) : undefined}
-        recordName={`製令單 ${record.workOrderNumber}`}
-        deleteConfirmType="modal"
-        isPrinting={isDownloading}
-        extra={
-          <DocumentWatchButton
-            documentType="WorkOrder"
-            documentKey={record.workOrderNumber}
-            compact={true}
-          />
-        }
-      />
-    ),
-  };
-
   const handleTableChange = (paginationInfo: any, _filters: any, sorter: any) => {
     const sortRules = formatSorterToRules(sorter);
     setSearchParams({
@@ -142,7 +107,37 @@ export const WorkOrdersList: React.FC = () => {
     setPagination(paginationInfo.current || 1, paginationInfo.pageSize || 20);
   };
 
-  const columns = buildTableColumns(tableColumns, actionColumn, searchParams.SortRules);
+  const columns = buildTableColumns(
+    tableColumns,
+    buildStandardActionColumn<WorkOrderDto>({
+      onView: (record) => openDrawer(record.workOrderNumber || undefined),
+      onPrint: (record) => {
+        downloadFile({
+          apiFunction: () => getApiV1WorkOrderByWorkOrderNumberReport({ 
+            path: { workOrderNumber: record.workOrderNumber as string },
+            // @ts-ignore
+            responseType: 'blob' 
+          }),
+          successMessage: '製令單已於新分頁開啟',
+          openInNewTab: true
+        });
+      },
+      showPrint: (record) => record.status !== "Draft",
+      onDelete: (record) => deleteMutation.mutate(record.workOrderNumber as string),
+      showDelete: (record) => record.status === "Draft",
+      getRecordName: (record) => `製令單 ${record.workOrderNumber}`,
+      deleteConfirmType: "modal",
+      isPrinting: isDownloading,
+      extra: (record) => (
+        <DocumentWatchButton
+          documentType="WorkOrder"
+          documentKey={record.workOrderNumber}
+          compact={true}
+        />
+      )
+    }),
+    searchParams.SortRules
+  );
 
   const params = { ...searchParams, pageNumber: pagination.page, pageSize: pagination.pageSize };
 
