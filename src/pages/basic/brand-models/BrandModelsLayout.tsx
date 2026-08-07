@@ -1,4 +1,4 @@
-import { Table, Button, Input, Modal, Form, Tag, Space, Typography, Tooltip } from 'antd';
+import { Table, Button, Input, Modal, Form, Tag, Space, Typography, Tooltip, Empty } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import PageCard from '@/components/common/PageCard';
 import { useBrandModels } from './useBrandModels';
@@ -143,13 +143,14 @@ export default function BrandModelsLayout() {
             />
           </div>
           
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 min-h-0 flex flex-col">
             <Table
               dataSource={brands}
               columns={brandColumns}
               rowKey="id"
               pagination={false}
               loading={loadingBrands}
+              scroll={{ y: 'calc(100vh - 280px)', x: 'max-content' }}
               onRow={(record) => ({
                 onClick: () => setSelectedBrand(record),
                 className: `cursor-pointer transition-colors ${selectedBrand?.id === record.id ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'}`
@@ -190,7 +191,7 @@ export default function BrandModelsLayout() {
             />
           </div>
 
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 min-h-0 flex flex-col">
             {selectedBrand ? (
               <Table
                 dataSource={models}
@@ -198,11 +199,15 @@ export default function BrandModelsLayout() {
                 rowKey="id"
                 pagination={false}
                 loading={loadingModels}
+                scroll={{ y: 'calc(100vh - 280px)', x: 'max-content' }}
                 size="small"
               />
             ) : (
-              <div className="h-full flex items-center justify-center text-gray-400">
-                <Text type="secondary">請先從左側選擇一個廠牌</Text>
+              <div className="h-full flex items-center justify-center">
+                <Empty
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description={<Text type="secondary" style={{ fontSize: '14px' }}>請先從左側選擇一個廠牌</Text>}
+                />
               </div>
             )}
           </div>
