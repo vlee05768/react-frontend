@@ -173,7 +173,7 @@ export default function CategoryList({ selectedCode, onSelect }: CategoryListPro
         </Space>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto' }}>
+      <div className="flex-1 min-h-0 flex flex-col">
         <Table
           size="small"
           loading={isFetching}
@@ -181,7 +181,7 @@ export default function CategoryList({ selectedCode, onSelect }: CategoryListPro
           columns={columns}
           rowKey={(record) => record.id || record.code}
           pagination={false}
-          scroll={{ y: 'calc(100vh - 230px)', x: 'max-content' }} // Roughly account for header heights
+          scroll={{ y: 'calc(100vh - 280px)', x: 'max-content' }} // Roughly account for header heights
           onRow={(record) => ({
             onClick: () => onSelect(record.code),
             style: {

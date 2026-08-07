@@ -167,7 +167,7 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
         </Button>
       </div>
 
-      <div className="p-4" style={{flex: 1, overflowY: 'auto' }}>
+      <div className="p-4 flex-1 min-h-0 flex flex-col" style={{ overflow: 'hidden' }}>
         <Table
             rowClassName={(record) => {
               const r = record as any; const recordId = r.id || r.code || r.documentNumber || r.moldCode || r.referenceNumber;
@@ -178,7 +178,7 @@ export default function CategoryItemList({ selectedCode }: CategoryItemListProps
           columns={columns as any}
           rowKey="id"
           size="medium"
-          scroll={{ x: 'max-content' }}
+          scroll={{ y: 'calc(100vh - 280px)', x: 'max-content' }}
           pagination={false}
         />
       </div>
