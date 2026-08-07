@@ -15,7 +15,9 @@ import {
   ContactsOutlined,
   ExclamationCircleFilled,
   HomeOutlined,
-  BookOutlined
+  BookOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -460,12 +462,33 @@ export default function MainLayout() {
         style={isResizing ? { transition: 'none' } : undefined}
       >
         <div className="flex flex-col h-full">
-          <div 
-            className={`h-16 flex items-center justify-center border-b ${mode === 'dark' ? 'border-[#303030]' : 'border-gray-200'} overflow-hidden px-4 flex-shrink-0 cursor-pointer transition-opacity hover:opacity-80`}
-            onClick={() => setCollapsed(!collapsed)}
-            title="切換選單"
-          >
-            <img src={getLogoUrl(mode)} alt="Logo" className="h-8 w-auto flex-shrink-0 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" />
+          <div className={`h-16 flex items-center ${collapsed ? 'justify-center' : 'justify-between'} border-b ${mode === 'dark' ? 'border-[#303030]' : 'border-gray-200'} overflow-hidden px-4 flex-shrink-0`}>
+            {!collapsed ? (
+              <>
+                <div 
+                  className="flex items-center cursor-pointer transition-opacity hover:opacity-80"
+                  onClick={() => navigate("/")}
+                  title="回到首頁"
+                >
+                  <img src={getLogoUrl(mode)} alt="Logo" className="h-8 w-auto flex-shrink-0 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" />
+                </div>
+                <Button
+                  type="text"
+                  icon={<MenuFoldOutlined />}
+                  onClick={() => setCollapsed(true)}
+                  className={mode === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-black'}
+                  title="收合選單"
+                />
+              </>
+            ) : (
+              <Button
+                type="text"
+                icon={<MenuUnfoldOutlined />}
+                onClick={() => setCollapsed(false)}
+                className={mode === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-black'}
+                title="展開選單"
+              />
+            )}
           </div>
           <div className="flex-1 overflow-y-auto overflow-x-hidden">
             <Menu
