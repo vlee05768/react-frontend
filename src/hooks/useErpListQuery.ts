@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useUrlQuerySync } from './useUrlQuerySync';
 import { DEFAULT_PAGE_SIZE } from '@/constants';
+import { formatSorterToRules } from '@/utils/tableUtils';
 
 interface UseErpListQueryOptions<Q> {
   params: Q & { pageNumber?: number; page?: number; pageSize?: number; SortRules?: string };
   setParams: (newParams: any) => void;
   pageKey?: 'page' | 'pageNumber';
   searchConfig?: any[]; // 💡 傳入查詢配置，以精確清空所有條件，避免 RHF 延遲註冊漏清除之 Bug
+  tableColumns?: any[]; // 💡 傳入表格欄位配置，以自動生成 queryTagProps
 }
 
 /**
@@ -18,6 +20,7 @@ export function useErpListQuery<Q extends Record<string, any>>({
   setParams,
   pageKey = 'pageNumber',
   searchConfig,
+  tableColumns,
 }: UseErpListQueryOptions<Q>) {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const searchForm = useForm();
@@ -129,6 +132,50 @@ export function useErpListQuery<Q extends Record<string, any>>({
     setParams({ SortRules: undefined, [pageKey]: 1 });
   };
 
+  // 9. 預先打包好 ActiveQueryAndSortTags 所需的全部 Props (高槓桿/隱藏接縫)
+  const queryTagProps = {
+    searchConfig,
+    tableColumns,
+    params,
+    onQueryTagClose: handleClearQueryField,
+    onSortTagClose: handleClearSortField,
+    onClearSort: handleClearAllSort,
+  };
+
+  // 10. 高槓桿的標準表格 Props 產生器，接管變更、分頁、選取與刪除動畫狀態同步
+  const getTableProps = (options: {
+    columns: any[];
+    dataSource: any[];
+    total: number;
+    loading: boolean;
+    rowKey?: string;
+    selectedId?: any;
+    deletingId?: any;
+  }) => ({
+    onChange: (pagination: any, _filters: any, sorter: any) => {
+      const pageNum = pagination.current || 1;
+      const size = pagination.pageSize || 20;
+      const sortRules = formatSorterToRules(sorter);
+      setParams({
+        [pageKey]: pageNum,
+        pageSize: size,
+        SortRules: sortRules || undefined,
+      });
+    },
+    columns: options.columns,
+    dataSource: options.dataSource,
+    rowKey: options.rowKey || 'code',
+    loading: options.loading,
+    selectedRowId: options.selectedId,
+    selectedRowKey: options.rowKey || 'code',
+    deletingRowId: options.deletingId,
+    pagination: {
+      current: currentPage,
+      pageSize: pageSize || DEFAULT_PAGE_SIZE,
+      total: options.total,
+    }
+  });
+
   return {
     searchForm,
     isSearchModalOpen,
@@ -139,5 +186,7 @@ export function useErpListQuery<Q extends Record<string, any>>({
     handleClearQueryField,
     handleClearSortField,
     handleClearAllSort,
+    queryTagProps,
+    getTableProps,
   };
 }

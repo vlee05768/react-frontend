@@ -72,6 +72,7 @@ export default function MaterialList() {
     params,
     setParams,
     searchConfig: materialSearchFormConfig(),
+    tableColumns: mainTableColumns(),
   });
 
   const [formDefaultValues, setFormDefaultValues] = useState<any>({});
@@ -263,17 +264,6 @@ export default function MaterialList() {
     }
   };
 
-  const handleTableChange = (pagination: any, _filters: any, sorter: any) => {
-    const pageNumber = pagination.current || 1;
-    const pageSize = pagination.pageSize || 20;
-    const sortRules = formatSorterToRules(sorter);
-    setParams({
-      pageNumber,
-      pageSize,
-      SortRules: sortRules || undefined,
-    });
-  };
-
   const columns = buildTableColumns(
     mainTableColumns(),
     buildStandardActionColumn({
@@ -309,30 +299,16 @@ export default function MaterialList() {
             )}
           </Space>
         }>
-        <ActiveQueryAndSortTags
-          searchConfig={materialSearchFormConfig()}
-          tableColumns={mainTableColumns()}
-          params={params}
-          onQueryTagClose={listQuery.handleClearQueryField}
-          onSortTagClose={listQuery.handleClearSortField}
-          onClearSort={listQuery.handleClearAllSort}
-        />
+        <ActiveQueryAndSortTags {...listQuery.queryTagProps} />
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-          <StandardErpTable
-            onChange={handleTableChange}
-            columns={columns}
-            dataSource={listData}
-            rowKey="code"
-            loading={isFetching}
-            selectedRowId={viewId}
-            selectedRowKey="code"
-            deletingRowId={deletingRecordId}
-            pagination={{
-              current: currentPage,
-              pageSize: currentPageSize,
-              total: totalRecords,
-            }}
-          />
+          <StandardErpTable {...listQuery.getTableProps({
+            columns,
+            dataSource: listData,
+            total: totalRecords,
+            loading: isFetching,
+            selectedId: viewId,
+            deletingId: deletingRecordId
+          })} />
         </div>
       </PageCard>
 
