@@ -159,16 +159,16 @@ export function WorkOrderDrawer({
         }
       });
     } else if (editMode === 'work') {
-      // 驗證人員工時
-      const hours = values.personnelWorkingHours || [];
-      const validHours = hours.filter(
-        (item: any) => item.employeeNumber && item.employeeNumber.trim() && item.hours != null && item.hours > 0
+      // 驗證人員工時（以整數分鐘記錄）
+      const workingMinutes = values.personnelWorkingHours || [];
+      const validWorkingMinutes = workingMinutes.filter(
+        (item: any) => item.employeeNumber && item.employeeNumber.trim() && Number.isInteger(item.minutes) && item.minutes > 0
       );
 
-      if (validHours.length === 0) {
-        modal.error({ 
-          title: '驗證失敗', 
-          content: '請至少輸入一筆有效的人員工時（需包含員工帳號和工時大於 0）', 
+      if (validWorkingMinutes.length === 0) {
+        modal.error({
+          title: '驗證失敗',
+          content: '請至少輸入一筆有效的人員工時（需包含員工帳號和大於 0 的整數分鐘）',
           centered: true 
         });
         return;
@@ -187,7 +187,7 @@ export function WorkOrderDrawer({
               productionDate: values.productionDate?.format ? values.productionDate.format('YYYY-MM-DD') : values.productionDate,
               storageCode: values.storageCode,
               notes: values.notes,
-              personnelWorkingHours: validHours,
+              personnelWorkingHours: validWorkingMinutes,
             };
             await productionCompleteMut.mutateAsync(productDto);
             setEditMode(null);

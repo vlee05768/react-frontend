@@ -10455,9 +10455,9 @@ export type WorkOrderPersonnelHourDto = {
      */
     employeeNumber?: string | null;
     /**
-     * 工時（小時）
+     * 工時（分鐘）
      */
-    hours?: number;
+    minutes: number;
 };
 
 /**

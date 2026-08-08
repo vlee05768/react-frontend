@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Modal, Input, Button, Table, Space, InputNumber, message, Select } from 'antd';
 import { EditOutlined, EyeOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
@@ -11,13 +11,18 @@ interface PersonnelWorkingHoursFieldProps {
   disabled?: boolean;
 }
 
-export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProps> = ({
+type PersonnelWorkingHourDraft = {
+  employeeNumber: string | null;
+  minutes: number | null;
+};
+
+export function PersonnelWorkingHoursField({
   value = [],
   onChange,
   disabled = false,
-}) => {
+}: PersonnelWorkingHoursFieldProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [tempList, setTempList] = useState<WorkOrderPersonnelHourDto[]>([]);
+  const [tempList, setTempList] = useState<PersonnelWorkingHourDraft[]>([]);
   
   // 靜態查詢所有員工（因為員工數不多，一次性載入提升極致效能與操作手感）
   const { data: employeeData, isLoading: isEmployeesLoading } = useQuery({
@@ -35,27 +40,39 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
   }, [employeeData]);
 
   const handleOpen = () => {
-    setTempList(JSON.parse(JSON.stringify(value || [])));
+    setTempList(value.map((item) => ({
+      employeeNumber: item.employeeNumber ?? null,
+      minutes: item.minutes,
+    })));
     setIsOpen(true);
   };
 
+  const isValidDraftRow = (
+    item: PersonnelWorkingHourDraft,
+  ): item is PersonnelWorkingHourDraft & { employeeNumber: string; minutes: number } =>
+    Boolean(item.employeeNumber?.trim())
+    && typeof item.minutes === 'number'
+    && Number.isInteger(item.minutes)
+    && item.minutes > 0;
+
   const handleSave = () => {
-    // 檢查是否有無效的工時（人員有填，但工時沒填或是0）
-    const hasInvalidHours = tempList.some(
-      (item) => item.employeeNumber && (typeof item.hours !== 'number' || item.hours <= 0)
+    // 檢查是否有無效的工時分鐘數（人員有填，但分鐘數沒填或是 0）
+    const hasInvalidMinutes = tempList.some(
+      (item) => Boolean(item.employeeNumber?.trim()) && !isValidDraftRow(item)
     );
 
-    if (hasInvalidHours) {
+    if (hasInvalidMinutes) {
       Modal.error({
         title: '資料驗證錯誤',
-        content: '人員工時不可為空或 0，請修正後再試。',
+        content: '人員工時分鐘數不可為空或 0，請修正後再試。',
         centered: true,
       });
       return;
     }
 
-    // 過濾掉沒有選擇人員的項目
-    const validList = tempList.filter((item) => item.employeeNumber);
+    const validList: WorkOrderPersonnelHourDto[] = tempList
+      .filter(isValidDraftRow)
+      .map(({ employeeNumber, minutes }) => ({ employeeNumber, minutes }));
     
     if (onChange) {
       onChange(validList);
@@ -69,7 +86,7 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
       return;
     }
     const nextIndex = tempList.length;
-    setTempList([...tempList, { employeeNumber: null, hours: 0 }]);
+    setTempList([...tempList, { employeeNumber: null, minutes: 0 }]);
 
     // 延遲等待 React 渲染完新的 Table 橫列後，自動 focus 到剛建立的員工選擇框
     setTimeout(() => {
@@ -90,15 +107,21 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
     setTempList(newList);
   };
 
-  const handleUpdate = (index: number, field: keyof WorkOrderPersonnelHourDto, val: any) => {
-    const newList = [...tempList];
-    newList[index] = { ...newList[index], [field]: val };
-    setTempList(newList);
+  const handleEmployeeNumberChange = (index: number, employeeNumber: string | null) => {
+    setTempList((current) => current.map((item, itemIndex) =>
+      itemIndex === index ? { ...item, employeeNumber } : item
+    ));
   };
 
-  const totalHours = value?.reduce((sum, item) => sum + (item.hours || 0), 0) || 0;
+  const handleMinutesChange = (index: number, minutes: number | null) => {
+    setTempList((current) => current.map((item, itemIndex) =>
+      itemIndex === index ? { ...item, minutes } : item
+    ));
+  };
+
+  const totalMinutes = value?.reduce((sum, item) => sum + (item.minutes || 0), 0) || 0;
   const count = value?.length || 0;
-  const summaryText = count > 0 ? `${count} 人 / 總計 ${totalHours.toFixed(2)} 小時` : '';
+  const summaryText = count > 0 ? `${count} 人 / 總計 ${totalMinutes.toLocaleString()} 分鐘` : '';
 
   const columns = [
     {
@@ -130,14 +153,14 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
             }
             options={filteredOptions}
             onChange={(newVal) => {
-              handleUpdate(index, 'employeeNumber', newVal);
+              handleEmployeeNumberChange(index, newVal);
               if (newVal) {
                 setTimeout(() => {
-                  const hoursInput = document.getElementById(`hours-input-${index}`) as HTMLInputElement;
-                  if (hoursInput) {
-                    hoursInput.focus();
-                    if (typeof hoursInput.select === 'function') {
-                      hoursInput.select();
+                  const minutesInput = document.getElementById(`minutes-input-${index}`) as HTMLInputElement;
+                  if (minutesInput) {
+                    minutesInput.focus();
+                    if (typeof minutesInput.select === 'function') {
+                      minutesInput.select();
                     }
                   }
                 }, 100);
@@ -148,22 +171,21 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
       }
     },
     {
-      title: '工時 (小時)',
-      dataIndex: 'hours',
-      key: 'hours',
+      title: '工時（分鐘）',
+      dataIndex: 'minutes',
+      key: 'minutes',
       width: 150,
-      render: (val: number | undefined, _: any, index: number) => {
-        const InputNumberComponent: any = InputNumber;
+      render: (val: number | null, _: any, index: number) => {
         return (
-          <InputNumberComponent
-            id={`hours-input-${index}`}
-            min={0}
-            precision={2}
+          <InputNumber
+            id={`minutes-input-${index}`}
+            min={1}
+            precision={0}
             controls={false}
             value={val}
             disabled={disabled}
-            onChange={(newVal: any) => handleUpdate(index, 'hours', newVal)}
-            placeholder="工時"
+            onChange={(newVal) => handleMinutesChange(index, newVal)}
+            placeholder="分鐘"
             className="w-full"
           />
         );
@@ -203,7 +225,7 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
       />
 
       <Modal
-        title="編輯人員工時"
+        title="編輯人員工時（分鐘）"
         open={isOpen}
         onCancel={() => setIsOpen(false)}
         width={600}
@@ -225,11 +247,11 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
       >
         <div className="mb-4">
           <div>
-            總計: <strong>{tempList.reduce((sum, item) => sum + (item.hours || 0), 0).toFixed(2)}</strong> 小時
+            總計: <strong>{tempList.reduce((sum, item) => sum + (item.minutes || 0), 0).toLocaleString()}</strong> 分鐘
           </div>
         </div>
         
-        <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+        <div className="max-h-[400px] overflow-y-auto">
           <Table
             dataSource={tempList.map((item, idx) => ({ ...item, _key: idx }))}
             columns={disabled ? columns.filter(c => c.key !== 'action') : columns}
@@ -242,4 +264,4 @@ export const PersonnelWorkingHoursField: React.FC<PersonnelWorkingHoursFieldProp
       </Modal>
     </>
   );
-};
+}
