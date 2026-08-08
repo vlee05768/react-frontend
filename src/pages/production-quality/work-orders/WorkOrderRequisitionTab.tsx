@@ -748,7 +748,7 @@ export function WorkOrderRequisitionTab({
         if (isRoll) {
           const hasExtra = record.extra && record.extra.length > 0;
           const tooltipContent = hasExtra ? (
-            <div className="p-1 space-y-1">
+            <div className="p-1 pr-2 space-y-1 max-h-64 overflow-y-auto overscroll-contain">
               <div className="font-bold border-b border-gray-600 pb-1 mb-1">
                 已選卷卡清單 ({record.extra.length} 卷)
               </div>
@@ -763,8 +763,12 @@ export function WorkOrderRequisitionTab({
           ) : null;
 
           return (
-            <Tooltip title={tooltipContent} styles={{ root: { maxWidth: 300 } }}>
-              <div style={{ cursor: hasExtra ? "pointer" : "default" }}>
+            <Tooltip
+              title={tooltipContent}
+              placement="topRight"
+              styles={{ root: { maxWidth: 300 } }}
+            >
+              <div className={hasExtra ? "cursor-pointer" : "cursor-default"}>
                 <Tag color="cyan">捲材</Tag>
                 {hasExtra ? (
                   <span className="text-xs text-blue-400 underline">
