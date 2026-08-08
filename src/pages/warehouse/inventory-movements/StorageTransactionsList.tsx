@@ -1,11 +1,10 @@
 // @ts-nocheck
+// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Controller } from 'react-hook-form';
-import { Form, Input, Select, DatePicker, Button, Space, Tag, Row, Col, App } from 'antd';
+import { Button, Space, Tag, App, Modal, DatePicker } from 'antd';
 import { PageCard } from '@/components/common/PageCard';
-import { SearchOutlined, ClearOutlined, DownOutlined, UpOutlined, CopyOutlined } from '@ant-design/icons';
-import { DictSelect } from '@/components/Form/DictSelect';
+import { SearchOutlined, ClearOutlined, CopyOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { getApiV1StorageTransactions } from '@/api/generated/sdk.gen';
 import type { InventoryTransactionDto } from '@/api/generated/types.gen';
@@ -15,6 +14,8 @@ import { useErpListQuery } from '@/hooks/useErpListQuery';
 import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
 import StandardErpTable from '@/components/Table/StandardErpTable';
 import type { SearchFieldConfig } from '@/components/Form/types';
+import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
+import { MODAL_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT } from '@/constants/ui';
 
 const { RangePicker } = DatePicker;
 
@@ -32,18 +33,26 @@ const subTypeOptions = [
 ];
 
 const searchConfig: SearchFieldConfig[] = [
-  { name: 'inventoryCode', label: '庫存物料編號', componentType: 'Input' },
-  { name: 'storageCode', label: '儲位', componentType: 'DictSelect' },
-  { name: 'docType', label: '單據類型', componentType: 'Select', componentProps: { options: docTypeOptions } },
-  { name: 'sourceDocCode', label: '來源單據編號', componentType: 'Input' },
-  { name: 'movementDateRange', label: '異動日期區間', componentType: 'DateRangePicker' },
-  { name: 'transactionDateRange', label: '交易時間區間', componentType: 'DateRangePicker' },
+  { name: 'inventoryCode', label: '庫存物料編號', componentType: 'Input',colSpan: 2 },
+  { 
+    name: 'storageCode', 
+    label: '儲位', 
+    componentType: 'DictSelect',
+    componentProps: {
+      dictKey: 'STORAGE',
+      placeholder: '請選擇儲位',
+      allowClear: true
+    },colSpan: 2
+  },
+  { name: 'docType', label: '單據類型', componentType: 'Select', componentProps: { options: docTypeOptions } ,colSpan: 2},
+  { name: 'sourceDocCode', label: '來源單據編號', componentType: 'Input' ,colSpan: 2},
+  { name: 'movementDateRange', label: '異動日期區間', componentType: 'DateRangePicker',colSpan: 2 },
+  { name: 'transactionDateRange', label: '交易時間區間', componentType: 'DateRangePicker' ,colSpan: 2},
 ];
 
 export default function StorageTransactionsList() {
   const navigate = useNavigate();
   const { message } = App.useApp();
-  const [expandForm, setExpandForm] = useState(false);
 
   const [searchParams] = useSearchParams();
   const initialStorageCode = searchParams.get('storageCode') || undefined;
@@ -106,7 +115,6 @@ export default function StorageTransactionsList() {
   });
 
   const { searchForm } = listQuery;
-  const { control, handleSubmit } = searchForm;
 
   useEffect(() => {
     searchForm.reset(params);
@@ -309,69 +317,16 @@ export default function StorageTransactionsList() {
     <div className="p-4 pb-0 flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
       <PageCard 
         title="產品庫存異動明細"
+        extra={
+          <Button
+            type="default"
+            icon={<SearchOutlined />}
+            onClick={listQuery.openSearchModal}
+          >
+            查詢
+          </Button>
+        }
       >
-        <Form 
-          layout="vertical"
-          className="ant-advanced-search-form mb-4 pb-4 border-b border-[#f0f0f0]"
-          style={{ flexShrink: 0 }}
-        >
-          <Row gutter={16}>
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Form.Item label="庫存物料編號">
-                <Controller name="inventoryCode" control={control} render={({field}) => <Input {...field} placeholder="請輸入庫存物料編號" allowClear />} />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Form.Item label="儲位">
-                <Controller name="storageCode" control={control} render={({field}) => <DictSelect {...field} dictKey="STORAGE" placeholder="請選擇儲位" allowClear />} />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Form.Item label="單據類型">
-                <Controller name="docType" control={control} render={({field}) => <Select {...field} placeholder="請選擇單據類型" options={docTypeOptions} allowClear />} />
-              </Form.Item>
-            </Col>
-            {expandForm && (
-              <>
-                <Col xs={24} sm={12} md={8} lg={6}>
-                  <Form.Item label="來源單據編號">
-                    <Controller name="sourceDocCode" control={control} render={({field}) => <Input {...field} placeholder="請輸入來源單據編號" allowClear />} />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={6}>
-                  <Form.Item label="異動日期區間">
-                    <Controller name="movementDateRange" control={control} render={({field}) => <RangePicker {...field} className="w-full" />} />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={6}>
-                  <Form.Item label="交易時間區間">
-                    <Controller name="transactionDateRange" control={control} render={({field}) => <RangePicker {...field} showTime className="w-full" />} />
-                  </Form.Item>
-                </Col>
-              </>
-            )}
-            <Col flex="auto" className="flex items-end justify-end">
-              <Form.Item className="mb-0">
-                <Space>
-                  <Button onClick={listQuery.handleClear} icon={<ClearOutlined />}>
-                    清除
-                  </Button>
-                  <Button type="primary" onClick={handleSubmit(listQuery.handleSearch)} icon={<SearchOutlined />}>
-                    查詢
-                  </Button>
-                  <a 
-                    className="text-sm ml-2 flex items-center gap-1 select-none"
-                    onClick={() => setExpandForm(!expandForm)}
-                  >
-                    {expandForm ? '收起' : '展開'}
-                    {expandForm ? <UpOutlined /> : <DownOutlined />}
-                  </a>
-                </Space>
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
-
         <ActiveQueryAndSortTags
           searchConfig={searchConfig}
           tableColumns={columns}
@@ -397,6 +352,42 @@ export default function StorageTransactionsList() {
           />
         </div>
       </PageCard>
+
+      <Modal
+        title={
+          <div className="font-semibold pb-3 mb-2 text-[18px] border-b border-[var(--ant-color-border-secondary)]">
+            查詢條件設定
+          </div>
+        }
+        open={listQuery.isSearchModalOpen}
+        onCancel={() => listQuery.setIsSearchModalOpen(false)}
+        footer={
+          <div className="pt-4 flex justify-end gap-2 border-t border-[var(--ant-color-border-secondary)]">
+            <Button icon={<ClearOutlined />} onClick={listQuery.handleClear}>
+              清除條件
+            </Button>
+            <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
+              執行查詢
+            </Button>
+          </div>
+        }
+        width={MODAL_WIDTH_SEARCH}
+        className="top-[10vh]"
+        styles={{
+          body: {
+            maxHeight: MODAL_BODY_MAX_HEIGHT,
+            overflowY: 'auto',
+            padding: '24px 24px 0 24px'
+          }
+        }}
+        closeIcon={true}
+      >
+        <DynamicSearchForm 
+          config={searchConfig} 
+          form={listQuery.searchForm} 
+          onSearch={listQuery.handleSearch} 
+        />
+      </Modal>
     </div>
   );
 }

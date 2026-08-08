@@ -1,8 +1,7 @@
 // @ts-nocheck
 import { useMemo, useState, useEffect } from 'react';
-import { Tabs, Button, Space, Form, Input, Select, ConfigProvider } from 'antd';
+import { Tabs, Button, Space, ConfigProvider, Modal, Divider } from 'antd';
 import { PageCard } from '@/components/common/PageCard';
-import { Controller } from 'react-hook-form';
 import { SearchOutlined, ClearOutlined, SyncOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { getApiV1StorageInventory } from '@/api/generated/sdk.gen';
@@ -12,10 +11,11 @@ import dayjs from 'dayjs';
 
 import { inventoryTypeOptions, searchFields } from './StorageInventoryConfig';
 import { EllipsisText } from '@/components/Table/EllipsisText';
-import { DictSelect } from '@/components/Form/DictSelect';
 import { useErpListQuery } from '@/hooks/useErpListQuery';
 import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
 import StandardErpTable from '@/components/Table/StandardErpTable';
+import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
+import { MODAL_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT } from '@/constants/ui';
 
 export default function StorageInventoryList() {
   const { mode } = useThemeStore();
@@ -24,12 +24,10 @@ export default function StorageInventoryList() {
 
   const initialStorageCode = searchParams.get('storageCode') || undefined;
   const initialInventoryCode = searchParams.get('inventoryCode') || undefined;
-  const initialType = searchParams.get('type') || undefined;
 
   const [queryParams, setQueryParams] = useState<any>({
     StorageCode: initialStorageCode,
     InventoryCode: initialInventoryCode,
-    Type: initialType,
   });
 
   const [activeTab, setActiveTab] = useState<string>('1');
@@ -71,12 +69,11 @@ export default function StorageInventoryList() {
     queryKey: ['storage-inventory', queryParams],
     queryFn: async () => {
       // 僅傳入 API 支援的 query 參數，避免 excess property checking 或 400
-      const { StorageCode, InventoryCode, Type } = queryParams;
+      const { StorageCode, InventoryCode } = queryParams;
       const res = await getApiV1StorageInventory({
         query: {
           StorageCode,
           InventoryCode,
-          Type,
         }
       });
       
@@ -166,20 +163,20 @@ export default function StorageInventoryList() {
 
   const subColumnsForStorage = [
     { title: '庫存類型', dataIndex: 'type', align: 'center', width: 100, render: (val: string) => inventoryTypeOptions.find(o => o.value === val)?.label || '-' },
-    { title: '客戶', dataIndex: 'customerName', width: 240, render: (val: string) => val || <span className="text-gray-400">-</span> },
-    { title: '物料編號', dataIndex: 'inventoryCode', width: 150 },
+    { title: '客戶', dataIndex: 'customerName', width: 300, render: (val: string) => val || <span className="text-gray-400">-</span> },
+    { title: '物料編號', dataIndex: 'inventoryCode', width: 300 },
     { title: '物料名稱', dataIndex: 'inventoryName', render: (val: string) => <EllipsisText text={val} /> },
-    { title: '庫存量', dataIndex: 'quantity', align: 'right', width: 120, render: renderQuantity },
+    { title: '庫存量', dataIndex: 'quantity', align: 'right', width: 160, render: renderQuantity },
     { title: '最後更新時間', dataIndex: 'updatedAt', width: 180, render: (val: string) => val ? dayjs(val).format('YYYY/MM/DD HH:mm:ss') : '-' },
   ];
 
   // Master Columns
   const inventoryMasterColumns = [
     { title: '庫存類型', dataIndex: 'type', align: 'center', width: 100, render: (val: string) => inventoryTypeOptions.find(o => o.value === val)?.label || '-' },
-    { title: '客戶', dataIndex: 'customerName', width: 240, render: (val: string) => val || <span className="text-gray-400">-</span> },
-    { title: '物料編號', dataIndex: 'inventoryCode', width: 250 },
+    { title: '客戶', dataIndex: 'customerName', width: 300, render: (val: string) => val || <span className="text-gray-400">-</span> },
+    { title: '物料編號', dataIndex: 'inventoryCode', width: 300 },
     { title: '物料名稱', dataIndex: 'inventoryName', render: (val: string) => <EllipsisText text={val} /> },
-    { title: '總庫存量', dataIndex: 'totalQuantity', align: 'right', width: 120, render: (val: number) => val.toLocaleString('zh-TW') },
+    { title: '總庫存量', dataIndex: 'totalQuantity', align: 'right', width: 160, render: (val: number) => val.toLocaleString('zh-TW') },
     { title: '儲位數', dataIndex: 'storageCount', align: 'right', width: 100 },
   ];
 
@@ -196,33 +193,20 @@ export default function StorageInventoryList() {
       <PageCard
         title="產品儲位庫存"
         extra={
-          <Button icon={<SyncOutlined />} onClick={() => refetch()} loading={isFetching}>
-            更新資料
-          </Button>
+          <Space separator={<Divider orientation="vertical" />}>
+            <Button
+              type="default"
+              icon={<SearchOutlined />}
+              onClick={listQuery.openSearchModal}
+            >
+              查詢
+            </Button>
+            <Button icon={<SyncOutlined />} onClick={() => refetch()} loading={isFetching}>
+              更新資料
+            </Button>
+          </Space>
         }
       >
-        <Form 
-          layout="inline" 
-          className="mb-4 pb-4 border-b border-[#f0f0f0]" 
-          onFinish={listQuery.searchForm.handleSubmit(listQuery.handleSearch)}
-          style={{ flexShrink: 0 }}
-        >
-          <Form.Item label="儲位">
-            <Controller name="StorageCode" control={listQuery.searchForm.control} render={({field}: any) => <DictSelect {...field} dictKey="STORAGE" placeholder="請選擇儲位" style={{ width: 220 }} allowClear />} />
-          </Form.Item>
-          <Form.Item label="物料編號">
-            <Controller name="InventoryCode" control={listQuery.searchForm.control} render={({field}: any) => <Input {...field} placeholder="請輸入物料編號" allowClear style={{ width: 220 }} />} />
-          </Form.Item>
-          <Form.Item label="庫存類型">
-            <Controller name="Type" control={listQuery.searchForm.control} render={({field}: any) => <Select {...field} placeholder="請選擇類型" allowClear style={{ width: 120 }} options={inventoryTypeOptions} />} />
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit" icon={<SearchOutlined />} loading={isFetching}>查詢</Button>
-              <Button onClick={listQuery.handleClear} icon={<ClearOutlined />}>清除</Button>
-            </Space>
-          </Form.Item>
-        </Form>
 
         <ActiveQueryAndSortTags
           searchConfig={searchFields}
@@ -339,6 +323,42 @@ export default function StorageInventoryList() {
           />
         </div>
       </PageCard>
+
+      <Modal
+        title={
+          <div className="font-semibold pb-3 mb-2 text-[18px] border-b border-[var(--ant-color-border-secondary)]">
+            查詢條件設定
+          </div>
+        }
+        open={listQuery.isSearchModalOpen}
+        onCancel={() => listQuery.setIsSearchModalOpen(false)}
+        footer={
+          <div className="pt-4 flex justify-end gap-2 border-t border-[var(--ant-color-border-secondary)]">
+            <Button icon={<ClearOutlined />} onClick={listQuery.handleClear}>
+              清除條件
+            </Button>
+            <Button type="primary" icon={<SearchOutlined />} htmlType="submit" form="search-form">
+              執行查詢
+            </Button>
+          </div>
+        }
+        width={MODAL_WIDTH_SEARCH}
+        className="top-[10vh]"
+        styles={{
+          body: {
+            maxHeight: MODAL_BODY_MAX_HEIGHT,
+            overflowY: 'auto',
+            padding: '24px 24px 0 24px'
+          }
+        }}
+        closeIcon={true}
+      >
+        <DynamicSearchForm 
+          config={searchFields} 
+          form={listQuery.searchForm} 
+          onSearch={listQuery.handleSearch} 
+        />
+      </Modal>
     </div>
   );
 }

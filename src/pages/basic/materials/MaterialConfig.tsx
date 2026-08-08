@@ -31,7 +31,6 @@ const generateCode = (context: any, setValue: any) => {
   if (isMissingFields) {
     setValue("code", "");
     setValue("name", "");
-    setValue("spec", "");
     return;
   }
 
@@ -40,10 +39,6 @@ const generateCode = (context: any, setValue: any) => {
   const upperBrand = (brand || "").trim().toUpperCase();
   const upperModelNo = (modelNo || "").trim().toUpperCase();
   
-  // 規格編碼：後端定義為 ModelNo-Thickness
-  const spec = `${upperModelNo}-${formattedThickness}`;
-  setValue("spec", spec);
-
   // 原料編碼：{廠牌}-{型號}-{厚度}-{形態(R/S)}
   const code = `${upperBrand}-${upperModelNo}-${formattedThickness}-${materialForm}`.toUpperCase();
   setValue("code", code);
@@ -93,7 +88,6 @@ const generateCode = (context: any, setValue: any) => {
         setValue("materialForm", undefined);
         setValue("code", "");
         setValue("name", "");
-        setValue("spec", "");
       }
     })
     .catch((err) => {
@@ -360,6 +354,67 @@ export const mainFormConfig = (
     },
   },
   {
+    name: "tag",
+    label: "標籤",
+    componentType: "Input",
+    colSpan: 4,
+  },
+  {
+    name: "spec",
+    label: "規格編碼",
+    componentType: "Input",
+    colSpan: 4,
+    validation: z.string().min(1, "請輸入規格編碼").max(40, "規格編碼不可超過 40 個字元"),
+    componentProps: { placeholder: "請輸入規格編碼" },
+  },
+  {
+    name: "unitPrice",
+    label: (
+      <Space size={4}>
+        <span>最後進貨成本 (元/㎡)</span>
+        {isCostLocked && (
+          <Tooltip title={isUnlocked ? "已解鎖手動編輯" : "已有實際進貨記錄，此欄位已鎖定，由系統 IQC 過帳自動維護。點選解鎖。"}>
+            {isAdminOrFinance ? (
+              <Button
+                type="text"
+                size="small"
+                style={{ padding: 0, height: "auto", width: "auto" }}
+                icon={isUnlocked ? <UnlockOutlined style={{ color: "#52c41a" }} /> : <LockOutlined style={{ color: "#ff4d4f" }} />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  if (!isUnlocked && onUnlock) {
+                    onUnlock();
+                  }
+                }}
+              />
+            ) : (
+              <LockOutlined style={{ color: "#ff4d4f" }} />
+            )}
+          </Tooltip>
+        )}
+      </Space>
+    ),
+    componentType: "InputNumber",
+    colSpan: 4,
+    editable: () => {
+      if (!isCostLocked) return "always";
+      return isUnlocked ? "always" : "never";
+    },
+    componentProps: { 
+      disabled: isCostLocked && !isUnlocked, 
+      style: { width: "100%" },
+      formatter: (value: any) => value != null ? `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "",
+      parser: (value: any) => value ? value.replace(/\$\s?|(,*)/g, "") : "",
+    },
+  },
+  {
+    name: "isActive",
+    label: "是否啟用",
+    componentType: "Switch",
+    colSpan: 6,
+  },
+  {
     name: "isCustomerSupplied",
     label: "是否為客供料",
     componentType: "Switch",
@@ -392,67 +447,6 @@ export const mainFormConfig = (
         disabled: !context?.values?.isCustomerSupplied,
       };
     },
-  },
-  {
-    name: "tag",
-    label: "標籤",
-    componentType: "Input",
-    colSpan: 4,
-  },
-  {
-    name: "spec",
-    label: "規格編碼",
-    componentType: "Input",
-    colSpan: 6,
-    editable: "never",
-    componentProps: { disabled: true },
-  },
-  {
-    name: "unitPrice",
-    label: (
-      <Space size={4}>
-        <span>最後進貨成本 (元/㎡)</span>
-        {isCostLocked && (
-          <Tooltip title={isUnlocked ? "已解鎖手動編輯" : "已有實際進貨記錄，此欄位已鎖定，由系統 IQC 過帳自動維護。點選解鎖。"}>
-            {isAdminOrFinance ? (
-              <Button
-                type="text"
-                size="small"
-                style={{ padding: 0, height: "auto", width: "auto" }}
-                icon={isUnlocked ? <UnlockOutlined style={{ color: "#52c41a" }} /> : <LockOutlined style={{ color: "#ff4d4f" }} />}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  if (!isUnlocked && onUnlock) {
-                    onUnlock();
-                  }
-                }}
-              />
-            ) : (
-              <LockOutlined style={{ color: "#ff4d4f" }} />
-            )}
-          </Tooltip>
-        )}
-      </Space>
-    ),
-    componentType: "InputNumber",
-    colSpan: 6,
-    editable: () => {
-      if (!isCostLocked) return "always";
-      return isUnlocked ? "always" : "never";
-    },
-    componentProps: { 
-      disabled: isCostLocked && !isUnlocked, 
-      style: { width: "100%" },
-      formatter: (value: any) => value != null ? `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "",
-      parser: (value: any) => value ? value.replace(/\$\s?|(,*)/g, "") : "",
-    },
-  },
-  {
-    name: "isActive",
-    label: "是否啟用",
-    componentType: "Switch",
-    colSpan: 6,
   },
   {
     name: "specDescription",

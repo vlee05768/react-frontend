@@ -10,18 +10,12 @@ export const searchFields: SearchFieldConfig[] = [
     name: 'StorageCode',
     label: '儲位編號',
     componentType: 'Input',
+    colSpan: 2,
   },
   {
     name: 'InventoryCode',
     label: '物料編號',
     componentType: 'Input',
-  },
-  {
-    name: 'Type',
-    label: '庫存類型',
-    componentType: 'Select',
-    componentProps: {
-      options: inventoryTypeOptions,
-    }
+    colSpan: 2,
   },
 ];
