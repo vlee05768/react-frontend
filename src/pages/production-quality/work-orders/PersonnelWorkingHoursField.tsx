@@ -23,6 +23,9 @@ export function PersonnelWorkingHoursField({
 }: PersonnelWorkingHoursFieldProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [tempList, setTempList] = useState<PersonnelWorkingHourDraft[]>([]);
+
+  // 確保 value 為陣列，防止外部傳入 null 導致崩潰 (◕‿◕)★
+  const safeValue = value || [];
   
   // 靜態查詢所有員工（因為員工數不多，一次性載入提升極致效能與操作手感）
   const { data: employeeData, isLoading: isEmployeesLoading } = useQuery({
@@ -40,7 +43,7 @@ export function PersonnelWorkingHoursField({
   }, [employeeData]);
 
   const handleOpen = () => {
-    setTempList(value.map((item) => ({
+    setTempList(safeValue.map((item) => ({
       employeeNumber: item.employeeNumber ?? null,
       minutes: item.minutes,
     })));
@@ -119,8 +122,8 @@ export function PersonnelWorkingHoursField({
     ));
   };
 
-  const totalMinutes = value?.reduce((sum, item) => sum + (item.minutes || 0), 0) || 0;
-  const count = value?.length || 0;
+  const totalMinutes = safeValue.reduce((sum, item) => sum + (item.minutes || 0), 0) || 0;
+  const count = safeValue.length || 0;
   const summaryText = count > 0 ? `${count} 人 / 總計 ${totalMinutes.toLocaleString()} 分鐘` : '';
 
   const columns = [
