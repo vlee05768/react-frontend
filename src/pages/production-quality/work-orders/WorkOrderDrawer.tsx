@@ -36,6 +36,142 @@ import { WorkOrderRequisitionTab } from "./WorkOrderRequisitionTab";
 import { WorkOrderReturnTab } from "./WorkOrderReturnTab";
 import { DocumentWatchButton } from '@/components/common/DocumentWatchButton';
 
+interface StatusMutationConfig {
+  id?: string;
+  mutationFn: (args: any) => Promise<any>;
+  successMessage: string;
+  onSuccessCallback?: () => void;
+  setActiveTab?: (tab: string) => void;
+}
+
+function useStatusMutation({
+  id,
+  mutationFn,
+  successMessage,
+  onSuccessCallback,
+  setActiveTab,
+}: StatusMutationConfig) {
+  const { message, modal } = App.useApp();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn,
+    onSuccess: () => {
+      message.success(successMessage);
+      queryClient.invalidateQueries({ queryKey: ["workorder", id] });
+      queryClient.invalidateQueries({ queryKey: ["workorders"] });
+      queryClient.invalidateQueries({ queryKey: ["requisitions", id] });
+      queryClient.invalidateQueries({ queryKey: ["requisition"] });
+      if (onSuccessCallback) {
+        onSuccessCallback();
+      }
+    },
+    onError: (error) => {
+      const errorMsg = getApiErrorMessage(error);
+      let isJsonTable = false;
+      let errorData: any = null;
+
+      try {
+        // 💡 智慧提取 JSON：即便被 "備料確認失敗: " 等字串包裹，也能 100% 強健解析！
+        const firstBrace = errorMsg?.indexOf('{');
+        const lastBrace = errorMsg?.lastIndexOf('}');
+        
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          const jsonString = errorMsg.substring(firstBrace, lastBrace + 1);
+          const parsed = JSON.parse(jsonString);
+          if (parsed && parsed.isBOMError) {
+            errorData = parsed;
+            isJsonTable = true;
+          }
+        }
+      } catch (e) {
+        // Not valid JSON
+      }
+
+      let instance: any = null;
+
+      if (isJsonTable && errorData) {
+        instance = modal.error({
+          title: "作業失敗",
+          width: "40vw", // 💡 寬度調整為 40vw
+          style: { width: "40vw", maxWidth: "95vw" }, // 💡 直接強制注入 inline style，徹底解決 AntD 5 靜態彈窗不支援 vw 寬度之痛！
+          centered: true,
+          content: (
+            <div className="flex flex-col gap-3">
+              <div className="text-sm font-bold text-slate-800 dark:text-slate-200 text-left mb-1">
+                {errorData.title}
+              </div>
+              
+              {/* 原生高質感無隔線自適應 Dark Mode 表格 (支援防折行 whiteSpace nowrap) */}
+              <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-zinc-800">
+                <table className="w-full border-collapse text-left text-[13px]">
+                  <thead>
+                    <tr className="bg-gray-50 dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800">
+                      <th className="px-4 py-2.5 font-semibold text-slate-600 dark:text-slate-200 whitespace-nowrap">原料編碼</th>
+                      <th className="px-4 py-2.5 font-semibold text-slate-600 dark:text-slate-200 w-[80px] text-center whitespace-nowrap">類型</th>
+                      <th className="px-4 py-2.5 font-semibold text-slate-600 dark:text-slate-200 w-[120px] text-right whitespace-nowrap">累計領料</th>
+                      <th className="px-4 py-2.5 font-semibold text-slate-600 dark:text-slate-200 w-[120px] text-right whitespace-nowrap">BOM需求</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {errorData.details?.map((item: any, idx: number) => (
+                      <tr key={idx} className="border-b last:border-b-0 border-gray-100 dark:border-zinc-800/80">
+                        <td className="px-4 py-2.5 font-mono font-medium text-slate-800 dark:text-slate-100 whitespace-nowrap">{item.code}</td>
+                        <td className="px-4 py-2.5 text-center whitespace-nowrap">
+                          <span className={`px-2 py-0.5 rounded text-[11px] font-bold border whitespace-nowrap ${
+                            item.type === '捲材' 
+                              ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-900/50' 
+                              : 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50'
+                          }`}>
+                            {item.type}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5 text-right text-red-500 dark:text-red-400 font-bold whitespace-nowrap">{item.requisitioned}</td>
+                        <td className="px-4 py-2.5 text-right font-medium text-slate-800 dark:text-slate-200 whitespace-nowrap">{item.required}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="text-[13px] text-slate-500 dark:text-slate-400 text-left mt-1">
+                請至領料頁籤補足領料明細數量！
+              </div>
+              
+              {setActiveTab && (
+                <div style={{ textAlign: 'right', marginTop: '12px' }}>
+                  <Button 
+                    type="primary" 
+                    size="small"
+                    onClick={() => {
+                      if (instance) {
+                        instance.destroy();
+                      }
+                      setActiveTab("requisitions");
+                    }}
+                  >
+                    前往補領料 ➡️
+                  </Button>
+                </div>
+              )}
+            </div>
+          )
+        });
+      } else {
+        instance = modal.error({
+          title: "作業失敗",
+          centered: true,
+          content: (
+            <div style={{ whiteSpace: 'pre-wrap', textAlign: 'left' }}>
+              {errorMsg}
+            </div>
+          )
+        });
+      }
+    },
+  });
+}
+
 interface WorkOrderDrawerProps {
   id?: string;
   isCreateMode?: boolean;
@@ -210,104 +346,60 @@ export function WorkOrderDrawer({
     }
   };
 
-  // Status transitions
-  const useStatusMutation = (
-    mutationFn: (args: any) => Promise<any>,
-    successMessage: string,
-    onSuccessCallback?: () => void
-  ) => useMutation({
-    mutationFn,
-    onSuccess: () => {
-      message.success(successMessage);
-      queryClient.invalidateQueries({ queryKey: ["workorder", id] });
-      queryClient.invalidateQueries({ queryKey: ["workorders"] });
-      queryClient.invalidateQueries({ queryKey: ["requisitions", id] });
-      queryClient.invalidateQueries({ queryKey: ["requisition"] });
-      if (onSuccessCallback) {
-        onSuccessCallback();
-      }
-    },
-    onError: (error) => {
-      const errorMsg = getApiErrorMessage(error);
-      const isTable = errorMsg?.includes('|');
-      const isPrepInsuff = errorMsg?.includes("備料不足");
-      
-      let instance: any = null;
-      instance = modal.error({ 
-        title: "作業失敗", 
-        content: (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ 
-              whiteSpace: 'pre-wrap', 
-              fontFamily: isTable ? 'Consolas, Monaco, monospace' : 'inherit',
-              fontSize: '13px',
-              textAlign: 'left',
-              lineHeight: '1.5'
-            }}>
-              {errorMsg}
-            </div>
-            {isPrepInsuff && (
-              <div style={{ textAlign: 'right', marginTop: '8px' }}>
-                <Button 
-                  type="primary" 
-                  size="small"
-                  onClick={() => {
-                    if (instance) {
-                      instance.destroy();
-                    }
-                    setActiveTab("requisitions");
-                  }}
-                >
-                  前往補領料 ➡️
-                </Button>
-              </div>
-            )}
-          </div>
-        ), 
-        centered: true,
-        width: isTable ? 600 : 416
-      });
-    },
+  const preparationConfirmMut = useStatusMutation({
+    id,
+    mutationFn: () => postApiV1WorkOrderByWorkOrderNumberPreparationConfirm({ path: { workOrderNumber: id! } }),
+    successMessage: "備料確認成功",
+    setActiveTab,
   });
-
-  const preparationConfirmMut = useStatusMutation(
-    () => postApiV1WorkOrderByWorkOrderNumberPreparationConfirm({ path: { workOrderNumber: id! } }),
-    "備料確認成功"
-  );
-  const preparationCancelMut = useStatusMutation(
-    () => postApiV1WorkOrderByWorkOrderNumberPreparationConfirmCancel({ path: { workOrderNumber: id! } }),
-    "取消備料確認成功"
-  );
+  const preparationCancelMut = useStatusMutation({
+    id,
+    mutationFn: () => postApiV1WorkOrderByWorkOrderNumberPreparationConfirmCancel({ path: { workOrderNumber: id! } }),
+    successMessage: "取消備料確認成功",
+    setActiveTab,
+  });
   
-  const laminationConfirmMut = useStatusMutation(
-    () => postApiV1WorkOrderByWorkOrderNumberLaminationConfirm({ path: { workOrderNumber: id! } }),
-    "貼合確認成功"
-  );
-  const laminationCancelMut = useStatusMutation(
-    () => postApiV1WorkOrderByWorkOrderNumberLaminationConfirmCancel({ path: { workOrderNumber: id! } }),
-    "取消貼合確認成功"
-  );
+  const laminationConfirmMut = useStatusMutation({
+    id,
+    mutationFn: () => postApiV1WorkOrderByWorkOrderNumberLaminationConfirm({ path: { workOrderNumber: id! } }),
+    successMessage: "貼合確認成功",
+    setActiveTab,
+  });
+  const laminationCancelMut = useStatusMutation({
+    id,
+    mutationFn: () => postApiV1WorkOrderByWorkOrderNumberLaminationConfirmCancel({ path: { workOrderNumber: id! } }),
+    successMessage: "取消貼合確認成功",
+    setActiveTab,
+  });
   
-  const productionCompleteMut = useStatusMutation(
-    (bodyData: any) => postApiV1WorkOrderByWorkOrderNumberProductionComplete({ path: { workOrderNumber: id! }, body: bodyData }),
-    "生產完成成功"
-  );
-  const productionCancelMut = useStatusMutation(
-    () => postApiV1WorkOrderByWorkOrderNumberProductionCompleteCancel({ path: { workOrderNumber: id! } }),
-    "取消生產完成成功"
-  );
+  const productionCompleteMut = useStatusMutation({
+    id,
+    mutationFn: (bodyData: any) => postApiV1WorkOrderByWorkOrderNumberProductionComplete({ path: { workOrderNumber: id! }, body: bodyData }),
+    successMessage: "生產完成成功",
+    setActiveTab,
+  });
+  const productionCancelMut = useStatusMutation({
+    id,
+    mutationFn: () => postApiV1WorkOrderByWorkOrderNumberProductionCompleteCancel({ path: { workOrderNumber: id! } }),
+    successMessage: "取消生產完成成功",
+    setActiveTab,
+  });
   
-  const warehousingCompleteMut = useStatusMutation(
-    () => postApiV1WorkOrderByWorkOrderNumberWarehousingComplete({ path: { workOrderNumber: id! } }),
-    "入庫完成成功"
-  );
-  const warehousingCancelMut = useStatusMutation(
-    () => postApiV1WorkOrderByWorkOrderNumberWarehousingCompleteCancel({ path: { workOrderNumber: id! } }),
-    "取消入庫完成成功",
-    () => {
+  const warehousingCompleteMut = useStatusMutation({
+    id,
+    mutationFn: () => postApiV1WorkOrderByWorkOrderNumberWarehousingComplete({ path: { workOrderNumber: id! } }),
+    successMessage: "入庫完成成功",
+    setActiveTab,
+  });
+  const warehousingCancelMut = useStatusMutation({
+    id,
+    mutationFn: () => postApiV1WorkOrderByWorkOrderNumberWarehousingCompleteCancel({ path: { workOrderNumber: id! } }),
+    successMessage: "取消入庫完成成功",
+    onSuccessCallback: () => {
       window.location.reload();
-    }
-  );
+    },
+    setActiveTab,
+  });
 
   
   const isDraft = record && !record.preparationConfirmDate;
