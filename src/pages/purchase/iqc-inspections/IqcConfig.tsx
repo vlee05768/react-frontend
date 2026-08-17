@@ -181,7 +181,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
           <div className="flex items-center gap-1 font-mono font-medium">
             <span className="text-indigo-600 dark:text-indigo-400">{formattedWidth} mm</span>
             <span className="text-gray-400">x</span>
-            <span className="text-indigo-600 dark:text-indigo-400">{formattedLength} mm</span>
+            <span className="text-amber-600 dark:text-amber-400">{formattedLength} mm</span>
           </div>
         );
       }

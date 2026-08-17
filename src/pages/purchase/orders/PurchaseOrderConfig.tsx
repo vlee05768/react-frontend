@@ -474,9 +474,9 @@ export const getItemColumns = (
         );
       }
       if (isSheet) {
-        // 💡 單位相同的用一樣的顏色：片材長度為 mm，故與寬度 (mm) 統一採用高質感靛藍色 (Indigo)
+        // 💡 為了跨模組 UX 一致性，片料規格長度 (mm) 統一採用高質感橘色/琥珀色 (Amber)
         return (
-          <span className="text-indigo-600 dark:text-indigo-400 font-mono font-medium">
+          <span className="text-amber-600 dark:text-amber-400 font-mono font-medium">
             {formattedVal} mm
           </span>
         );
