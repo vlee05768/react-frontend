@@ -228,7 +228,45 @@ export function WorkOrderDrawer({
       }
     },
     onError: (error) => {
-      modal.error({ title: "作業失敗", content: getApiErrorMessage(error), centered: true });
+      const errorMsg = getApiErrorMessage(error);
+      const isTable = errorMsg?.includes('|');
+      const isPrepInsuff = errorMsg?.includes("備料不足");
+      
+      let instance: any = null;
+      instance = modal.error({ 
+        title: "作業失敗", 
+        content: (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ 
+              whiteSpace: 'pre-wrap', 
+              fontFamily: isTable ? 'Consolas, Monaco, monospace' : 'inherit',
+              fontSize: '13px',
+              textAlign: 'left',
+              lineHeight: '1.5'
+            }}>
+              {errorMsg}
+            </div>
+            {isPrepInsuff && (
+              <div style={{ textAlign: 'right', marginTop: '8px' }}>
+                <Button 
+                  type="primary" 
+                  size="small"
+                  onClick={() => {
+                    if (instance) {
+                      instance.destroy();
+                    }
+                    setActiveTab("requisitions");
+                  }}
+                >
+                  前往補領料 ➡️
+                </Button>
+              </div>
+            )}
+          </div>
+        ), 
+        centered: true,
+        width: isTable ? 600 : 416
+      });
     },
   });
 

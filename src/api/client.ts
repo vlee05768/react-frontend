@@ -26,10 +26,15 @@ apiClient.interceptors.response.use(
   (error) => {
     // 統一錯誤提取
     const errorMsg = error.response?.data?.message || error.message || '系統發生錯誤';
-    // 💡 支援 \n 換行排版顯示，讓多行檢核錯誤能整齊排列
+    const isTable = errorMsg.includes('|');
+    // 💡 支援 \n 換行排版顯示，且若含有表格則套用等寬字型並靠左對齊
     antdGlobal.message?.error({
       content: errorMsg,
-      style: { whiteSpace: 'pre-line' }
+      style: { 
+        whiteSpace: 'pre-wrap', 
+        fontFamily: isTable ? 'Consolas, Monaco, monospace' : 'inherit',
+        textAlign: 'left'
+      }
     });
     if (error.response?.status === 401) {
       useAuthStore.getState().logout();
