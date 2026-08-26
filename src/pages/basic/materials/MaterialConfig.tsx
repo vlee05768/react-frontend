@@ -360,14 +360,6 @@ export const mainFormConfig = (
     colSpan: 4,
   },
   {
-    name: "spec",
-    label: "規格編碼",
-    componentType: "Input",
-    colSpan: 4,
-    validation: z.string().min(1, "請輸入規格編碼").max(40, "規格編碼不可超過 40 個字元"),
-    componentProps: { placeholder: "請輸入規格編碼" },
-  },
-  {
     name: "unitPrice",
     label: (
       <Space size={4}>
