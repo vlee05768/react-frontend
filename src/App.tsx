@@ -66,7 +66,7 @@ export default function App() {
           cssVar: true as any,
           algorithm: mode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
           token: {
-            colorPrimary: '#1668dc',
+            colorPrimary: '#1677ff',
             colorBgBase: mode === 'dark' ? '#141414' : '#ffffff',
             borderRadius: 6,
             // 增強 Disable 狀態的對比度，讓表單文字更清晰，同時背景保持明顯的置灰

@@ -51,6 +51,7 @@ export default function StandardErpTable<RecordType extends object>({
           text-overflow: ellipsis !important;
           max-width: 100% !important;
         }
+        .ant-table-cell[style*="text-align: right"], .text-right, .tabular-nums { font-variant-numeric: tabular-nums; }
         .selected-table-row > td { background-color: ${token.controlItemBgActive} !important; }
         .deleting-row-highlight > td { background-color: ${token.colorErrorBg} !important; opacity: 0.6; }
       `}</style>
