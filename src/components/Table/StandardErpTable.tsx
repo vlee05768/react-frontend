@@ -42,8 +42,8 @@ export default function StandardErpTable<RecordType extends object>({
         .ant-spin-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .ant-table { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .ant-table-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .ant-table-body { flex: 1; overflow-x: auto !important; overflow-y: auto !important; max-height: none !important; }
-        .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; }
+        .ant-table-content, .ant-table-body { flex: 1; overflow-x: auto !important; overflow-y: auto !important; max-height: none !important; }
+        .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; padding: 12px 0 4px 0 !important; }
         .ant-table-thead > tr > th { text-align: center !important; }
         .ant-table-cell-ellipsis, .ant-table-cell-ellipsis * {
           white-space: nowrap !important;
@@ -59,7 +59,7 @@ export default function StandardErpTable<RecordType extends object>({
       <Table<RecordType>
         bordered
         tableLayout="fixed"
-        scroll={{ x: 'max-content', y: 300 }} // y: 300 為觸發 .ant-table-body 高度自適應的關鍵，不可移除
+        scroll={{ x: 'max-content', ...restProps.scroll }}
         rowClassName={(record, index) => {
           const r = record as any;
           // 根據 selectedRowKey 或常見 ERP 主鍵欄位名稱，識別當前 record ID

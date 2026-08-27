@@ -376,6 +376,123 @@ input:-webkit-autofill:active {
   transition: background-color 5000s ease-in-out 0s;
 }
 
+/* === 全域 Ant Design Table 水平捲軸徹底強固修復（徹底擺脫 Hover 震盪閃爍，體驗與垂直捲軸完全一致） === */
 
+/* 1. 解除容器裁剪阻礙，防範游標停在捲軸上時觸發 mouseleave 震盪 */
+.ant-table-container {
+  position: relative !important;
+}
 
+/* 常態固定表格體雙向捲軸，防止游標 hover 狀態改變引發 overflow-x 動態變更與閃爍 */
+.ant-table-wrapper .ant-table-content,
+.ant-table-wrapper .ant-table-body {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+}
+.ant-table-wrapper .ant-table-content::-webkit-scrollbar-corner,
+.ant-table-wrapper .ant-table-body::-webkit-scrollbar-corner {
+  background-color: transparent !important;
+}
 
+/* 2. Standard Firefox W3C 捲軸相容性：實體常態固定 */
+.ant-table-wrapper .ant-table-content,
+.ant-table-wrapper .ant-table-body {
+  scrollbar-width: auto;
+  scrollbar-color: #64748b #e2e8f0;
+}
+
+:where(.dark, .dark *) .ant-table-wrapper .ant-table-content,
+:where(.dark, .dark *) .ant-table-wrapper .ant-table-body {
+  scrollbar-color: #94a3b8 #1e293b;
+}
+
+/* 3. WebKit (Chrome / Safari / Edge) 實體化捲軸：強制 14px 實體高度，全時 100% 可見 */
+.ant-table-wrapper .ant-table-content::-webkit-scrollbar,
+.ant-table-wrapper .ant-table-body::-webkit-scrollbar {
+  height: 14px !important;
+  width: 14px !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* 捲軸背景軌道 Track：永遠保持明確的實體軌道底色 */
+.ant-table-wrapper .ant-table-content::-webkit-scrollbar-track,
+.ant-table-wrapper .ant-table-body::-webkit-scrollbar-track {
+  background-color: #e2e8f0 !important;
+  border-radius: 7px !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+:where(.dark, .dark *) .ant-table-wrapper .ant-table-content::-webkit-scrollbar-track,
+:where(.dark, .dark *) .ant-table-wrapper .ant-table-body::-webkit-scrollbar-track {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+/* 滑塊 Thumb：常態保持溫和半透明，游標一靠近表格/容器 (Hover) 即刻 0.15s 自動清晰亮起出現，無需滾動即可點擊拖拽 */
+.ant-table-wrapper .ant-table-content::-webkit-scrollbar-thumb,
+.ant-table-wrapper .ant-table-body::-webkit-scrollbar-thumb,
+.ant-modal-body::-webkit-scrollbar-thumb,
+.ant-drawer-body::-webkit-scrollbar-thumb,
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #94a3b8 !important;
+  border-radius: 7px !important;
+  border: 2px solid #e2e8f0 !important;
+  background-clip: padding-box !important;
+  min-width: 50px !important;
+  min-height: 50px !important;
+  opacity: 0.6 !important;
+  visibility: visible !important;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+  transition: opacity 2s ease 1s, background-color 2s ease 1s, border-color 2s ease 1s !important;
+}
+
+:where(.dark, .dark *) .ant-table-wrapper .ant-table-content::-webkit-scrollbar-thumb,
+:where(.dark, .dark *) .ant-table-wrapper .ant-table-body::-webkit-scrollbar-thumb,
+:where(.dark, .dark *) .ant-modal-body::-webkit-scrollbar-thumb,
+:where(.dark, .dark *) .ant-drawer-body::-webkit-scrollbar-thumb,
+:where(.dark, .dark *) .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #64748b !important;
+  border-color: #1e293b !important;
+  opacity: 0.6 !important;
+}
+
+/* 游標靠近 (MouseEnter / Hover 表格區域) 時：秒速 0.15s 自動實體化亮起出現 */
+.ant-table-wrapper:hover .ant-table-content::-webkit-scrollbar-thumb,
+.ant-table-wrapper:hover .ant-table-body::-webkit-scrollbar-thumb,
+.ant-modal-body:hover::-webkit-scrollbar-thumb,
+.ant-drawer-body:hover::-webkit-scrollbar-thumb,
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  opacity: 1 !important;
+  background-color: #475569 !important;
+  border-color: #e2e8f0 !important;
+  transition: opacity 0.15s ease, background-color 0.15s ease, border-color 0.15s ease !important;
+}
+
+:where(.dark, .dark *) .ant-table-wrapper:hover .ant-table-content::-webkit-scrollbar-thumb,
+:where(.dark, .dark *) .ant-table-wrapper:hover .ant-table-body::-webkit-scrollbar-thumb,
+:where(.dark, .dark *) .ant-modal-body:hover::-webkit-scrollbar-thumb,
+:where(.dark, .dark *) .ant-drawer-body:hover::-webkit-scrollbar-thumb,
+:where(.dark, .dark *) .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  opacity: 1 !important;
+  background-color: #cbd5e1 !important;
+  border-color: #1e293b !important;
+}
+
+/* 游標直接落在滑塊 Thumb 上時：呈現品牌主題藍加亮狀態 */
+.ant-table-wrapper .ant-table-content::-webkit-scrollbar-thumb:hover,
+.ant-table-wrapper .ant-table-body::-webkit-scrollbar-thumb:hover,
+.ant-modal-body::-webkit-scrollbar-thumb:hover,
+.ant-drawer-body::-webkit-scrollbar-thumb:hover,
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  opacity: 1 !important;
+  background-color: var(--ant-color-primary, #1677ff) !important;
+  border-color: var(--ant-color-primary, #1677ff) !important;
+  transition: background-color 0.1s ease, border-color 0.1s ease !important;
+}
+
+.ant-table-wrapper .ant-table-content::-webkit-scrollbar-thumb:active,
+.ant-table-wrapper .ant-table-body::-webkit-scrollbar-thumb:active {
+  background-color: var(--ant-color-primary-active, #0958d9) !important;
+}
