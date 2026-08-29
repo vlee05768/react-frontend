@@ -41,10 +41,12 @@ build:
 docker-prod:
 	@cd deploy/prod && docker compose up -d
 
+DOCKER_PLATFORM ?= linux/amd64
+
 .PHONY: docker-build
 docker-build:
-	@echo "Building Docker image: $(IMAGE_NAME)"
-	docker build -f deploy/prod/Dockerfile -t $(IMAGE_NAME):$(IMAGE_TAG) .
+	@echo "Building Docker image ($(DOCKER_PLATFORM)): $(IMAGE_NAME)"
+	docker build --platform $(DOCKER_PLATFORM) -f deploy/prod/Dockerfile -t $(IMAGE_NAME):$(IMAGE_TAG) .
 	@echo "Docker image built successfully: $(IMAGE_NAME)"
 
 .PHONY: docker-push

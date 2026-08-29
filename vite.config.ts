@@ -62,12 +62,58 @@ export default defineConfig(({ mode }) => {
             ) {
               return 'vendor-react'
             }
-            // Ant Design 組件庫與圖標拆分
+            // Ant Design 圖標拆分 (圖標庫通常體積較大)
             if (
-              id.includes('node_modules/antd/') || 
-              id.includes('node_modules/@ant-design/')
+              id.includes('node_modules/@ant-design/icons/') ||
+              id.includes('node_modules/@ant-design/icons-svg/')
             ) {
-              return 'vendor-antd'
+              return 'vendor-antd-icons'
+            }
+            // Ant Design 重型表格與進階組件
+            if (
+              id.includes('node_modules/antd/es/table/') ||
+              id.includes('node_modules/rc-table/') ||
+              id.includes('node_modules/@rc-component/table/')
+            ) {
+              return 'vendor-antd-table'
+            }
+            // Ant Design 選擇與日期選擇相關組件
+            if (
+              id.includes('node_modules/antd/es/date-picker/') ||
+              id.includes('node_modules/antd/es/time-picker/') ||
+              id.includes('node_modules/antd/es/calendar/') ||
+              id.includes('node_modules/antd/es/color-picker/') ||
+              id.includes('node_modules/antd/es/cascader/') ||
+              id.includes('node_modules/antd/es/tree/') ||
+              id.includes('node_modules/antd/es/tree-select/') ||
+              id.includes('node_modules/rc-picker/') ||
+              id.includes('node_modules/rc-tree/') ||
+              id.includes('node_modules/rc-cascader/')
+            ) {
+              return 'vendor-antd-pickers'
+            }
+            // Ant Design 表單與彈窗等常用組件
+            if (
+              id.includes('node_modules/antd/es/form/') ||
+              id.includes('node_modules/antd/es/modal/') ||
+              id.includes('node_modules/antd/es/drawer/') ||
+              id.includes('node_modules/antd/es/upload/') ||
+              id.includes('node_modules/antd/es/transfer/') ||
+              id.includes('node_modules/rc-field-form/') ||
+              id.includes('node_modules/rc-dialog/') ||
+              id.includes('node_modules/rc-drawer/') ||
+              id.includes('node_modules/rc-upload/')
+            ) {
+              return 'vendor-antd-forms-dialogs'
+            }
+            // Ant Design 基礎底層依賴與其餘組件
+            if (
+              id.includes('node_modules/antd/') ||
+              id.includes('node_modules/@ant-design/') ||
+              id.includes('node_modules/rc-') ||
+              id.includes('node_modules/@rc-component/')
+            ) {
+              return 'vendor-antd-core'
             }
             // 編輯器相關依賴拆分 (體積通常較大)
             if (
