@@ -12,9 +12,10 @@ interface Props {
   productCode: string;
   isViewMode: boolean; // Master view mode
   onEditingChange?: (isEditing: boolean) => void;
+  inventoryType?: 'P' | 'M';
 }
 
-export default function ProductBom({ productCode, isViewMode: isMasterViewMode, onEditingChange }: Props) {
+export default function ProductBom({ productCode, isViewMode: isMasterViewMode, onEditingChange, inventoryType = 'P' }: Props) {
   const { modal } = App.useApp();
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const { token } = theme.useToken();
@@ -50,7 +51,7 @@ export default function ProductBom({ productCode, isViewMode: isMasterViewMode, 
 
   const handleSaveHeader = async (values: any) => {
     try {
-      const payload = { ...values, productCode };
+      const payload = { ...values, productCode, targetCode: productCode, inventoryType };
       if (!bomExists) {
         await postApiV1Bom({ body: payload });
         message.success('BOM 表頭建立成功');

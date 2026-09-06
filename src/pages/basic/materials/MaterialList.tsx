@@ -28,6 +28,7 @@ import StandardErpTable from '@/components/Table/StandardErpTable';
 import { mainFormConfig, mainTableColumns, materialSearchFormConfig } from './MaterialConfig';
 import { buildTableColumns, formatSorterToRules, buildStandardActionColumn } from '@/utils/tableUtils';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
+import ProductBom from '../products/Tabs/ProductBom';
 import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 import { ActionBar } from '@/components/common/ActionBar';
@@ -42,6 +43,7 @@ export default function MaterialList() {
   const { hasPermission, user } = useAuthStore();
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [isBomEditing, setIsBomEditing] = useState(false);
 
   const isAdminOrFinance = user?.roles?.includes('Admin') || user?.roles?.includes('Finance') || user?.userName === 'admin';
 
@@ -402,10 +404,26 @@ export default function MaterialList() {
               activeTab={activeTab}
               onTabChange={setActiveTab}
               isCreateMode={isCreateDrawerOpen}
-              isEditMode={isDrawerEditing}
+              isEditMode={isDrawerEditing || isBomEditing}
               viewId={viewId}
               entityType="Material"
               showAttachments={true}
+              detailTabs={
+                (viewData?.type === 'SEMI' || viewData?.brand === 'TF') ? [
+                  {
+                    key: 'bom',
+                    label: 'BOM 配方',
+                    children: (
+                      <ProductBom
+                        productCode={viewData?.code || ''}
+                        isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
+                        onEditingChange={setIsBomEditing}
+                        inventoryType="M"
+                      />
+                    )
+                  }
+                ] : undefined
+              }
               masterContent={
                 <DynamicForm
                   formId="materialForm"
