@@ -40,20 +40,18 @@ export default function CustomerMaterialPickerModal({
     }
   }, [open]);
 
-  // Query raw materials from backend locked onto the specific CustomerCode and IsCustomerSupplied === true
+  // 查詢全廠標準原料列表供挑選
   const { data: response, isLoading, isFetching } = useQuery({
-    queryKey: ['picker-customer-materials', customerCode, searchTerm, page, pageSize, excludeMaterialCodes],
+    queryKey: ['picker-customer-materials', searchTerm, page, pageSize, excludeMaterialCodes],
     queryFn: () => getApiV1Material({
       query: {
         pageNumber: page,
         pageSize: pageSize,
         IsActive: true,
-        IsCustomerSupplied: true,
-        CustomerCode: customerCode,
         CodeOrName: searchTerm || undefined,
       } as any
     }),
-    enabled: open && !!customerCode,
+    enabled: open,
   });
 
   const list: MaterialDto[] = (response?.data as any)?.data?.data || (response?.data as any)?.data || [];

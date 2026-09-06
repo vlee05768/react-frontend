@@ -44,10 +44,18 @@ const generateCode = (context: any, setValue: any) => {
   setValue("code", code);
 
   const formLabel = materialForm === "R" ? "捲材" : "片材";
-  setValue(
-    "name",
-    `(${formLabel}) ${upperBrand} ${upperModelNo} 厚${formattedThickness}mm`,
-  );
+  const { type } = context.values;
+  if (upperBrand === "TF" || type === "SEMI") {
+    setValue(
+      "name",
+      `[半成品] (${formLabel}) TF ${upperModelNo} 厚${formattedThickness}mm`,
+    );
+  } else {
+    setValue(
+      "name",
+      `(${formLabel}) ${upperBrand} ${upperModelNo} 厚${formattedThickness}mm`,
+    );
+  }
 
   // 自動依型態鎖定與更新計量單位
   setValue("baseUOM", "SQM");
@@ -188,19 +196,6 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     render: (v) => <DictLabel dictKey="MATERIAL_SUPPLIER" value={v} />,
   },
   {
-    label: "客供料",
-    name: "isCustomerSupplied",
-    width: 180,
-    render: (isCustomerSupplied: boolean, record: any) => {
-      if (!isCustomerSupplied) return "否";
-      return (
-        <span style={{ color: "#1668dc", fontWeight: 500 }}>
-          {record.customerName ? `是 [${record.customerName}]` : `是 [${record.customerCode}]`}
-        </span>
-      );
-    },
-  },
-  {
     label: "啟用",
     name: "isActive",
     width: 80,
@@ -248,6 +243,10 @@ export const mainFormConfig = (
     componentProps: { dictKey: "MATERIAL_TYPE", allowClear: true },
     onChange: (val, ctx, setValue) => {
       ctx.values.type = val;
+      if (val === "SEMI" && !ctx.values.brand) {
+        setValue("brand", "TF");
+        ctx.values.brand = "TF";
+      }
       generateCode(ctx, setValue);
     },
   },
@@ -405,40 +404,6 @@ export const mainFormConfig = (
     label: "是否啟用",
     componentType: "Switch",
     colSpan: 6,
-  },
-  {
-    name: "isCustomerSupplied",
-    label: "是否為客供料",
-    componentType: "Switch",
-    colSpan: 4,
-    onChange: (val: any, ctx: any, setValue: any) => {
-      setValue("isCustomerSupplied", val);
-      ctx.values.isCustomerSupplied = val;
-      if (!val) {
-        setValue("customerCode", undefined);
-        ctx.values.customerCode = undefined;
-      }
-    },
-  },
-  {
-    name: "customerCode",
-    label: "客供客戶",
-    componentType: "AsyncSelect",
-    colSpan: 4,
-    validation: z.string().optional().nullable(),
-    dynamicValidation: (context: any) => {
-      if (context?.values?.isCustomerSupplied) {
-        return z.string().min(1, "若設定為客供料，則客供客戶必選！");
-      }
-      return z.string().optional().nullable();
-    },
-    componentProps: (context: any) => {
-      return {
-        configKey: "CUSTOMER",
-        allowClear: true,
-        disabled: !context?.values?.isCustomerSupplied,
-      };
-    },
   },
   {
     name: "specDescription",

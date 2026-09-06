@@ -111,6 +111,18 @@ export type BomDto = {
      */
     productCode?: string | null;
     /**
+     * 產出物料類別 (P=成品, M=半成品原料)
+     */
+    inventoryType?: string | null;
+    /**
+     * 產出物料編碼
+     */
+    targetCode?: string | null;
+    /**
+     * 產出物料名稱
+     */
+    targetName?: string | null;
+    /**
      * 產品名稱
      */
     productName?: string | null;
@@ -633,7 +645,15 @@ export type CreateBomDto = {
     /**
      * 產品編號
      */
-    productCode: string;
+    productCode?: string | null;
+    /**
+     * 產出物料類別 (P=成品, M=半成品原料)
+     */
+    inventoryType?: string | null;
+    /**
+     * 產出物料編碼
+     */
+    targetCode?: string | null;
     /**
      * 預設沖壓機型
      */
@@ -1212,6 +1232,10 @@ export type CreateMoldDto = {
  * 建立訂單 DTO
  */
 export type CreateOrderDto = {
+    /**
+     * 訂單類別 (STANDARD / OEM)
+     */
+    orderType?: string | null;
     /**
      * 客戶代碼
      */
@@ -2183,7 +2207,19 @@ export type CreateWorkOrderDto = {
     /**
      * 產品編碼
      */
-    productCode: string;
+    productCode?: string | null;
+    /**
+     * 製令類別 (STANDARD / OEM)
+     */
+    workOrderType?: string | null;
+    /**
+     * 產出物料類別 (P=成品, M=半成品原料)
+     */
+    inventoryType?: string | null;
+    /**
+     * 產出物料編碼
+     */
+    targetCode?: string | null;
     /**
      * 機台編碼
      */
@@ -5177,6 +5213,10 @@ export type OrderDto = {
      * 訂單號碼
      */
     orderNumber?: string | null;
+    /**
+     * 訂單類別 (STANDARD / OEM)
+     */
+    orderType?: string | null;
     /**
      * 客戶代碼
      */
@@ -8430,6 +8470,14 @@ export type UpdateBomDto = {
      */
     productCode?: string | null;
     /**
+     * 產出物料類別 (P=成品, M=半成品原料)
+     */
+    inventoryType?: string | null;
+    /**
+     * 產出物料編碼
+     */
+    targetCode?: string | null;
+    /**
      * 預設沖壓機型
      */
     defaultMachineType?: string | null;
@@ -8967,6 +9015,10 @@ export type UpdateMoldDto = {
  * 訂單更新 DTO
  */
 export type UpdateOrderDto = {
+    /**
+     * 訂單類別 (STANDARD / OEM)
+     */
+    orderType?: string | null;
     /**
      * 客戶聯絡人ID
      */
@@ -9874,6 +9926,18 @@ export type UpdateWorkOrderDto = {
      */
     productCode?: string | null;
     /**
+     * 製令類別 (STANDARD / OEM)
+     */
+    workOrderType?: string | null;
+    /**
+     * 產出物料類別 (P=成品, M=半成品原料)
+     */
+    inventoryType?: string | null;
+    /**
+     * 產出物料編碼
+     */
+    targetCode?: string | null;
+    /**
      * 機台編碼
      */
     machineCode?: string | null;
@@ -10144,6 +10208,22 @@ export type WorkOrderDto = {
      * 產品編碼
      */
     productCode?: string | null;
+    /**
+     * 製令類別 (STANDARD / OEM)
+     */
+    workOrderType?: string | null;
+    /**
+     * 產出物料類別 (P=成品, M=半成品原料)
+     */
+    inventoryType?: string | null;
+    /**
+     * 產出物料編碼
+     */
+    targetCode?: string | null;
+    /**
+     * 產出物料名稱
+     */
+    targetName?: string | null;
     /**
      * 產品名稱
      */
@@ -11386,6 +11466,10 @@ export type OrderDtoWritable = {
      * 訂單號碼
      */
     orderNumber?: string | null;
+    /**
+     * 訂單類別 (STANDARD / OEM)
+     */
+    orderType?: string | null;
     /**
      * 客戶代碼
      */
@@ -12790,6 +12874,22 @@ export type WorkOrderDtoWritable = {
      * 產品編碼
      */
     productCode?: string | null;
+    /**
+     * 製令類別 (STANDARD / OEM)
+     */
+    workOrderType?: string | null;
+    /**
+     * 產出物料類別 (P=成品, M=半成品原料)
+     */
+    inventoryType?: string | null;
+    /**
+     * 產出物料編碼
+     */
+    targetCode?: string | null;
+    /**
+     * 產出物料名稱
+     */
+    targetName?: string | null;
     /**
      * 產品名稱
      */

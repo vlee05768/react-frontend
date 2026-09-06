@@ -36,11 +36,27 @@ export const getStatusTag = (status: string | null | undefined, closeDate?: stri
   return <DictTag dictKey="ORDER_STATUS" value={status || 'Draft'} />;
 };
 
+export const orderTypeOptions = [
+  { label: "一般自製銷貨 (STANDARD)", value: "STANDARD" },
+  { label: "委託代工 (OEM)", value: "OEM" },
+];
+
 export const searchConfig: SearchFieldConfig[] = [
   {
     name: "orderNumber",
     label: "訂單號碼",
     componentType: "Input",
+    colSpan: 2,
+  },
+  {
+    name: "orderType",
+    label: "訂單類別",
+    componentType: "Select",
+    componentProps: {
+      options: orderTypeOptions,
+      allowClear: true,
+      placeholder: "請選擇類別",
+    },
     colSpan: 2,
   },
   {
@@ -105,6 +121,16 @@ export const searchConfig: SearchFieldConfig[] = [
 ];
 
 export const getColumns = (): TableColumnConfig<OrderDto>[] => [
+  {
+    label: "訂單類別",
+    name: "orderType",
+    width: 120,
+    align: "center",
+    render: (type: string) => {
+      if (type === "OEM") return <Tag color="purple">委託代工</Tag>;
+      return <Tag color="blue">一般自製</Tag>;
+    },
+  },
   {
     label: "訂單編號",
     name: "orderNumber",
@@ -194,6 +220,17 @@ export const getColumns = (): TableColumnConfig<OrderDto>[] => [
 ];
 
 export const getFormConfig = (): any[] => [
+  {
+    name: "orderType",
+    label: "訂單類別",
+    componentType: "Select",
+    componentProps: {
+      options: orderTypeOptions,
+    },
+    colSpan: 4,
+    editable: "createOnly",
+    validation: z.string().default("STANDARD"),
+  },
   {
     name: "orderNumber",
     label: "訂單號碼",

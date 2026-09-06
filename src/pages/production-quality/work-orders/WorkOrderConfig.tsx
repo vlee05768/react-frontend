@@ -29,11 +29,43 @@ export const getStatusTag = (status: string | null | undefined) => {
   );
 };
 
+export const workOrderTypeOptions = [
+  { label: "一般自製 (STANDARD)", value: "STANDARD" },
+  { label: "委託代工 (OEM)", value: "OEM" },
+];
+
+export const inventoryTypeOptions = [
+  { label: "成品 (P)", value: "P" },
+  { label: "半成品原料 (M)", value: "M" },
+];
+
 export const searchConfig: SearchFieldConfig[] = [
   {
     name: "workOrderNumber",
     label: "製令單號",
     componentType: "Input",
+    colSpan: 2,
+  },
+  {
+    name: "workOrderType",
+    label: "製令類別",
+    componentType: "Select",
+    componentProps: {
+      options: workOrderTypeOptions,
+      allowClear: true,
+      placeholder: "請選擇類別",
+    },
+    colSpan: 2,
+  },
+  {
+    name: "inventoryType",
+    label: "產出類別",
+    componentType: "Select",
+    componentProps: {
+      options: inventoryTypeOptions,
+      allowClear: true,
+      placeholder: "請選擇產出",
+    },
     colSpan: 2,
   },
   {
@@ -109,6 +141,26 @@ export const searchConfig: SearchFieldConfig[] = [
 ];
 
 export const tableColumns: TableColumnConfig[] = [
+  {
+    name: "workOrderType",
+    label: "製令類別",
+    width: 100,
+    align: "center",
+    render: (val) => {
+      if (val === "OEM") return <Tag color="purple">委託代工</Tag>;
+      return <Tag color="blue">一般自製</Tag>;
+    },
+  },
+  {
+    name: "inventoryType",
+    label: "產出",
+    width: 90,
+    align: "center",
+    render: (val) => {
+      if (val === "M") return <Tag color="orange">半成品</Tag>;
+      return <Tag color="cyan">成品</Tag>;
+    },
+  },
   {
     name: "workOrderNumber",
     label: "製令單號",
@@ -371,6 +423,33 @@ export const formConfig: FormFieldConfig<WorkOrderDto>[] = [
     editable: "never",
   },
   {
+    name: "workOrderType",
+    label: "製令類別",
+    componentType: "Select",
+    componentProps: {
+      options: workOrderTypeOptions,
+    },
+    colSpan: 4,
+    editable: "createOnly",
+    validation: z.string().default("STANDARD"),
+  },
+  {
+    name: "inventoryType",
+    label: "產出物料類別",
+    componentType: "Select",
+    componentProps: {
+      options: inventoryTypeOptions,
+    },
+    colSpan: 4,
+    editable: "createOnly",
+    validation: z.string().default("P"),
+    onChange: (_val, _ctx, setValue) => {
+      setValue("productCode", undefined);
+      setValue("productName", undefined);
+      setValue("targetCode", undefined);
+    },
+  },
+  {
     name: "mode",
     label: "模式",
     componentType: "Select",
@@ -419,14 +498,17 @@ export const formConfig: FormFieldConfig<WorkOrderDto>[] = [
 
   {
     name: "productCode",
-    label: "產品編碼",
+    label: "產出編碼",
     componentType: "AsyncSelect",
-    componentProps: { configKey: "PRODUCT" },
+    componentProps: (context: any) => ({
+      configKey: context?.values?.inventoryType === "M" ? "MATERIAL" : "PRODUCT",
+    }),
     colSpan: 4,
     editable: (ctx) => checkPermission(ctx, "productCode"),
     validation: z.string().min(1, "必填"),
 
     onChange: (_val, _context, setValue, ...args) => {
+      setValue("targetCode", _val);
       const option = args[1] as any;
       if (option?.originalData) {
         const p = option.originalData;
@@ -438,7 +520,7 @@ export const formConfig: FormFieldConfig<WorkOrderDto>[] = [
   },
   {
     name: "productName",
-    label: "產品名稱",
+    label: "產出名稱",
     componentType: "Input",
     colSpan: 4,
     editable: (ctx) => checkPermission(ctx, "productName"),

@@ -27,10 +27,14 @@ export const BrandSelect: React.FC<BrandSelectProps> = ({ value, onChange, disab
   }, [data]);
 
   const options = useMemo(() => {
-    return listData.map((item: any) => ({ 
+    const list = listData.map((item: any) => ({ 
       label: item.desc ? `${item.code} - ${item.desc}` : item.code, 
       value: item.code 
     }));
+    if (!list.some((item: any) => item.value === 'TF')) {
+      list.unshift({ label: 'TF - 東富自製半成品', value: 'TF' });
+    }
+    return list;
   }, [listData]);
 
   const createMutation = useMutation({
