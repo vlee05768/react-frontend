@@ -525,6 +525,27 @@ export const bomItemTableColumns = (): TableColumnConfig[] => [
 
 export const bomHeaderFormConfig = (): FormFieldConfig[] => [
   {
+    name: "outputType",
+    label: "產出類別",
+    componentType: "Input",
+    editable: "never",
+    colSpan: 4,
+  },
+  {
+    name: "outputCode",
+    label: "產出編碼",
+    componentType: "Input",
+    editable: "never",
+    colSpan: 4,
+  },
+  {
+    name: "isActive",
+    label: "是否啟用",
+    componentType: "Switch",
+    editable: "never",
+    colSpan: 4,
+  },
+  {
     name: "defaultMachineType",
     label: "機台",
     componentType: "DictSelect",

@@ -386,7 +386,7 @@ export default function ProductsList() {
               {
                 key: 'bom',
                 label: 'BOM 表',
-                children: <ProductBom productCode={viewData?.code} isViewMode={isViewMode} onEditingChange={setIsBomEditing} />
+                children: <ProductBom outputType="P" outputCode={viewData?.code || ''} isViewMode={isViewMode} onEditingChange={setIsBomEditing} />
               }
             ]}
           />

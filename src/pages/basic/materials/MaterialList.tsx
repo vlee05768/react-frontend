@@ -409,16 +409,16 @@ export default function MaterialList() {
               entityType="Material"
               showAttachments={true}
               detailTabs={
-                (viewData?.type === 'SEMI' || viewData?.brand === 'TF') ? [
+                viewData?.type === 'SEMI' ? [
                   {
                     key: 'bom',
                     label: 'BOM 配方',
                     children: (
                       <ProductBom
-                        productCode={viewData?.code || ''}
+                        outputType="M"
+                        outputCode={viewData?.code || ''}
                         isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
                         onEditingChange={setIsBomEditing}
-                        inventoryType="M"
                       />
                     )
                   }

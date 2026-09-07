@@ -1,11 +1,11 @@
 import React from "react";
 import { Table } from "antd";
-import type { WorkOrderDto, WorkOrderMaterialDto } from "@/api/generated/types.gen";
-import { itemColumns } from "./WorkOrderConfig";
+import type { WorkOrderMaterialDto } from "@/api/generated/types.gen";
+import { itemColumns, type WorkOrderFormValues } from "./WorkOrderConfig";
 import { buildTableColumns } from "@/utils/tableUtils";
 
 interface WorkOrderItemsTabProps {
-  masterData: WorkOrderDto;
+  masterData: WorkOrderFormValues;
   isMasterViewMode: boolean;
   onEditingChange?: (isEditing: boolean) => void; // 保留 prop 避免父層報錯，但不會用到
 }

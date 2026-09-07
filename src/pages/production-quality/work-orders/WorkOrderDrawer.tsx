@@ -26,6 +26,8 @@ import { DynamicForm } from "@/components/Form/DynamicForm";
 import { ActionButton } from "@/components/common/ActionButton";
 import { useNavigate } from "react-router-dom";
 import { formConfig } from "./WorkOrderConfig";
+import type { WorkOrderFormValues } from "./WorkOrderConfig";
+import type { CreateWorkOrderDto, UpdateWorkOrderDto } from "@/api/generated/types.gen";
 import { DRAWER_WIDTH_MAIN } from "@/constants";
 import { DrawerTitle } from "@/components/Form/DrawerTitle";
 import { DocumentLifecycleBanner } from "@/components/common/DocumentLifecycleBanner";
@@ -178,6 +180,79 @@ interface WorkOrderDrawerProps {
   onClose: () => void;
 }
 
+type CreateWorkOrderPayload = {
+  orderNumber?: string | null;
+  orderLineNumber?: string | null;
+  workOrderDate?: string;
+  workOrderType?: string | null;
+  outputType?: 'P' | 'M';
+  outputCode?: string | null;
+  machineCode?: string | null;
+  orderQuantity?: number | null;
+  plannedQuantity?: number;
+  pitch?: number;
+  punchCavities?: number;
+  notes?: string | null;
+  mode?: string | null;
+  customerCode?: string | null;
+  storageCode?: string | null;
+};
+
+type UpdateWorkOrderPayload = Omit<CreateWorkOrderPayload, 'mode'> & {
+  actualQuantity?: number | null;
+  goodQuantity?: number | null;
+  personnelWorkingHours?: WorkOrderFormValues['personnelWorkingHours'];
+  defectReason?: string | null;
+  productionDate?: string | null;
+  status?: string | null;
+};
+
+const formatDate = (value: WorkOrderFormValues['workOrderDate'] | WorkOrderFormValues['productionDate']): string | undefined => {
+  if (!value) return undefined;
+  return typeof value === 'string' ? value : value.format('YYYY-MM-DD');
+};
+
+// SDK 尚未重新產生；以白名單轉送新契約欄位，阻止 UI 與舊契約欄位穿透 API payload。
+const toCreateWorkOrderPayload = (values: WorkOrderFormValues): CreateWorkOrderPayload => ({
+  orderNumber: values.orderNumber,
+  orderLineNumber: values.orderLineNumber,
+  workOrderDate: formatDate(values.workOrderDate),
+  workOrderType: values.workOrderType,
+  outputType: values.outputType,
+  outputCode: values.outputCode,
+  machineCode: values.machineCode,
+  orderQuantity: values.orderQuantity,
+  plannedQuantity: values.plannedQuantity,
+  pitch: values.pitch,
+  punchCavities: values.punchCavities,
+  notes: values.notes,
+  mode: values.mode,
+  customerCode: values.customerCode,
+  storageCode: values.storageCode,
+});
+
+const toUpdateWorkOrderPayload = (values: WorkOrderFormValues): UpdateWorkOrderPayload => ({
+  outputType: values.outputType,
+  outputCode: values.outputCode,
+  orderNumber: values.orderNumber,
+  orderLineNumber: values.orderLineNumber,
+  workOrderDate: formatDate(values.workOrderDate),
+  workOrderType: values.workOrderType,
+  machineCode: values.machineCode,
+  orderQuantity: values.orderQuantity,
+  plannedQuantity: values.plannedQuantity,
+  actualQuantity: values.actualQuantity,
+  goodQuantity: values.goodQuantity,
+  personnelWorkingHours: values.personnelWorkingHours,
+  pitch: values.pitch,
+  punchCavities: values.punchCavities,
+  notes: values.notes,
+  defectReason: values.defectReason,
+  productionDate: formatDate(values.productionDate),
+  status: values.status,
+  storageCode: values.storageCode,
+});
+
 export function WorkOrderDrawer({
   id,
   isCreateMode = false,
@@ -217,10 +292,10 @@ export function WorkOrderDrawer({
   const requisition = hasRequisition ? reqList[0] : null;
   const isRequisitionConfirmed = requisition && !!requisition.confirmDate;
 
-  const rawData = (data?.data as any)?.data || undefined;
+  const rawData = (data?.data as { data?: WorkOrderFormValues })?.data;
   
   // Format dates to avoid dayjs crash in form
-  const record: any = rawData ? {
+  const record: WorkOrderFormValues | undefined = rawData ? {
     ...rawData,
     workOrderDate: rawData.workOrderDate ? dayjs(rawData.workOrderDate) : undefined,
     productionDate: rawData.productionDate ? dayjs(rawData.productionDate) : undefined,
@@ -248,7 +323,7 @@ export function WorkOrderDrawer({
   }, [isViewMode, record, isLoading]);
 
   const createMutation = useMutation({
-    mutationFn: (values: any) => postApiV1WorkOrder({ body: values }),
+    mutationFn: (values: WorkOrderFormValues) => postApiV1WorkOrder({ body: toCreateWorkOrderPayload(values) as CreateWorkOrderDto }),
     onSuccess: () => {
       message.success("新增製令成功");
       queryClient.invalidateQueries({ queryKey: ["workorders"] });
@@ -260,7 +335,7 @@ export function WorkOrderDrawer({
   });
 
   const updateMutation = useMutation({
-    mutationFn: (values: any) => putApiV1WorkOrderByWorkOrderNumber({ path: { workOrderNumber: id! }, body: values }),
+    mutationFn: (values: WorkOrderFormValues) => putApiV1WorkOrderByWorkOrderNumber({ path: { workOrderNumber: id! }, body: toUpdateWorkOrderPayload(values) as UpdateWorkOrderDto }),
     onSuccess: () => {
       // 💡 如果是備料確認或生產完工，不要單獨跳出「更新製令成功」提示，由後續作業統一通知
       if (editMode !== "prepare" && editMode !== "work") {
@@ -275,7 +350,7 @@ export function WorkOrderDrawer({
     },
   });
 
-    const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: WorkOrderFormValues) => {
     if (isCreateMode) {
       createMutation.mutate(values);
     } else if (editMode === 'prepare') {
@@ -320,7 +395,7 @@ export function WorkOrderDrawer({
             const productDto = {
               actualQuantity: values.actualQuantity,
               defectReason: values.defectReason,
-              productionDate: values.productionDate?.format ? values.productionDate.format('YYYY-MM-DD') : values.productionDate,
+              productionDate: formatDate(values.productionDate),
               storageCode: values.storageCode,
               notes: values.notes,
               personnelWorkingHours: validWorkingMinutes,
@@ -768,9 +843,9 @@ export function WorkOrderDrawer({
         title: '製令退料入庫',
         status: !record.warehousingCompleteDate 
           ? 'wait' 
-          : (record.pendingWipRollsCount > 0 ? 'process' : 'finish'),
+          : ((record.pendingWipRollsCount ?? 0) > 0 ? 'process' : 'finish'),
         date: record.latestReturnDate || null,
-        user: record.warehousingCompleteDate && record.pendingWipRollsCount > 0
+        user: record.warehousingCompleteDate && (record.pendingWipRollsCount ?? 0) > 0
           ? `待清退 (${record.pendingWipRollsCount}卷)`
           : record.latestReturnUser ? `退料: ${record.latestReturnUser}` : null,
       }
@@ -799,9 +874,9 @@ export function WorkOrderDrawer({
 
       <Spin spinning={isLoading}>
         <ActionBar 
-            createdBy={record?.createdBy}
+            createdBy={record?.createdBy ?? undefined}
             createdAt={record?.createdAt}
-            updatedBy={record?.updatedBy}
+            updatedBy={record?.updatedBy ?? undefined}
             updatedAt={record?.updatedAt}
             actions={getActionBarActions()}
           />

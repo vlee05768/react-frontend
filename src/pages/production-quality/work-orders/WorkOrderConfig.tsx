@@ -34,7 +34,7 @@ export const workOrderTypeOptions = [
   { label: "委託代工 (OEM)", value: "OEM" },
 ];
 
-export const inventoryTypeOptions = [
+export const outputTypeOptions = [
   { label: "成品 (P)", value: "P" },
   { label: "半成品原料 (M)", value: "M" },
 ];
@@ -58,11 +58,11 @@ export const searchConfig: SearchFieldConfig[] = [
     colSpan: 2,
   },
   {
-    name: "inventoryType",
+    name: "outputType",
     label: "產出類別",
     componentType: "Select",
     componentProps: {
-      options: inventoryTypeOptions,
+      options: outputTypeOptions,
       allowClear: true,
       placeholder: "請選擇產出",
     },
@@ -75,8 +75,8 @@ export const searchConfig: SearchFieldConfig[] = [
     colSpan: 2,
   },
   {
-    name: "productCodeOrName",
-    label: "產品編碼/名稱",
+    name: "outputCodeOrName",
+    label: "產出編碼/名稱",
     componentType: "Input",
     colSpan: 2,
   },
@@ -152,7 +152,7 @@ export const tableColumns: TableColumnConfig[] = [
     },
   },
   {
-    name: "inventoryType",
+    name: "outputType",
     label: "產出",
     width: 90,
     align: "center",
@@ -280,15 +280,16 @@ export const tableColumns: TableColumnConfig[] = [
     ellipsis: true,
   },
   {
-    name: "productCode",
-    label: "產品編碼",
+    name: "outputCode",
+    label: "產出編碼",
     width: 160,
     align: "left",
-    render: (val: string) => {
+    render: (val: string, record: any) => {
       if (!val) return "-";
+      const outputPath = record.outputType === "M" ? "/basic/materials" : "/basic/products";
       return (
         <Link
-          to={`/basic/products/${val}`}
+          to={`${outputPath}/${val}`}
           style={{
             color: '#1677ff',
             textDecoration: 'underline',
@@ -301,8 +302,8 @@ export const tableColumns: TableColumnConfig[] = [
     }
   },
   {
-    name: "productName",
-    label: "產品名稱",
+    name: "outputName",
+    label: "產出名稱",
     width: 200,
     align: "left",
     ellipsis: true,
@@ -360,6 +361,19 @@ import type {
   WorkOrderDto,
   WorkOrderMaterialDto,
 } from "@/api/generated/types.gen";
+import type { Dayjs } from "dayjs";
+
+export type WorkOrderFormValues = Omit<
+  WorkOrderDto,
+  'inventoryType' | 'targetCode' | 'targetName' | 'productCode' | 'productName' | 'workOrderDate' | 'productionDate'
+> & {
+  outputType?: 'P' | 'M';
+  outputCode?: string | null;
+  outputName?: string | null;
+  workOrderDate?: string | Dayjs;
+  productionDate?: string | Dayjs | null;
+  _ui_editMode?: 'update' | 'prepare' | 'work' | null;
+};
 
 
 // --- 欄位權限配置 (對齊 Vue 版本) ---
@@ -375,8 +389,8 @@ const permissions: Record<string, FieldPermission> = {
   workOrderDate: { create: true, update: false, work: false, prepare: false },
   orderNumber: { create: true, update: false, work: false, prepare: false },
   orderLineNumber: { create: true, update: false, work: false, prepare: false },
-  productCode: { create: true, update: false, work: false, prepare: false },
-  productName: { create: true, update: false, work: false, prepare: false },
+  outputCode: { create: true, update: false, work: false, prepare: false },
+  outputName: { create: true, update: false, work: false, prepare: false },
   customerProductCode: { create: true, update: false, work: false, prepare: false },
   pcsPerSheet: { create: true, update: false, work: false, prepare: false },
   pcsPerPackage: { create: true, update: false, work: false, prepare: false },
@@ -413,7 +427,7 @@ const checkPermission = (ctx: any, fieldName: string) => {
   return false;
 };
 
-export const formConfig: FormFieldConfig<WorkOrderDto>[] = [
+export const formConfig: FormFieldConfig<WorkOrderFormValues>[] = [
   // --- 基本資訊 ---
   {
     name: "workOrderNumber",
@@ -434,19 +448,19 @@ export const formConfig: FormFieldConfig<WorkOrderDto>[] = [
     validation: z.string().default("STANDARD"),
   },
   {
-    name: "inventoryType",
+    name: "outputType",
     label: "產出物料類別",
     componentType: "Select",
     componentProps: {
-      options: inventoryTypeOptions,
+      options: outputTypeOptions,
     },
     colSpan: 4,
     editable: "createOnly",
     validation: z.string().default("P"),
     onChange: (_val, _ctx, setValue) => {
-      setValue("productCode", undefined);
-      setValue("productName", undefined);
-      setValue("targetCode", undefined);
+      setValue("outputCode", undefined);
+      setValue("outputName", undefined);
+      setValue("customerProductCode", undefined);
     },
   },
   {
@@ -497,33 +511,34 @@ export const formConfig: FormFieldConfig<WorkOrderDto>[] = [
   },
 
   {
-    name: "productCode",
+    name: "outputCode",
     label: "產出編碼",
     componentType: "AsyncSelect",
     componentProps: (context: any) => ({
-      configKey: context?.values?.inventoryType === "M" ? "MATERIAL" : "PRODUCT",
+      configKey: context?.values?.outputType === "M" ? "MATERIAL" : "PRODUCT",
+      additionalParams: context?.values?.outputType === "M" ? { Types: ["SEMI"] } : undefined,
     }),
     colSpan: 4,
-    editable: (ctx) => checkPermission(ctx, "productCode"),
+    editable: (ctx) => checkPermission(ctx, "outputCode"),
     validation: z.string().min(1, "必填"),
 
     onChange: (_val, _context, setValue, ...args) => {
-      setValue("targetCode", _val);
       const option = args[1] as any;
       if (option?.originalData) {
-        const p = option.originalData;
-        if (p.name) setValue("productName", p.name);
-        if (p.customerProductId)
-          setValue("customerProductCode", p.customerProductId);
+        const output = option.originalData;
+        if (output.name) setValue("outputName", output.name);
+        if (output.customerProductId) setValue("customerProductCode", output.customerProductId);
+      } else {
+        setValue("outputName", undefined);
       }
     },
   },
   {
-    name: "productName",
+    name: "outputName",
     label: "產出名稱",
     componentType: "Input",
     colSpan: 4,
-    editable: (ctx) => checkPermission(ctx, "productName"),
+    editable: (ctx) => checkPermission(ctx, "outputName"),
   },
   {
     name: "customerProductCode",

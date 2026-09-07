@@ -35,12 +35,11 @@ import {
 } from "@/api/generated/sdk.gen";
 import { getApiErrorMessage } from "@/utils/apiError";
 import dayjs from "dayjs";
-import type { WorkOrderDto } from "@/api/generated/types.gen";
 import { DynamicForm } from "@/components/Form/DynamicForm";
-import { returnHeaderFormConfig } from "./WorkOrderConfig";
+import { returnHeaderFormConfig, type WorkOrderFormValues } from "./WorkOrderConfig";
 
 interface WorkOrderReturnTabProps {
-  masterData: WorkOrderDto;
+  masterData: WorkOrderFormValues;
   onEditingChange?: (editing: boolean) => void;
 }
 

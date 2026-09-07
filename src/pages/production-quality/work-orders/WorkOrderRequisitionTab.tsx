@@ -32,15 +32,15 @@ import {
 } from "@/api/generated/sdk.gen";
 import { getApiErrorMessage } from "@/utils/apiError";
 import dayjs from "dayjs";
-import type { WorkOrderDto } from "@/api/generated/types.gen";
 import { DynamicForm } from "@/components/Form/DynamicForm";
 import {
   requisitionHeaderFormConfig,
   requisitionItemFormConfig,
 } from "./WorkOrderConfig";
+import type { WorkOrderFormValues } from "./WorkOrderConfig";
 
 interface WorkOrderRequisitionTabProps {
-  masterData: WorkOrderDto;
+  masterData: WorkOrderFormValues;
 }
 
 export function WorkOrderRequisitionTab({

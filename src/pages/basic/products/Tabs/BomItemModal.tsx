@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import { Modal, message } from 'antd';
-import { postApiV1BomByProductCodeItems, putApiV1BomByProductCodeItemsByCode } from '@/api/generated/sdk.gen';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { bomItemFormConfig } from '../ProductConfig';
+import { createBomItem, type BomOutputType, updateBomItem } from '@/api/bomCompatibility';
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  productCode: string;
+  outputType: BomOutputType;
+  outputCode: string;
   initialData: any;
-  onSuccess: () => void;
+  onSuccess: () => void | Promise<void>;
   existingMaterialCodes?: string[];
 }
 
-export default function BomItemModal({ open, onClose, productCode, initialData, onSuccess, existingMaterialCodes = [] }: Props) {
+export default function BomItemModal({ open, onClose, outputType, outputCode, initialData, onSuccess, existingMaterialCodes = [] }: Props) {
   const [loading, setLoading] = useState(false);
   const isCreate = !initialData;
 
@@ -26,25 +27,19 @@ export default function BomItemModal({ open, onClose, productCode, initialData, 
         scrapPercentage: values.scrapPercentage || 0,
         width: values.width || undefined,
         specification: values.specification || '',
-        notes: values.notes || ''
+        notes: values.notes || '',
       };
 
       if (isCreate) {
-        await postApiV1BomByProductCodeItems({
-          path: { productCode },
-          body: { ...payload, productCode } as any
-        });
+        await createBomItem(outputType, outputCode, payload);
         message.success('新增明細成功');
       } else {
-        await putApiV1BomByProductCodeItemsByCode({
-          path: { productCode, code: initialData.code },
-          body: payload
-        });
+        await updateBomItem(outputType, outputCode, initialData.code, payload);
         message.success('更新明細成功');
       }
-      onSuccess();
-    } catch (e: any) {
-      message.error(e?.response?.data?.message || '儲存失敗');
+      await onSuccess();
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || '儲存失敗');
     } finally {
       setLoading(false);
     }
@@ -59,7 +54,7 @@ export default function BomItemModal({ open, onClose, productCode, initialData, 
       cancelButtonProps={{ onClick: onClose }}
       confirmLoading={loading}
       destroyOnHidden
-      width={"50vw"}
+      width="50vw"
     >
       <div className="pt-4">
         <DynamicForm
@@ -67,7 +62,7 @@ export default function BomItemModal({ open, onClose, productCode, initialData, 
           fields={bomItemFormConfig(!isCreate, existingMaterialCodes)}
           defaultValues={initialData || { quantity: undefined, scrapPercentage: 0 }}
           onSubmit={handleFinish}
-          hideDefaultFooter={true}
+          hideDefaultFooter
           isUpdateMode={!isCreate}
         />
       </div>
