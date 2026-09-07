@@ -59,12 +59,12 @@ export const searchConfig: SearchFieldConfig[] = [
   },
   {
     name: "outputType",
-    label: "產出類別",
+    label: "類別",
     componentType: "Select",
     componentProps: {
       options: outputTypeOptions,
       allowClear: true,
-      placeholder: "請選擇產出",
+      placeholder: "請選擇類別",
     },
     colSpan: 2,
   },
@@ -449,7 +449,7 @@ export const formConfig: FormFieldConfig<WorkOrderFormValues>[] = [
   },
   {
     name: "outputType",
-    label: "產出物料類別",
+    label: "類別",
     componentType: "Select",
     componentProps: {
       options: outputTypeOptions,

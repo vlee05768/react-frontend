@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { App, Button, Card, Empty, message, Space, Spin, Switch, Table, Tag, theme } from 'antd';
 import { DeleteOutlined, EditOutlined, PlusOutlined, SaveOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
@@ -24,8 +24,8 @@ interface Props {
 }
 
 const toCreatePayload = (values: Record<string, unknown>, outputType: BomOutputType, outputCode: string) => ({
-  outputType,
-  outputCode,
+  outputType: (values.outputType as BomOutputType) || outputType || 'P',
+  outputCode: (values.outputCode as string) || outputCode,
   defaultMachineType: values.defaultMachineType as string | undefined,
   defaultToolingRangeMm: values.defaultToolingRangeMm as number | undefined,
   defaultPunchHolesCount: values.defaultPunchHolesCount as number | undefined,
@@ -153,7 +153,10 @@ export default function ProductBom({ outputType, outputCode, isViewMode: isMaste
   };
 
   const columns = buildTableColumns(bomItemTableColumns(), actionColumn);
-  const headerDefaults: Record<string, unknown> = bomData ? { ...bomData } : { outputType, outputCode, isActive: false };
+  const headerFields = useMemo(() => bomHeaderFormConfig({ outputType }), [outputType]);
+  const headerDefaults: Record<string, unknown> = bomData
+    ? { ...bomData, outputType: bomData.outputType || outputType || 'P' }
+    : { outputType: outputType || 'P', outputCode, isActive: false };
 
   if (isLoading) return <Spin className="w-full mt-10 flex justify-center" />;
 
@@ -188,7 +191,7 @@ export default function ProductBom({ outputType, outputCode, isViewMode: isMaste
         >
           <DynamicForm
             formId="bomHeaderForm"
-            fields={bomHeaderFormConfig() as any}
+            fields={headerFields as any}
             defaultValues={headerDefaults}
             onSubmit={handleSaveHeader}
             isViewMode={isFormViewMode}
