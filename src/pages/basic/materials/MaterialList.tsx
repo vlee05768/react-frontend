@@ -209,6 +209,7 @@ export default function MaterialList() {
     setActiveTab('master_info');
     setFormDefaultValues({ 
       isActive: true, 
+      materialType: 'RAW',
       materialForm: 'R', 
       baseUOM: 'SQM', 
       auxUOM: 'M' 
@@ -409,7 +410,7 @@ export default function MaterialList() {
               entityType="Material"
               showAttachments={true}
               detailTabs={
-                viewData?.type === 'SEMI' ? [
+                (viewData?.materialType === 'SEMI' || viewData?.type === 'SEMI') ? [
                   {
                     key: 'bom',
                     label: 'BOM 配方',

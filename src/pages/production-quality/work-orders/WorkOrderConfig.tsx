@@ -516,7 +516,7 @@ export const formConfig: FormFieldConfig<WorkOrderFormValues>[] = [
     componentType: "AsyncSelect",
     componentProps: (context: any) => ({
       configKey: context?.values?.outputType === "M" ? "MATERIAL" : "PRODUCT",
-      additionalParams: context?.values?.outputType === "M" ? { Types: ["SEMI"] } : undefined,
+      additionalParams: context?.values?.outputType === "M" ? { MaterialType: "SEMI" } : undefined,
     }),
     colSpan: 4,
     editable: (ctx) => checkPermission(ctx, "outputCode"),

@@ -44,8 +44,8 @@ const generateCode = (context: any, setValue: any) => {
   setValue("code", code);
 
   const formLabel = materialForm === "R" ? "捲材" : "片材";
-  const { type } = context.values;
-  if (upperBrand === "TF" || type === "SEMI") {
+  const { type, materialType } = context.values;
+  if (materialType === "SEMI" || upperBrand === "TF" || type === "SEMI") {
     setValue(
       "name",
       `[半成品] (${formLabel}) TF ${upperModelNo} 厚${formattedThickness}mm`,
@@ -112,6 +112,20 @@ export const materialSearchFormConfig = (): SearchFieldConfig[] => [
     colSpan: 2,
   },
   {
+    name: "MaterialType",
+    label: "產出類別",
+    componentType: "Select",
+    componentProps: {
+      placeholder: "請選擇產出類別",
+      options: [
+        { label: "一般原料", value: "RAW" },
+        { label: "半成品", value: "SEMI" },
+      ],
+      allowClear: true,
+    },
+    colSpan: 2,
+  },
+  {
     name: "MaterialForms",
     label: "原料型態",
     componentType: "Select",
@@ -162,6 +176,12 @@ export const materialSearchFormConfig = (): SearchFieldConfig[] => [
 export const mainTableColumns = (): TableColumnConfig[] => [
   { label: "編號", name: "code", width: 200 , sortable: { multiple: 1 } },
   { label: "名稱", name: "name", width: 250, ellipsis: true , sortable: { multiple: 2 } },
+  {
+    label: "產出類別",
+    name: "materialType",
+    width: 100,
+    render: (v) => v === "SEMI" ? "半成品" : "一般原料",
+  },
   { label: "廠牌", name: "brand", width: 150, ellipsis: true },
   { label: "型號", name: "modelNo", width: 150, ellipsis: true },
   {
@@ -234,6 +254,29 @@ export const mainFormConfig = (
     autoGenerate: true,
   },
   {
+    name: "materialType",
+    label: "產出類別",
+    componentType: "Select",
+    colSpan: 4,
+    editable: "createOnly",
+    validation: z.string().min(1, "請選擇產出類別"),
+    componentProps: {
+      options: [
+        { label: "一般原料 (RAW)", value: "RAW" },
+        { label: "半成品 (SEMI)", value: "SEMI" },
+      ],
+      allowClear: false,
+    },
+    onChange: (val, ctx, setValue) => {
+      ctx.values.materialType = val;
+      if (val === "SEMI") {
+        setValue("brand", "TF");
+        ctx.values.brand = "TF";
+      }
+      generateCode(ctx, setValue);
+    },
+  },
+  {
     name: "type",
     label: "材質類別",
     componentType: "DictSelect",
@@ -243,10 +286,6 @@ export const mainFormConfig = (
     componentProps: { dictKey: "MATERIAL_TYPE", allowClear: true },
     onChange: (val, ctx, setValue) => {
       ctx.values.type = val;
-      if (val === "SEMI" && !ctx.values.brand) {
-        setValue("brand", "TF");
-        ctx.values.brand = "TF";
-      }
       generateCode(ctx, setValue);
     },
   },
@@ -267,11 +306,11 @@ export const mainFormConfig = (
     name: "brand",
     label: "廠牌",
     componentType: "Custom",
-    customRender: (field: any) => (
+    customRender: (field: any, context: any) => (
       <BrandSelect
         value={field.value}
         onChange={field.onChange}
-        disabled={field.disabled}
+        disabled={field.disabled || context?.values?.materialType === "SEMI"}
       />
     ),
     colSpan: 4,

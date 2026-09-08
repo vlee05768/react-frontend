@@ -1121,6 +1121,10 @@ export type CreateMaterialDto = {
      */
     type: string;
     /**
+     * 原料產出類別（RAW=一般原料，SEMI=半成品原料）
+     */
+    materialType?: string;
+    /**
      * 厚度（單位：mm）
      */
     thickness?: number;
@@ -4453,6 +4457,10 @@ export type MaterialDto = {
      * 原料類型
      */
     type?: string | null;
+    /**
+     * 原料產出類別（RAW=一般原料，SEMI=半成品原料）
+     */
+    materialType?: string | null;
     /**
      * 類別名稱
      */
@@ -8907,6 +8915,10 @@ export type UpdateMaterialDto = {
      * 材質類別
      */
     type?: string | null;
+    /**
+     * 原料產出類別（RAW=一般原料，SEMI=半成品原料）
+     */
+    materialType?: string | null;
     /**
      * 厚度（單位：mm）
      */
