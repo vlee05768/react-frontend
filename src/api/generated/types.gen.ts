@@ -16448,6 +16448,10 @@ export type GetApiV1MaterialData = {
          */
         Types?: Array<string>;
         /**
+         * 原料產出類別（RAW=一般原料，SEMI=半成品原料）
+         */
+        MaterialType?: string;
+        /**
          * 原料型態 (R=捲材, S=片材)
          */
         MaterialForms?: Array<string>;
