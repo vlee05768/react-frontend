@@ -8,8 +8,22 @@ import { DictSelect } from "@/components/Form/DictSelect";
 
 export const customerMaterialReceiptSearchConfig = (): any[] => [
   {
+    name: "subType",
+    label: "單據類別",
+    componentType: "Select",
+    componentProps: {
+      options: [
+        { label: "客供來料 (CM)", value: "CM" },
+        { label: "製令半成品 (SEMI)", value: "SEMI" },
+      ],
+      placeholder: "全部類別",
+      allowClear: true,
+    },
+    colSpan: 2,
+  },
+  {
     name: "documentNumber",
-    label: "客供單號",
+    label: "入庫單號",
     componentType: "Input",
     colSpan: 2,
   },
@@ -67,44 +81,121 @@ export const getStatusTag = (
   closeDate?: string | null,
 ) => {
   const props = getStatusTagProps(status, confirmDate, closeDate);
-  return <Tag color={props.color}>{props.text}</Tag>;
+  return (
+    <div style={{ display: "inline-flex", alignItems: "center", height: "24px", verticalAlign: "middle" }}>
+      <Tag color={props.color} className="m-0">{props.text}</Tag>
+    </div>
+  );
+};
+
+export const getSubTypeTag = (subType?: string | null) => {
+  const isSemi = (subType || "").toUpperCase() === "SEMI";
+  if (isSemi) {
+    return <Tag color="blue" className="m-0">製令半成品</Tag>;
+  }
+  return <Tag color="green" className="m-0">客供來料</Tag>;
 };
 
 export const mainTableColumns = (): TableColumnConfig[] => [
   {
-    label: "客供單號",
+    label: "入庫單號",
     name: "documentNumber",
     sortable: { multiple: 1 },
     width: 140,
+    render: (val: string) => (
+      <span style={{ display: "inline-block", lineHeight: "24px", verticalAlign: "middle", width: "100%", textAlign: "left", fontWeight: 500 }}>
+        {val}
+      </span>
+    ),
+  },
+  {
+    label: "單據類別",
+    name: "subType",
+    sortable: { multiple: 2 },
+    width: 110,
+    align: "center",
+    render: (val: string) => (
+      <div style={{ display: "inline-flex", alignItems: "center", height: "24px", verticalAlign: "middle" }}>
+        {getSubTypeTag(val)}
+      </div>
+    ),
   },
   {
     label: "入庫日期",
     name: "documentDate",
-    sortable: { multiple: 2 },
+    sortable: { multiple: 3 },
     width: 110,
-    render: (val: string) => (val ? dayjs(val).format("YYYY-MM-DD") : "-"),
+    render: (val: string) => (
+      <span style={{ display: "inline-block", lineHeight: "24px", verticalAlign: "middle", width: "100%", textAlign: "left" }}>
+        {val ? dayjs(val).format("YYYY-MM-DD") : "-"}
+      </span>
+    ),
   },
   {
     label: "單據狀態",
     name: "status",
-    sortable: { multiple: 3 },
+    sortable: { multiple: 4 },
     width: 100,
     align: "center",
     render: (status: string, record: any) =>
       getStatusTag(status, record?.confirmDate, record?.closeDate),
   },
   {
-    label: "委託代工客戶",
-    name: "businessPartnerName",
-    width: 200,
+    label: "來源/參考單號",
+    name: "referenceNumber",
+    width: 150,
     render: (val: string, record: any) => {
+      if (!val) {
+        return (
+          <span style={{ display: "inline-block", lineHeight: "24px", verticalAlign: "middle", width: "100%", textAlign: "left", color: "var(--ant-color-text-quaternary)" }}>
+            -
+          </span>
+        );
+      }
+      const isSemi = (record?.subType || "").toUpperCase() === "SEMI";
+      if (isSemi || val.startsWith("WO")) {
+        return (
+          <Link
+            to={`/production-quality/work-orders/${val}`}
+            style={{
+              color: "#1668dc",
+              textDecoration: "underline",
+              cursor: "pointer",
+              lineHeight: "24px",
+              display: "inline-block",
+              verticalAlign: "middle",
+            }}
+          >
+            <EllipsisText text={val} maxWidth={140} />
+          </Link>
+        );
+      }
+      return (
+        <span style={{ display: "inline-block", lineHeight: "24px", verticalAlign: "middle", width: "100%", textAlign: "left" }}>
+          <EllipsisText text={val} maxWidth={140} />
+        </span>
+      );
+    },
+  },
+  {
+    label: "客戶",
+    name: "businessPartnerName",
+    width: 190,
+    render: (val: string, record: any) => {
+      const isSemi = (record?.subType || "").toUpperCase() === "SEMI";
       const displayCode = record.partnerRoleCode || record.businessPartnerCode;
       const bpCode = record.businessPartnerCode;
+      if (!bpCode) {
+        return (
+          <span style={{ display: "inline-block", lineHeight: "24px", verticalAlign: "middle", width: "100%", textAlign: "left", color: isSemi ? "var(--ant-color-text-secondary)" : "var(--ant-color-text-quaternary)" }}>
+            {isSemi ? "內部自製" : "-"}
+          </span>
+        );
+      }
       const name =
         val && displayCode
           ? `[${displayCode}] ${val}`
           : val || displayCode || "-";
-      if (!bpCode) return "-";
       return (
         <Link
           to={`/basic/business-partners/${bpCode}`}
@@ -112,10 +203,34 @@ export const mainTableColumns = (): TableColumnConfig[] => [
             color: "#1668dc",
             textDecoration: "underline",
             cursor: "pointer",
+            lineHeight: "24px",
+            display: "inline-block",
+            verticalAlign: "middle",
           }}
         >
-          <EllipsisText text={name} maxWidth={180} />
+          <EllipsisText text={name} maxWidth={170} />
         </Link>
+      );
+    },
+  },
+  {
+    label: "製令成本/金額",
+    name: "actualTotalCost",
+    width: 130,
+    align: "right",
+    render: (val: number | null | undefined, record: any) => {
+      const isSemi = (record?.subType || "").toUpperCase() === "SEMI";
+      if (isSemi && val != null) {
+        return (
+          <span style={{ display: "inline-block", lineHeight: "24px", verticalAlign: "middle", width: "100%", textAlign: "right", fontWeight: 500 }}>
+            NT$ {Number(val).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+          </span>
+        );
+      }
+      return (
+        <span style={{ display: "inline-block", lineHeight: "24px", verticalAlign: "middle", width: "100%", textAlign: "right", color: "var(--ant-color-text-quaternary)" }}>
+          -
+        </span>
       );
     },
   },
@@ -123,12 +238,21 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     label: "送貨單號 / 憑證號",
     name: "invoiceNumber",
     width: 150,
+    render: (val: string) => (
+      <span style={{ display: "inline-block", lineHeight: "24px", verticalAlign: "middle", width: "100%", textAlign: "left" }}>
+        {val || "-"}
+      </span>
+    ),
   },
   {
     label: "備註",
     name: "notes",
-    width: 200,
-    render: (val: string) => <EllipsisText text={val || "-"} maxWidth={180} />,
+    width: 180,
+    render: (val: string) => (
+      <span style={{ display: "inline-block", lineHeight: "24px", verticalAlign: "middle", width: "100%", textAlign: "left" }}>
+        <EllipsisText text={val || "-"} maxWidth={160} />
+      </span>
+    ),
   },
 ];
 
@@ -145,15 +269,68 @@ export const masterFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
     editable: "always",
   },
   {
+    name: "subType",
+    label: "單據類別",
+    componentType: "Select",
+    colSpan: 4,
+    componentProps: {
+      disabled: isViewMode,
+      options: [
+        { label: "客供來料 (CM)", value: "CM" },
+        { label: "製令半成品 (SEMI)", value: "SEMI" },
+      ],
+    },
+    editable: "createOnly",
+  },
+  {
+    name: "referenceNumber",
+    label: "來源/參考單號",
+    componentType: "Input",
+    colSpan: 4,
+    componentProps: {
+      disabled: isViewMode,
+      placeholder: "請輸入參考單號 (如製令 WO 單號)",
+    },
+    editable: "always",
+  },
+  {
     name: "businessPartnerCode",
     label: "客戶",
     componentType: "AsyncSelect",
     colSpan: 2,
-    componentProps: {
-      disabled: isViewMode,
-      configKey: "CUSTOMER", // 鎖定客戶角色，符合委託代工邏輯
+    componentProps: (context: any) => {
+      const isSemi = (context?.values?.subType || "").toUpperCase() === "SEMI";
+      return {
+        disabled: isViewMode,
+        configKey: "CUSTOMER", // 鎖定客戶角色，符合委託代工邏輯
+        allowClear: true,
+        placeholder: isSemi ? "內部自製半成品可免填客戶" : "請選擇客戶",
+      };
     },
     editable: "createOnly",
+    dynamicValidation: (context) => {
+      const isSemi = (context?.values?.subType || "").toUpperCase() === "SEMI";
+      if (isSemi) {
+        return z.string().optional().nullable();
+      }
+      return z.string().min(1, "請選擇客戶");
+    },
+  },
+  {
+    name: "actualTotalCost",
+    label: "製令實際總成本",
+    componentType: "InputNumber",
+    colSpan: 4,
+    editable: "never",
+    hidden: (context) => {
+      const isSemi = (context?.values?.subType || "").toUpperCase() === "SEMI";
+      return !isSemi && context?.values?.actualTotalCost == null;
+    },
+    componentProps: {
+      disabled: true,
+      formatter: (val: any) => (val != null ? `NT$ ${Number(val).toLocaleString()}` : ""),
+      style: { width: "100%", fontWeight: "bold" },
+    },
   },
   {
     name: "invoiceNumber",
@@ -162,21 +339,10 @@ export const masterFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
     colSpan: 4,
     componentProps: {
       disabled: isViewMode,
-      placeholder: "請輸入客戶送貨單號",
+      placeholder: "請輸入送貨單號或憑證號",
     },
     editable: "always",
   },
-  // {
-  //   name: "address",
-  //   label: "送貨地址",
-  //   componentType: "Input",
-  //   colSpan: 6,
-  //   componentProps: {
-  //     disabled: isViewMode,
-  //     placeholder: "請輸入送貨地址",
-  //   },
-  //   editable: "always",
-  // },
   {
     name: "notes",
     label: "備註",
@@ -418,7 +584,10 @@ export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
 // Zod validation schemas
 export const customerMaterialReceiptSchema = z.object({
   documentDate: z.string().min(1, "請選擇單據日期"),
-  businessPartnerCode: z.string().min(1, "請選擇客戶"),
+  subType: z.string().optional().nullable(),
+  referenceNumber: z.string().optional().nullable(),
+  businessPartnerCode: z.string().optional().nullable(),
+  actualTotalCost: z.number().optional().nullable(),
   invoiceNumber: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),

@@ -405,7 +405,8 @@ export default function MaterialList() {
               activeTab={activeTab}
               onTabChange={setActiveTab}
               isCreateMode={isCreateDrawerOpen}
-              isEditMode={isDrawerEditing || isBomEditing}
+              isEditMode={isDrawerEditing}
+              disableTabSwitching={isBomEditing}
               viewId={viewId}
               entityType="Material"
               showAttachments={true}
@@ -417,8 +418,8 @@ export default function MaterialList() {
                     children: (
                       <ProductBom
                         outputType="M"
-                        outputCode={viewData?.code || ''}
-                        isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
+                        outputCode={viewData?.code}
+                        isViewMode={isViewMode}
                         onEditingChange={setIsBomEditing}
                       />
                     )

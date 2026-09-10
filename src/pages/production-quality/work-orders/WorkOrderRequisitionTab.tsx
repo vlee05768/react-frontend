@@ -367,6 +367,8 @@ export function WorkOrderRequisitionTab({
       notes: savedNotes || "",
       items: items.map((it) => ({
         materialCode: it.materialCode,
+        quantity: it.quantity,
+        referenceQuantity1: it.referenceQuantity1,
         sourceStorageCode: it.sourceStorageCode,
         notes: it.notes,
         extraDataJson: JSON.stringify(it.extra),
@@ -431,6 +433,8 @@ export function WorkOrderRequisitionTab({
       notes: docNotes || "",
       items: newItems.map((it) => ({
         materialCode: it.materialCode,
+        quantity: it.quantity,
+        referenceQuantity1: it.referenceQuantity1,
         sourceStorageCode: it.sourceStorageCode,
         notes: it.notes,
         extraDataJson: JSON.stringify(it.extra),
@@ -500,7 +504,10 @@ export function WorkOrderRequisitionTab({
         (matched?.materialCode || "").startsWith("R-") ||
         (matched?.materialCode || "").endsWith("-R")
           ? null
-          : modalFormValues.sourceStorageCode,
+          : modalFormValues.sourceStorageCode ||
+            modalExtra[0]?.storageCode ||
+            logicalInventoryList[0]?.storageCode ||
+            "TW-MAT-GEN",
       extra: mappedExtra,
     };
 
@@ -837,6 +844,8 @@ export function WorkOrderRequisitionTab({
     });
 
   const logicalInventoryList =
+    (logicalInventoryResponse?.data as any)?.data?.data ||
+    (logicalInventoryResponse?.data as any)?.data ||
     (logicalInventoryResponse?.data as any)?.list || [];
 
   return (
@@ -1368,6 +1377,7 @@ export function WorkOrderRequisitionTab({
                             widthMm: record.widthMm,
                             lengthMm: record.lengthMm || 0,
                             thicknessMm: 0,
+                            storageCode: record.storageCode,
                           });
                           accumulated += take;
                         }
@@ -1390,6 +1400,7 @@ export function WorkOrderRequisitionTab({
                         ...prev,
                         quantity: totalQty,
                         referenceQuantity1: parseFloat(totalArea.toFixed(4)),
+                        sourceStorageCode: selectedSpecs[0]?.storageCode || prev.sourceStorageCode,
                       }));
 
                       if (accumulated >= targetQty) {
@@ -1420,6 +1431,7 @@ export function WorkOrderRequisitionTab({
                         widthMm: r.widthMm,
                         lengthMm: r.lengthMm || 0,
                         thicknessMm: 0,
+                        storageCode: r.storageCode,
                       }));
                       setModalExtra(mappedExtra);
 
@@ -1437,6 +1449,7 @@ export function WorkOrderRequisitionTab({
                         ...prev,
                         quantity: totalQty,
                         referenceQuantity1: parseFloat(totalArea.toFixed(4)),
+                        sourceStorageCode: mappedExtra[0]?.storageCode || prev.sourceStorageCode,
                       }));
                     },
                   }}

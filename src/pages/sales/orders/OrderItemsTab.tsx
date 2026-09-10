@@ -6,7 +6,8 @@ import dayjs from 'dayjs';
 import { 
   postApiV1OrdersByOrderNumberDetails,
   putApiV1OrdersByOrderNumberDetailsByLineNumber,
-  deleteApiV1OrdersByOrderNumberDetailsByLineNumber
+  deleteApiV1OrdersByOrderNumberDetailsByLineNumber,
+  getApiV1MaterialByCode
 } from '@/api/generated/sdk.gen';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import type { OrderDto, OrderItemDto } from '@/api/generated/types.gen';
@@ -47,8 +48,27 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
     notifyEdit(true);
   };
 
-  const handleEditOpen = (record: OrderItemDto) => {
-    setEditingItem(record);
+  const handleEditOpen = async (record: OrderItemDto) => {
+    let materialType = (record as any).materialType;
+    if (!materialType && record.goodsType === 'M') {
+      if (record.goodsName?.includes('[半成品]') || record.generateWorkOrder) {
+        materialType = 'SEMI';
+      } else if (record.goodsCode) {
+        try {
+          const res = await getApiV1MaterialByCode({ path: { code: record.goodsCode } });
+          const mat = (res.data as any)?.data || res.data;
+          if (mat?.materialType) {
+            materialType = mat.materialType;
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+    setEditingItem({
+      ...record,
+      materialType,
+    } as any);
     notifyEdit(true);
   };
 
@@ -108,9 +128,10 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
   };
 
   const handleSubmit = async (values: any) => {
+    const isSemi = values.materialType === 'SEMI' || values.goodsName?.includes('[半成品]');
     const formattedValues = {
       ...values,
-      generateWorkOrder: values.goodsType === 'M' ? false : values.generateWorkOrder,
+      generateWorkOrder: (values.goodsType === 'M' && !isSemi) ? false : values.generateWorkOrder,
       spareQuantity: values.goodsType === 'M' ? 0 : values.spareQuantity,
       requestedDeliveryDate: values.requestedDeliveryDate ? dayjs(values.requestedDeliveryDate).format('YYYY-MM-DD') : undefined,
       promisedDeliveryDate: values.promisedDeliveryDate ? dayjs(values.promisedDeliveryDate).format('YYYY-MM-DD') : undefined,
@@ -287,6 +308,7 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
                   } 
                 : editingItem ? {
                     ...editingItem,
+                    materialType: (editingItem as any).materialType ?? (editingItem.goodsName?.includes('[半成品]') ? 'SEMI' : undefined),
                     unit: (editingItem.goodsType === 'M' && (editingItem.unit?.toUpperCase() === 'M' || editingItem.unit?.toUpperCase() === 'SQM' || editingItem.unit?.toUpperCase() === 'M²')) ? 'm²' : editingItem.unit,
                     requestedDeliveryDate: editingItem.requestedDeliveryDate ? dayjs(editingItem.requestedDeliveryDate) : undefined,
                     promisedDeliveryDate: editingItem.promisedDeliveryDate ? dayjs(editingItem.promisedDeliveryDate) : undefined,

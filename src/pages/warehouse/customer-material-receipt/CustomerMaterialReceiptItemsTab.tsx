@@ -60,7 +60,7 @@ export default function CustomerMaterialReceiptItemsTab({
         body,
       }),
     onSuccess: () => {
-      message.success('新增客供料明細成功');
+      message.success('新增入庫明細成功');
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipt', documentNumber] });
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipts'] });
       handleCancel();
@@ -75,7 +75,7 @@ export default function CustomerMaterialReceiptItemsTab({
         body,
       }),
     onSuccess: () => {
-      message.success('更新客供料明細成功');
+      message.success('更新入庫明細成功');
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipt', documentNumber] });
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipts'] });
       handleCancel();
@@ -89,7 +89,7 @@ export default function CustomerMaterialReceiptItemsTab({
         path: { code: documentNumber, lineNumber },
       }),
     onSuccess: () => {
-      message.success('刪除客供料明細成功');
+      message.success('刪除入庫明細成功');
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipt', documentNumber] });
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipts'] });
     },
@@ -111,7 +111,7 @@ export default function CustomerMaterialReceiptItemsTab({
           width: 1000,
           length: isRoll ? 200 : 1000,
           physicalQuantity: isRoll ? 200 : 1,
-          notes: '由客供料清單挑選帶入',
+          notes: receiptData?.subType === 'SEMI' ? '製令半成品入庫' : '由原料清單挑選帶入',
         };
         
         await createMutation.mutateAsync(body);
@@ -119,7 +119,7 @@ export default function CustomerMaterialReceiptItemsTab({
       }
       
       if (successCount > 0) {
-        message.success(`成功帶入 ${successCount} 筆客供料項目！`);
+        message.success(`成功帶入 ${successCount} 筆入庫明細項目！`);
       }
     } catch (err) {
       console.error('Batch import failed:', err);
@@ -178,7 +178,7 @@ export default function CustomerMaterialReceiptItemsTab({
             onClick={() => handleStartEdit(record)}
           />
           <Popconfirm
-            title="確認要刪除此筆客供料明細項目嗎？"
+            title="確認要刪除此筆入庫明細項目嗎？"
             onConfirm={() => deleteMutation.mutate(record.lineNumber!)}
             okText="確認"
             cancelText="取消"
@@ -215,7 +215,7 @@ export default function CustomerMaterialReceiptItemsTab({
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h3 style={{ margin: 0, fontWeight: 600 }}>
-            {isCreatingItem ? '新增客供料明細項目' : `編輯客供料明細項目 (項次: ${editingItem?.lineNumber})`}
+            {isCreatingItem ? '新增入庫明細項目' : `編輯入庫明細項目 (項次: ${editingItem?.lineNumber})`}
           </h3>
           <Space>
             <Button
@@ -250,7 +250,7 @@ export default function CustomerMaterialReceiptItemsTab({
         open={isPickerOpen}
         onCancel={() => setIsPickerOpen(false)}
         onConfirm={handlePickerConfirm}
-        customerCode={receiptData.partnerRoleCode || receiptData.businessPartnerCode!}
+        customerCode={receiptData.partnerRoleCode || receiptData.businessPartnerCode || ''}
         customerName={receiptData.businessPartnerName || ''}
         excludeMaterialCodes={items.map((item) => item.materialCode!)}
       />

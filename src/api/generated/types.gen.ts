@@ -817,13 +817,17 @@ export type CreateCustomerMaterialReceiptDto = {
      */
     documentDate: string;
     /**
+     * 單據次類型 (CM / SEMI)
+     */
+    subType?: string | null;
+    /**
      * 目的廠區編碼
      */
     targetPlantCode: string;
     /**
      * 交易客戶客商代碼 (BPCode)
      */
-    businessPartnerCode: string;
+    businessPartnerCode?: string | null;
     /**
      * 客戶聯絡人ID
      */
@@ -840,6 +844,14 @@ export type CreateCustomerMaterialReceiptDto = {
      * 送貨單號/發票號碼
      */
     invoiceNumber?: string | null;
+    /**
+     * 參考單號 (如製令單號)
+     */
+    referenceNumber?: string | null;
+    /**
+     * 製令實際總成本
+     */
+    actualTotalCost?: number | null;
     /**
      * 備註
      */
@@ -2444,7 +2456,7 @@ export type CustomerMaterialReceiptDto = {
     /**
      * 交易客戶客商代碼 (BPCode)
      */
-    businessPartnerCode: string;
+    businessPartnerCode?: string | null;
     /**
      * 客戶特定角色編號 (如 C00003)
      */
@@ -2482,6 +2494,10 @@ export type CustomerMaterialReceiptDto = {
      */
     invoiceNumber?: string | null;
     /**
+     * 參考單號 (如製令單號)
+     */
+    referenceNumber?: string | null;
+    /**
      * 確認日期
      */
     confirmDate?: string | null;
@@ -2517,6 +2533,10 @@ export type CustomerMaterialReceiptDto = {
      * 稅額 (客供料強制為0)
      */
     taxAmount?: number;
+    /**
+     * 製令實際總成本 (半成品完工入庫時動態核算)
+     */
+    actualTotalCost?: number | null;
     /**
      * 狀態 (DRAFT/CONFIRMED/CLOSED)
      */
@@ -8660,6 +8680,10 @@ export type UpdateCustomerMaterialReceiptDto = {
      */
     invoiceNumber?: string | null;
     /**
+     * 參考單號 (如製令單號)
+     */
+    referenceNumber?: string | null;
+    /**
      * 備註
      */
     notes?: string | null;
@@ -14386,6 +14410,10 @@ export type GetApiV1CustomerMaterialReceiptData = {
          */
         DocumentNumber?: string;
         /**
+         * 單據次類型 (CM: 客供料 / SEMI: 半成品)
+         */
+        SubType?: string;
+        /**
          * 單據日期範圍
          */
         DateRange?: Array<string>;
@@ -14393,6 +14421,10 @@ export type GetApiV1CustomerMaterialReceiptData = {
          * 客戶代碼或名稱
          */
         CustomerCodeOrName?: string;
+        /**
+         * 交易客戶代碼
+         */
+        BusinessPartnerCode?: string;
         /**
          * 發票號碼/送貨單號
          */

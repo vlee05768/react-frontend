@@ -290,12 +290,12 @@ export default function MainLayout() {
                 if (idx !== -1) {
                   children.splice(idx + 1, 0, {
                     key: '/warehouse/customer-material-receipt',
-                    label: '客供料入庫單',
+                    label: '原料入庫管理',
                   });
                 } else {
                   children.unshift({
                     key: '/warehouse/customer-material-receipt',
-                    label: '客供料入庫單',
+                    label: '原料入庫管理',
                   });
                 }
               }

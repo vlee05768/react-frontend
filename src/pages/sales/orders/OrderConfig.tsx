@@ -674,7 +674,7 @@ export const getItemColumns = (
     align: "center",
     ellipsis: true,
     render: (v: boolean | undefined | null, record: any) => {
-      if (record?.goodsType === "M") return "-";
+      if (record?.goodsType === "M" && !v) return "-";
       let icon = null;
       if (v === true) {
         icon = <CheckOutlined style={{ color: 'green', fontSize: '14px' }} />;
@@ -823,13 +823,19 @@ export const getItemFormConfig = (isCreatingMaterial = false): any[] => [
     colSpan: 2,
     validation: z.string().min(1, "商品編碼為必填"),
     onChange: (_value: any, context: any, setValue: any, ...args: any[]) => {
-      const option = args[1];
+      const option = args[1]?.originalData ? args[1] : (args[0]?.originalData ? args[0] : (args[1] || args[0]));
       if (option && option.originalData) {
         setValue("goodsName", option.originalData.name);
         const isM = context?.values?.goodsType === "M";
         if (isM) {
+          const matType = option.originalData.materialType;
+          setValue("materialType", matType);
+          if (context?.values) {
+            context.values.materialType = matType;
+          }
           setValue("spareQuantity", 0);
-          setValue("generateWorkOrder", false);
+          const isSemi = matType === "SEMI";
+          setValue("generateWorkOrder", isSemi);
           const form = option.originalData.materialForm;
           if (form === "R") {
             setValue("unit", "m²"); // 💡 捲料原料：一律以平方公尺 (m²) 計價！
@@ -1047,9 +1053,17 @@ export const getItemFormConfig = (isCreatingMaterial = false): any[] => [
     label: "產生製令",
     componentType: "Switch",
     colSpan: 6,
-    hidden: (context: any) => context?.values?.goodsType === "M",
+    hidden: (context: any) => {
+      const isM = context?.values?.goodsType === "M";
+      if (!isM) return false;
+      const isSemi = context?.values?.materialType === "SEMI" || context?.values?.goodsName?.includes("[半成品]");
+      return !isSemi;
+    },
     editable: (context: any) => {
-      return context?.values?.goodsType !== "M";
+      const isM = context?.values?.goodsType === "M";
+      if (!isM) return true;
+      const isSemi = context?.values?.materialType === "SEMI" || context?.values?.goodsName?.includes("[半成品]");
+      return isSemi;
     },
   },
   {

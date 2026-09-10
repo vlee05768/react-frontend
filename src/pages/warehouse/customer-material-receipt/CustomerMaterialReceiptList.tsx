@@ -32,6 +32,7 @@ export default function CustomerMaterialReceiptList() {
       setParams({
         pageNumber: 1,
         pageSize: 20,
+        subType: undefined,
         documentNumber: undefined,
         businessPartnerCode: undefined,
         dateRange: null,
@@ -54,6 +55,7 @@ export default function CustomerMaterialReceiptList() {
       query: {
         pageNumber: params.pageNumber,
         pageSize: params.pageSize,
+        SubType: params.subType || undefined,
         DocumentNumber: params.documentNumber || undefined,
         BusinessPartnerCode: params.businessPartnerCode || undefined,
         DateRange: params.dateRange ? [
@@ -114,7 +116,7 @@ export default function CustomerMaterialReceiptList() {
   return (
     <div className="p-4 pb-0 flex flex-col h-[calc(100vh-64px)]">
       <PageCard
-        title="客供料入庫單"
+        title="原料入庫管理"
         extra={
           <Space separator={<Divider orientation="vertical" />}>
             <Button

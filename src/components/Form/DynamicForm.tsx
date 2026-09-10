@@ -140,7 +140,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
     });
     
     // 更新 Ref，使 resolver 拿到的總是最新結構
-    schemaRef.current = z.object(shape);
+    schemaRef.current = z.object(shape).passthrough();
     
   }, [fields, context]); 
 

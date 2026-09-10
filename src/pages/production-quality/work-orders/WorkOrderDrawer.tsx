@@ -779,7 +779,7 @@ export function WorkOrderDrawer({
       fields={formConfig}
       defaultValues={record}
       isViewMode={isViewMode}
-      isUpdateMode={isEditing}
+      isUpdateMode={!isCreateMode && isEditing}
       onSubmit={handleSubmit}
       hideDefaultFooter
     />

@@ -114,7 +114,7 @@ export default function CustomerMaterialPickerModal({
 
   return (
     <Modal
-      title={`選擇客供料原物料 (鎖定客戶: [${customerCode}] ${customerName})`}
+      title={customerCode ? `選擇原物料 (鎖定客戶: [${customerCode}] ${customerName})` : '選擇入庫原物料 / 半成品'}
       width={MODAL_WIDTH_PICK}
       open={open}
       onCancel={onCancel}

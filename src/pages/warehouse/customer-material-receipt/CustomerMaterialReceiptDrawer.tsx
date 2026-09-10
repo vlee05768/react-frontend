@@ -44,12 +44,16 @@ export default function CustomerMaterialReceiptDrawer() {
       return {
         documentNumber: '【系統自動編碼】',
         documentDate: dayjs(), // Dayjs object!
+        subType: 'CM',
         status: 'Unconfirmed',
       };
     }
     if (receiptData) {
       return {
         ...receiptData,
+        subType: receiptData.subType || 'CM',
+        referenceNumber: receiptData.referenceNumber || undefined,
+        actualTotalCost: receiptData.actualTotalCost ?? undefined,
         businessPartnerCode: receiptData.partnerRoleCode || receiptData.businessPartnerCode, // 📌 顯示客戶角色編號（如 C0001），對齊採購進貨單模式
         documentDate: receiptData.documentDate ? dayjs(receiptData.documentDate) : undefined, // Dayjs object!
       };
@@ -83,7 +87,7 @@ export default function CustomerMaterialReceiptDrawer() {
     onSuccess: (res: any) => {
       const newRecord = res.data?.data || res.data;
       const newId = newRecord?.documentNumber;
-      message.success('建立客供料入庫單成功');
+      message.success('建立原料入庫單成功');
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipts'] });
       
       if (newId) {
@@ -104,7 +108,7 @@ export default function CustomerMaterialReceiptDrawer() {
         body,
       }),
     onSuccess: () => {
-      message.success('更新客供料主檔成功');
+      message.success('更新原料入庫單主檔成功');
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipt', documentNumber] });
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipts'] });
       setIsEditing(false);
@@ -115,7 +119,7 @@ export default function CustomerMaterialReceiptDrawer() {
   const confirmMutation = useMutation({
     mutationFn: () => postApiV1CustomerMaterialReceiptByCodeConfirm({ path: { code: documentNumber! } }),
     onSuccess: () => {
-      message.success('客供料入庫單確認過帳成功，物理 LPN 卷卡已建立！');
+      message.success('原料入庫單確認過帳成功，物理 LPN 卷卡已建立！');
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipt', documentNumber] });
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipts'] });
     },
@@ -138,7 +142,7 @@ export default function CustomerMaterialReceiptDrawer() {
     onError: (err: any) => {
       modal.error({
         title: '無法取消確認',
-        content: err.response?.data?.message || '取消確認失敗。這通常是因為該批客供料已在車間生產中被領用消耗，為了維護「帳實一致」系統禁止回滾。',
+        content: err.response?.data?.message || '取消確認失敗。這通常是因為該批原料已在車間生產中被領用消耗，為了維護「帳實一致」系統禁止回滾。',
         centered: true,
       });
     },
@@ -147,7 +151,7 @@ export default function CustomerMaterialReceiptDrawer() {
   const deleteMutation = useMutation({
     mutationFn: () => deleteApiV1CustomerMaterialReceiptByCode({ path: { code: documentNumber! } }),
     onSuccess: () => {
-      message.success('刪除客供料入庫單成功');
+      message.success('刪除原料入庫單成功');
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipts'] });
       navigate('/warehouse/customer-material-receipt');
     },
@@ -156,9 +160,12 @@ export default function CustomerMaterialReceiptDrawer() {
 
   // Handle Master Save Submit
   const handleMasterSubmit = (values: any) => {
-    // Force Financial fields to 0
+    // Force Financial fields to 0 (原料入庫單強制為0)
     const body = {
       ...values,
+      subType: values.subType || 'CM',
+      referenceNumber: values.referenceNumber || null,
+      businessPartnerCode: values.businessPartnerCode || null,
       subTotal: 0,
       totalAmount: 0,
       taxAmount: 0,
@@ -179,9 +186,12 @@ export default function CustomerMaterialReceiptDrawer() {
   };
 
   const handleConfirmDoc = () => {
+    const isSemi = receiptData?.subType === 'SEMI';
     modal.confirm({
       title: '確認過帳入庫',
-      content: '確認過帳後，系統將依據明細的分卷規格自動生成「零成本」原料實物 LPN 條碼卷卡，並實時入庫增加邏輯帳。確定要執行嗎？',
+      content: isSemi
+        ? '確認過帳後，系統將依據明細規格自動生成半成品原料實物 LPN 條碼卷卡，並實時入庫增加邏輯帳。確定要執行嗎？'
+        : '確認過帳後，系統將依據明細的分卷規格自動生成「零成本」原料實物 LPN 條碼卷卡，並實時入庫增加邏輯帳。確定要執行嗎？',
       okText: '確認過帳',
       cancelText: '取消',
       centered: true,
@@ -231,7 +241,7 @@ export default function CustomerMaterialReceiptDrawer() {
                 e.preventDefault();
                 modal.confirm({
                   title: '刪除單據',
-                  content: `確定要刪除客供料入庫單 ${receiptData.documentNumber} 嗎？`,
+                  content: `確定要刪除原料入庫單 ${receiptData.documentNumber} 嗎？`,
                   centered: true,
                   width: 400,
                   okButtonProps: { danger: true },
@@ -320,7 +330,7 @@ export default function CustomerMaterialReceiptDrawer() {
     <Drawer
       title={
         <DrawerTitle
-          moduleName="客供料入庫單"
+          moduleName="原料入庫單"
           isCreate={isCreating}
           isEdit={isEditing}
           record={receiptData}
@@ -385,7 +395,7 @@ export default function CustomerMaterialReceiptDrawer() {
                       onEditingChange={setIsDetailEditing}
                     />
                   ) : (
-                    <Empty description="請先儲存客供料入庫單主檔" />
+                    <Empty description="請先儲存原料入庫單主檔" />
                   ),
                 }
               ]}
