@@ -1,0 +1,242 @@
+# ==============================================================================
+# 東富 ERP Docker Compose 配置檔 (低配主機 / 資源約束環境專用: 2 vCPU / 4GB RAM)
+# 
+# 適用場景：
+# - 小型雲端主機 (如 GCP e2-medium、AWS t3.medium、Linode 4GB)
+# - 資源限制：總記憶體 <= 4GB，無 Swap 或 Swap <= 4GB
+# 
+# 關鍵防雷設定：
+# 1. 記憶體配額：Postgres 1.2G, Backend 1.5G, MinIO 512M, Frontend 256M (總和 < 3.8GB)
+# 2. 預留保障：總預留僅 1.15GB，避免超出實體上限導致 Docker 拒絕啟動
+# 3. Postgres 引數：shared_buffers 降至 512MB (原 2GB 會直接奪取整機記憶體)
+# 4. .env 注意事項：
+#    - SEEDUSERS__PASSWORD 必須提供，否則略過建立 admin 導致後續儲位外鍵違規
+#    - MINIO_USESSL 請設定為 false (內部 Docker 網路明文 HTTP 通訊)
+# ==============================================================================
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: prod-postgres
+    env_file:
+      - ./.env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB must be set}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER must be set}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_INITDB_ARGS: "-c shared_buffers=512MB -c effective_cache_size=1536MB -c maintenance_work_mem=128MB -c work_mem=8MB -c checkpoint_completion_target=0.9 -c wal_buffers=16MB -c max_connections=100 -c random_page_cost=1.1"
+
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
+    ports:
+      - 5432:5432
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1200M
+        reservations:
+          cpus: '0.25'
+          memory: 384M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "15m"
+        max-file: "3"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # 資料庫遷移服務 (一次性任務)
+  migration:
+    image: ${IMAGE_HUB_URL}/erp-migration:latest
+    container_name: prod-migration
+    env_file:
+      - ./.env
+    environment:
+      CONNECTIONSTRINGS__DEFAULTCONNECTION: ${CONNECTIONSTRINGS__DEFAULTCONNECTION:?CONNECTIONSTRINGS__DEFAULTCONNECTION must be set}
+      ASPNETCORE_ENVIRONMENT: Production
+      DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: false
+      TZ: Asia/Taipei
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    volumes:
+      - ./migration/logs:/app/logs
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - app-network
+    restart: "no"
+
+  backend:
+    image: ${IMAGE_HUB_URL}/erp-backend:latest
+    container_name: erp-backend
+    env_file:
+      - ./.env
+    ports:
+      - "8080:8080"
+    environment:
+      # .NET 垃圾回收優化 (搭配 2 核心伺服器)
+      DOTNET_gcServer: 1
+      # GC 記憶體保護，避免 OOM
+      DOTNET_GCHeapHardLimitPercent: "75"
+      # 執行緒池最小執行緒數優化
+      DOTNET_ThreadPool_MinThreads: 50
+      ASPNETCORE_ENVIRONMENT: Production
+      CONNECTIONSTRINGS__DEFAULTCONNECTION: ${CONNECTIONSTRINGS__DEFAULTCONNECTION:?CONNECTIONSTRINGS__DEFAULTCONNECTION must be set}
+      JWTSETTINGS__SECRETKEY: ${JWTSETTINGS__SECRETKEY:?JWTSETTINGS__SECRETKEY must be set}
+      JWTSETTINGS__ISSUER: ${JWTSETTINGS__ISSUER:?JWTSETTINGS__ISSUER must be set}
+      JWTSETTINGS__AUDIENCE: ${JWTSETTINGS__AUDIENCE:?JWTSETTINGS__AUDIENCE must be set}
+      JWTSETTINGS__EXPIRYMINUTES: ${JWTSETTINGS__EXPIRYMINUTES:?JWTSETTINGS__EXPIRYMINUTES must be set}
+      EMAILSETTINGS__SMTPSERVER: ${EMAILSETTINGS__SMTPSERVER}
+      EMAILSETTINGS__PORT: ${EMAILSETTINGS__PORT}
+      EMAILSETTINGS__ENABLESSL: ${EMAILSETTINGS__ENABLESSL}
+      EMAILSETTINGS__USERNAME: ${EMAILSETTINGS__USERNAME:?EMAILSETTINGS__USERNAME must be set}
+      EMAILSETTINGS__PASSWORD: ${EMAILSETTINGS__PASSWORD:?EMAILSETTINGS__PASSWORD must be set}
+      EMAILSETTINGS__DEFAULTSENDER: ${EMAILSETTINGS__DEFAULTSENDER:?EMAILSETTINGS__DEFAULTSENDER must be set}
+      EMAILSETTINGS__DEFAULTSENDERNAME: ${EMAILSETTINGS__DEFAULTSENDERNAME}
+      CORS__ALLOWEDORIGINS: ${CORS__ALLOWEDORIGINS}
+      FRONTENDHOMEURL: ${FRONTENDHOMEURL}
+      MINIOSETTINGS__ENDPOINT: ${MINIO_ENDPOINT:?MINIOSETTINGS__ENDPOINT must be set}
+      MINIOSETTINGS__ACCESSKEY: ${MINIO_ROOT_USER:?MINIOSETTINGS__ACCESSKEY must be set}
+      MINIOSETTINGS__SECRETKEY: ${MINIO_ROOT_PASSWORD:?MINIOSETTINGS__SECRETKEY must be set}
+      MINIOSETTINGS__BUCKET: ${MINIO_BUCKET:?MINIOSETTINGS__BUCKET must be set}
+      MINIOSETTINGS__USESSL: ${MINIO_USESSL:?MINIOSETTINGS__USESSL must be set}
+      # 新增系統開帳日期環境變數對接
+      SYSTEMSETTINGS__OPENINGDATE: ${SYSTEMSETTINGS__OPENINGDATE:-2026-07-01}
+
+    volumes:
+      - ./backend/temp:/app/temp
+      - ./backend/logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1500M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "15m"
+        max-file: "3"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Minio 檔案存儲服務
+  minio:
+    image: minio/minio:latest
+    container_name: prod-minio
+    command: server /data --console-address ":9001"
+    env_file:
+      - ./.env
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER must be set}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD must be set}
+      MINIO_API_REQUESTS_MAX: "2000"
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - ./minio/data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://minio:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 192M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "15m"
+        max-file: "3"
+    restart: unless-stopped
+
+  # React ERP Frontend 前端服務
+  frontend:
+    image: ${IMAGE_HUB_URL}/erp-frontend-react:${FRONTEND_IMAGE_TAG:-latest}
+    container_name: erp-frontend-react-container
+    env_file:
+      - ./.env
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    environment:
+      - NODE_ENV=production
+      - TZ=Asia/Taipei
+      - API_BASE_URL=http://backend:8080
+    volumes:
+      - ./frontend/nginx/logs:/var/log/nginx
+    networks:
+      - app-network
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1/healthz']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 256M
+        reservations:
+          cpus: '0.05'
+          memory: 64M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "15m"
+        max-file: "3"
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
