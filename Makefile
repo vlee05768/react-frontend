@@ -39,14 +39,14 @@ build:
 
 .PHONY: docker-prod
 docker-prod:
-	@cd deploy/prod && docker compose up -d
+	@cd ../deploy/prod && docker compose up -d
 
 DOCKER_PLATFORM ?= linux/amd64
 
 .PHONY: docker-build
 docker-build:
 	@echo "Building Docker image ($(DOCKER_PLATFORM)): $(IMAGE_NAME)"
-	docker build --platform $(DOCKER_PLATFORM) -f deploy/prod/Dockerfile -t $(IMAGE_NAME):$(IMAGE_TAG) .
+	docker build --platform $(DOCKER_PLATFORM) -f Dockerfile -t $(IMAGE_NAME):$(IMAGE_TAG) .
 	@echo "Docker image built successfully: $(IMAGE_NAME)"
 
 .PHONY: docker-push
@@ -61,7 +61,7 @@ docker-rebuild: docker-build docker-push
 
 .PHONY: docker-stop
 docker-stop:
-	@cd deploy/prod && docker compose down $(IGNORE)
+	@cd ../deploy/prod && docker compose down $(IGNORE)
 
 .PHONY: clean
 clean:

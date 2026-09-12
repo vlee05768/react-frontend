@@ -25,12 +25,6 @@ dist-ssr
 temp_scripts/
 .pnpm-store/
 
-# Docker volumes and temp files
-deploy/prod/postgres/data/
-deploy/prod/minio/data/
-deploy/prod/backend/temp/
-deploy/prod/.env
-
 # 本地環境變數設定檔 (不要進版控)
 .env.local
 .env.development.local

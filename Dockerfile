@@ -26,7 +26,7 @@ FROM nginx:alpine-slim
 RUN rm /etc/nginx/conf.d/default.conf
 
 # Copy custom nginx configuration template
-COPY deploy/prod/nginx.conf /etc/nginx/conf.d/default.conf.template
+COPY nginx.conf /etc/nginx/conf.d/default.conf.template
 
 # Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
