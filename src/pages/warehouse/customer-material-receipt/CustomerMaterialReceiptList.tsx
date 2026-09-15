@@ -44,6 +44,7 @@ export default function CustomerMaterialReceiptList() {
   const listQuery = useErpListQuery({
     params,
     setParams,
+    searchConfig: customerMaterialReceiptSearchConfig(),
   });
 
   const openCreateDrawer = () => navigate('/warehouse/customer-material-receipt/create');

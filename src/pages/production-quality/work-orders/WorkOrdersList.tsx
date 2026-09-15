@@ -41,7 +41,8 @@ export const WorkOrdersList: React.FC = () => {
       const currentSearchParams = useWorkOrderQueryStore.getState().searchParams;
       setSearchParams({ ...currentSearchParams, ...query });
       setPagination(pageNumber || 1, pageSize || 20);
-    }
+    },
+    searchConfig,
   });
 
   const { downloadFile, isDownloading } = useFileDownload();

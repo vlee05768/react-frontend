@@ -43,6 +43,7 @@ export default function CustomerStatementList() {
     params,
     setParams,
     pageKey: 'pageNumber',
+    searchConfig,
   });
 
   const { downloadFile, isDownloading } = useFileDownload();

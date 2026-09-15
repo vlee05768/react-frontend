@@ -44,6 +44,7 @@ export default function PurchaseReceiptsList() {
   const listQuery = useErpListQuery({
     params,
     setParams,
+    searchConfig: purchaseReceiptSearchConfig,
   });
 
   const openCreateDrawer = () => navigate(`${basePath}/create`);

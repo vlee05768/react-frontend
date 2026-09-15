@@ -37,6 +37,7 @@ export default function SalesDeliveriesList() {
   const listQuery = useErpListQuery({
     params,
     setParams,
+    searchConfig,
   });
 
   const { data, isLoading } = useQuery({

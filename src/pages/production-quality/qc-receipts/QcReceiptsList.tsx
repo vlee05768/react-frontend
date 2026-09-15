@@ -27,6 +27,7 @@ export default function QcReceiptsList() {
   const listQuery = useErpListQuery({
     params,
     setParams,
+    searchConfig: qcReceiptSearchConfig,
   });
 
   const openCreateDrawer = () => navigate('/production-quality/qc-receipts/create');

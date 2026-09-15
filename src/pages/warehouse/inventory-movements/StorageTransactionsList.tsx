@@ -111,7 +111,8 @@ export default function StorageTransactionsList() {
 
   const listQuery = useErpListQuery({
     params,
-    setParams: customSetParams
+    setParams: customSetParams,
+    searchConfig,
   });
 
   const { searchForm } = listQuery;

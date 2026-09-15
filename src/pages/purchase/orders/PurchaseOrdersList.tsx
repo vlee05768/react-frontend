@@ -49,6 +49,7 @@ export default function PurchaseOrdersList() {
   const listQuery = useErpListQuery({
     params,
     setParams,
+    searchConfig,
   });
 
   const { data, isLoading } = useQuery({

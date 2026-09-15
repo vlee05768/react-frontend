@@ -33,6 +33,7 @@ export default function OrdersList() {
   const listQuery = useErpListQuery({
     params,
     setParams,
+    searchConfig,
   });
 
   const { data, isLoading } = useQuery({

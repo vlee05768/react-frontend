@@ -63,6 +63,7 @@ export default function InventoryAdjustmentList() {
   const listQuery = useErpListQuery({
     params,
     setParams,
+    searchConfig: mainSearchFormConfig(),
   });
 
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);

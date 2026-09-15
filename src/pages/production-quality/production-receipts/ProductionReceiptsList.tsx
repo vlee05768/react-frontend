@@ -27,6 +27,7 @@ export default function ProductionReceiptsList() {
   const listQuery = useErpListQuery({
     params,
     setParams,
+    searchConfig: productionReceiptSearchConfig,
   });
 
   const { data: response, isLoading, isFetching } = useQuery({

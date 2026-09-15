@@ -59,6 +59,7 @@ export default function IqcList() {
   const listQuery = useErpListQuery({
     params,
     setParams,
+    searchConfig: iqcSearchConfig,
   });
 
   // 2. 獲取 API 資料

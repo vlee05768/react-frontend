@@ -4,12 +4,39 @@ import { useForm } from 'react-hook-form';
 import { useUrlQuerySync } from './useUrlQuerySync';
 import { DEFAULT_PAGE_SIZE } from '@/constants';
 import { formatSorterToRules } from '@/utils/tableUtils';
+import type { SearchFieldConfig } from '@/components/Form/types';
+
+function normalizeUrlDateValue(value: unknown) {
+  if (dayjs.isDayjs(value)) {
+    return value.isValid() ? value : undefined;
+  }
+
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const date = dayjs(value);
+  return date.isValid() && date.format('YYYY-MM-DD') === value ? date : undefined;
+}
+
+function normalizeSearchDateValues(values: Record<string, any>, searchConfig?: SearchFieldConfig[]) {
+  searchConfig?.forEach(({ name, componentType }) => {
+    const value = values[name];
+
+    if (componentType === 'DatePicker') {
+      values[name] = normalizeUrlDateValue(value);
+    } else if (componentType === 'DateRangePicker') {
+      const dates = Array.isArray(value) ? value.map(normalizeUrlDateValue) : [];
+      values[name] = dates.length === 2 && dates.every(Boolean) ? dates : undefined;
+    }
+  });
+}
 
 interface UseErpListQueryOptions<Q> {
   params: Q & { pageNumber?: number; page?: number; pageSize?: number; SortRules?: string };
   setParams: (newParams: any) => void;
   pageKey?: 'page' | 'pageNumber';
-  searchConfig?: any[]; // 💡 傳入查詢配置，以精確清空所有條件，避免 RHF 延遲註冊漏清除之 Bug
+  searchConfig?: SearchFieldConfig[]; // 💡 傳入查詢配置，以精確清空所有條件，避免 RHF 延遲註冊漏清除之 Bug
   tableColumns?: any[]; // 💡 傳入表格欄位配置，以自動生成 queryTagProps
 }
 
@@ -58,6 +85,7 @@ export function useErpListQuery<Q extends Record<string, any>>({
       }
     });
 
+    normalizeSearchDateValues(resetValues, searchConfig);
     searchForm.reset(resetValues);
     setIsSearchModalOpen(true);
   };
