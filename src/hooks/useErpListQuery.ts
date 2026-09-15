@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import dayjs from 'dayjs';
 import { useForm } from 'react-hook-form';
 import { useUrlQuerySync } from './useUrlQuerySync';
 import { DEFAULT_PAGE_SIZE } from '@/constants';
@@ -63,7 +64,14 @@ export function useErpListQuery<Q extends Record<string, any>>({
 
   // 4. 處理查詢（對空字串與空陣列做過濾與 undefined 轉換，避免 API 400）
   const handleSearch = (values: any) => {
-    const nextParams = { ...values };
+    const nextParams = Object.fromEntries(
+      Object.entries(values).map(([key, value]) => [
+        key,
+        Array.isArray(value)
+          ? value.map((item) => dayjs.isDayjs(item) ? item.format('YYYY-MM-DD') : item)
+          : dayjs.isDayjs(value) ? value.format('YYYY-MM-DD') : value,
+      ]),
+    );
     
     // 建立全域清除基礎，使沒有被提交的欄位在 Store 中能被明確覆蓋為 undefined
     const resetBase = Object.keys(searchForm.getValues()).reduce((acc: any, key) => {

@@ -1,4 +1,5 @@
 import { client } from './generated/client.gen';
+import dayjs from 'dayjs';
 import { useAuthStore } from '../stores/useAuthStore';
 import { Modal } from "antd";
 import { useLoadingStore } from '../stores/useLoadingStore';
@@ -14,12 +15,15 @@ export function initializeApi() {
   client.instance.defaults.paramsSerializer = {
     serialize: (params) => {
       const searchParams = new URLSearchParams();
+      const serializeValue = (value: unknown) => dayjs.isDayjs(value)
+        ? value.format('YYYY-MM-DD')
+        : String(value);
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           if (Array.isArray(value)) {
-            value.forEach(val => searchParams.append(key, val));
+            value.forEach(val => searchParams.append(key, serializeValue(val)));
           } else {
-            searchParams.append(key, String(value));
+            searchParams.append(key, serializeValue(value));
           }
         }
       });
