@@ -11,6 +11,17 @@ interface UseUrlQuerySyncOptions<Q> {
   enabled?: boolean;
 }
 
+const legacyCommaJoinedDateRangePattern = /^\d{4}-\d{2}-\d{2},\d{4}-\d{2}-\d{2}$/;
+
+function isLegacyCommaJoinedDateRange(value: string) {
+  return legacyCommaJoinedDateRangePattern.test(value);
+}
+
+function hasSameValues(currentValues: string[], nextValues: string[]) {
+  return currentValues.length === nextValues.length
+    && currentValues.every((value, index) => value === nextValues[index]);
+}
+
 /**
  * A shared hook to synchronize a Zustand List Query store with React Router's URL search parameters.
  * 
@@ -38,13 +49,21 @@ export function useUrlQuerySync<Q extends Record<string, any>>({
     let initialPage = page;
     let initialPageSize = pageSize;
 
-    // Parse URL params
-    searchParams.forEach((value, key) => {
+    // Parse URL params. Repeated keys represent array query values.
+    Array.from(new Set(searchParams.keys())).forEach((key) => {
       hasUrlParams = true;
+      const values = searchParams.getAll(key);
+      const value = values[0];
+
       if (key === 'page') {
         initialPage = parseInt(value, 10) || page;
       } else if (key === 'pageSize') {
         initialPageSize = parseInt(value, 10) || pageSize;
+      } else if (values.length > 1) {
+        initialQuery[key] = values;
+      } else if (isLegacyCommaJoinedDateRange(value)) {
+        // Historical array values were serialized with String(array). Do not pass them to the API.
+        return;
       } else {
         // Handle boolean conversions
         if (value === 'true') initialQuery[key] = true;
@@ -65,41 +84,43 @@ export function useUrlQuerySync<Q extends Record<string, any>>({
   useEffect(() => {
     if (!enabled || !isHydrated.current) return;
 
-    const currentParams = Object.fromEntries(searchParams.entries());
+    const currentParams = new URLSearchParams(searchParams);
     let needsUpdate = false;
 
     // Check page
-    if (String(page) !== currentParams.page) {
-      currentParams.page = String(page);
+    if (String(page) !== currentParams.get('page')) {
+      currentParams.set('page', String(page));
       needsUpdate = true;
     }
 
     // Check pageSize
-    if (String(pageSize) !== currentParams.pageSize) {
-      currentParams.pageSize = String(pageSize);
+    if (String(pageSize) !== currentParams.get('pageSize')) {
+      currentParams.set('pageSize', String(pageSize));
       needsUpdate = true;
     }
 
     // Check query fields
     Object.keys(query).forEach((key) => {
       const value = query[key];
-      if (value !== undefined && value !== null && value !== '') {
-        if (String(value) !== currentParams[key]) {
-          currentParams[key] = String(value);
+      if (value !== undefined && value !== null && value !== '' && (!Array.isArray(value) || value.length > 0)) {
+        const nextValues = Array.isArray(value) ? value.map(String) : [String(value)];
+        if (!hasSameValues(currentParams.getAll(key), nextValues)) {
+          currentParams.delete(key);
+          nextValues.forEach((nextValue) => currentParams.append(key, nextValue));
           needsUpdate = true;
         }
-      } else if (currentParams[key] !== undefined) {
+      } else if (currentParams.has(key)) {
         // Remove undefined/null/empty keys from URL
-        delete currentParams[key];
+        currentParams.delete(key);
         needsUpdate = true;
       }
     });
 
     // Check if URL has stale keys that are no longer in the store
-    Object.keys(currentParams).forEach((key) => {
+    Array.from(new Set(currentParams.keys())).forEach((key) => {
       if (key !== 'page' && key !== 'pageSize') {
         if (!(key in query)) {
-          delete currentParams[key];
+          currentParams.delete(key);
           needsUpdate = true;
         }
       }
