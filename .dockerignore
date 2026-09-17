@@ -1,16 +1,37 @@
+# Dependency and build output
 node_modules
 dist
 dist-ssr
-*.local
+coverage
+.vite
+
+# Version control and editor metadata
+.git
+.gitignore
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
+
+# Logs and local temporary files
+logs
+*.log
+*.tmp
+*.temp
+tmp
+_temp
+.cache
+temp_scripts
+*.local
+
+# Local environment files (keep the committed template)
+.env
+.env.*
+!.env.example
+
+# IDE and OS project files
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-*.log
-temp_scripts
-

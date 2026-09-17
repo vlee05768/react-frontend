@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
   // 載入環境變數 (會自動抓取 .env 和 .env.local 的設定)
   const env = loadEnv(mode, process.cwd(), '');
 
-  if (!env.VITE_DEV_API_TARGET) {
+  if (mode === 'development' && !env.VITE_DEV_API_TARGET) {
     throw new Error('❌ [Vite] 缺少 VITE_DEV_API_TARGET 環境變數！請在 .env 或 .env.local 中設定開發目標 API 網址 (例如: http://192.168.50.100:5160)。');
   }
 
