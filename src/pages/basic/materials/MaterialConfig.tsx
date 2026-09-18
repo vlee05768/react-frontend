@@ -11,6 +11,7 @@ import { BrandSelect } from "./components/BrandSelect";
 import { ModelSelect } from "./components/ModelSelect";
 import { getApiV1Material } from "@/api/generated/sdk.gen";
 import { Modal, Space, Tooltip, Button } from "antd";
+import { logger } from '@/utils/logger';
 
 export const materialFormOptions = [
   { label: "捲材 (R)", value: "R" },
@@ -98,8 +99,8 @@ const generateCode = (context: any, setValue: any) => {
         setValue("name", "");
       }
     })
-    .catch((err) => {
-      console.error("檢查廠牌型號型態衝突失敗:", err);
+    .catch(() => {
+      logger.error('material.brand-model.conflict-check.failed');
     });
 };
 

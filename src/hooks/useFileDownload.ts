@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { App } from 'antd';
 import { getApiErrorMessage } from '@/utils/apiError';
+import { logger } from '@/utils/logger';
 
 export interface UseFileDownloadOptions {
   apiFunction: () => Promise<any>;
@@ -55,7 +56,7 @@ export function useFileDownload() {
         message.success(successMessage || '檔案下載完成');
       }
     } catch (error) {
-      console.error('File download failed:', error);
+      logger.error('file.download.failed');
       modal.error({
         title: '檔案下載失敗',
         content: getApiErrorMessage(error),

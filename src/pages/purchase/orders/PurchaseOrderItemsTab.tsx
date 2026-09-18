@@ -13,6 +13,7 @@ import { DynamicForm } from '@/components/Form/DynamicForm';
 import type { PurchaseOrderDto, PurchaseOrderItemDto } from '@/api/generated/types.gen';
 import { getItemColumns, getItemFormConfig } from './PurchaseOrderConfig';
 import { getApiErrorMessage } from '@/utils/apiError';
+import { logger } from '@/utils/logger';
 
 const { Text } = Typography;
 
@@ -55,7 +56,7 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
           setEditingItem(record);
         }
       } catch (err) {
-        console.error("Failed to fetch material details:", err);
+        logger.error('purchase-order.material-fetch.failed');
         setEditingItem(record);
       }
     } else {

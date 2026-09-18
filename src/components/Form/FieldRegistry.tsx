@@ -2,6 +2,7 @@ import { Input, Select, InputNumber, DatePicker, Switch, Checkbox } from 'antd';
 import { DictSelect } from './DictSelect';
 import { AsyncSelect } from './AsyncSelect';
 import { AutoCompleteField } from './AutoComplete';
+import { logger } from '@/utils/logger';
 
 export type FieldComponentType = 
   | 'Input' 
@@ -24,7 +25,7 @@ export const FIELD_REGISTRY: Record<string, FieldRenderer> = {
       try {
         e.target.select();
       } catch (err) {
-        console.error(err);
+        logger.error('form.field.focus.failed');
       }
       props.onFocus?.(e);
     };
@@ -57,7 +58,7 @@ export const FIELD_REGISTRY: Record<string, FieldRenderer> = {
       try {
         e.target.select();
       } catch (err) {
-        console.error(err);
+        logger.error('form.field.focus.failed');
       }
       onFocus?.(e);
     };

@@ -17,6 +17,7 @@ import {
 } from '@/api/generated/sdk.gen';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { apiClient } from '@/api/client';
+import { logger } from '@/utils/logger';
 
 const { Title, Text } = Typography;
 
@@ -55,7 +56,7 @@ const SystemMaintenance: React.FC = () => {
         });
       }
     } catch (error: any) {
-      console.error('Import opening inventory error:', error);
+      logger.error('system.maintenance.operation.failed');
       const resData = error?.response?.data;
       const errorMsg = resData?.message || '匯入開帳資料失敗，請檢查格式。';
       const rowErrors: string[] = resData?.errors || [];
@@ -108,7 +109,7 @@ const SystemMaintenance: React.FC = () => {
       setMaterialCode('');
     },
     onError: (error: any) => {
-      console.error('Rebuild material inventory error:', error);
+      logger.error('system.maintenance.operation.failed');
       const errorMsg = error?.response?.data?.message || '校正失敗，請稍後再試或聯繫系統管理員。';
       Modal.error({
         centered: true,
@@ -211,7 +212,7 @@ const SystemMaintenance: React.FC = () => {
       }
     },
     onError: (error: any) => {
-      console.error('Calculate inventory error:', error);
+      logger.error('system.maintenance.operation.failed');
       const errorMsg = error?.response?.data?.message || '重算庫存失敗，請稍後再試或聯繫系統管理員。';
       Modal.error({
         centered: true,
@@ -258,7 +259,7 @@ const SystemMaintenance: React.FC = () => {
       });
     },
     onError: (error: any) => {
-      console.error('Sync sequence rules error:', error);
+      logger.error('system.maintenance.operation.failed');
       const errorMsg = error?.response?.data?.message || '校正失敗，請稍後再試或聯繫系統管理員。';
       Modal.error({
         centered: true,

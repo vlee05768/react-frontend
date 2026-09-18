@@ -23,12 +23,6 @@ export const DevBanner: React.FC = () => {
     }
     metaTag.content = apiTarget;
 
-    // 2. 在 Console 印出醒目的提示
-    console.log(
-      '%c 🚧 DEV MODE %c 正在連接 API: ' + apiTarget + ' ',
-      'background: #f97316; color: #fff; padding: 2px 4px; border-radius: 4px 0 0 4px;',
-      'background: #333; color: #fff; padding: 2px 4px; border-radius: 0 4px 4px 0;'
-    );
 
     // 3. 監聽 document.title 的變化 (MutationObserver)
     // 因為各個頁面可能也會去改 document.title，我們攔截並加上 [DEV] 前綴

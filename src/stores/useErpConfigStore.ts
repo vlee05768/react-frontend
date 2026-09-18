@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { apiClient } from '../api/client';
+import { logger } from '@/utils/logger';
 
 export interface ErpIdentity {
   companyName: string;
@@ -90,7 +91,7 @@ export const useErpConfigStore = create<ErpConfigState>((set, get) => ({
         set({ erpSettings: defaultSettings, isLoading: false });
       }
     } catch (error) {
-      console.error('Failed to fetch ERP settings:', error);
+      logger.error('erp-config.fetch.failed');
       set({ erpSettings: defaultSettings, isLoading: false });
     }
   },

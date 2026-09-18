@@ -4,6 +4,7 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { debounce } from 'lodash-es';
 import { AUTO_COMPLETE_REGISTRY } from '@/config/autoCompleteRegistry';
 import type { AutoCompleteKey } from '@/config/autoCompleteRegistry';
+import { logger } from '@/utils/logger';
 
 export interface AutoCompleteProps {
   configKey: AutoCompleteKey;
@@ -29,7 +30,7 @@ export const AutoCompleteField: React.FC<AutoCompleteProps> = ({
 }) => {
   const config = AUTO_COMPLETE_REGISTRY[configKey];
   if (!config) {
-    console.warn(`[AutoComplete] 找不到對應的 configKey: ${configKey}`);
+    logger.warn('form.autocomplete.config.unknown');
     return <AutoComplete value={value} disabled={disabled} placeholder={placeholder} {...props} />;
   }
 
@@ -91,7 +92,7 @@ export const AutoCompleteField: React.FC<AutoCompleteProps> = ({
     try {
       e.target.select();
     } catch (err) {
-      console.error(err);
+      logger.error('form.autocomplete.focus.failed');
     }
     if (onFocus) onFocus(e);
   };

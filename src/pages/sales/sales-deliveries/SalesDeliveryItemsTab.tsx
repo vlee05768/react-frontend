@@ -15,6 +15,7 @@ import { MaterialLogisticsCore } from '@/utils/materialLogistics';
 import UndeliveredOrderItemPicker from './components/UndeliveredOrderItemPicker';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { getItemColumns, getItemFormConfig, getDeliveryItemWidth } from './SalesDeliveryConfig';
+import { logger } from '@/utils/logger';
 
 const { Text } = Typography;
 
@@ -242,7 +243,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
       const stock = res.data?.data?.[0]?.quantity ?? 0;
       setScrapStock(stock);
     } catch (e: any) {
-      console.error(e);
+      logger.error('sales-delivery.scrap-warehouse.fetch.failed');
       message.error('取得報廢倉庫存失敗：' + getApiErrorMessage(e));
       setScrapStock(0);
     } finally {
@@ -434,7 +435,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
         const stock = res.data?.data?.[0]?.quantity ?? 0;
         setScrapStock(stock + (record.quantity || 0));
       } catch (e: any) {
-        console.error(e);
+        logger.error('sales-delivery.scrap-warehouse.fetch.failed');
         message.error('取得報廢倉庫存失敗：' + getApiErrorMessage(e));
         setScrapStock(record.quantity || 0);
       } finally {
@@ -471,7 +472,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
             rolls = parsed.filter((r: any) => r?.rollNo || r?.RollNo);
           }
         } catch (e) {
-          console.warn('解析 extraData 失敗:', e);
+          logger.warn('sales-delivery.extra-data.parse.failed');
         }
       }
       setSelectedRolls(rolls);

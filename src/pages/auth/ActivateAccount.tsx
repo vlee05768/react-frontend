@@ -4,6 +4,7 @@ import { LockOutlined, CheckCircleFilled, CloseCircleFilled } from '@ant-design/
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ROUTES } from '@/constants/routes';
 import { postApiV1AuthActivateAccount } from '@/api/generated/sdk.gen';
+import { logger } from '@/utils/logger';
 
 export default function ActivateAccount() {
   const navigate = useNavigate();
@@ -40,10 +41,6 @@ export default function ActivateAccount() {
       return;
     }
 
-    console.log('啟用帳號頁面初始化:', {
-      email,
-      tokenLength: token.length,
-    });
   }, [email, token]);
 
   const onFinish = async (values: any) => {
@@ -87,7 +84,7 @@ export default function ActivateAccount() {
       message.success('帳號啟用成功');
       setStep('success');
     } catch (error: any) {
-      console.error('啟用帳號發生錯誤:', error);
+      logger.error('auth.account-activation.failed');
       const errorData = error?.response?.data || error;
       Modal.error({
         centered: true,

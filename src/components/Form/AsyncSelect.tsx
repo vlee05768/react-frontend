@@ -5,6 +5,7 @@ import { debounce } from 'lodash-es';
 import { AUTO_COMPLETE_REGISTRY } from '@/config/autoCompleteRegistry';
 import type { AutoCompleteKey } from '@/config/autoCompleteRegistry';
 import type { SelectProps } from 'antd';
+import { logger } from '@/utils/logger';
 
 export interface AsyncSelectProps extends Omit<SelectProps<any>, 'options' | 'onSearch'> {
   configKey: AutoCompleteKey;
@@ -26,13 +27,13 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
   ...props 
 }) => {
   if (!configKey) {
-    console.error(`[AsyncSelect] 嚴重錯誤: 缺少 configKey！請檢查組態檔中 componentProps 內是否誤寫為 dictKey？`);
+    logger.error('form.async-select.config.missing');
     return <Select {...(props as any)} disabled placeholder="設定錯誤(缺少configKey)" />;
   }
 
   const config = AUTO_COMPLETE_REGISTRY[configKey];
   if (!config) {
-    console.warn(`[AsyncSelect] 找不到對應的 configKey: ${configKey}`);
+    logger.warn('form.async-select.config.unknown');
     return <Select value={value} onChange={onChange} {...props} />;
   }
 

@@ -37,6 +37,7 @@ import { getApiErrorMessage } from "@/utils/apiError";
 import dayjs from "dayjs";
 import { DynamicForm } from "@/components/Form/DynamicForm";
 import { returnHeaderFormConfig, type WorkOrderFormValues } from "./WorkOrderConfig";
+import { logger } from '@/utils/logger';
 
 interface WorkOrderReturnTabProps {
   masterData: WorkOrderFormValues;
@@ -202,7 +203,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
               });
             }
           } catch (e) {
-            console.error("解析 LPN 詳情 JSON 失敗：", e);
+            logger.error('work-order.return.lpn-parse.failed');
           }
         }
       });

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { PermissionNode } from '@/api/generated/types.gen';
 import { getApiV1AuthProfile, getApiV1AuthMyPermissions } from '@/api/generated/sdk.gen';
+import { logger } from '@/utils/logger';
 
 interface UserProfile {
   id?: number;
@@ -41,7 +42,7 @@ export const useAuthStore = create<AuthState>()(
             permissionTree: treeRes.data?.data as PermissionNode[] 
           });
         } catch (error) {
-          console.error('Failed to fetch user profile:', error);
+          logger.error('auth.profile-fetch.failed');
           set({ token: null, user: null, permissionTree: null }); // Force logout if profile fetch fails
         }
       },

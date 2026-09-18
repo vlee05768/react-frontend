@@ -32,6 +32,7 @@ import ProductBom from '../products/Tabs/ProductBom';
 import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 import { ActionBar } from '@/components/common/ActionBar';
+import { logger } from '@/utils/logger';
 
 export default function MaterialList() {
   const { modal } = App.useApp();
@@ -258,7 +259,7 @@ export default function MaterialList() {
           return; // 阻擋儲存
         }
       } catch (err) {
-        console.error("檢查廠牌型號衝突失敗:", err);
+        logger.error('material.brand-model.conflict-check.failed');
       }
 
       createMutation.mutate(values);

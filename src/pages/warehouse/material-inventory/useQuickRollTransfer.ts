@@ -3,6 +3,7 @@ import { App } from 'antd';
 import { apiClient } from '@/api/client';
 import { useDeviceDetect } from '@/hooks/useDeviceDetect';
 import { useErpConfigStore } from '@/stores/useErpConfigStore';
+import { logger } from '@/utils/logger';
 
 // 轉倉批次歷史紀錄型別
 export interface TransferItemLog {
@@ -77,7 +78,7 @@ export const useQuickRollTransfer = () => {
           setStorages(res.data.data);
         }
       } catch (err) {
-        console.error('Failed to fetch storages:', err);
+        logger.error('material-inventory.storage-fetch.failed');
       }
     };
     fetchStorages();
@@ -295,7 +296,7 @@ export const useQuickRollTransfer = () => {
         setActiveTransfer((prev: any) => prev ? { ...prev, notes: val.trim() } : null);
       }
     } catch (err: any) {
-      console.error('儲存表頭備註失敗:', err);
+      logger.error('material-inventory.storage-fetch.failed');
     } finally {
       setSavingNotes(false);
     }

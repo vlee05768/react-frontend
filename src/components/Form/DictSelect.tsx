@@ -5,6 +5,7 @@ import { SyncOutlined } from '@ant-design/icons';
 import { useDictionary } from '@/hooks/useDictionary';
 import { DICTIONARY_REGISTRY } from '@/config/dictionaryRegistry';
 import type { DictKey } from '@/config/dictionaryRegistry';
+import { logger } from '@/utils/logger';
 
 // 移除 options 與 fieldNames，因為會由內部自動載入
 export interface DictSelectProps extends Omit<SelectProps, 'options' | 'loading' | 'fieldNames'> {
@@ -20,7 +21,7 @@ export const DictSelect: React.FC<DictSelectProps> = ({
   ...props 
 }) => {
   if (!dictKey) {
-    console.error(`[DictSelect] 嚴重錯誤: 缺少 dictKey！請檢查組態檔中 componentProps 內是否誤寫為 configKey？`);
+    logger.error('form.dict-select.key.missing');
     return <Select {...props} disabled placeholder="設定錯誤(缺少dictKey)" />;
   }
 
@@ -28,7 +29,7 @@ export const DictSelect: React.FC<DictSelectProps> = ({
   
   const registryConfig = DICTIONARY_REGISTRY[dictKey];
   if (!registryConfig) {
-      console.warn(`[DictSelect] 找不到字典鍵值: ${dictKey}`);
+      logger.warn('form.dict-select.key.unknown');
   }
 
   const { fieldNames } = registryConfig || { fieldNames: { label: 'label', value: 'value' } };

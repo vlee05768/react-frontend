@@ -5,6 +5,7 @@ import {
   getApiV1DocumentSubscriptionMy,
 } from '@/api/generated/sdk.gen';
 import { antdGlobal } from '@/utils/antdGlobal';
+import { logger } from '@/utils/logger';
 
 interface DocumentSubscriptionStore {
   subscriptions: DocumentSubscriptionDto[];
@@ -36,10 +37,10 @@ export const useDocumentSubscriptionStore = create<DocumentSubscriptionStore>((s
       if (response.data?.success) {
         set({ subscriptions: response.data.data || [], hasInitialized: true });
       } else {
-        console.error('Failed to fetch subscriptions:', response.data?.message);
+        logger.error('document-subscription.request.failed');
       }
     } catch (error) {
-      console.error('Failed to fetch subscriptions:', error);
+      logger.error('document-subscription.request.failed');
     } finally {
       set({ isLoading: false });
     }
@@ -91,7 +92,7 @@ export const useDocumentSubscriptionStore = create<DocumentSubscriptionStore>((s
         return false;
       }
     } catch (error: any) {
-      console.error('Failed to toggle subscription:', error);
+      logger.error('document-subscription.request.failed');
       antdGlobal.message?.error(`操作失敗: ${error.message || '連線錯誤'}`);
       return false;
     } finally {

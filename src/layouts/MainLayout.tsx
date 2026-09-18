@@ -25,6 +25,7 @@ import { useThemeStore } from '@/stores/useThemeStore';
 import { useErpConfigStore } from '@/stores/useErpConfigStore';
 import { ROUTES } from '@/constants/routes';
 import { useSystemVersion } from '@/hooks/useSystemVersion';
+import { logger } from '@/utils/logger';
 
 const { Header, Sider, Content } = Layout;
 
@@ -170,7 +171,7 @@ export default function MainLayout() {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        console.log('Open Global Search Palette');
+        logger.debug('keyboard.global-search.open');
       }
     };
     window.addEventListener('keydown', handleGlobalKeyDown);

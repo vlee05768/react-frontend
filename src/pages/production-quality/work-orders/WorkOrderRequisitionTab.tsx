@@ -38,6 +38,7 @@ import {
   requisitionItemFormConfig,
 } from "./WorkOrderConfig";
 import type { WorkOrderFormValues } from "./WorkOrderConfig";
+import { logger } from '@/utils/logger';
 
 interface WorkOrderRequisitionTabProps {
   masterData: WorkOrderFormValues;
@@ -579,7 +580,7 @@ export function WorkOrderRequisitionTab({
       const parsed = JSON.parse(activeRecord.extraDataJson);
       dbTotalMaterialCost = parsed.totalMaterialCost;
     } catch (e) {
-      console.error(e);
+      logger.error('work-order.requisition.parse.failed');
     }
   }
 

@@ -16,6 +16,7 @@ import { client } from "@/api/generated/client.gen";
 import { useThemeStore } from "@/stores/useThemeStore";
 import { AutoCompleteField } from "@/components/Form/AutoComplete";
 import { BusinessPartnerRoleTypes } from "@/constants";
+import { logger } from '@/utils/logger';
 
 const { Text } = Typography;
 
@@ -212,7 +213,7 @@ export default function ProductPricingList() {
           setMarkupRate(mRate);
           setGrossMarginRate(gRate);
         } catch (e) {
-          console.error("Error parsing stored pricing parameters", e);
+          logger.error('pricing.parameters.parse.failed');
         }
       } else {
         // Reset to defaults

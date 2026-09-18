@@ -8,6 +8,7 @@ import { buildTableColumns } from '@/utils/tableUtils';
 import type { CustomerMaterialReceiptDto, CustomerMaterialReceiptItemDto, CreateCustomerMaterialReceiptItemDto, UpdateCustomerMaterialReceiptItemDto } from '@/api/generated/types.gen';
 import { postApiV1CustomerMaterialReceiptByCodeItems, putApiV1CustomerMaterialReceiptByCodeItemsByLineNumber, deleteApiV1CustomerMaterialReceiptByCodeItemsByLineNumber } from '@/api/generated';
 import CustomerMaterialPickerModal from './CustomerMaterialPickerModal';
+import { logger } from '@/utils/logger';
 
 interface CustomerMaterialReceiptItemsTabProps {
   receiptData: CustomerMaterialReceiptDto;
@@ -122,7 +123,7 @@ export default function CustomerMaterialReceiptItemsTab({
         message.success(`成功帶入 ${successCount} 筆入庫明細項目！`);
       }
     } catch (err) {
-      console.error('Batch import failed:', err);
+      logger.error('customer-material.batch-import.failed');
     }
   };
 

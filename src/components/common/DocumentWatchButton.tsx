@@ -3,6 +3,7 @@ import { Button, Tooltip, theme } from 'antd';
 import { StarOutlined, StarFilled } from '@ant-design/icons';
 import { useDocumentSubscriptionStore } from '@/stores/useDocumentSubscriptionStore';
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
+import { logger } from '@/utils/logger';
 
 interface DocumentWatchButtonProps {
   documentType: string;
@@ -65,7 +66,7 @@ export const DocumentWatchButton: React.FC<DocumentWatchButtonProps> = ({
     try {
       await toggleSubscription(documentType, documentKey || '');
     } catch (err) {
-      console.error('Error toggling watch status:', err);
+      logger.error('document.watch.toggle.failed');
     } finally {
       setToggling(false);
     }

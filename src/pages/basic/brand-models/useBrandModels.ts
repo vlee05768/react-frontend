@@ -7,6 +7,7 @@ import {
   putApiV1GeneralTypesById, 
   postApiV1GeneralTypes 
 } from '@/api/generated';
+import { logger } from '@/utils/logger';
 
 export function useBrandModels() {
   const [brands, setBrands] = useState<any[]>([]);
@@ -188,7 +189,7 @@ export function useBrandModels() {
         }
       }
     } catch (error: any) {
-      console.error(error);
+      logger.error('brand-models.request.failed');
     }
   };
 
@@ -274,7 +275,7 @@ export function useBrandModels() {
         }
       }
     } catch (error: any) {
-      console.error(error);
+      logger.error('brand-models.request.failed');
     }
   };
 
