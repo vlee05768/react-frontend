@@ -3,7 +3,8 @@ import { useAuthStore } from '../stores/useAuthStore';
 import { antdGlobal } from '../utils/antdGlobal';
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5160',
+  // Production uses the same-origin reverse proxy; development keeps VITE_API_BASE_URL configurable.
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/',
   timeout: 10000,
 });
 

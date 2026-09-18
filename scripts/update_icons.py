@@ -1,7 +1,7 @@
 import os
 import re
 
-directory = '/home/hermes/git_projects/erp-frontend-react/src/pages'
+directory = '/home/hermes/git_projects/erp-frontend/src/pages'
 # 我們針對包在 Button 的 icon 做替換，所以先找包含這些關鍵字的檔
 icon_pattern = re.compile(r'<(EditOutlined|DeleteOutlined|EyeOutlined|PlusOutlined|LockOutlined|UnlockOutlined|SettingOutlined)\s*/>')
 

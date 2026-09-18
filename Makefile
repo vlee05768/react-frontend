@@ -1,9 +1,9 @@
 # React ERP Frontend Makefile
 
 .DEFAULT_GOAL := help
-IMAGE_NAME ?= erp-frontend-react
+IMAGE_NAME ?= erp-frontend
 IMAGE_TAG ?= latest
-CONTAINER_NAME ?= erp-frontend-react-container
+CONTAINER_NAME ?= erp-frontend-container
 DOCKER_PLATFORM ?= linux/amd64
 
 .PHONY: help

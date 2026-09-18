@@ -1,7 +1,7 @@
 import os
 import re
 
-filepath = '/home/hermes/git_projects/erp-frontend-react/src/pages/warehouse/InventoryAdjustment/InventoryAdjustmentList.tsx'
+filepath = '/home/hermes/git_projects/erp-frontend/src/pages/warehouse/InventoryAdjustment/InventoryAdjustmentList.tsx'
 with open(filepath, 'r', encoding='utf-8') as f:
     content = f.read()
 

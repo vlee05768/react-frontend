@@ -20,7 +20,7 @@
 ## 2. 系統架構變更
 
 ### 2.1 新增 `AutoComplete` 表單元件
-在 `git_projects/erp-frontend-react/src/components/Form/` 新增 `AutoComplete.tsx`。
+在 `git_projects/erp-frontend/src/components/Form/` 新增 `AutoComplete.tsx`。
 * 接收 props：
   * `configKey`: 對應到 `AUTO_COMPLETE_REGISTRY`（如 `"MOLD"` 或 `"MATERIAL"`）。
   * `value`: RHF 管理的當前字串值。
@@ -34,7 +34,7 @@
   * 下拉選單點選 (onSelect) 時，觸發 `onChange(value, option)`，其中 `option` 必須攜帶 `originalData`，以相容既有的商品連動邏輯。
 
 ### 2.2 註冊至 `FIELD_REGISTRY`
-修改 `git_projects/erp-frontend-react/src/components/Form/FieldRegistry.tsx`：
+修改 `git_projects/erp-frontend/src/components/Form/FieldRegistry.tsx`：
 * 在 `FieldComponentType` 類型中新增 `'AutoComplete'`。
 * 在 `FIELD_REGISTRY` 中註冊 `AutoComplete` 渲染映射：
   ```tsx
@@ -42,7 +42,7 @@
   ```
 
 ### 2.3 修改採購明細配置
-修改 `git_projects/erp-frontend-react/src/pages/purchase/orders/PurchaseOrderConfig.tsx`：
+修改 `git_projects/erp-frontend/src/pages/purchase/orders/PurchaseOrderConfig.tsx`：
 * 將明細表單中的 `goodsCode` 欄位配置變更：
   * 將 `componentType` 由 `"AsyncSelect"` 改為 `"AutoComplete"`。
   * 保持原有的 `componentProps` 與 `onChange` 連動邏輯不變，因為新實作的 `AutoComplete` 將在 option 中完整提供 `originalData`，因此不破壞既有 API contract。
