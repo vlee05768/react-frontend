@@ -26,10 +26,13 @@ temp_scripts/
 .pnpm-store/
 
 # 本地環境變數設定檔 (不要進版控)
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env
+.env.*
+!.env.example
+
+# Python 快取
+__pycache__/
+*.py[cod]
 
 # Graphify
 graphify-out/
@@ -40,4 +43,3 @@ graphify-temp/
 .hermes/
 .scratch/
 tmp/
-
