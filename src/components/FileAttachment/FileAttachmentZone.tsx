@@ -176,7 +176,7 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
       // Cross-origin presigned URLs may be rendered inline even when the
       // anchor has a download attribute. Fetching a Blob forces a download
       // and avoids opening the file in the browser viewer.
-      const response = await fetch(attachment.presignedUrl);
+      const response = await fetch(attachment.presignedUrl, { cache: 'no-store' });
       if (!response.ok) throw new Error(`download failed: ${response.status}`);
       const blobUrl = URL.createObjectURL(await response.blob());
       const anchor = document.createElement('a');
