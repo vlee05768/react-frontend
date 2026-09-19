@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Upload, Button, Row, Col, Empty, Modal, App, Tooltip, Spin, Card, theme } from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import { Upload, Button, Row, Col, Empty, Modal, App, Tooltip, Spin, Card, Progress, theme } from 'antd';
 import dayjs from 'dayjs';
 import { 
   UploadOutlined, 
@@ -13,10 +13,14 @@ import {
 import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
 import { 
   getApiV1FileAttachment, 
-  postApiV1FileAttachmentBatchUpload,
   deleteApiV1FileAttachmentBatchDelete 
 } from '@/api/generated/sdk.gen';
 import type { FileAttachmentDto } from '@/api/generated/types.gen';
+import {
+  FileAttachmentUploadError,
+  uploadAttachment,
+  type UploadAttachmentOptions,
+} from './fileAttachmentUpload';
 
 const { Dragger } = Upload;
 
@@ -38,6 +42,7 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const uploadControllers = useRef(new Map<string, AbortController>());
 
   const fetchAttachments = async () => {
     if (!referenceId) return;
@@ -67,31 +72,60 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
     fetchAttachments();
   }, [referenceType, referenceId]);
 
-  const handleUploadSubmit = async () => {
-    const files = fileList.map(f => (f.originFileObj || f) as Blob).filter(Boolean);
-    if (files.length === 0) return;
+  const updateUploadFile = (uid: string, patch: Partial<UploadFile>) => {
+    setFileList(prev => prev.map(file => file.uid === uid ? { ...file, ...patch } : file));
+  };
 
-    setUploading(true);
+  const uploadOne = async (uploadFile: UploadFile) => {
+    const file = uploadFile.originFileObj;
+    if (!file) return false;
+    const controller = new AbortController();
+    uploadControllers.current.set(uploadFile.uid, controller);
+    updateUploadFile(uploadFile.uid, { status: 'uploading', percent: 0, error: undefined });
+    const options: UploadAttachmentOptions = {
+      referenceType,
+      referenceId,
+      signal: controller.signal,
+      maxAttempts: 2,
+      onProgress: (percent) => updateUploadFile(uploadFile.uid, { percent }),
+    };
     try {
-      await postApiV1FileAttachmentBatchUpload({
-        body: {
-          referenceType,
-          referenceId,
-          files,
-        },
-        headers: {
-          'X-Loading-Message': '檔案上傳中...'
-        }
+      await uploadAttachment(file, options);
+      updateUploadFile(uploadFile.uid, { status: 'done', percent: 100 });
+      return true;
+    } catch (error) {
+      if (error instanceof FileAttachmentUploadError && error.kind === 'cancelled') {
+        updateUploadFile(uploadFile.uid, { status: undefined, percent: 0 });
+        return false;
+      }
+      updateUploadFile(uploadFile.uid, {
+        status: 'error',
+        error: error instanceof FileAttachmentUploadError
+          ? ({ network: '網路錯誤', http: '伺服器錯誤', expired: '上傳工作階段已過期', cancelled: '已取消' }[error.kind] ?? '上傳失敗')
+          : '上傳失敗',
       });
-      message.success('上傳成功');
+      return false;
+    } finally {
+      uploadControllers.current.delete(uploadFile.uid);
+    }
+  };
+
+  const handleUploadSubmit = async () => {
+    if (fileList.length === 0) return;
+    setUploading(true);
+    const results = await Promise.all(fileList.map(uploadOne));
+    const successful = results.some(Boolean);
+    const failed = results.some(result => !result);
+    if (successful) {
+      message.success(failed ? '部分檔案上傳成功' : '上傳成功');
+      await fetchAttachments();
+    }
+    if (failed && !successful) message.error('上傳失敗，請檢查檔案後重試');
+    if (!failed) {
       setUploadModalVisible(false);
       setFileList([]);
-      fetchAttachments();
-    } catch (error) {
-      message.error('上傳失敗');
-    } finally {
-      setUploading(false);
     }
+    setUploading(false);
   };
 
   const handleDelete = (attachment: FileAttachmentDto) => {
@@ -224,6 +258,8 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
     fileList,
     listType: "picture",
     onRemove: (file) => {
+      uploadControllers.current.get(file.uid)?.abort();
+      uploadControllers.current.delete(file.uid);
       const index = fileList.indexOf(file);
       const newFileList = fileList.slice();
       newFileList.splice(index, 1);
@@ -261,9 +297,19 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
                   <img src={`/file-icons/${iconName}.jpg`} alt={ext} className="w-full h-full" style={{objectFit: 'contain'}} />
                 </div>
                 <span className="ant-upload-list-item-name" title={file.name}>{file.name}</span>
+                {file.status === 'uploading' && <Progress percent={file.percent ?? 0} size="small" />}
+                {file.status === 'error' && <span style={{ color: '#ff4d4f' }}>{String(file.error ?? '上傳失敗')}，可重試</span>}
               </span>
             </div>
             <span className="ant-upload-list-item-actions">
+              {file.status === 'uploading' && (
+                <Button type="text" onClick={() => uploadControllers.current.get(file.uid)?.abort()}>取消</Button>
+              )}
+              {file.status === 'error' && (
+                <Button type="text" onClick={() => void (async () => {
+                  if (await uploadOne(file)) await fetchAttachments();
+                })()}>重試</Button>
+              )}
               <Button type="text" danger icon={<DeleteOutlined />} onClick={() => uploadProps.onRemove?.(file)} />
             </span>
           </div>
@@ -354,6 +400,8 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
         open={uploadModalVisible}
         onOk={handleUploadSubmit}
         onCancel={() => {
+          uploadControllers.current.forEach(controller => controller.abort());
+          uploadControllers.current.clear();
           setUploadModalVisible(false);
           setFileList([]);
         }}
