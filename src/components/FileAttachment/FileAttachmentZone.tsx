@@ -16,6 +16,7 @@ import {
   deleteApiV1FileAttachmentBatchDelete 
 } from '@/api/generated/sdk.gen';
 import type { FileAttachmentDto } from '@/api/generated/types.gen';
+import { useAuthStore } from '@/stores/useAuthStore';
 import {
   FileAttachmentUploadError,
   uploadAttachment,
@@ -25,16 +26,19 @@ import {
 const { Dragger } = Upload;
 
 export interface FileAttachmentZoneProps {
+  tenantId?: string;
   referenceType: string;
   referenceId: string;
   readonly?: boolean;
 }
 
 export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
+  tenantId = '1',
   referenceType,
   referenceId,
   readonly = false,
 }) => {
+  const userId = useAuthStore((state) => state.user?.id);
   const { token } = theme.useToken();
   const { message, modal } = App.useApp();
   const [attachments, setAttachments] = useState<FileAttachmentDto[]>([]);
@@ -79,10 +83,16 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
   const uploadOne = async (uploadFile: UploadFile) => {
     const file = uploadFile.originFileObj;
     if (!file) return false;
+    if (userId === undefined) {
+      updateUploadFile(uploadFile.uid, { status: 'error', error: '登入使用者資訊不存在' });
+      return false;
+    }
     const controller = new AbortController();
     uploadControllers.current.set(uploadFile.uid, controller);
     updateUploadFile(uploadFile.uid, { status: 'uploading', percent: 0, error: undefined });
     const options: UploadAttachmentOptions = {
+      tenantId,
+      userId,
       referenceType,
       referenceId,
       signal: controller.signal,

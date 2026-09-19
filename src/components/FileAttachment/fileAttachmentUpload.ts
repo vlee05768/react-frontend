@@ -56,6 +56,8 @@ export type UploadPutClient = {
 };
 
 export type UploadAttachmentOptions = {
+  tenantId: string;
+  userId: number;
   referenceType: string;
   referenceId: string;
   checksum?: UploadChecksum;
@@ -66,7 +68,9 @@ export type UploadAttachmentOptions = {
   onProgress?: (percent: number) => void;
 };
 
-const uploadSessionPath = '/api/v1/file-attachments/upload-sessions';
+function uploadSessionPath(tenantId: string, userId: number): string {
+  return `/api/v1/tenants/${encodeURIComponent(tenantId)}/users/${encodeURIComponent(String(userId))}/file-attachments/upload-sessions`;
+}
 
 function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === 'AbortError';
@@ -97,12 +101,13 @@ function authHeaders(): HeadersInit {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-function createDefaultHttpClient(): UploadHttpClient {
+function createDefaultHttpClient(tenantId: string, userId: number): UploadHttpClient {
+  const sessionPath = uploadSessionPath(tenantId, userId);
   return {
     async createSession(request, signal) {
       let response: Response;
       try {
-        response = await fetch(uploadSessionPath, {
+        response = await fetch(sessionPath, {
           method: 'POST',
           headers: { ...authHeaders(), 'Content-Type': 'application/json' },
           body: JSON.stringify(request),
@@ -122,7 +127,7 @@ function createDefaultHttpClient(): UploadHttpClient {
     async completeSession(sessionId, body, signal) {
       let response: Response;
       try {
-        response = await fetch(`${uploadSessionPath}/${encodeURIComponent(sessionId)}/complete`, {
+        response = await fetch(`${sessionPath}/${encodeURIComponent(sessionId)}/complete`, {
           method: 'POST',
           headers: { ...authHeaders(), 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
@@ -180,7 +185,7 @@ function canRetry(error: unknown, expiresAt: string | undefined): boolean {
 }
 
 export async function uploadAttachment(file: Blob, options: UploadAttachmentOptions): Promise<UploadSession> {
-  const http = options.http ?? createDefaultHttpClient();
+  const http = options.http ?? createDefaultHttpClient(options.tenantId, options.userId);
   const put = options.put ?? createDefaultPutClient();
   const maxAttempts = Math.max(1, options.maxAttempts ?? 1);
   let lastExpiresAt: string | undefined;

@@ -35,6 +35,25 @@ function createPutClient(overrides: Partial<UploadPutClient> = {}): UploadPutCli
 }
 
 describe('uploadAttachment', () => {
+  it('uses the tenant and authenticated user route parameters for session APIs', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ data: session }), { status: 201 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ data: { status: 'completed' } }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await uploadAttachment(new File(['contents'], 'a.txt', { type: 'text/plain' }), {
+      tenantId: 'tenant-1',
+      userId: 7,
+      referenceType: 'Material',
+      referenceId: 'M-1',
+      put: createPutClient(),
+    });
+
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/v1/tenants/tenant-1/users/7/file-attachments/upload-sessions');
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/v1/tenants/tenant-1/users/7/file-attachments/upload-sessions/session-1/complete');
+    vi.unstubAllGlobals();
+  });
+
   it('applies signed headers verbatim and calls create, PUT, complete in order', async () => {
     const order: string[] = [];
     const http = createHttpClient({
@@ -57,6 +76,8 @@ describe('uploadAttachment', () => {
     });
 
     await uploadAttachment(new File(['contents'], 'a.txt', { type: 'text/plain' }), {
+      tenantId: '1',
+      userId: 7,
       referenceType: 'Material',
       referenceId: 'M-1',
       http,
@@ -75,6 +96,8 @@ describe('uploadAttachment', () => {
     });
 
     await expect(uploadAttachment(new File(['contents'], 'a.txt'), {
+      tenantId: '1',
+      userId: 7,
       referenceType: 'Material',
       referenceId: 'M-1',
       http,
@@ -89,6 +112,8 @@ describe('uploadAttachment', () => {
     const put = createPutClient();
 
     await expect(uploadAttachment(new File(['contents'], 'a.txt'), {
+      tenantId: '1',
+      userId: 7,
       referenceType: 'Material',
       referenceId: 'M-1',
       http,
@@ -104,6 +129,8 @@ describe('uploadAttachment', () => {
     const put = createPutClient({ put: vi.fn().mockResolvedValue('W/"raw-etag"') });
 
     await uploadAttachment(new File(['contents'], 'a.txt'), {
+      tenantId: '1',
+      userId: 7,
       referenceType: 'Product',
       referenceId: 'P-1',
       http,
@@ -122,6 +149,8 @@ describe('uploadAttachment', () => {
     });
 
     await expect(uploadAttachment(new File(['contents'], 'a.txt'), {
+      tenantId: '1',
+      userId: 7,
       referenceType: 'Product',
       referenceId: 'P-1',
       http,
