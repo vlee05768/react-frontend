@@ -22,6 +22,7 @@ import {
   uploadAttachment,
   type UploadAttachmentOptions,
 } from './fileAttachmentUpload';
+import { SINGLE_TENANT_ATTACHMENT_ID } from './fileAttachmentConstants';
 
 const { Dragger } = Upload;
 
@@ -33,7 +34,7 @@ export interface FileAttachmentZoneProps {
 }
 
 export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
-  tenantId = '1',
+  tenantId = SINGLE_TENANT_ATTACHMENT_ID,
   referenceType,
   referenceId,
   readonly = false,
@@ -165,16 +166,28 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
     });
   };
 
-  const handleDownload = (attachment: FileAttachmentDto) => {
-    if (attachment.presignedUrl) {
-      const a = document.createElement('a');
-      a.href = attachment.presignedUrl;
-      a.download = attachment.fileName || 'download';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } else {
+  const handleDownload = async (attachment: FileAttachmentDto) => {
+    if (!attachment.presignedUrl) {
       message.warning('無法取得檔案連結');
+      return;
+    }
+
+    try {
+      // Cross-origin presigned URLs may be rendered inline even when the
+      // anchor has a download attribute. Fetching a Blob forces a download
+      // and avoids opening the file in the browser viewer.
+      const response = await fetch(attachment.presignedUrl);
+      if (!response.ok) throw new Error(`download failed: ${response.status}`);
+      const blobUrl = URL.createObjectURL(await response.blob());
+      const anchor = document.createElement('a');
+      anchor.href = blobUrl;
+      anchor.download = attachment.fileName || 'download';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch {
+      message.error('檔案下載失敗');
     }
   };
 

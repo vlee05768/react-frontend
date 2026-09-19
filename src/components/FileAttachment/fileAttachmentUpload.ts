@@ -8,6 +8,7 @@ export type UploadSession = {
   uploadUrl: string;
   signedHeaders: Record<string, string>;
   expiresAt: string;
+  /** Object key assigned by the backend; the client must not derive it. */
   objectKey: string;
   checksum?: UploadChecksum | null;
 };
@@ -57,6 +58,7 @@ export type UploadPutClient = {
 
 export type UploadAttachmentOptions = {
   tenantId: string;
+  /** Kept for the existing JWT-compatible API route; it is not part of objectKey. */
   userId: number;
   referenceType: string;
   referenceId: string;
