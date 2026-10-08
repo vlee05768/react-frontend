@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { App, Button, Card, Empty, message, Space, Spin, Switch, Table, Tag, theme } from 'antd';
+import { App, Button, Card, Empty, Space, Spin, Table, Tag, theme } from 'antd';
 import { DeleteOutlined, EditOutlined, PlusOutlined, SaveOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
+import { useAuthStore } from '@/stores/useAuthStore';
 import BomItemModal from './BomItemModal';
+import { canUpdateBom as hasBomUpdatePermission } from './bomPermissions';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { bomHeaderFormConfig, bomItemTableColumns } from '../ProductConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
@@ -24,8 +26,8 @@ interface Props {
 }
 
 const toCreatePayload = (values: Record<string, unknown>, outputType: BomOutputType, outputCode: string) => ({
-  outputType: (values.outputType as BomOutputType) || outputType || 'P',
-  outputCode: (values.outputCode as string) || outputCode,
+  outputType,
+  outputCode,
   defaultMachineType: values.defaultMachineType as string | undefined,
   defaultToolingRangeMm: values.defaultToolingRangeMm as number | undefined,
   defaultPunchHolesCount: values.defaultPunchHolesCount as number | undefined,
@@ -34,6 +36,7 @@ const toCreatePayload = (values: Record<string, unknown>, outputType: BomOutputT
 });
 
 const toUpdatePayload = (values: Partial<BomContract>): UpdateBomPayload => ({
+  isActive: values.isActive,
   defaultMachineType: values.defaultMachineType as string | undefined,
   defaultToolingRangeMm: values.defaultToolingRangeMm as number | undefined,
   defaultPunchHolesCount: values.defaultPunchHolesCount as number | undefined,
@@ -41,17 +44,16 @@ const toUpdatePayload = (values: Partial<BomContract>): UpdateBomPayload => ({
   notes: values.notes as string | undefined,
 });
 
-const toActivePayload = (isActive: boolean): UpdateBomPayload => ({ isActive });
-
 export default function ProductBom({ outputType, outputCode, isViewMode: isMasterViewMode, onEditingChange }: Props) {
-  const { modal } = App.useApp();
+  const canUpdateBom = useAuthStore(hasBomUpdatePermission);
+  const { modal, message } = App.useApp();
   const { token } = theme.useToken();
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const [itemModalOpen, setItemModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
-  const [isChangingActive, setIsChangingActive] = useState(false);
+
 
   useEffect(() => {
     onEditingChange?.(isHeaderEditing || isCreating || itemModalOpen);
@@ -72,10 +74,21 @@ export default function ProductBom({ outputType, outputCode, isViewMode: isMaste
   });
 
   const bomExists = Boolean(bomData);
-  const canEditContent = isMasterViewMode && bomData?.isActive === false;
-  const isFormViewMode = !(isHeaderEditing || isCreating);
+  const canEditContent = isMasterViewMode && bomExists;
+  const canUpdateContent = canEditContent && canUpdateBom;
+  const isFormViewMode = !(isCreating || (isHeaderEditing && canUpdateContent));
+
+  useEffect(() => {
+    if (!canUpdateContent) {
+      setIsHeaderEditing(false);
+      if (editingItem) setItemModalOpen(false);
+    }
+  }, [canUpdateContent, editingItem]);
 
   const handleSaveHeader = async (values: Record<string, unknown>) => {
+    if (!isMasterViewMode) return;
+    if (bomExists && (!isHeaderEditing || !canEditContent || !hasBomUpdatePermission(useAuthStore.getState()))) return;
+    if (!bomExists && !isCreating) return;
     try {
       if (!bomExists) {
         await createBom(toCreatePayload(values, outputType, outputCode));
@@ -89,20 +102,6 @@ export default function ProductBom({ outputType, outputCode, isViewMode: isMaste
       await refetch();
     } catch (error: any) {
       message.error(error?.response?.data?.message || '儲存失敗');
-    }
-  };
-
-  const handleToggleActive = async (isActive: boolean) => {
-    if (!bomData) return;
-    try {
-      setIsChangingActive(true);
-      await updateBom(outputType, outputCode, toActivePayload(isActive));
-      message.success(isActive ? 'BOM 已啟用' : 'BOM 已停用，可編輯表頭與明細');
-      await refetch();
-    } catch (error: any) {
-      message.error(error?.response?.data?.message || '更新啟用狀態失敗');
-    } finally {
-      setIsChangingActive(false);
     }
   };
 
@@ -123,7 +122,7 @@ export default function ProductBom({ outputType, outputCode, isViewMode: isMaste
     render: (_: unknown, record: any) => (
       <div style={{ display: 'inline-flex', alignItems: 'center', height: '24px', verticalAlign: 'middle' }}>
         <Space size={0}>
-        <Button type="text" size="small" className="text-blue-500 p-0" icon={<EditOutlined />} onClick={() => { setEditingItem(record); setItemModalOpen(true); }} disabled={!canEditContent} />
+        <Button type="text" size="small" className="text-blue-500 p-0" icon={<EditOutlined />} onClick={() => { if (!canEditContent || !hasBomUpdatePermission(useAuthStore.getState())) return; setEditingItem(record); setItemModalOpen(true); }} disabled={!canUpdateContent} />
         <Button
           type="text"
           size="small"
@@ -153,7 +152,9 @@ export default function ProductBom({ outputType, outputCode, isViewMode: isMaste
   };
 
   const columns = buildTableColumns(bomItemTableColumns(), actionColumn);
-  const headerFields = useMemo(() => bomHeaderFormConfig({ outputType }), [outputType]);
+  const headerFields = useMemo(() => bomHeaderFormConfig({ outputType }).map((field) =>
+    field.name === 'isActive' && bomExists ? { ...field, editable: 'always' as const } : field
+  ), [outputType, bomExists]);
   const headerDefaults: Record<string, unknown> = bomData
     ? { ...bomData, outputType: bomData.outputType || outputType || 'P' }
     : { outputType: outputType || 'P', outputCode, isActive: false };
@@ -176,14 +177,40 @@ export default function ProductBom({ outputType, outputCode, isViewMode: isMaste
           extra={
             !isFormViewMode ? (
               <Space>
-                <Button type="primary" size="small" htmlType="submit" form="bomHeaderForm" icon={<SaveOutlined />}>儲存</Button>
-                <Button size="small" onClick={() => isCreating ? setIsCreating(false) : setIsHeaderEditing(false)}>取消</Button>
+                <Button
+                  key="bom-header-save-btn"
+                  type="primary"
+                  size="small"
+                  icon={<SaveOutlined />}
+                  onClick={() => {
+                    (document.getElementById('bomHeaderForm') as HTMLFormElement)?.requestSubmit();
+                  }}
+                >
+                  儲存
+                </Button>
+                <Button
+                  key="bom-header-cancel-btn"
+                  size="small"
+                  onClick={() => (isCreating ? setIsCreating(false) : setIsHeaderEditing(false))}
+                >
+                  取消
+                </Button>
               </Space>
             ) : bomExists && isMasterViewMode ? (
               <Space>
-                <span>是否啟用</span>
-                <Switch checked={Boolean(bomData?.isActive)} loading={isChangingActive} onChange={handleToggleActive} />
-                {!bomData?.isActive && <Button type="primary" size="small" icon={<EditOutlined />} onClick={() => setIsHeaderEditing(true)}>編輯</Button>}
+                {canUpdateBom && (
+                  <Button
+                    key="bom-header-edit-btn"
+                    type="primary"
+                    size="small"
+                    icon={<EditOutlined />}
+                    onClick={() => {
+                      if (hasBomUpdatePermission(useAuthStore.getState())) setIsHeaderEditing(true);
+                    }}
+                  >
+                    編輯
+                  </Button>
+                )}
               </Space>
             ) : null
           }
@@ -206,12 +233,11 @@ export default function ProductBom({ outputType, outputCode, isViewMode: isMaste
           size="small"
           variant="borderless"
           title="材料明細"
-          extra={isMasterViewMode && <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => { setEditingItem(null); setItemModalOpen(true); }} disabled={!canEditContent}>新增物料</Button>}
+          extra={isMasterViewMode && <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => { setEditingItem(null); setItemModalOpen(true); }} disabled={!canEditContent || isHeaderEditing}>新增物料</Button>}
         >
           <Table
             bordered
             rowClassName={(record: any) => String(record.id || record.code) === deletingRecordId ? 'deleting-row-highlight' : ''}
-            virtual
             scroll={{ x: 'max-content', y: 400 }}
             columns={columns}
             dataSource={bomData?.items || []}

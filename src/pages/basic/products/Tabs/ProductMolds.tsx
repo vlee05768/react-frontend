@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Table, Button, message, Select, Tag, theme , App } from 'antd';
+import { Table, Button, Select, Tag, theme, App } from 'antd';
 import { useQuery, useQueries, useQueryClient } from '@tanstack/react-query';
 import { 
   getApiV1ProductByProductCodeMolds, 
@@ -21,7 +21,7 @@ interface Props {
 }
 
 export default function ProductMolds({ productCode, isViewMode: isMasterViewMode }: Props) {
-  const { modal } = App.useApp();
+  const { modal, message } = App.useApp();
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const { token } = theme.useToken();
   const queryClient = useQueryClient();

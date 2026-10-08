@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Modal, message } from 'antd';
+import { App, Modal } from 'antd';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { canUpdateBom } from './bomPermissions';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { bomItemFormConfig } from '../ProductConfig';
 import { createBomItem, type BomOutputType, updateBomItem } from '@/api/bomCompatibility';
@@ -15,10 +17,12 @@ interface Props {
 }
 
 export default function BomItemModal({ open, onClose, outputType, outputCode, initialData, onSuccess, existingMaterialCodes = [] }: Props) {
+  const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
   const isCreate = !initialData;
 
   const handleFinish = async (values: any) => {
+    if (!isCreate && !canUpdateBom(useAuthStore.getState())) return;
     try {
       setLoading(true);
       const payload = {

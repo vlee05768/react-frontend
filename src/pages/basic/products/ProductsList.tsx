@@ -362,7 +362,8 @@ export default function ProductsList() {
                   isActive: true,
                   type: '0002', // 0002 預設對應 "量產"
                   customerMoldFee: 0,
-                  unitPrice: 0
+                  unitPrice: 0,
+                  unit: 'PCS'
                 } : viewData}
                 fields={mainFormConfig()}
                 onSubmit={handleCrudSubmit}
