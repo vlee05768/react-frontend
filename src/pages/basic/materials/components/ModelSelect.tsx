@@ -127,7 +127,7 @@ export const ModelSelect: React.FC<ModelSelectProps> = ({ value, onChange, disab
               label="型號代碼" 
               rules={[
                 { required: true, message: '請輸入型號代碼' },
-                { pattern: /^[A-Za-z0-9\-_]+$/, message: '型號代碼不可輸入中文，僅限英數字與符號' }
+                { pattern: /^[A-Za-z0-9_#+]+$/, message: '型號代碼不可輸入中文或連字號 (-)，僅限英數字、底線 (_)、# 與 + 符號' }
               ]}
               normalize={(val) => (val || '').toUpperCase()}
               extra="儲存時英文將自動轉大寫。"
