@@ -1,9 +1,12 @@
 import type { SearchFieldConfig } from '@/components/Form/types';
 import { z } from 'zod';
 import type { FormFieldConfig, TableColumnConfig } from '@/components/Form/types';
-import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import { AppstoreOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { DictLabel } from '@/components/Form/DictLabel';
-import { Tag } from 'antd';
+import { Button, Tag, Tooltip } from 'antd';
+import type { MoldProduct } from '@/api/moldProducts';
+import type { MoldListRecord } from '@/api/molds';
+import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 
 export const mainDictionary = {
   code: { name: 'code', label: '編號' },
@@ -19,6 +22,7 @@ export const mainDictionary = {
   totalProductionQuantity: { name: 'totalProductionQuantity', label: '累計生產數量' },
   description: { name: 'description', label: '描述' },
   notes: { name: 'notes', label: '備註' },
+  relatedProductCount: { name: 'relatedProductCount', label: '產品關聯' },
 } as const;
 
 export const mainFormConfig = (): FormFieldConfig[] => [
@@ -62,7 +66,12 @@ export const mainFormConfig = (): FormFieldConfig[] => [
   { ...mainDictionary.notes, componentType: 'TextArea', validation: z.any().optional().nullable(), editable: 'always'  ,colSpan: 1},
 ];
 
-export const mainTableColumns = (): TableColumnConfig[] => [
+interface MoldColumnOptions {
+  canViewProducts: boolean;
+  onViewProducts: (record: MoldListRecord) => void;
+}
+
+export const mainTableColumns = (options?: MoldColumnOptions): TableColumnConfig<MoldListRecord>[] => [
   { ...mainDictionary.code, sortable: { multiple: 1 }, width: 150, ellipsis: true },
   { ...mainDictionary.name, sortable: { multiple: 2 }, width: 220, ellipsis: true },
   { ...mainDictionary.isArrived, width: 100, align: 'center', render: (v: boolean | undefined | null) => v === true ? <Tag color="green">已到貨</Tag> : <Tag color="orange">未到貨</Tag> },
@@ -74,6 +83,30 @@ export const mainTableColumns = (): TableColumnConfig[] => [
   { ...mainDictionary.dimensionHMm, width: 120, align: 'right', ellipsis: true },
   { ...mainDictionary.availableProductionQuantity, width: 130, align: 'right', ellipsis: true },
   { ...mainDictionary.totalProductionQuantity, width: 130, align: 'right', ellipsis: true },
+  {
+    ...mainDictionary.relatedProductCount,
+    width: 120,
+    align: 'right',
+    ellipsis: false,
+    render: (_value: unknown, record: MoldListRecord) => (
+      <div className="h-[24px] flex items-center justify-end gap-1">
+        <span>{options?.canViewProducts ? record.relatedProductCount ?? '—' : '—'}</span>
+        {options?.canViewProducts && record.relatedProductCount != null && record.relatedProductCount > 0 && (
+          <Tooltip title="關聯產品">
+            <Button
+              type="text"
+              size="small"
+              aria-label="關聯產品"
+              className="flex items-center justify-center hover:opacity-80"
+              style={{ height: 24 }}
+              icon={<AppstoreOutlined style={{ color: 'var(--ant-color-success)', fontSize: TABLE_ACTION_ICON_SIZE }} />}
+              onClick={(event) => { event.stopPropagation(); options.onViewProducts(record); }}
+            />
+          </Tooltip>
+        )}
+      </div>
+    ),
+  },
   { ...mainDictionary.description, width: 200, ellipsis: true },
   { ...mainDictionary.notes, width: 200, ellipsis: true },
 ];
@@ -100,5 +133,17 @@ export const moldSearchFormConfig = (): SearchFieldConfig[] => [
       ],
       allowClear: true
     } 
+  },
+];
+
+// 唯讀反向查詢僅有產品欄，不注入操作或稽核欄。
+export const associatedProductsTableColumns = (): TableColumnConfig<MoldProduct>[] => [
+  {
+    name: 'code', label: '產品編號', width: 220, align: 'left', ellipsis: false,
+    render: (value: string) => <div className="h-[24px] flex items-center justify-start">{value}</div>,
+  },
+  {
+    name: 'name', label: '產品名稱', width: 380, align: 'left', ellipsis: false,
+    render: (value: string | null) => <div className="h-[24px] flex items-center justify-start">{value}</div>,
   },
 ];

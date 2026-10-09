@@ -19,8 +19,7 @@ import {
 } from '@ant-design/icons';
 import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  getApiV1Mold, 
+import {
   getApiV1MoldByCode,
   postApiV1Mold,
   putApiV1MoldByCode,
@@ -40,6 +39,9 @@ import { buildTableColumns, formatSorterToRules } from '@/utils/tableUtils';
 import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';;
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 import { ActionBar } from '@/components/common/ActionBar';
+import MoldAssociatedProductsDialog from './MoldAssociatedProductsDialog';
+import { getMolds, type MoldListRecord } from '@/api/molds';
+import { canViewMoldProducts } from './moldProductPermissions';
 
 
 export default function MoldList() {
@@ -48,7 +50,9 @@ export default function MoldList() {
   const { params, setParams, resetParams } = useMoldQueryStore();
 
   const { hasPermission } = useAuthStore();
+  const canViewProducts = useAuthStore(canViewMoldProducts);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+  const [associatedProductsMold, setAssociatedProductsMold] = useState<MoldListRecord | null>(null);
 
   const listQuery = useErpListQuery({
     params,
@@ -97,16 +101,13 @@ export default function MoldList() {
   // API 查詢
   const { data, isFetching } = useQuery({
     queryKey: ['moldList', params],
-    queryFn: () =>
-      getApiV1Mold({
-        query: params as any,
-      }),
+    queryFn: ({ signal }) => getMolds(params, signal),
   });
 
-  const listData = (data?.data as any)?.data?.data || (data?.data as any)?.data || [];
-  const totalRecords = (data?.data as any)?.data?.totalRecords || (data?.data as any)?.totalRecords || 0;
-  const currentPage = (data?.data as any)?.data?.pageNumber || params.pageNumber;
-  const currentPageSize = (data?.data as any)?.data?.pageSize || params.pageSize;
+  const listData: MoldListRecord[] = data?.data.data ?? [];
+  const totalRecords = data?.data.totalRecords ?? 0;
+  const currentPage = data?.data.pageNumber ?? params.pageNumber;
+  const currentPageSize = data?.data.pageSize ?? params.pageSize;
 
   // Mutations
   const createMutation = useMutation({
@@ -201,7 +202,7 @@ export default function MoldList() {
     key: 'actions',
     fixed: 'right' as const,
     width: 120,
-    render: (_: any, record: any) => (
+    render: (_: unknown, record: MoldListRecord) => (
       <TableActions
         onView={hasPermission('BasicData.Molds.View') ? () => openViewDrawer(record) : undefined}
         onDelete={hasPermission('BasicData.Molds.Delete') ? () => deleteMutation.mutate(record.code) : undefined}
@@ -222,7 +223,14 @@ export default function MoldList() {
     });
   };
 
-  const columns = buildTableColumns(mainTableColumns(), actionColumn, params.SortRules);
+  const openAssociatedProducts = (record: MoldListRecord) => {
+    if (canViewMoldProducts(useAuthStore.getState())) setAssociatedProductsMold(record);
+  };
+
+  const columns = buildTableColumns(mainTableColumns({
+    canViewProducts,
+    onViewProducts: openAssociatedProducts,
+  }), actionColumn, params.SortRules);
 
   return (
     <div className="p-4 pb-0 flex flex-col h-[calc(100vh-64px)]">
@@ -366,9 +374,22 @@ export default function MoldList() {
             isViewMode={!isDrawerEditing && !isCreateDrawerOpen}
             hideDefaultFooter={true}
           />
+          {viewId && !isDrawerEditing && canViewProducts && (
+            <div className="mt-6 pt-4 border-t border-[var(--ant-color-border-secondary)] flex items-center justify-between gap-4">
+              <span className="font-medium">關聯產品</span>
+              <Button size="small" className="h-8" icon={<AppstoreOutlined style={{ color: 'var(--ant-color-success)' }} />} onClick={() => openAssociatedProducts(viewData)}>
+                查看關聯產品
+              </Button>
+            </div>
+          )}
           </div>
         </Spin>
       </Drawer>
+      <MoldAssociatedProductsDialog
+        open={!!associatedProductsMold}
+        mold={associatedProductsMold}
+        onClose={() => setAssociatedProductsMold(null)}
+      />
     </div>
   );
 }
