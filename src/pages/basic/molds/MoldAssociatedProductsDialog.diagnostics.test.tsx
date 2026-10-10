@@ -7,8 +7,8 @@ import MoldAssociatedProductsDialog from './MoldAssociatedProductsDialog';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { createJSONStorage } from 'zustand/middleware';
 
-const sdk = vi.hoisted(() => ({ products: vi.fn(), molds: vi.fn() }));
-vi.mock('@/api/generated/sdk.gen', () => ({ getApiV1Product: sdk.products, getApiV1ProductByProductCodeMolds: sdk.molds }));
+const sdk = vi.hoisted(() => ({ products: vi.fn(), molds: vi.fn(), moldProducts: vi.fn() }));
+vi.mock('@/api/generated/sdk.gen', () => ({ getApiV1Product: sdk.products, getApiV1ProductByProductCodeMolds: sdk.molds, getApiV1MoldByCodeProducts: sdk.moldProducts }));
 const request = vi.spyOn(client, 'get');
 const getComputedStyle = window.getComputedStyle.bind(window);
 beforeEach(() => {
@@ -18,6 +18,7 @@ beforeEach(() => {
   vi.spyOn(window, 'getComputedStyle').mockImplementation((element) => getComputedStyle(element));
   vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false, addListener: vi.fn(), removeListener: vi.fn(), addEventListener: vi.fn(), removeEventListener: vi.fn(), dispatchEvent: vi.fn() })));
   vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} });
+  sdk.moldProducts.mockImplementation((options) => client.get({ ...options, url: '/api/v1/Mold/{code}/products' }));
 });
 afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllGlobals(); });
 

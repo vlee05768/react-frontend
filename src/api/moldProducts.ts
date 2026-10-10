@@ -1,18 +1,8 @@
-import { client } from './generated/client.gen';
+import { getApiV1MoldByCodeProducts } from './generated/sdk.gen';
+import type { MoldProductDto, MoldProductDtoPagedResult } from './generated/types.gen';
 
-/** Issue #77 / CONTEXT.md §7.3.2. Replace with SDK after managed regeneration. */
-export interface MoldProduct {
-  code: string;
-  name: string | null;
-}
-
-export interface MoldProductPage {
-  pageNumber: number;
-  pageSize: number;
-  totalPages: number;
-  totalRecords: number;
-  data: MoldProduct[];
-}
+export type MoldProduct = MoldProductDto;
+export type MoldProductPage = MoldProductDtoPagedResult;
 
 export interface MoldProductsResponse {
   success: boolean;
@@ -23,15 +13,12 @@ export interface MoldProductsResponse {
 }
 
 export async function getMoldProducts(code: string, pageNumber: number, signal: AbortSignal): Promise<MoldProductPage> {
-  // Use the managed client method so baseURL/config and auth/error interceptors
-  // are identical to generated SDK calls (not a second Axios client).
-  const response = await client.get<{ 200: MoldProductsResponse }, unknown, true>({
-    url: '/api/v1/Mold/{code}/products',
+  const response = await getApiV1MoldByCodeProducts({
     path: { code },
     query: { pageNumber, pageSize: 100 },
     signal,
     throwOnError: true,
   });
-  if (!response.data.success) throw new Error(response.data.message);
+  if (!response.data?.success || !response.data.data) throw new Error(response.data?.message ?? '取得模具關聯產品失敗');
   return response.data.data;
 }

@@ -26,6 +26,8 @@ export type ApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
 };
 
@@ -52,6 +54,8 @@ export type AuthResponseDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: AuthResponseDto;
 };
@@ -74,9 +78,6 @@ export type BatchDeleteRequest = {
     ids?: Array<number> | null;
 };
 
-/**
- * BOM資料傳輸物件
- */
 export type BomDto = {
     /**
      * 建立者ID
@@ -107,31 +108,27 @@ export type BomDto = {
      */
     updatedBy?: string | null;
     /**
-     * 產品編號
+     * 產出類別
      */
-    productCode?: string | null;
+    outputType?: string | null;
     /**
-     * 產出物料類別 (P=成品, M=半成品原料)
+     * 產出代碼
      */
-    inventoryType?: string | null;
+    outputCode?: string | null;
     /**
-     * 產出物料編碼
+     * 產出名稱
      */
-    targetCode?: string | null;
+    outputName?: string | null;
     /**
-     * 產出物料名稱
+     * 是否啟用
      */
-    targetName?: string | null;
-    /**
-     * 產品名稱
-     */
-    productName?: string | null;
+    isActive?: boolean;
     /**
      * 預設沖壓機型
      */
     defaultMachineType?: string | null;
     /**
-     * 預設跳距(mm)
+     * 預設跳距
      */
     defaultToolingRangeMm?: number | null;
     /**
@@ -139,7 +136,7 @@ export type BomDto = {
      */
     defaultPunchHolesCount?: number | null;
     /**
-     * PCS/單張片數
+     * 每張片數
      */
     pcsPerSheet?: number | null;
     /**
@@ -156,16 +153,10 @@ export type BomDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: BomDto;
-};
-
-export type BomDtoListApiResponse = {
-    success?: boolean;
-    message?: string | null;
-    error?: unknown;
-    timestamp?: string;
-    data?: Array<BomDto> | null;
 };
 
 /**
@@ -198,13 +189,12 @@ export type BomDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: BomDtoPagedResult;
 };
 
-/**
- * BOM明細資料傳輸物件
- */
 export type BomItemDto = {
     /**
      * 建立者ID
@@ -235,23 +225,27 @@ export type BomItemDto = {
      */
     updatedBy?: string | null;
     /**
-     * BOM明細代碼
+     * 父 BOM 產出類別
+     */
+    bomOutputType?: string | null;
+    /**
+     * 父 BOM 產出代碼
+     */
+    bomOutputCode?: string | null;
+    /**
+     * BOM 明細代碼
      */
     code?: string | null;
     /**
-     * 產品編號
-     */
-    productCode?: string | null;
-    /**
-     * 原料編號
+     * 投入原料代碼
      */
     materialCode?: string | null;
     /**
-     * 原料名稱
+     * 投入原料名稱
      */
     materialName?: string | null;
     /**
-     * 原料每平方米標準成本 (UnitPrice)
+     * 原料標準成本
      */
     materialUnitPrice?: number | null;
     /**
@@ -259,7 +253,7 @@ export type BomItemDto = {
      */
     quantity?: number;
     /**
-     * 預計損耗率
+     * 損耗率
      */
     scrapPercentage?: number;
     /**
@@ -280,6 +274,8 @@ export type BomItemDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: BomItemDto;
 };
@@ -288,48 +284,18 @@ export type BomItemDtoListApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: Array<BomItemDto> | null;
-};
-
-/**
- * 分頁結果
- */
-export type BomItemDtoPagedResult = {
-    /**
-     * 目前頁碼
-     */
-    pageNumber?: number;
-    /**
-     * 每頁數量
-     */
-    pageSize?: number;
-    /**
-     * 總頁數
-     */
-    totalPages?: number;
-    /**
-     * 總數量
-     */
-    totalRecords?: number;
-    /**
-     * 資料
-     */
-    data?: Array<BomItemDto> | null;
-};
-
-export type BomItemDtoPagedResultApiResponse = {
-    success?: boolean;
-    message?: string | null;
-    error?: unknown;
-    timestamp?: string;
-    data?: BomItemDtoPagedResult;
 };
 
 export type BooleanApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: boolean;
 };
@@ -476,6 +442,8 @@ export type BusinessPartnerDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: BusinessPartnerDto;
 };
@@ -510,6 +478,8 @@ export type BusinessPartnerDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: BusinessPartnerDtoPagedResult;
 };
@@ -530,6 +500,20 @@ export type ChangePasswordDto = {
      * 確認新密碼
      */
     confirmPassword?: string | null;
+};
+
+/**
+ * SHA-256 checksum。
+ */
+export type ChecksumDto = {
+    /**
+     * 演算法名稱，目前固定為 sha256。
+     */
+    algorithm: string;
+    /**
+     * 不含前綴的 64 位十六進位 checksum。
+     */
+    value: string;
 };
 
 /**
@@ -629,6 +613,66 @@ export type CompleteSampleRollDto = {
 };
 
 /**
+ * 完成上傳後建立附件所需的資料。
+ */
+export type CompleteUploadDto = {
+    /**
+     * 工作階段識別碼。
+     */
+    uploadSessionId?: string;
+    /**
+     * 物件儲存 key。
+     */
+    objectKey?: string | null;
+    /**
+     * 完成狀態。
+     */
+    status?: string | null;
+    checksum?: ChecksumDto;
+    /**
+     * 原始檔名。
+     */
+    fileName?: string | null;
+    /**
+     * 物件 Content-Type。
+     */
+    contentType?: string | null;
+    /**
+     * 檔案大小（bytes）。
+     */
+    contentLength?: number;
+    /**
+     * 關聯資料類型。
+     */
+    referenceType?: string | null;
+    /**
+     * 關聯資料識別碼。
+     */
+    referenceId?: string | null;
+};
+
+export type CompleteUploadDtoApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
+    timestamp?: string;
+    data?: CompleteUploadDto;
+};
+
+/**
+ * 完成直接上傳的請求。
+ */
+export type CompleteUploadRequest = {
+    /**
+     * 物件儲存回傳的 ETag。
+     */
+    etag: string;
+    checksum?: ChecksumDto;
+};
+
+/**
  * 特採審核動作 DTO
  */
 export type ConcessionActionDto = {
@@ -638,28 +682,21 @@ export type ConcessionActionDto = {
     notes?: string | null;
 };
 
-/**
- * 建立BOM資料傳輸物件
- */
 export type CreateBomDto = {
     /**
-     * 產品編號
+     * 產出類別
      */
-    productCode?: string | null;
+    outputType: string;
     /**
-     * 產出物料類別 (P=成品, M=半成品原料)
+     * 產出代碼
      */
-    inventoryType?: string | null;
-    /**
-     * 產出物料編碼
-     */
-    targetCode?: string | null;
+    outputCode: string;
     /**
      * 預設沖壓機型
      */
     defaultMachineType?: string | null;
     /**
-     * 預設跳距(mm)
+     * 預設跳距
      */
     defaultToolingRangeMm?: number | null;
     /**
@@ -667,7 +704,7 @@ export type CreateBomDto = {
      */
     defaultPunchHolesCount?: number | null;
     /**
-     * PCS/單張片數
+     * 每張片數
      */
     pcsPerSheet?: number | null;
     /**
@@ -676,24 +713,17 @@ export type CreateBomDto = {
     notes?: string | null;
 };
 
-/**
- * 建立BOM明細資料傳輸物件
- */
 export type CreateBomItemDto = {
     /**
-     * 產品編號
-     */
-    productCode?: string | null;
-    /**
-     * 原料編號
+     * 投入原料代碼
      */
     materialCode: string;
     /**
      * 需求用量
      */
-    quantity: number;
+    quantity?: number;
     /**
-     * 預計損耗率
+     * 損耗率
      */
     scrapPercentage?: number;
     /**
@@ -809,7 +839,7 @@ export type CreateBusinessPartnerDto = {
 };
 
 /**
- * 建立客供料入庫單主檔 DTO
+ * 建立客供料/半成品原料入庫單主檔 DTO
  */
 export type CreateCustomerMaterialReceiptDto = {
     /**
@@ -825,7 +855,7 @@ export type CreateCustomerMaterialReceiptDto = {
      */
     targetPlantCode: string;
     /**
-     * 交易客戶客商代碼 (BPCode)
+     * 交易客戶客商代碼 (BPCode) - 自製半成品時可為空
      */
     businessPartnerCode?: string | null;
     /**
@@ -867,7 +897,7 @@ export type CreateCustomerMaterialReceiptDto = {
 };
 
 /**
- * 建立客供料入庫明細 DTO
+ * 建立客供料/半成品原料入庫明細 DTO
  */
 export type CreateCustomerMaterialReceiptItemDto = {
     /**
@@ -898,6 +928,18 @@ export type CreateCustomerMaterialReceiptItemDto = {
      * 面積總量 (可直接傳入，或由後端乘寬長重新算)
      */
     quantity?: number;
+    /**
+     * 面積快照 (SQM)
+     */
+    areaSqm?: number | null;
+    /**
+     * 包裝序號
+     */
+    packageSeq?: string | null;
+    /**
+     * 物料型態 (R=捲, S=片)
+     */
+    materialForm?: string | null;
     /**
      * 目的儲位
      */
@@ -995,7 +1037,7 @@ export type CreateInventoryAdjustmentItemDto = {
     /**
      * 品名
      */
-    inventoryName: string;
+    inventoryName?: string | null;
     /**
      * 調整數量（可為負數表示減少）
      */
@@ -1020,6 +1062,10 @@ export type CreateInventoryAdjustmentItemDto = {
      * 備註
      */
     notes?: string | null;
+    /**
+     * 萬用擴充自訂資料
+     */
+    extraData?: unknown;
 };
 
 /**
@@ -1135,15 +1181,11 @@ export type CreateMaterialDto = {
     /**
      * 原料產出類別（RAW=一般原料，SEMI=半成品原料）
      */
-    materialType?: string;
+    materialType?: string | null;
     /**
      * 厚度（單位：mm）
      */
     thickness?: number;
-    /**
-     * 規格（自動產生，可選）
-     */
-    spec?: string | null;
     /**
      * 供應商編碼
      */
@@ -1160,14 +1202,6 @@ export type CreateMaterialDto = {
      * 每平方米標準成本 (元/SQM)
      */
     unitPrice?: number;
-    /**
-     * 是否為客供料
-     */
-    isCustomerSupplied?: boolean;
-    /**
-     * 客供客戶編碼
-     */
-    customerCode?: string | null;
     /**
      * 標記
      */
@@ -1249,13 +1283,13 @@ export type CreateMoldDto = {
  */
 export type CreateOrderDto = {
     /**
-     * 訂單類別 (STANDARD / OEM)
-     */
-    orderType?: string | null;
-    /**
      * 客戶代碼
      */
     businessPartnerCode: string;
+    /**
+     * 訂單類別 (STANDARD / OEM)
+     */
+    orderType?: string | null;
     /**
      * 客戶聯絡人ID
      */
@@ -1937,6 +1971,14 @@ export type CreateRequisitionItemDto = {
      */
     materialCode?: string | null;
     /**
+     * 領用數量 (片材為PCS, 捲材為米)
+     */
+    quantity?: number;
+    /**
+     * 領用面積 (SQM)
+     */
+    referenceQuantity1?: number | null;
+    /**
      * 來源儲位編號
      */
     sourceStorageCode?: string | null;
@@ -2155,6 +2197,33 @@ export type CreateStorageDto = {
 };
 
 /**
+ * 建立直接上傳工作階段的請求。
+ */
+export type CreateUploadSessionRequest = {
+    /**
+     * 原始檔名。
+     */
+    fileName: string;
+    /**
+     * 物件 Content-Type。
+     */
+    contentType: string;
+    /**
+     * 檔案大小（bytes）。
+     */
+    contentLength?: number;
+    checksum?: ChecksumDto;
+    /**
+     * 關聯資料類型。
+     */
+    referenceType: string;
+    /**
+     * 關聯資料識別碼。
+     */
+    referenceId: string;
+};
+
+/**
  * 建立使用者請求資料傳輸物件
  */
 export type CreateUserDto = {
@@ -2221,21 +2290,17 @@ export type CreateWorkOrderDto = {
      */
     workOrderDate?: string;
     /**
-     * 產品編碼
-     */
-    productCode?: string | null;
-    /**
-     * 製令類別 (STANDARD / OEM)
+     * 製令類別 (STANDARD 或 OEM)
      */
     workOrderType?: string | null;
     /**
-     * 產出物料類別 (P=成品, M=半成品原料)
+     * 產出類別 (P=成品, M=半成品原料)
      */
-    inventoryType?: string | null;
+    outputType?: string | null;
     /**
-     * 產出物料編碼
+     * 產出代碼
      */
-    targetCode?: string | null;
+    outputCode?: string | null;
     /**
      * 機台編碼
      */
@@ -2363,6 +2428,8 @@ export type CustomerDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: CustomerDto;
 };
@@ -2397,12 +2464,14 @@ export type CustomerDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: CustomerDtoPagedResult;
 };
 
 /**
- * 客供料入庫單 - 列表/明細主體 DTO
+ * 客供料/半成品原料入庫單 - 列表/明細主體 DTO
  */
 export type CustomerMaterialReceiptDto = {
     /**
@@ -2446,7 +2515,7 @@ export type CustomerMaterialReceiptDto = {
      */
     documentType?: string | null;
     /**
-     * 單據次類型
+     * 單據次類型 (CM / SEMI)
      */
     subType?: string | null;
     /**
@@ -2454,7 +2523,7 @@ export type CustomerMaterialReceiptDto = {
      */
     targetPlantCode: string;
     /**
-     * 交易客戶客商代碼 (BPCode)
+     * 交易客戶客商代碼 (BPCode) - 自製半成品時可為空
      */
     businessPartnerCode?: string | null;
     /**
@@ -2522,15 +2591,15 @@ export type CustomerMaterialReceiptDto = {
      */
     closeUserName?: string | null;
     /**
-     * 小計 (客供料強制為0)
+     * 小計 (原料入庫單強制為0)
      */
     subTotal?: number;
     /**
-     * 總金額 (客供料強制為0)
+     * 總金額 (原料入庫單強制為0)
      */
     totalAmount?: number;
     /**
-     * 稅額 (客供料強制為0)
+     * 稅額 (原料入庫單強制為0)
      */
     taxAmount?: number;
     /**
@@ -2559,6 +2628,8 @@ export type CustomerMaterialReceiptDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: CustomerMaterialReceiptDto;
 };
@@ -2593,12 +2664,14 @@ export type CustomerMaterialReceiptDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: CustomerMaterialReceiptDtoPagedResult;
 };
 
 /**
- * 客供料入庫明細 - 列表 DTO
+ * 客供料/半成品原料入庫明細 - 列表 DTO
  */
 export type CustomerMaterialReceiptItemDto = {
     /**
@@ -2658,6 +2731,18 @@ export type CustomerMaterialReceiptItemDto = {
      */
     quantity?: number;
     /**
+     * 面積快照 (SQM)
+     */
+    areaSqm?: number | null;
+    /**
+     * 包裝序號
+     */
+    packageSeq?: string | null;
+    /**
+     * 物料型態 (R=捲, S=片)
+     */
+    materialForm?: string | null;
+    /**
      * 是否為卷料 (true=R, false=S)
      */
     isRoll?: boolean;
@@ -2707,6 +2792,8 @@ export type CustomerMaterialReceiptItemDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: CustomerMaterialReceiptItemDto;
 };
@@ -2768,6 +2855,8 @@ export type DashboardPendingTasksDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: DashboardPendingTasksDto;
 };
@@ -2787,6 +2876,8 @@ export type DocumentSubscriptionDtoListApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: Array<DocumentSubscriptionDto> | null;
 };
@@ -2909,6 +3000,8 @@ export type EmployeeListDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: EmployeeListDto;
 };
@@ -2943,6 +3036,8 @@ export type EmployeeListDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: EmployeeListDtoPagedResult;
 };
@@ -3054,6 +3149,26 @@ export type FileAttachmentDto = {
     presignedUrl?: string | null;
 };
 
+export type FileAttachmentDtoApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
+    timestamp?: string;
+    data?: FileAttachmentDto;
+};
+
+export type FileAttachmentDtoListApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
+    timestamp?: string;
+    data?: Array<FileAttachmentDto> | null;
+};
+
 /**
  * 忘記密碼請求資料傳輸物件
  */
@@ -3146,6 +3261,8 @@ export type GeneralTypesDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: GeneralTypesDto;
 };
@@ -3248,6 +3365,8 @@ export type InventoryAdjustmentDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryAdjustmentDto;
 };
@@ -3282,6 +3401,8 @@ export type InventoryAdjustmentDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryAdjustmentDtoPagedResult;
 };
@@ -3370,12 +3491,18 @@ export type InventoryAdjustmentItemDto = {
      * 備註
      */
     notes?: string | null;
+    /**
+     * 萬用擴充自訂資料
+     */
+    extraData?: unknown;
 };
 
 export type InventoryAdjustmentItemDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryAdjustmentItemDto;
 };
@@ -3410,6 +3537,8 @@ export type InventoryAdjustmentItemDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryAdjustmentItemDtoPagedResult;
 };
@@ -3435,6 +3564,8 @@ export type InventoryCalculationResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryCalculationResult;
 };
@@ -3537,6 +3668,8 @@ export type InventoryMovementItemDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryMovementItemDto;
 };
@@ -3669,6 +3802,8 @@ export type InventoryTransactionDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryTransactionDtoPagedResult;
 };
@@ -3771,6 +3906,8 @@ export type InventoryTransferDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryTransferDto;
 };
@@ -3805,6 +3942,8 @@ export type InventoryTransferDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryTransferDtoPagedResult;
 };
@@ -3895,6 +4034,8 @@ export type InventoryTransferItemDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryTransferItemDto;
 };
@@ -3929,6 +4070,8 @@ export type InventoryTransferItemDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryTransferItemDtoPagedResult;
 };
@@ -4093,6 +4236,8 @@ export type IqcDetailDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: IqcDetailDto;
 };
@@ -4279,6 +4424,8 @@ export type IqcListDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: IqcListDtoPagedResult;
 };
@@ -4429,6 +4576,8 @@ export type MachineDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: MachineDto;
 };
@@ -4510,10 +4659,6 @@ export type MaterialDto = {
      */
     thickness?: number;
     /**
-     * 規格
-     */
-    spec?: string | null;
-    /**
      * 財務基準計量單位 (SQM)
      */
     baseUOM?: string | null;
@@ -4525,18 +4670,6 @@ export type MaterialDto = {
      * 每平方米標準成本 (元/SQM)
      */
     unitPrice?: number;
-    /**
-     * 是否為客供料
-     */
-    isCustomerSupplied?: boolean;
-    /**
-     * 客供客戶編碼
-     */
-    customerCode?: string | null;
-    /**
-     * 客供客戶名稱
-     */
-    customerName?: string | null;
     /**
      * 是否啟用
      */
@@ -4571,6 +4704,8 @@ export type MaterialDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: MaterialDto;
 };
@@ -4605,6 +4740,8 @@ export type MaterialDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: MaterialDtoPagedResult;
 };
@@ -4737,6 +4874,8 @@ export type MaterialInventoryTransactionDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: MaterialInventoryTransactionDtoPagedResult;
 };
@@ -4813,6 +4952,8 @@ export type MaterialLogicalInventoryDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: MaterialLogicalInventoryDtoPagedResult;
 };
@@ -4934,6 +5075,14 @@ export type MaterialRollDto = {
      */
     currentAreaSqm?: number;
     /**
+     * 產權類別 (INTERNAL / CUSTOMER)
+     */
+    ownershipType?: string | null;
+    /**
+     * 權屬客戶代碼
+     */
+    ownerCustomerCode?: string | null;
+    /**
      * 原廠生產批號
      */
     supplierLotNo?: string | null;
@@ -4969,6 +5118,8 @@ export type MaterialRollDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: MaterialRollDtoPagedResult;
 };
@@ -5027,6 +5178,8 @@ export type MaterialSupplierDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: MaterialSupplierDto;
 };
@@ -5061,6 +5214,8 @@ export type MaterialSupplierDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: MaterialSupplierDtoPagedResult;
 };
@@ -5111,6 +5266,10 @@ export type MoldDto = {
      * 更新者名稱
      */
     updatedBy?: string | null;
+    /**
+     * 當前請求的未刪除關聯產品去重數量；無有效產品檢視權限為 null，不進入共用快取。
+     */
+    relatedProductCount?: number | null;
     /**
      * 模具編號
      */
@@ -5185,6 +5344,8 @@ export type MoldDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: MoldDto;
 };
@@ -5193,14 +5354,68 @@ export type MoldDtoListApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: Array<MoldDto> | null;
+};
+
+/**
+ * 模具關聯產品的最小唯讀投影。
+ */
+export type MoldProductDto = {
+    /**
+     * 產品代碼。
+     */
+    code?: string | null;
+    /**
+     * 產品名稱；未設定時為 null。
+     */
+    name?: string | null;
+};
+
+/**
+ * 分頁結果
+ */
+export type MoldProductDtoPagedResult = {
+    /**
+     * 目前頁碼
+     */
+    pageNumber?: number;
+    /**
+     * 每頁數量
+     */
+    pageSize?: number;
+    /**
+     * 總頁數
+     */
+    totalPages?: number;
+    /**
+     * 總數量
+     */
+    totalRecords?: number;
+    /**
+     * 資料
+     */
+    data?: Array<MoldProductDto> | null;
+};
+
+export type MoldProductDtoPagedResultApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
+    timestamp?: string;
+    data?: MoldProductDtoPagedResult;
 };
 
 export type ObjectApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: unknown;
 };
@@ -5363,6 +5578,8 @@ export type OrderDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: OrderDto;
 };
@@ -5397,6 +5614,8 @@ export type OrderDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: OrderDtoPagedResult;
 };
@@ -5539,6 +5758,8 @@ export type OrderItemDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: OrderItemDto;
 };
@@ -5573,6 +5794,8 @@ export type OrderItemDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: OrderItemDtoPagedResult;
 };
@@ -5629,6 +5852,8 @@ export type OutsourceVendorDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: OutsourceVendorDto;
 };
@@ -5663,6 +5888,8 @@ export type OutsourceVendorDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: OutsourceVendorDtoPagedResult;
 };
@@ -5773,6 +6000,8 @@ export type PartnerContactDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: PartnerContactDto;
 };
@@ -5807,6 +6036,8 @@ export type PartnerContactDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: PartnerContactDtoPagedResult;
 };
@@ -5822,6 +6053,8 @@ export type PermissionNodeListApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: Array<PermissionNode> | null;
 };
@@ -5997,6 +6230,8 @@ export type ProductDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: ProductDto;
 };
@@ -6031,6 +6266,8 @@ export type ProductDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: ProductDtoPagedResult;
 };
@@ -6105,6 +6342,8 @@ export type ProductMoldDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: ProductMoldDto;
 };
@@ -6113,6 +6352,8 @@ export type ProductMoldDtoListApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: Array<ProductMoldDto> | null;
 };
@@ -6147,8 +6388,49 @@ export type ProductMoldDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: ProductMoldDtoPagedResult;
+};
+
+/**
+ * 半成品生產入庫單
+ */
+export type ProductionMaterialReceiptDto = {
+    documentNumber?: string | null;
+    referenceNumber?: string | null;
+    outputCode?: string | null;
+    workOrderType?: string | null;
+    ownershipType?: string | null;
+    ownerCustomerCode?: string | null;
+    actualTotalCost?: number;
+    iqcStatus?: string | null;
+    sourceStorageCode?: string | null;
+    items?: Array<ProductionMaterialReceiptItemDto> | null;
+};
+
+export type ProductionMaterialReceiptDtoApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
+    timestamp?: string;
+    data?: ProductionMaterialReceiptDto;
+};
+
+/**
+ * 半成品生產入庫單明細
+ */
+export type ProductionMaterialReceiptItemDto = {
+    lineNumber?: string | null;
+    packageSeq?: string | null;
+    materialForm?: string | null;
+    measuredWidthMm?: number;
+    measuredLength?: number | null;
+    quantity?: number;
+    areaSqm?: number;
 };
 
 /**
@@ -6245,6 +6527,8 @@ export type ProductionReceiptDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: ProductionReceiptDto;
 };
@@ -6279,6 +6563,8 @@ export type ProductionReceiptDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: ProductionReceiptDtoPagedResult;
 };
@@ -6365,6 +6651,8 @@ export type ProductionReceiptItemDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: ProductionReceiptItemDto;
 };
@@ -6373,6 +6661,8 @@ export type ProductionReceiptItemDtoListApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: Array<ProductionReceiptItemDto> | null;
 };
@@ -6506,6 +6796,10 @@ export type PurchaseOrderDto = {
      */
     purchaserEmployeeName?: string | null;
     /**
+     * 郵件發送次數
+     */
+    emailSentCount?: number;
+    /**
      * 採購項目明細
      */
     items?: Array<PurchaseOrderItemDto> | null;
@@ -6515,6 +6809,8 @@ export type PurchaseOrderDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: PurchaseOrderDto;
 };
@@ -6549,6 +6845,8 @@ export type PurchaseOrderDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: PurchaseOrderDtoPagedResult;
 };
@@ -6675,6 +6973,8 @@ export type PurchaseOrderItemDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: PurchaseOrderItemDto;
 };
@@ -6709,6 +7009,8 @@ export type PurchaseOrderItemDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: PurchaseOrderItemDtoPagedResult;
 };
@@ -6871,6 +7173,8 @@ export type PurchaseReceiptDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: PurchaseReceiptDto;
 };
@@ -6905,6 +7209,8 @@ export type PurchaseReceiptDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: PurchaseReceiptDtoPagedResult;
 };
@@ -7043,6 +7349,8 @@ export type PurchaseReceiptItemDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: PurchaseReceiptItemDto;
 };
@@ -7097,6 +7405,8 @@ export type QcGroupedItemDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: QcGroupedItemDto;
 };
@@ -7131,6 +7441,8 @@ export type QcGroupedItemDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: QcGroupedItemDtoPagedResult;
 };
@@ -7229,6 +7541,8 @@ export type QcReceiptDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: QcReceiptDto;
 };
@@ -7263,6 +7577,8 @@ export type QcReceiptDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: QcReceiptDtoPagedResult;
 };
@@ -7337,6 +7653,8 @@ export type RequisitionRollDetailDtoListApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: Array<RequisitionRollDetailDto> | null;
 };
@@ -7421,6 +7739,8 @@ export type ReturnRollDetailDtoListApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: Array<ReturnRollDetailDto> | null;
 };
@@ -7481,6 +7801,8 @@ export type RoleDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: RoleDtoPagedResult;
 };
@@ -7631,6 +7953,8 @@ export type SalesDeliveryDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: SalesDeliveryDto;
 };
@@ -7665,6 +7989,8 @@ export type SalesDeliveryDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: SalesDeliveryDtoPagedResult;
 };
@@ -7719,6 +8045,8 @@ export type SalesDeliveryGroupByCustomerDtoListApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: Array<SalesDeliveryGroupByCustomerDto> | null;
 };
@@ -7879,6 +8207,8 @@ export type SalesDeliveryItemDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: SalesDeliveryItemDtoPagedResult;
 };
@@ -7975,82 +8305,36 @@ export type SelectableRollDtoListApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: Array<SelectableRollDto> | null;
 };
 
 /**
- * SQL 監控設定
+ * 半成品包裝實測輸入
  */
-export type SqlMonitoringSettings = {
+export type SemiFinishedPackageDto = {
     /**
-     * 是否啟用 SQL 監控
+     * 包裝序號
      */
-    enableSqlMonitoring?: boolean;
+    packageSeq: string;
     /**
-     * 是否記錄 SQL 參數
+     * 物料型態，R=捲、S=片
      */
-    logParameters?: boolean;
+    materialForm: string;
     /**
-     * 是否記錄執行時間
+     * 實測寬度mm
      */
-    logExecutionTime?: boolean;
+    measuredWidthMm?: number;
     /**
-     * 是否記錄堆疊追蹤
+     * 實測長度；捲料為m、片料為mm
      */
-    logStackTrace?: boolean;
+    measuredLength?: number | null;
     /**
-     * 最小執行時間閾值（毫秒），低於此值的 SQL 不會記錄
+     * 包裝數量；捲料為長度m、片料為PCS
      */
-    minExecutionTimeThreshold?: number;
-    /**
-     * 是否只記錄慢查詢（超過閾值的查詢）
-     */
-    logOnlySlowQueries?: boolean;
-    /**
-     * 慢查詢閾值（毫秒）
-     */
-    slowQueryThreshold?: number;
-    /**
-     * 是否記錄到檔案
-     */
-    logToFile?: boolean;
-    /**
-     * 是否記錄到控制台
-     */
-    logToConsole?: boolean;
-    /**
-     * SQL 日誌檔案路徑
-     */
-    logFilePath?: string | null;
-    /**
-     * 是否包含 SQL 指令的格式化輸出
-     */
-    includeFormattedSql?: boolean;
-    /**
-     * 是否記錄資料庫連線資訊
-     */
-    logConnectionInfo?: boolean;
-    /**
-     * 日誌緩衝區大小
-     */
-    bufferSize?: number;
-    /**
-     * 批次寫入大小
-     */
-    batchSize?: number;
-    /**
-     * 刷新間隔（毫秒）
-     */
-    flushIntervalMs?: number;
-};
-
-export type SqlMonitoringSettingsApiResponse = {
-    success?: boolean;
-    message?: string | null;
-    error?: unknown;
-    timestamp?: string;
-    data?: SqlMonitoringSettings;
+    quantity?: number;
 };
 
 /**
@@ -8123,6 +8407,8 @@ export type StorageDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: StorageDto;
 };
@@ -8157,6 +8443,8 @@ export type StorageDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: StorageDtoPagedResult;
 };
@@ -8231,6 +8519,8 @@ export type StorageInventoryDtoIEnumerableApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: Array<StorageInventoryDto> | null;
 };
@@ -8295,6 +8585,8 @@ export type ToolingSupplierDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: ToolingSupplierDto;
 };
@@ -8329,6 +8621,8 @@ export type ToolingSupplierDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: ToolingSupplierDtoPagedResult;
 };
@@ -8485,32 +8779,23 @@ export type UndeliveredOrderItemsDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: UndeliveredOrderItemsDtoPagedResult;
 };
 
-/**
- * 更新BOM資料傳輸物件
- */
 export type UpdateBomDto = {
     /**
-     * 產品編號
+     * 是否啟用
      */
-    productCode?: string | null;
-    /**
-     * 產出物料類別 (P=成品, M=半成品原料)
-     */
-    inventoryType?: string | null;
-    /**
-     * 產出物料編碼
-     */
-    targetCode?: string | null;
+    isActive?: boolean | null;
     /**
      * 預設沖壓機型
      */
     defaultMachineType?: string | null;
     /**
-     * 預設跳距(mm)
+     * 預設跳距
      */
     defaultToolingRangeMm?: number | null;
     /**
@@ -8518,7 +8803,7 @@ export type UpdateBomDto = {
      */
     defaultPunchHolesCount?: number | null;
     /**
-     * PCS/單張片數
+     * 每張片數
      */
     pcsPerSheet?: number | null;
     /**
@@ -8527,12 +8812,9 @@ export type UpdateBomDto = {
     notes?: string | null;
 };
 
-/**
- * 更新BOM明細資料傳輸物件
- */
 export type UpdateBomItemDto = {
     /**
-     * 原料編號
+     * 投入原料代碼
      */
     materialCode?: string | null;
     /**
@@ -8540,7 +8822,7 @@ export type UpdateBomItemDto = {
      */
     quantity?: number | null;
     /**
-     * 預計損耗率
+     * 損耗率
      */
     scrapPercentage?: number | null;
     /**
@@ -8656,7 +8938,7 @@ export type UpdateBusinessPartnerDto = {
 };
 
 /**
- * 更新客供料入庫單主檔 DTO
+ * 更新客供料/半成品原料入庫單主檔 DTO
  */
 export type UpdateCustomerMaterialReceiptDto = {
     /**
@@ -8680,7 +8962,7 @@ export type UpdateCustomerMaterialReceiptDto = {
      */
     invoiceNumber?: string | null;
     /**
-     * 參考單號 (如製令單號)
+     * 參考單號
      */
     referenceNumber?: string | null;
     /**
@@ -8694,7 +8976,7 @@ export type UpdateCustomerMaterialReceiptDto = {
 };
 
 /**
- * 更新客供料入庫明細 DTO
+ * 更新客供料/半成品原料入庫明細 DTO
  */
 export type UpdateCustomerMaterialReceiptItemDto = {
     /**
@@ -8717,6 +8999,18 @@ export type UpdateCustomerMaterialReceiptItemDto = {
      * 面積總量
      */
     quantity?: number | null;
+    /**
+     * 面積快照 (SQM)
+     */
+    areaSqm?: number | null;
+    /**
+     * 包裝序號
+     */
+    packageSeq?: string | null;
+    /**
+     * 物料型態 (R=捲, S=片)
+     */
+    materialForm?: string | null;
     /**
      * 目的儲位
      */
@@ -8835,6 +9129,10 @@ export type UpdateInventoryAdjustmentItemDto = {
      * 備註
      */
     notes?: string | null;
+    /**
+     * 萬用擴充自訂資料
+     */
+    extraData?: unknown;
 };
 
 /**
@@ -8963,14 +9261,6 @@ export type UpdateMaterialDto = {
      * 每平方米標準成本 (元/SQM)
      */
     unitPrice?: number | null;
-    /**
-     * 是否為客供料
-     */
-    isCustomerSupplied?: boolean | null;
-    /**
-     * 客供客戶編碼
-     */
-    customerCode?: string | null;
     /**
      * 標記
      */
@@ -9946,6 +10236,14 @@ export type UpdateUserDto = {
  */
 export type UpdateWorkOrderDto = {
     /**
+     * 產出類別 (P=成品, M=半成品原料)
+     */
+    outputType?: string | null;
+    /**
+     * 產出代碼
+     */
+    outputCode?: string | null;
+    /**
      * 訂單編號
      */
     orderNumber?: string | null;
@@ -9958,21 +10256,9 @@ export type UpdateWorkOrderDto = {
      */
     workOrderDate?: string | null;
     /**
-     * 產品編碼
-     */
-    productCode?: string | null;
-    /**
-     * 製令類別 (STANDARD / OEM)
+     * 製令類別 (STANDARD 或 OEM)
      */
     workOrderType?: string | null;
-    /**
-     * 產出物料類別 (P=成品, M=半成品原料)
-     */
-    inventoryType?: string | null;
-    /**
-     * 產出物料編碼
-     */
-    targetCode?: string | null;
     /**
      * 機台編碼
      */
@@ -10086,6 +10372,53 @@ export type UpdateWorkOrderProductDto = {
      * 人員工時清單
      */
     personnelWorkingHours?: Array<WorkOrderPersonnelHourDto> | null;
+    /**
+     * M 製令的每包半成品實測資料
+     */
+    semiFinishedPackages?: Array<SemiFinishedPackageDto> | null;
+};
+
+/**
+ * 直接上傳工作階段及預簽章資料。
+ */
+export type UploadSessionDto = {
+    /**
+     * 工作階段識別碼。
+     */
+    uploadSessionId?: string;
+    /**
+     * 上傳 HTTP method。
+     */
+    method?: string | null;
+    /**
+     * 物件儲存預簽章網址。
+     */
+    uploadUrl?: string | null;
+    /**
+     * 必須原樣套用的已簽章 headers。
+     */
+    signedHeaders?: {
+        [key: string]: string;
+    } | null;
+    /**
+     * UTC 絕對過期時間。
+     */
+    expiresAt?: string;
+    /**
+     * 後端產生的物件 key。
+     */
+    objectKey?: string | null;
+    checksum?: ChecksumDto;
+};
+
+export type UploadSessionDtoApiResponse = {
+    success?: boolean;
+    message?: string | null;
+    error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
+    timestamp?: string;
+    data?: UploadSessionDto;
 };
 
 /**
@@ -10150,6 +10483,8 @@ export type UserDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: UserDto;
 };
@@ -10184,6 +10519,8 @@ export type UserDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: UserDtoPagedResult;
 };
@@ -10241,25 +10578,21 @@ export type WorkOrderDto = {
      */
     workOrderDate?: string;
     /**
-     * 產品編碼
-     */
-    productCode?: string | null;
-    /**
-     * 製令類別 (STANDARD / OEM)
+     * 製令類別 (STANDARD 或 OEM)
      */
     workOrderType?: string | null;
     /**
-     * 產出物料類別 (P=成品, M=半成品原料)
+     * 產出類別 (P=成品, M=半成品原料)
      */
-    inventoryType?: string | null;
+    outputType?: string | null;
     /**
-     * 產出物料編碼
+     * 產出代碼
      */
-    targetCode?: string | null;
+    outputCode?: string | null;
     /**
-     * 產出物料名稱
+     * 產出名稱
      */
-    targetName?: string | null;
+    outputName?: string | null;
     /**
      * 產品名稱
      */
@@ -10442,6 +10775,8 @@ export type WorkOrderDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: WorkOrderDto;
 };
@@ -10476,6 +10811,8 @@ export type WorkOrderDtoPagedResultApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: WorkOrderDtoPagedResult;
 };
@@ -10558,6 +10895,8 @@ export type WorkOrderMaterialDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: WorkOrderMaterialDto;
 };
@@ -10650,6 +10989,8 @@ export type WorkOrderRequisitionDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: WorkOrderRequisitionDto;
 };
@@ -10658,6 +10999,8 @@ export type WorkOrderRequisitionDtoListApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: Array<WorkOrderRequisitionDto> | null;
 };
@@ -10786,6 +11129,8 @@ export type WorkOrderReturnDtoApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: WorkOrderReturnDto;
 };
@@ -10794,6 +11139,8 @@ export type WorkOrderReturnDtoListApiResponse = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: Array<WorkOrderReturnDto> | null;
 };
@@ -10950,6 +11297,8 @@ export type InventoryAdjustmentDtoApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryAdjustmentDtoWritable;
 };
@@ -10984,6 +11333,8 @@ export type InventoryAdjustmentDtoPagedResultApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryAdjustmentDtoPagedResultWritable;
 };
@@ -11068,12 +11419,18 @@ export type InventoryAdjustmentItemDtoWritable = {
      * 備註
      */
     notes?: string | null;
+    /**
+     * 萬用擴充自訂資料
+     */
+    extraData?: unknown;
 };
 
 export type InventoryAdjustmentItemDtoApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryAdjustmentItemDtoWritable;
 };
@@ -11108,6 +11465,8 @@ export type InventoryAdjustmentItemDtoPagedResultApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryAdjustmentItemDtoPagedResultWritable;
 };
@@ -11206,6 +11565,8 @@ export type InventoryMovementItemDtoApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryMovementItemDtoWritable;
 };
@@ -11308,6 +11669,8 @@ export type InventoryTransferDtoApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryTransferDtoWritable;
 };
@@ -11342,6 +11705,8 @@ export type InventoryTransferDtoPagedResultApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryTransferDtoPagedResultWritable;
 };
@@ -11428,6 +11793,8 @@ export type InventoryTransferItemDtoApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryTransferItemDtoWritable;
 };
@@ -11462,6 +11829,8 @@ export type InventoryTransferItemDtoPagedResultApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: InventoryTransferItemDtoPagedResultWritable;
 };
@@ -11624,6 +11993,8 @@ export type OrderDtoApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: OrderDtoWritable;
 };
@@ -11658,6 +12029,8 @@ export type OrderDtoPagedResultApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: OrderDtoPagedResultWritable;
 };
@@ -11792,6 +12165,8 @@ export type OrderItemDtoApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: OrderItemDtoWritable;
 };
@@ -11826,6 +12201,8 @@ export type OrderItemDtoPagedResultApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: OrderItemDtoPagedResultWritable;
 };
@@ -11924,6 +12301,8 @@ export type ProductionReceiptDtoApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: ProductionReceiptDtoWritable;
 };
@@ -11958,6 +12337,8 @@ export type ProductionReceiptDtoPagedResultApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: ProductionReceiptDtoPagedResultWritable;
 };
@@ -12040,6 +12421,8 @@ export type ProductionReceiptItemDtoApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: ProductionReceiptItemDtoWritable;
 };
@@ -12048,6 +12431,8 @@ export type ProductionReceiptItemDtoListApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: Array<ProductionReceiptItemDtoWritable> | null;
 };
@@ -12210,6 +12595,8 @@ export type PurchaseReceiptDtoApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: PurchaseReceiptDtoWritable;
 };
@@ -12244,6 +12631,8 @@ export type PurchaseReceiptDtoPagedResultApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: PurchaseReceiptDtoPagedResultWritable;
 };
@@ -12374,6 +12763,8 @@ export type PurchaseReceiptItemDtoApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: PurchaseReceiptItemDtoWritable;
 };
@@ -12524,6 +12915,8 @@ export type SalesDeliveryDtoApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: SalesDeliveryDtoWritable;
 };
@@ -12558,6 +12951,8 @@ export type SalesDeliveryDtoPagedResultApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: SalesDeliveryDtoPagedResultWritable;
 };
@@ -12714,6 +13109,8 @@ export type SalesDeliveryItemDtoPagedResultApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: SalesDeliveryItemDtoPagedResultWritable;
 };
@@ -12850,6 +13247,8 @@ export type UndeliveredOrderItemsDtoPagedResultApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: UndeliveredOrderItemsDtoPagedResultWritable;
 };
@@ -12907,25 +13306,21 @@ export type WorkOrderDtoWritable = {
      */
     workOrderDate?: string;
     /**
-     * 產品編碼
-     */
-    productCode?: string | null;
-    /**
-     * 製令類別 (STANDARD / OEM)
+     * 製令類別 (STANDARD 或 OEM)
      */
     workOrderType?: string | null;
     /**
-     * 產出物料類別 (P=成品, M=半成品原料)
+     * 產出類別 (P=成品, M=半成品原料)
      */
-    inventoryType?: string | null;
+    outputType?: string | null;
     /**
-     * 產出物料編碼
+     * 產出代碼
      */
-    targetCode?: string | null;
+    outputCode?: string | null;
     /**
-     * 產出物料名稱
+     * 產出名稱
      */
-    targetName?: string | null;
+    outputName?: string | null;
     /**
      * 產品名稱
      */
@@ -13108,6 +13503,8 @@ export type WorkOrderDtoApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: WorkOrderDtoWritable;
 };
@@ -13142,6 +13539,8 @@ export type WorkOrderDtoPagedResultApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: WorkOrderDtoPagedResultWritable;
 };
@@ -13220,6 +13619,8 @@ export type WorkOrderMaterialDtoApiResponseWritable = {
     success?: boolean;
     message?: string | null;
     error?: unknown;
+    errorCode?: string | null;
+    correlationId?: string | null;
     timestamp?: string;
     data?: WorkOrderMaterialDtoWritable;
 };
@@ -13291,6 +13692,20 @@ export type PostApiV1AuthRegisterResponses = {
 };
 
 export type PostApiV1AuthRegisterResponse = PostApiV1AuthRegisterResponses[keyof PostApiV1AuthRegisterResponses];
+
+export type PostApiV1AuthLogoutData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/Auth/logout';
+};
+
+export type PostApiV1AuthLogoutResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type GetApiV1AuthProfileData = {
     body?: never;
@@ -13507,6 +13922,9 @@ export type PostApiV1AuthResetPasswordResponses = {
 export type PostApiV1AuthResetPasswordResponse = PostApiV1AuthResetPasswordResponses[keyof PostApiV1AuthResetPasswordResponses];
 
 export type PostApiV1AuthResendActivationData = {
+    /**
+     * 忘記密碼/重發啟用信資料
+     */
     body?: ForgotPasswordDto;
     path?: never;
     query?: never;
@@ -13515,13 +13933,9 @@ export type PostApiV1AuthResendActivationData = {
 
 export type PostApiV1AuthResendActivationErrors = {
     /**
-     * 輸入資料驗證失敗或 Token 無效
+     * 輸入資料驗證失敗
      */
     400: unknown;
-    /**
-     * 使用者不存在
-     */
-    404: unknown;
     /**
      * 伺服器內部錯誤
      */
@@ -13530,7 +13944,7 @@ export type PostApiV1AuthResendActivationErrors = {
 
 export type PostApiV1AuthResendActivationResponses = {
     /**
-     * 啟用成功
+     * 如果信箱存在則發送成功
      */
     200: unknown;
 };
@@ -13605,11 +14019,15 @@ export type GetApiV1BomData = {
     path?: never;
     query?: {
         /**
-         * 產品編號或名稱
+         * 產出類別
          */
-        ProductCodeOrName?: string;
+        OutputType?: string;
         /**
-         * 其他雜項
+         * 產出代碼
+         */
+        OutputCode?: string;
+        /**
+         * 關鍵字
          */
         Others?: string;
         /**
@@ -13639,9 +14057,6 @@ export type GetApiV1BomResponses = {
 export type GetApiV1BomResponse = GetApiV1BomResponses[keyof GetApiV1BomResponses];
 
 export type PostApiV1BomData = {
-    /**
-     * 建立資料
-     */
     body?: CreateBomDto;
     path?: never;
     query?: never;
@@ -13657,283 +14072,140 @@ export type PostApiV1BomResponses = {
 
 export type PostApiV1BomResponse = PostApiV1BomResponses[keyof PostApiV1BomResponses];
 
-export type DeleteApiV1BomByProductCodeData = {
+export type DeleteApiV1BomByOutputTypeByOutputCodeData = {
     body?: never;
     path: {
-        /**
-         * 產品編號
-         */
-        productCode: string;
+        outputType: string;
+        outputCode: string;
     };
     query?: never;
-    url: '/api/v1/Bom/{productCode}';
+    url: '/api/v1/Bom/{outputType}/{outputCode}';
 };
 
-export type DeleteApiV1BomByProductCodeResponses = {
+export type DeleteApiV1BomByOutputTypeByOutputCodeResponses = {
     /**
      * OK
      */
     200: BooleanApiResponse;
 };
 
-export type DeleteApiV1BomByProductCodeResponse = DeleteApiV1BomByProductCodeResponses[keyof DeleteApiV1BomByProductCodeResponses];
+export type DeleteApiV1BomByOutputTypeByOutputCodeResponse = DeleteApiV1BomByOutputTypeByOutputCodeResponses[keyof DeleteApiV1BomByOutputTypeByOutputCodeResponses];
 
-export type GetApiV1BomByProductCodeData = {
+export type GetApiV1BomByOutputTypeByOutputCodeData = {
     body?: never;
     path: {
-        /**
-         * 產品編號
-         */
-        productCode: string;
+        outputType: string;
+        outputCode: string;
     };
     query?: never;
-    url: '/api/v1/Bom/{productCode}';
+    url: '/api/v1/Bom/{outputType}/{outputCode}';
 };
 
-export type GetApiV1BomByProductCodeResponses = {
+export type GetApiV1BomByOutputTypeByOutputCodeResponses = {
     /**
      * OK
      */
     200: BomDtoApiResponse;
 };
 
-export type GetApiV1BomByProductCodeResponse = GetApiV1BomByProductCodeResponses[keyof GetApiV1BomByProductCodeResponses];
+export type GetApiV1BomByOutputTypeByOutputCodeResponse = GetApiV1BomByOutputTypeByOutputCodeResponses[keyof GetApiV1BomByOutputTypeByOutputCodeResponses];
 
-export type PutApiV1BomByProductCodeData = {
-    /**
-     * 更新資料
-     */
+export type PutApiV1BomByOutputTypeByOutputCodeData = {
     body?: UpdateBomDto;
     path: {
-        /**
-         * 產品編號
-         */
-        productCode: string;
+        outputType: string;
+        outputCode: string;
     };
     query?: never;
-    url: '/api/v1/Bom/{productCode}';
+    url: '/api/v1/Bom/{outputType}/{outputCode}';
 };
 
-export type PutApiV1BomByProductCodeResponses = {
+export type PutApiV1BomByOutputTypeByOutputCodeResponses = {
     /**
      * OK
      */
     200: BomDtoApiResponse;
 };
 
-export type PutApiV1BomByProductCodeResponse = PutApiV1BomByProductCodeResponses[keyof PutApiV1BomByProductCodeResponses];
+export type PutApiV1BomByOutputTypeByOutputCodeResponse = PutApiV1BomByOutputTypeByOutputCodeResponses[keyof PutApiV1BomByOutputTypeByOutputCodeResponses];
 
-export type GetApiV1BomProductByProductCodeData = {
+export type GetApiV1BomByOutputTypeByOutputCodeItemsData = {
     body?: never;
     path: {
-        /**
-         * 產品編號
-         */
-        productCode: string;
+        outputType: string;
+        outputCode: string;
     };
     query?: never;
-    url: '/api/v1/Bom/product/{productCode}';
+    url: '/api/v1/Bom/{outputType}/{outputCode}/items';
 };
 
-export type GetApiV1BomProductByProductCodeResponses = {
-    /**
-     * OK
-     */
-    200: BomDtoListApiResponse;
-};
-
-export type GetApiV1BomProductByProductCodeResponse = GetApiV1BomProductByProductCodeResponses[keyof GetApiV1BomProductByProductCodeResponses];
-
-export type GetApiV1BomByProductCodeItemsData = {
-    body?: never;
-    path: {
-        /**
-         * 產品編號
-         */
-        productCode: string;
-    };
-    query?: {
-        /**
-         * 原料編號或名稱
-         */
-        MaterialCodeOrName?: string;
-        /**
-         * 規格
-         */
-        Specification?: string;
-        /**
-         * 頁碼
-         */
-        pageNumber?: number;
-        /**
-         * 每頁筆數
-         */
-        pageSize?: number;
-        /**
-         * 多欄位排序規則字串。格式為: "field1:asc,field2:desc"
-         * (例如: "type:asc,code:desc,createdAt:desc")
-         */
-        SortRules?: string;
-    };
-    url: '/api/v1/Bom/{productCode}/items';
-};
-
-export type GetApiV1BomByProductCodeItemsResponses = {
-    /**
-     * OK
-     */
-    200: BomItemDtoPagedResultApiResponse;
-};
-
-export type GetApiV1BomByProductCodeItemsResponse = GetApiV1BomByProductCodeItemsResponses[keyof GetApiV1BomByProductCodeItemsResponses];
-
-export type PostApiV1BomByProductCodeItemsData = {
-    /**
-     * 建立資料
-     */
-    body?: CreateBomItemDto;
-    path: {
-        /**
-         * 產品編號
-         */
-        productCode: string;
-    };
-    query?: never;
-    url: '/api/v1/Bom/{productCode}/items';
-};
-
-export type PostApiV1BomByProductCodeItemsResponses = {
-    /**
-     * OK
-     */
-    200: BomItemDtoApiResponse;
-};
-
-export type PostApiV1BomByProductCodeItemsResponse = PostApiV1BomByProductCodeItemsResponses[keyof PostApiV1BomByProductCodeItemsResponses];
-
-export type DeleteApiV1BomByProductCodeItemsByCodeData = {
-    body?: never;
-    path: {
-        /**
-         * 產品編號
-         */
-        productCode: string;
-        /**
-         * BOM明細代碼
-         */
-        code: string;
-    };
-    query?: never;
-    url: '/api/v1/Bom/{productCode}/items/{code}';
-};
-
-export type DeleteApiV1BomByProductCodeItemsByCodeResponses = {
-    /**
-     * OK
-     */
-    200: BooleanApiResponse;
-};
-
-export type DeleteApiV1BomByProductCodeItemsByCodeResponse = DeleteApiV1BomByProductCodeItemsByCodeResponses[keyof DeleteApiV1BomByProductCodeItemsByCodeResponses];
-
-export type GetApiV1BomByProductCodeItemsByCodeData = {
-    body?: never;
-    path: {
-        /**
-         * 產品編號
-         */
-        productCode: string;
-        /**
-         * BOM明細代碼
-         */
-        code: string;
-    };
-    query?: never;
-    url: '/api/v1/Bom/{productCode}/items/{code}';
-};
-
-export type GetApiV1BomByProductCodeItemsByCodeResponses = {
-    /**
-     * OK
-     */
-    200: BomItemDtoApiResponse;
-};
-
-export type GetApiV1BomByProductCodeItemsByCodeResponse = GetApiV1BomByProductCodeItemsByCodeResponses[keyof GetApiV1BomByProductCodeItemsByCodeResponses];
-
-export type PutApiV1BomByProductCodeItemsByCodeData = {
-    /**
-     * 更新資料
-     */
-    body?: UpdateBomItemDto;
-    path: {
-        /**
-         * 產品編號
-         */
-        productCode: string;
-        /**
-         * BOM明細代碼
-         */
-        code: string;
-    };
-    query?: never;
-    url: '/api/v1/Bom/{productCode}/items/{code}';
-};
-
-export type PutApiV1BomByProductCodeItemsByCodeResponses = {
-    /**
-     * OK
-     */
-    200: BomItemDtoApiResponse;
-};
-
-export type PutApiV1BomByProductCodeItemsByCodeResponse = PutApiV1BomByProductCodeItemsByCodeResponses[keyof PutApiV1BomByProductCodeItemsByCodeResponses];
-
-export type GetApiV1BomByProductCodeItemsAllData = {
-    body?: never;
-    path: {
-        /**
-         * 產品編號
-         */
-        productCode: string;
-    };
-    query?: never;
-    url: '/api/v1/Bom/{productCode}/items/all';
-};
-
-export type GetApiV1BomByProductCodeItemsAllResponses = {
+export type GetApiV1BomByOutputTypeByOutputCodeItemsResponses = {
     /**
      * OK
      */
     200: BomItemDtoListApiResponse;
 };
 
-export type GetApiV1BomByProductCodeItemsAllResponse = GetApiV1BomByProductCodeItemsAllResponses[keyof GetApiV1BomByProductCodeItemsAllResponses];
+export type GetApiV1BomByOutputTypeByOutputCodeItemsResponse = GetApiV1BomByOutputTypeByOutputCodeItemsResponses[keyof GetApiV1BomByOutputTypeByOutputCodeItemsResponses];
 
-export type GetApiV1BomByProductCodeItemsMaterialByMaterialCodeData = {
-    body?: never;
+export type PostApiV1BomByOutputTypeByOutputCodeItemsData = {
+    body?: CreateBomItemDto;
     path: {
-        /**
-         * 產品編號
-         */
-        productCode: string;
-        /**
-         * 原料編號
-         */
-        materialCode: string;
+        outputType: string;
+        outputCode: string;
     };
     query?: never;
-    url: '/api/v1/Bom/{productCode}/items/material/{materialCode}';
+    url: '/api/v1/Bom/{outputType}/{outputCode}/items';
 };
 
-export type GetApiV1BomByProductCodeItemsMaterialByMaterialCodeResponses = {
+export type PostApiV1BomByOutputTypeByOutputCodeItemsResponses = {
     /**
      * OK
      */
     200: BomItemDtoApiResponse;
 };
 
-export type GetApiV1BomByProductCodeItemsMaterialByMaterialCodeResponse = GetApiV1BomByProductCodeItemsMaterialByMaterialCodeResponses[keyof GetApiV1BomByProductCodeItemsMaterialByMaterialCodeResponses];
+export type PostApiV1BomByOutputTypeByOutputCodeItemsResponse = PostApiV1BomByOutputTypeByOutputCodeItemsResponses[keyof PostApiV1BomByOutputTypeByOutputCodeItemsResponses];
+
+export type DeleteApiV1BomByOutputTypeByOutputCodeItemsByCodeData = {
+    body?: never;
+    path: {
+        outputType: string;
+        outputCode: string;
+        code: string;
+    };
+    query?: never;
+    url: '/api/v1/Bom/{outputType}/{outputCode}/items/{code}';
+};
+
+export type DeleteApiV1BomByOutputTypeByOutputCodeItemsByCodeResponses = {
+    /**
+     * OK
+     */
+    200: BooleanApiResponse;
+};
+
+export type DeleteApiV1BomByOutputTypeByOutputCodeItemsByCodeResponse = DeleteApiV1BomByOutputTypeByOutputCodeItemsByCodeResponses[keyof DeleteApiV1BomByOutputTypeByOutputCodeItemsByCodeResponses];
+
+export type PutApiV1BomByOutputTypeByOutputCodeItemsByCodeData = {
+    body?: UpdateBomItemDto;
+    path: {
+        outputType: string;
+        outputCode: string;
+        code: string;
+    };
+    query?: never;
+    url: '/api/v1/Bom/{outputType}/{outputCode}/items/{code}';
+};
+
+export type PutApiV1BomByOutputTypeByOutputCodeItemsByCodeResponses = {
+    /**
+     * OK
+     */
+    200: BomItemDtoApiResponse;
+};
+
+export type PutApiV1BomByOutputTypeByOutputCodeItemsByCodeResponse = PutApiV1BomByOutputTypeByOutputCodeItemsByCodeResponses[keyof PutApiV1BomByOutputTypeByOutputCodeItemsByCodeResponses];
 
 export type GetApiV1BusinessPartnersData = {
     body?: never;
@@ -14421,10 +14693,6 @@ export type GetApiV1CustomerMaterialReceiptData = {
          * 客戶代碼或名稱
          */
         CustomerCodeOrName?: string;
-        /**
-         * 交易客戶代碼
-         */
-        BusinessPartnerCode?: string;
         /**
          * 發票號碼/送貨單號
          */
@@ -15026,7 +15294,7 @@ export type GetApiV1FileAttachmentErrors = {
     /**
      * 參數錯誤
      */
-    400: ProblemDetails;
+    400: ApiResponse;
     /**
      * 伺服器內部錯誤
      */
@@ -15039,10 +15307,48 @@ export type GetApiV1FileAttachmentResponses = {
     /**
      * 查詢成功
      */
-    200: Array<FileAttachmentDto>;
+    200: FileAttachmentDtoListApiResponse;
 };
 
 export type GetApiV1FileAttachmentResponse = GetApiV1FileAttachmentResponses[keyof GetApiV1FileAttachmentResponses];
+
+export type GetApiV1FileAttachmentsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * 關聯類型（如 Material、Mold 等）
+         */
+        referenceType?: string;
+        /**
+         * 關聯識別碼
+         */
+        referenceId?: string;
+    };
+    url: '/api/v1/file-attachments';
+};
+
+export type GetApiV1FileAttachmentsErrors = {
+    /**
+     * 參數錯誤
+     */
+    400: ApiResponse;
+    /**
+     * 伺服器內部錯誤
+     */
+    500: unknown;
+};
+
+export type GetApiV1FileAttachmentsError = GetApiV1FileAttachmentsErrors[keyof GetApiV1FileAttachmentsErrors];
+
+export type GetApiV1FileAttachmentsResponses = {
+    /**
+     * 查詢成功
+     */
+    200: FileAttachmentDtoListApiResponse;
+};
+
+export type GetApiV1FileAttachmentsResponse = GetApiV1FileAttachmentsResponses[keyof GetApiV1FileAttachmentsResponses];
 
 export type GetApiV1FileAttachmentByIdData = {
     body?: never;
@@ -15060,7 +15366,7 @@ export type GetApiV1FileAttachmentByIdErrors = {
     /**
      * 檔案附件不存在
      */
-    404: ProblemDetails;
+    404: ApiResponse;
     /**
      * 伺服器內部錯誤
      */
@@ -15073,10 +15379,44 @@ export type GetApiV1FileAttachmentByIdResponses = {
     /**
      * 查詢成功
      */
-    200: FileAttachmentDto;
+    200: FileAttachmentDtoApiResponse;
 };
 
 export type GetApiV1FileAttachmentByIdResponse = GetApiV1FileAttachmentByIdResponses[keyof GetApiV1FileAttachmentByIdResponses];
+
+export type GetApiV1FileAttachmentsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * 附件 ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/api/v1/file-attachments/{id}';
+};
+
+export type GetApiV1FileAttachmentsByIdErrors = {
+    /**
+     * 檔案附件不存在
+     */
+    404: ApiResponse;
+    /**
+     * 伺服器內部錯誤
+     */
+    500: unknown;
+};
+
+export type GetApiV1FileAttachmentsByIdError = GetApiV1FileAttachmentsByIdErrors[keyof GetApiV1FileAttachmentsByIdErrors];
+
+export type GetApiV1FileAttachmentsByIdResponses = {
+    /**
+     * 查詢成功
+     */
+    200: FileAttachmentDtoApiResponse;
+};
+
+export type GetApiV1FileAttachmentsByIdResponse = GetApiV1FileAttachmentsByIdResponses[keyof GetApiV1FileAttachmentsByIdResponses];
 
 export type PostApiV1FileAttachmentBatchUploadData = {
     body?: {
@@ -15093,7 +15433,7 @@ export type PostApiV1FileAttachmentBatchUploadErrors = {
     /**
      * 參數錯誤或檔案為空
      */
-    400: ProblemDetails;
+    400: ApiResponse;
     /**
      * 伺服器內部錯誤
      */
@@ -15106,10 +15446,43 @@ export type PostApiV1FileAttachmentBatchUploadResponses = {
     /**
      * 上傳成功
      */
-    200: Array<FileAttachmentDto>;
+    200: FileAttachmentDtoListApiResponse;
 };
 
 export type PostApiV1FileAttachmentBatchUploadResponse = PostApiV1FileAttachmentBatchUploadResponses[keyof PostApiV1FileAttachmentBatchUploadResponses];
+
+export type PostApiV1FileAttachmentsBatchUploadData = {
+    body?: {
+        referenceType?: string;
+        referenceId?: string;
+        files?: Array<Blob | File>;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/file-attachments/batch-upload';
+};
+
+export type PostApiV1FileAttachmentsBatchUploadErrors = {
+    /**
+     * 參數錯誤或檔案為空
+     */
+    400: ApiResponse;
+    /**
+     * 伺服器內部錯誤
+     */
+    500: unknown;
+};
+
+export type PostApiV1FileAttachmentsBatchUploadError = PostApiV1FileAttachmentsBatchUploadErrors[keyof PostApiV1FileAttachmentsBatchUploadErrors];
+
+export type PostApiV1FileAttachmentsBatchUploadResponses = {
+    /**
+     * 上傳成功
+     */
+    200: FileAttachmentDtoListApiResponse;
+};
+
+export type PostApiV1FileAttachmentsBatchUploadResponse = PostApiV1FileAttachmentsBatchUploadResponses[keyof PostApiV1FileAttachmentsBatchUploadResponses];
 
 export type DeleteApiV1FileAttachmentBatchDeleteData = {
     /**
@@ -15125,7 +15498,7 @@ export type DeleteApiV1FileAttachmentBatchDeleteErrors = {
     /**
      * 參數錯誤或沒有符合條件的檔案
      */
-    400: ProblemDetails;
+    400: ApiResponse;
     /**
      * 伺服器內部錯誤
      */
@@ -15138,8 +15511,144 @@ export type DeleteApiV1FileAttachmentBatchDeleteResponses = {
     /**
      * 刪除成功
      */
-    200: unknown;
+    200: ApiResponse;
 };
+
+export type DeleteApiV1FileAttachmentBatchDeleteResponse = DeleteApiV1FileAttachmentBatchDeleteResponses[keyof DeleteApiV1FileAttachmentBatchDeleteResponses];
+
+export type DeleteApiV1FileAttachmentsBatchDeleteData = {
+    /**
+     * 批次刪除請求
+     */
+    body?: BatchDeleteRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/file-attachments/batch-delete';
+};
+
+export type DeleteApiV1FileAttachmentsBatchDeleteErrors = {
+    /**
+     * 參數錯誤或沒有符合條件的檔案
+     */
+    400: ApiResponse;
+    /**
+     * 伺服器內部錯誤
+     */
+    500: unknown;
+};
+
+export type DeleteApiV1FileAttachmentsBatchDeleteError = DeleteApiV1FileAttachmentsBatchDeleteErrors[keyof DeleteApiV1FileAttachmentsBatchDeleteErrors];
+
+export type DeleteApiV1FileAttachmentsBatchDeleteResponses = {
+    /**
+     * 刪除成功
+     */
+    200: ApiResponse;
+};
+
+export type DeleteApiV1FileAttachmentsBatchDeleteResponse = DeleteApiV1FileAttachmentsBatchDeleteResponses[keyof DeleteApiV1FileAttachmentsBatchDeleteResponses];
+
+export type PostApiV1TenantsByTenantIdUsersByUserIdFileAttachmentsUploadSessionsData = {
+    /**
+     * 檔案與關聯資料。
+     */
+    body?: CreateUploadSessionRequest;
+    path: {
+        /**
+         * 租戶識別碼。
+         */
+        tenantId: string;
+        /**
+         * 路徑使用者識別碼，必須等於目前登入使用者。
+         */
+        userId: number;
+    };
+    query?: never;
+    url: '/api/v1/tenants/{tenantId}/users/{userId}/file-attachments/upload-sessions';
+};
+
+export type PostApiV1TenantsByTenantIdUsersByUserIdFileAttachmentsUploadSessionsErrors = {
+    /**
+     * 請求驗證失敗。
+     */
+    400: ApiResponse;
+    /**
+     * 工作階段衝突。
+     */
+    409: ProblemDetails;
+    /**
+     * 儲存服務或簽章失敗。
+     */
+    500: unknown;
+};
+
+export type PostApiV1TenantsByTenantIdUsersByUserIdFileAttachmentsUploadSessionsError = PostApiV1TenantsByTenantIdUsersByUserIdFileAttachmentsUploadSessionsErrors[keyof PostApiV1TenantsByTenantIdUsersByUserIdFileAttachmentsUploadSessionsErrors];
+
+export type PostApiV1TenantsByTenantIdUsersByUserIdFileAttachmentsUploadSessionsResponses = {
+    /**
+     * 建立成功。
+     */
+    201: UploadSessionDtoApiResponse;
+};
+
+export type PostApiV1TenantsByTenantIdUsersByUserIdFileAttachmentsUploadSessionsResponse = PostApiV1TenantsByTenantIdUsersByUserIdFileAttachmentsUploadSessionsResponses[keyof PostApiV1TenantsByTenantIdUsersByUserIdFileAttachmentsUploadSessionsResponses];
+
+export type PostApiV1TenantsByTenantIdUsersByUserIdFileAttachmentsUploadSessionsByUploadSessionIdCompleteData = {
+    /**
+     * 物件 ETag 與可選 checksum。
+     */
+    body?: CompleteUploadRequest;
+    path: {
+        /**
+         * 租戶識別碼。
+         */
+        tenantId: string;
+        /**
+         * 路徑使用者識別碼，必須等於目前登入使用者。
+         */
+        userId: number;
+        /**
+         * 工作階段識別碼。
+         */
+        uploadSessionId: string;
+    };
+    query?: never;
+    url: '/api/v1/tenants/{tenantId}/users/{userId}/file-attachments/upload-sessions/{uploadSessionId}/complete';
+};
+
+export type PostApiV1TenantsByTenantIdUsersByUserIdFileAttachmentsUploadSessionsByUploadSessionIdCompleteErrors = {
+    /**
+     * 請求驗證失敗。
+     */
+    400: ApiResponse;
+    /**
+     * 找不到物件。
+     */
+    404: ProblemDetails;
+    /**
+     * 使用者不符或工作階段已完成。
+     */
+    409: ProblemDetails;
+    /**
+     * 工作階段已過期或不存在。
+     */
+    410: ProblemDetails;
+    /**
+     * 儲存服務失敗。
+     */
+    500: unknown;
+};
+
+export type PostApiV1TenantsByTenantIdUsersByUserIdFileAttachmentsUploadSessionsByUploadSessionIdCompleteError = PostApiV1TenantsByTenantIdUsersByUserIdFileAttachmentsUploadSessionsByUploadSessionIdCompleteErrors[keyof PostApiV1TenantsByTenantIdUsersByUserIdFileAttachmentsUploadSessionsByUploadSessionIdCompleteErrors];
+
+export type PostApiV1TenantsByTenantIdUsersByUserIdFileAttachmentsUploadSessionsByUploadSessionIdCompleteResponses = {
+    /**
+     * 完成成功。
+     */
+    200: CompleteUploadDtoApiResponse;
+};
+
+export type PostApiV1TenantsByTenantIdUsersByUserIdFileAttachmentsUploadSessionsByUploadSessionIdCompleteResponse = PostApiV1TenantsByTenantIdUsersByUserIdFileAttachmentsUploadSessionsByUploadSessionIdCompleteResponses[keyof PostApiV1TenantsByTenantIdUsersByUserIdFileAttachmentsUploadSessionsByUploadSessionIdCompleteResponses];
 
 export type GetApiV1GeneralTypesData = {
     body?: never;
@@ -16504,14 +17013,6 @@ export type GetApiV1MaterialData = {
          */
         Others?: string;
         /**
-         * 是否為客供料
-         */
-        IsCustomerSupplied?: boolean;
-        /**
-         * 客供客戶編碼
-         */
-        CustomerCode?: string;
-        /**
          * 頁碼
          */
         pageNumber?: number;
@@ -16810,6 +17311,14 @@ export type GetApiV1MaterialInventoryRollsData = {
          */
         MaterialForm?: string;
         /**
+         * 產權類別 (INTERNAL / CUSTOMER)
+         */
+        OwnershipType?: string;
+        /**
+         * 權屬客戶代碼
+         */
+        OwnerCustomerCode?: string;
+        /**
          * 頁碼
          */
         pageNumber?: number;
@@ -17050,6 +17559,63 @@ export type PostApiV1MoldResponses = {
 };
 
 export type PostApiV1MoldResponse = PostApiV1MoldResponses[keyof PostApiV1MoldResponses];
+
+export type GetApiV1MoldByCodeProductsData = {
+    body?: never;
+    path: {
+        code: string;
+    };
+    query?: {
+        /**
+         * 頁碼
+         */
+        pageNumber?: number;
+        /**
+         * 每頁筆數
+         */
+        pageSize?: number;
+        /**
+         * 多欄位排序規則字串。格式為: "field1:asc,field2:desc"
+         * (例如: "type:asc,code:desc,createdAt:desc")
+         */
+        SortRules?: string;
+    };
+    url: '/api/v1/Mold/{code}/products';
+};
+
+export type GetApiV1MoldByCodeProductsErrors = {
+    /**
+     * Bad Request
+     */
+    400: MoldProductDtoPagedResultApiResponse;
+    /**
+     * Unauthorized
+     */
+    401: MoldProductDtoPagedResultApiResponse;
+    /**
+     * Forbidden
+     */
+    403: MoldProductDtoPagedResultApiResponse;
+    /**
+     * Not Found
+     */
+    404: MoldProductDtoPagedResultApiResponse;
+    /**
+     * Internal Server Error
+     */
+    500: MoldProductDtoPagedResultApiResponse;
+};
+
+export type GetApiV1MoldByCodeProductsError = GetApiV1MoldByCodeProductsErrors[keyof GetApiV1MoldByCodeProductsErrors];
+
+export type GetApiV1MoldByCodeProductsResponses = {
+    /**
+     * OK
+     */
+    200: MoldProductDtoPagedResultApiResponse;
+};
+
+export type GetApiV1MoldByCodeProductsResponse = GetApiV1MoldByCodeProductsResponses[keyof GetApiV1MoldByCodeProductsResponses];
 
 export type DeleteApiV1MoldByCodeData = {
     body?: never;
@@ -18649,6 +19215,24 @@ export type PostApiV1ProductCostUpdatePriceResponses = {
     200: unknown;
 };
 
+export type GetApiV1ProductionMaterialReceiptByDocumentNumberData = {
+    body?: never;
+    path: {
+        documentNumber: string;
+    };
+    query?: never;
+    url: '/api/v1/ProductionMaterialReceipt/{documentNumber}';
+};
+
+export type GetApiV1ProductionMaterialReceiptByDocumentNumberResponses = {
+    /**
+     * OK
+     */
+    200: ProductionMaterialReceiptDtoApiResponse;
+};
+
+export type GetApiV1ProductionMaterialReceiptByDocumentNumberResponse = GetApiV1ProductionMaterialReceiptByDocumentNumberResponses[keyof GetApiV1ProductionMaterialReceiptByDocumentNumberResponses];
+
 export type GetApiV1ProductionReceiptData = {
     body?: never;
     path?: never;
@@ -19612,10 +20196,6 @@ export type PostApiV1PurchaseOrderByCodeSendEmailResponses = {
      * OK
      */
     200: ObjectApiResponse;
-    /**
-     * No Content
-     */
-    204: ObjectApiResponse;
 };
 
 export type PostApiV1PurchaseOrderByCodeSendEmailResponse = PostApiV1PurchaseOrderByCodeSendEmailResponses[keyof PostApiV1PurchaseOrderByCodeSendEmailResponses];
@@ -20943,276 +21523,6 @@ export type GetApiV1SalesDeliveryAllocatedRollsResponses = {
 
 export type GetApiV1SalesDeliveryAllocatedRollsResponse = GetApiV1SalesDeliveryAllocatedRollsResponses[keyof GetApiV1SalesDeliveryAllocatedRollsResponses];
 
-export type GetApiSqlMonitoringSettingsData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/SqlMonitoring/settings';
-};
-
-export type GetApiSqlMonitoringSettingsErrors = {
-    /**
-     * 未授權
-     */
-    401: unknown;
-};
-
-export type GetApiSqlMonitoringSettingsResponses = {
-    /**
-     * 查詢成功
-     */
-    200: SqlMonitoringSettingsApiResponse;
-};
-
-export type GetApiSqlMonitoringSettingsResponse = GetApiSqlMonitoringSettingsResponses[keyof GetApiSqlMonitoringSettingsResponses];
-
-export type PostApiSqlMonitoringEnableData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/SqlMonitoring/enable';
-};
-
-export type PostApiSqlMonitoringEnableErrors = {
-    /**
-     * 未授權
-     */
-    401: unknown;
-    /**
-     * 伺服器內部錯誤
-     */
-    500: ObjectApiResponse;
-};
-
-export type PostApiSqlMonitoringEnableError = PostApiSqlMonitoringEnableErrors[keyof PostApiSqlMonitoringEnableErrors];
-
-export type PostApiSqlMonitoringEnableResponses = {
-    /**
-     * 啟用成功
-     */
-    200: ObjectApiResponse;
-};
-
-export type PostApiSqlMonitoringEnableResponse = PostApiSqlMonitoringEnableResponses[keyof PostApiSqlMonitoringEnableResponses];
-
-export type PostApiSqlMonitoringDisableData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/SqlMonitoring/disable';
-};
-
-export type PostApiSqlMonitoringDisableErrors = {
-    /**
-     * 未授權
-     */
-    401: unknown;
-    /**
-     * 伺服器內部錯誤
-     */
-    500: ObjectApiResponse;
-};
-
-export type PostApiSqlMonitoringDisableError = PostApiSqlMonitoringDisableErrors[keyof PostApiSqlMonitoringDisableErrors];
-
-export type PostApiSqlMonitoringDisableResponses = {
-    /**
-     * 停用成功
-     */
-    200: ObjectApiResponse;
-};
-
-export type PostApiSqlMonitoringDisableResponse = PostApiSqlMonitoringDisableResponses[keyof PostApiSqlMonitoringDisableResponses];
-
-export type GetApiSqlMonitoringStatusData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/SqlMonitoring/status';
-};
-
-export type GetApiSqlMonitoringStatusErrors = {
-    /**
-     * 未授權
-     */
-    401: unknown;
-};
-
-export type GetApiSqlMonitoringStatusResponses = {
-    /**
-     * 查詢成功
-     */
-    200: ObjectApiResponse;
-};
-
-export type GetApiSqlMonitoringStatusResponse = GetApiSqlMonitoringStatusResponses[keyof GetApiSqlMonitoringStatusResponses];
-
-export type PostApiSqlMonitoringSlowQueryThresholdByThresholdMsData = {
-    body?: never;
-    path: {
-        /**
-         * 閾值（毫秒）
-         */
-        thresholdMs: number;
-    };
-    query?: never;
-    url: '/api/SqlMonitoring/slow-query-threshold/{thresholdMs}';
-};
-
-export type PostApiSqlMonitoringSlowQueryThresholdByThresholdMsErrors = {
-    /**
-     * Bad Request
-     */
-    400: unknown;
-};
-
-export type PostApiSqlMonitoringSlowQueryThresholdByThresholdMsResponses = {
-    /**
-     * OK
-     */
-    200: ObjectApiResponse;
-};
-
-export type PostApiSqlMonitoringSlowQueryThresholdByThresholdMsResponse = PostApiSqlMonitoringSlowQueryThresholdByThresholdMsResponses[keyof PostApiSqlMonitoringSlowQueryThresholdByThresholdMsResponses];
-
-export type PostApiSqlMonitoringLogParametersByEnableData = {
-    body?: never;
-    path: {
-        /**
-         * 是否啟用參數記錄
-         */
-        enable: boolean;
-    };
-    query?: never;
-    url: '/api/SqlMonitoring/log-parameters/{enable}';
-};
-
-export type PostApiSqlMonitoringLogParametersByEnableResponses = {
-    /**
-     * OK
-     */
-    200: ObjectApiResponse;
-};
-
-export type PostApiSqlMonitoringLogParametersByEnableResponse = PostApiSqlMonitoringLogParametersByEnableResponses[keyof PostApiSqlMonitoringLogParametersByEnableResponses];
-
-export type PostApiSqlMonitoringLogStackTraceByEnableData = {
-    body?: never;
-    path: {
-        /**
-         * 是否啟用堆疊追蹤記錄
-         */
-        enable: boolean;
-    };
-    query?: never;
-    url: '/api/SqlMonitoring/log-stack-trace/{enable}';
-};
-
-export type PostApiSqlMonitoringLogStackTraceByEnableResponses = {
-    /**
-     * OK
-     */
-    200: ObjectApiResponse;
-};
-
-export type PostApiSqlMonitoringLogStackTraceByEnableResponse = PostApiSqlMonitoringLogStackTraceByEnableResponses[keyof PostApiSqlMonitoringLogStackTraceByEnableResponses];
-
-export type PostApiSqlMonitoringResetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/SqlMonitoring/reset';
-};
-
-export type PostApiSqlMonitoringResetResponses = {
-    /**
-     * OK
-     */
-    200: ObjectApiResponse;
-};
-
-export type PostApiSqlMonitoringResetResponse = PostApiSqlMonitoringResetResponses[keyof PostApiSqlMonitoringResetResponses];
-
-export type GetApiSqlMonitoringBufferStatsData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/SqlMonitoring/buffer-stats';
-};
-
-export type GetApiSqlMonitoringBufferStatsResponses = {
-    /**
-     * 查詢成功
-     */
-    200: ObjectApiResponse;
-};
-
-export type GetApiSqlMonitoringBufferStatsResponse = GetApiSqlMonitoringBufferStatsResponses[keyof GetApiSqlMonitoringBufferStatsResponses];
-
-export type PostApiSqlMonitoringFlushBufferData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/SqlMonitoring/flush-buffer';
-};
-
-export type PostApiSqlMonitoringFlushBufferResponses = {
-    /**
-     * 刷新成功
-     */
-    200: ObjectApiResponse;
-};
-
-export type PostApiSqlMonitoringFlushBufferResponse = PostApiSqlMonitoringFlushBufferResponses[keyof PostApiSqlMonitoringFlushBufferResponses];
-
-export type GetApiSqlMonitoringTestSimpleQueryData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/SqlMonitoringTest/simple-query';
-};
-
-export type GetApiSqlMonitoringTestSimpleQueryResponses = {
-    /**
-     * OK
-     */
-    200: ObjectApiResponse;
-};
-
-export type GetApiSqlMonitoringTestSimpleQueryResponse = GetApiSqlMonitoringTestSimpleQueryResponses[keyof GetApiSqlMonitoringTestSimpleQueryResponses];
-
-export type GetApiSqlMonitoringTestComplexQueryData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/SqlMonitoringTest/complex-query';
-};
-
-export type GetApiSqlMonitoringTestComplexQueryResponses = {
-    /**
-     * OK
-     */
-    200: ObjectApiResponse;
-};
-
-export type GetApiSqlMonitoringTestComplexQueryResponse = GetApiSqlMonitoringTestComplexQueryResponses[keyof GetApiSqlMonitoringTestComplexQueryResponses];
-
-export type GetApiSqlMonitoringTestSlowQueryData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/SqlMonitoringTest/slow-query';
-};
-
-export type GetApiSqlMonitoringTestSlowQueryResponses = {
-    /**
-     * OK
-     */
-    200: ObjectApiResponse;
-};
-
-export type GetApiSqlMonitoringTestSlowQueryResponse = GetApiSqlMonitoringTestSlowQueryResponses[keyof GetApiSqlMonitoringTestSlowQueryResponses];
-
 export type GetApiV1StorageData = {
     body?: never;
     path?: never;
@@ -21529,10 +21839,6 @@ export type GetApiV1StorageInventoryData = {
          * 庫存物料編號（模糊搜尋）
          */
         InventoryCode?: string;
-        /**
-         * 庫存類型篩選
-         */
-        Type?: string;
     };
     url: '/api/v1/Storage/inventory';
 };
@@ -21567,6 +21873,45 @@ export type GetApiV1SystemMaintenanceSettingsData = {
 };
 
 export type GetApiV1SystemMaintenanceSettingsResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type GetApiV1SystemMaintenanceErpSettingsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/SystemMaintenance/erp-settings';
+};
+
+export type GetApiV1SystemMaintenanceErpSettingsResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type GetApiV1SystemMaintenanceLogoData = {
+    body?: never;
+    path?: never;
+    query?: {
+        mode?: string;
+    };
+    url: '/api/v1/SystemMaintenance/logo';
+};
+
+export type GetApiV1SystemMaintenanceLogoErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type GetApiV1SystemMaintenanceLogoError = GetApiV1SystemMaintenanceLogoErrors[keyof GetApiV1SystemMaintenanceLogoErrors];
+
+export type GetApiV1SystemMaintenanceLogoResponses = {
     /**
      * OK
      */
@@ -21751,6 +22096,9 @@ export type GetApiV1UserData = {
          * 每頁數量 (預設 20)
          */
         pageSize?: number;
+        /**
+         * 使用者名稱或信箱關鍵字
+         */
         name?: string;
     };
     url: '/api/v1/User';
@@ -21952,9 +22300,17 @@ export type GetApiV1WorkOrderData = {
          */
         OrderNumber?: string;
         /**
+         * 產出類別 (P / M)
+         */
+        OutputType?: string;
+        /**
+         * 產出代碼
+         */
+        OutputCode?: string;
+        /**
          * 產品編碼或名稱
          */
-        ProductCodeOrName?: string;
+        OutputCodeOrName?: string;
         /**
          * 機台編碼
          */

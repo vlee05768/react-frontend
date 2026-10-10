@@ -33,15 +33,33 @@ Swagger 產生結果包含 AttachmentController 所需契約：
 - 新增 Auth logout、Mold products、ProductionMaterialReceipt、SystemMaintenance endpoints
 - 多個既有查詢欄位與回應型別變更
 
+## 根因確認
+
+此阻塞不是附件 Swagger input 損壞，也不是 generated SDK 需要手改；根因是前端 `master` 的 generated baseline 落後 backend `dev` 的近期契約變更：
+
+- backend `b40d59e` 已將 BOM 路由從 `{productCode}` 改為 `{outputType}/{outputCode}`。
+- backend `6faac48` 新增 Mold 關聯產品查詢；backend `98fb061`、`f2109e9` 等批次調整多個錯誤回應與路由契約。
+- `openapi-ts.config.ts` 目前直接以 `VITE_DEV_API_TARGET/swagger/v1/swagger.json` 為 input；repo 沒有可供本次安全切換的 frozen Swagger snapshot。
+
+因此不能只保留附件差異，也不應刪除路由掩蓋差異；正確處置是以 backend 現行 Swagger 重新產生，再同步實際受影響 consumer。
+
+## 最小修正
+
+- 依現行 backend Swagger 重新產生 `src/api/generated/index.ts`、`sdk.gen.ts`、`types.gen.ts`，未手改 generated 檔案。
+- `ProductPricingList.tsx` 改用 generated 的多態 BOM API，產品查詢固定傳 `outputType: 'P'`。
+- `moldProducts.ts` 改用 generated 的 `getApiV1MoldByCodeProducts` 與 generated DTO；同步補上 generated optional response 欄位的安全處理。
+- `molds.ts`、模具關聯產品元件及其兩組測試同步現行 generated optional/非 readonly 型別與 SDK mock 邊界。
+- 未修改 backend 路由、無關業務邏輯、版號或 frozen contract；未刪路由、未 push。
+
 ## 驗證結果
 
-- `pnpm test`：通過，23 files / 173 tests
-- `pnpm exec tsc --noEmit`：失敗
-  - `src/api/molds.test.ts(29,65): error TS2554: Expected 1 arguments, but got 0.`
-  - `src/pages/sales/pricing/ProductPricingList.tsx(13,3): error TS2724: ... has no exported member named 'getApiV1BomByProductCode'.`
-- `pnpm run build`：失敗，同上述 TypeScript 錯誤
-- 全量產生 diff 執行 `git diff --check`：通過
+- backend Swagger：206 paths、310 schemas；確認 BOM 舊路由不存在、新多態路由存在。
+- `dotnet test --no-restore`：395 passed、1 skipped。
+- `pnpm test`：通過，23 files / 173 tests。
+- `pnpm exec tsc --noEmit`：通過。
+- `pnpm run build`：通過。
+- `git diff --check`：通過。
 
-## 阻塞原因與後續
+## 結論
 
-目前 API contract pipeline 以執行時 Swagger 為全量 input，但該 Swagger 混入非附件路由漂移；不能手改 generated SDK，也不能刪除不相關路由掩蓋問題。需由 API contract pipeline 固定相容 Swagger input／重新產生並提交正確基線，或同步所有受影響 consumer 後再重跑完整驗證。此次不提交 generated SDK，保留前端既有驗證基線 `a4e6ed4`。
+相容性阻塞已由「後端近期路由／契約變更未同步前端 generated baseline」確認並以最小 consumer 同步修正解除。frozen contract 目前不存在，且本次不新增 snapshot；後續若要避免全量 runtime Swagger 漂移，應另案建立版本化、由 backend 產生並審核的 contract artifact，再由 `openapi-ts` pipeline 固定引用。

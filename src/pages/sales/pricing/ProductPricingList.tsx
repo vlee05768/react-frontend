@@ -10,7 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageCard } from "@/components/common/PageCard";
 import { 
   getApiV1Product, 
-  getApiV1BomByProductCode
+  getApiV1BomByOutputTypeByOutputCode
 } from "@/api/generated/sdk.gen";
 import { client } from "@/api/generated/client.gen";
 import { useThemeStore } from "@/stores/useThemeStore";
@@ -140,7 +140,7 @@ export default function ProductPricingList() {
     queryKey: ["product-pricing-bom", selectedProductCode],
     queryFn: async () => {
       try {
-        const res = await getApiV1BomByProductCode({ path: { productCode: selectedProductCode! } });
+        const res = await getApiV1BomByOutputTypeByOutputCode({ path: { outputType: 'P', outputCode: selectedProductCode! } });
         return res.data?.data || null;
       } catch (e: any) {
         if (e?.response?.status === 404 || e?.response?.status === 400 || (e && !e.response)) {

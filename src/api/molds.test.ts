@@ -26,6 +26,6 @@ describe('typed mold list response without generated SDK edits', () => {
     expect(adapter.mock.calls[0][0].url).toBe('/api/v1/Mold?pageNumber=1&pageSize=20');
     expect(adapter.mock.calls[0][0].signal).toBe(signal);
     expectTypeOf(result.data.data[0].relatedProductCount).toEqualTypeOf<number | null | undefined>();
-    expectTypeOf<Pick<MoldListRecord, 'relatedProductCount'>>().toEqualTypeOf<{ readonly relatedProductCount?: number | null }>();
+    expectTypeOf<Pick<MoldListRecord, 'relatedProductCount'>>().toEqualTypeOf<{ relatedProductCount?: number | null }>();
   });
 });

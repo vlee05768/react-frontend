@@ -65,14 +65,14 @@ function AssociatedProductsContent({ mold, onClose }: { mold: Mold; onClose: () 
             <Typography.Text type="danger">無法載入關聯產品。</Typography.Text>
             <Button icon={<ReloadOutlined />} onClick={() => query.refetch()}>重試</Button>
           </div>
-        ) : query.data?.data.length ? (
+        ) : query.data?.data?.length ? (
           <Table<MoldProduct>
             rowKey="code"
             size="small"
             bordered
-            pagination={{ current: pageNumber, pageSize: 100, total: query.data.totalRecords, showSizeChanger: false, onChange: setPageNumber }}
+            pagination={{ current: pageNumber, pageSize: 100, total: query.data.totalRecords ?? 0, showSizeChanger: false, onChange: setPageNumber }}
             scroll={{ x: 'max-content', y: 420 }}
-            dataSource={query.data.data}
+            dataSource={query.data.data ?? []}
             columns={buildTableColumns(associatedProductsTableColumns())}
           />
         ) : (

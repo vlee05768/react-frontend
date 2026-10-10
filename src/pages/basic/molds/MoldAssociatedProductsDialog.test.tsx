@@ -8,8 +8,8 @@ import MoldAssociatedProductsDialog from './MoldAssociatedProductsDialog';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { createJSONStorage } from 'zustand/middleware';
 
-const mocks = vi.hoisted(() => ({ allowed: true, products: vi.fn(), molds: vi.fn() }));
-vi.mock('@/api/generated/sdk.gen', () => ({ getApiV1Product: mocks.products, getApiV1ProductByProductCodeMolds: mocks.molds }));
+const mocks = vi.hoisted(() => ({ allowed: true, products: vi.fn(), molds: vi.fn(), moldProducts: vi.fn() }));
+vi.mock('@/api/generated/sdk.gen', () => ({ getApiV1Product: mocks.products, getApiV1ProductByProductCodeMolds: mocks.molds, getApiV1MoldByCodeProducts: mocks.moldProducts }));
 const request = vi.spyOn(client, 'get');
 function response(pageNumber = 1, totalRecords = 1, rows = [{ code: 'P-001', name: '產品一' as string | null }]) {
   return { status: 200, statusText: 'OK', headers: {}, config: { headers: new AxiosHeaders() }, error: undefined, data: { success: true, code: 200, message: '操作成功', errors: null, data: { pageNumber, pageSize: 100, totalPages: Math.ceil(totalRecords / 100), totalRecords, data: rows } } };
@@ -30,6 +30,7 @@ beforeEach(() => {
   useAuthStore.setState({ user: { userName: 'operator', roles: [], permissions: ['BasicData.Products.View'] }, permissionTree: [{ key: 'BasicData.Products.View', active: true }] });
   request.mockReset();
   request.mockResolvedValue(response());
+  mocks.moldProducts.mockImplementation((options) => client.get({ ...options, url: '/api/v1/Mold/{code}/products' }));
   mocks.products.mockResolvedValue({ data: { data: { data: [] } } });
 });
 afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllGlobals(); });

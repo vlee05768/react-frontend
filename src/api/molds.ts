@@ -1,10 +1,8 @@
 import { getApiV1Mold } from './generated/sdk.gen';
 import type { GetApiV1MoldData, MoldDto } from './generated/types.gen';
 
-/** CONTEXT.md §7.3.2 additive readonly field, pending managed SDK regeneration. */
-export type MoldListRecord = MoldDto & {
-  readonly relatedProductCount?: number | null;
-};
+/** The generated contract now includes the additive related-product count. */
+export type MoldListRecord = MoldDto;
 
 export interface MoldListPage {
   pageNumber: number;
