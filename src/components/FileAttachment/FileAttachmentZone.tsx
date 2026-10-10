@@ -27,6 +27,16 @@ import { SINGLE_TENANT_ATTACHMENT_ID } from './fileAttachmentConstants';
 
 const { Dragger } = Upload;
 
+type ApiResponsePayload<T> = {
+  data?: T | null;
+};
+
+export function unwrapAttachmentData<T>(response: unknown): T | undefined {
+  if (Array.isArray(response)) return response as T;
+  if (!response || typeof response !== 'object') return undefined;
+  return 'data' in response ? (response as ApiResponsePayload<T>).data ?? undefined : undefined;
+}
+
 export interface FileAttachmentZoneProps {
   tenantId?: string;
   referenceType: string;
@@ -60,15 +70,14 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
           referenceId,
         }
       });
-      // Handle ApiResponse wrapper or direct array
-      const resultData = (data as any)?.data || data;
+      const resultData = unwrapAttachmentData<FileAttachmentDto[]>(data);
       if (Array.isArray(resultData)) {
         setAttachments(resultData);
       } else {
         setAttachments([]);
       }
     } catch (error) {
-      message.error('取得附件失敗');
+      message.error(getApiMutationErrorMessage(error, '取得附件失敗'));
     } finally {
       setLoading(false);
     }
