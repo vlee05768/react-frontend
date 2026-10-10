@@ -31,6 +31,26 @@ describe('getApiErrorDetails', () => {
     });
   });
 
+  it('reads hey-api response.error message without exposing the original response object', () => {
+    expect(getApiErrorDetails({
+      error: { message: '驗證連結已失效', errorCode: 'AUTH_LINK_INVALID', correlationId: 'corr-auth-123' },
+    })).toEqual({
+      message: '驗證連結已失效',
+      errorCode: 'AUTH_LINK_INVALID',
+      correlationId: 'corr-auth-123',
+    });
+  });
+
+  it('replaces token-shaped authentication messages with a generic message', () => {
+    expect(getApiErrorDetails({
+      error: { message: 'token=secret-token-value', errorCode: 'AUTH_FAILURE', correlationId: 'corr-auth-safe' },
+    })).toEqual({
+      message: '系統發生錯誤',
+      errorCode: 'AUTH_FAILURE',
+      correlationId: 'corr-auth-safe',
+    });
+  });
+
   it('falls back safely and never serializes arbitrary error objects', () => {
     expect(getApiErrorMessage({ response: { data: { error: { secret: 'do-not-display' } } } }, '操作失敗'))
       .toBe('操作失敗');

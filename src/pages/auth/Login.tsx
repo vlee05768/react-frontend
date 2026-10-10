@@ -6,6 +6,10 @@ import type { InputRef } from 'antd';
 import { ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { postApiV1AuthLogin } from '@/api/generated/sdk.gen';
+import { getAuthErrorMessage } from '@/utils/apiErrorDisplay';
+import { logger } from '@/utils/logger';
+
+const LOGIN_ERROR_FALLBACK = '登入失敗，請確認帳號與密碼後再試';
 
 export default function Login() {
   const { message } = App.useApp();
@@ -44,9 +48,8 @@ export default function Login() {
 
       // hey-api 的預設行為：發生 HTTP 錯誤時不會 throw，而是把錯誤內容放在 response.error 中
       if (response.error) {
-        const errorData = response.error as any;
-        const msg = errorData?.message || errorData?.title || '帳號或密碼錯誤，請重新輸入';
-        setErrorMsg(msg);
+        logger.error('auth.login.failed');
+        setErrorMsg(getAuthErrorMessage(response.error, LOGIN_ERROR_FALLBACK, { hideReason: true }));
         
         // 盲操優化：一秒內自動 Focus 密碼欄位並全選，讓使用者能直接重新輸入
         setTimeout(() => {
@@ -79,9 +82,8 @@ export default function Login() {
         setErrorMsg('系統未回傳 Token，請聯絡系統管理員');
       }
     } catch (error: any) {
-      const errorData = error?.response?.data || error;
-      const msg = errorData?.message || errorData?.title || '登入發生錯誤，請稍後再試';
-      setErrorMsg(msg);
+      logger.error('auth.login.failed');
+      setErrorMsg(getAuthErrorMessage(error, LOGIN_ERROR_FALLBACK, { hideReason: true }));
       
       setTimeout(() => {
         passwordInputRef.current?.focus({ cursor: 'all' });

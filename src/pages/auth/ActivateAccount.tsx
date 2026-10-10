@@ -4,7 +4,10 @@ import { LockOutlined, CheckCircleFilled, CloseCircleFilled } from '@ant-design/
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ROUTES } from '@/constants/routes';
 import { postApiV1AuthActivateAccount } from '@/api/generated/sdk.gen';
+import { getAuthErrorMessage } from '@/utils/apiErrorDisplay';
 import { logger } from '@/utils/logger';
+
+const ACTIVATE_ACCOUNT_ERROR_FALLBACK = '啟用帳號並設定密碼失敗，請重新開啟啟用連結或稍後再試';
 
 export default function ActivateAccount() {
   const navigate = useNavigate();
@@ -58,26 +61,10 @@ export default function ActivateAccount() {
       });
 
       if (response.error) {
-        const errorData = response.error as any;
-        const errorMsg = errorData?.message || errorData?.title || '啟用帳號並設定密碼失敗，請稍後再試';
-
-        // 檢查是否為 token 相關錯誤
-        const errMsgLower = errorMsg.toLowerCase();
-        if (
-          errMsgLower.includes('token') ||
-          errMsgLower.includes('invalid') ||
-          errorMsg.includes('無效') ||
-          errorMsg.includes('過期')
-        ) {
-          setErrorMessage(errorMsg);
-          setStep('error');
-        } else {
-          Modal.error({
-            centered: true,
-            title: '啟用帳號失敗',
-            content: errorMsg,
-          });
-        }
+        logger.error('auth.account-activation.failed');
+        const errorMsg = getAuthErrorMessage(response.error, ACTIVATE_ACCOUNT_ERROR_FALLBACK);
+        setErrorMessage(errorMsg);
+        setStep('error');
         return;
       }
 
@@ -85,11 +72,10 @@ export default function ActivateAccount() {
       setStep('success');
     } catch (error: any) {
       logger.error('auth.account-activation.failed');
-      const errorData = error?.response?.data || error;
       Modal.error({
         centered: true,
         title: '啟用帳號失敗',
-        content: errorData?.message || errorData?.title || '啟用發生異常，請稍後再試',
+        content: getAuthErrorMessage(error, ACTIVATE_ACCOUNT_ERROR_FALLBACK),
       });
     } finally {
       setLoading(false);

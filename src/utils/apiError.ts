@@ -16,7 +16,7 @@ const SENSITIVE_CONTENT = [
   /(?:sql|sqlite|postgres(?:ql)?|mysql|mssql|ora-\d+)/i,
   /(?:stack\s*trace|traceback|at\s+.+\(.+\)|system\.[a-z]+(?:exception|reflection))/i,
   /(?:connection\s*string|server=|data\s*source=|host=|initial\s+catalog=|user\s*id=|password=)/i,
-  /(?:bearer\s+|access[_-]?token|refresh[_-]?token|api[_-]?key|client_secret|password\s*[:=])/i,
+  /(?:bearer\s+|token\s*[:=]|access[_-]?token|refresh[_-]?token|api[_-]?key|client_secret|password\s*[:=])/i,
   /https?:\/\/[^\s]+[?&](?:sig|se|sp|sv|sr|st|skoid|sktid|se)=/i,
 ];
 

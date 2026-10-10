@@ -4,6 +4,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useMemo } from 'react';
 import { ROUTES } from '@/constants/routes';
 import { postApiV1AuthResetPassword } from '@/api/generated/sdk.gen';
+import { getAuthErrorMessage } from '@/utils/apiErrorDisplay';
+import { logger } from '@/utils/logger';
+
+const RESET_PASSWORD_ERROR_FALLBACK = '重設密碼失敗，請重新申請重設連結或稍後再試';
 
 export default function ResetPassword() {
   const { message } = App.useApp();
@@ -37,8 +41,8 @@ export default function ResetPassword() {
       });
 
       if (response.error) {
-        const errorData = response.error as any;
-        const msg = errorData?.message || errorData?.title || '重設密碼失敗，Token 可能已過期';
+        logger.error('auth.reset-password.failed');
+        const msg = getAuthErrorMessage(response.error, RESET_PASSWORD_ERROR_FALLBACK);
         setErrorMsg(msg);
         message.error(msg);
         return;
@@ -47,7 +51,8 @@ export default function ResetPassword() {
       message.success('密碼重設成功，請使用新密碼登入');
       navigate(ROUTES.LOGIN);
     } catch (err: any) {
-      const msg = err?.message || '重設密碼失敗，請稍後再試';
+      logger.error('auth.reset-password.failed');
+      const msg = getAuthErrorMessage(err, RESET_PASSWORD_ERROR_FALLBACK);
       setErrorMsg(msg);
       message.error(msg);
     } finally {

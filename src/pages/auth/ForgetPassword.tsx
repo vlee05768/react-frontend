@@ -4,6 +4,10 @@ import { MailOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/constants/routes';
 import { postApiV1AuthForgotPassword } from '@/api/generated/sdk.gen';
+import { getAuthErrorMessage } from '@/utils/apiErrorDisplay';
+import { logger } from '@/utils/logger';
+
+const FORGOT_PASSWORD_ERROR_FALLBACK = '目前無法處理請求，請稍後再試';
 
 export default function ForgetPassword() {
   const { message } = App.useApp();
@@ -25,9 +29,8 @@ export default function ForgetPassword() {
       });
 
       if (response.error) {
-        const errorData = response.error as any;
-        const msg = errorData?.message || errorData?.title || '發送失敗，請稍後再試';
-        message.error(msg);
+        logger.error('auth.forgot-password.failed');
+        message.error(getAuthErrorMessage(response.error, FORGOT_PASSWORD_ERROR_FALLBACK, { hideReason: true }));
         return;
       }
 
@@ -35,9 +38,8 @@ export default function ForgetPassword() {
       setSubmittedEmail(values.email);
       setIsSuccess(true);
     } catch (error: any) {
-      const errorData = error?.response?.data || error;
-      const msg = errorData?.message || errorData?.title || '發送失敗，請稍後再試';
-      message.error(msg);
+      logger.error('auth.forgot-password.failed');
+      message.error(getAuthErrorMessage(error, FORGOT_PASSWORD_ERROR_FALLBACK, { hideReason: true }));
     } finally {
       setLoading(false);
     }
