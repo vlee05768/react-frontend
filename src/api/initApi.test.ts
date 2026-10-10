@@ -16,4 +16,17 @@ describe('initializeApi', () => {
       orderDate: [dayjs('2026-08-01'), dayjs('2026-09-29')],
     })).toBe('orderDate=2026-08-01&orderDate=2026-09-29');
   });
+
+  it('重複初始化不會重複註冊 request/response interceptors', () => {
+    const requestHandlers = (client.instance.interceptors.request as unknown as { handlers: unknown[] }).handlers;
+    const responseHandlers = (client.instance.interceptors.response as unknown as { handlers: unknown[] }).handlers;
+    const requestCount = requestHandlers.length;
+    const responseCount = responseHandlers.length;
+
+    initializeApi();
+    initializeApi();
+
+    expect(requestHandlers.length).toBe(requestCount);
+    expect(responseHandlers.length).toBe(responseCount);
+  });
 });

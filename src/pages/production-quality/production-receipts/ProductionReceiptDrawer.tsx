@@ -25,6 +25,7 @@ import {
 import ProductionReceiptItemsTab from './ProductionReceiptItemsTab';
 import { getStatusTag, mainFormConfig } from './ProductionReceiptConfig';
 import { DocumentWatchButton } from '@/components/common/DocumentWatchButton';
+import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
 
 export default function ProductionReceiptDrawer() {
   const navigate = useNavigate();
@@ -74,7 +75,7 @@ export default function ProductionReceiptDrawer() {
       const newId = (res.data?.data as any)?.documentNumber || (res.data as any)?.documentNumber;
       navigate(`/production-quality/production-receipts/${newId}`, { replace: true });
     },
-    onError: (err: any) => message.error(err.response?.data?.message || '新增失敗'),
+    onError: (err: any) => message.error(getApiMutationErrorMessage(err, '新增失敗')),
   });
 
   const updateMutation = useMutation({
@@ -85,7 +86,7 @@ export default function ProductionReceiptDrawer() {
       queryClient.invalidateQueries({ queryKey: ['productionReceipts'] });
       setIsEditing(false);
     },
-    onError: (err: any) => message.error(err.response?.data?.message || '更新失敗'),
+    onError: (err: any) => message.error(getApiMutationErrorMessage(err, '更新失敗')),
   });
 
   const handleFinish = (values: any) => {
@@ -110,7 +111,7 @@ export default function ProductionReceiptDrawer() {
       queryClient.invalidateQueries({ queryKey: ['productionReceipts'] });
       queryClient.invalidateQueries({ queryKey: ['productionReceipt', id] });
     },
-    onError: (err: any) => message.error(err.response?.data?.message || '確認失敗'),
+    onError: (err: any) => message.error(getApiMutationErrorMessage(err, '確認失敗')),
   });
 
   const cancelConfirmMutation = useMutation({
@@ -120,7 +121,7 @@ export default function ProductionReceiptDrawer() {
       queryClient.invalidateQueries({ queryKey: ['productionReceipts'] });
       queryClient.invalidateQueries({ queryKey: ['productionReceipt', id] });
     },
-    onError: (err: any) => message.error(err.response?.data?.message || '取消確認失敗'),
+    onError: (err: any) => message.error(getApiMutationErrorMessage(err, '取消確認失敗')),
   });
 
   /* const closeMutation = useMutation({
@@ -129,7 +130,7 @@ export default function ProductionReceiptDrawer() {
       queryClient.invalidateQueries({ queryKey: ['productionReceipts'] });
       queryClient.invalidateQueries({ queryKey: ['productionReceipt', id] });
     },
-    onError: (err: any) => message.error(err.response?.data?.message || '結案失敗'),
+    onError: (err: any) => message.error(getApiMutationErrorMessage(err, '結案失敗')),
   }); */
 
   /* const cancelCloseMutation = useMutation({
@@ -138,7 +139,7 @@ export default function ProductionReceiptDrawer() {
       queryClient.invalidateQueries({ queryKey: ['productionReceipts'] });
       queryClient.invalidateQueries({ queryKey: ['productionReceipt', id] });
     },
-    onError: (err: any) => message.error(err.response?.data?.message || '取消結案失敗'),
+    onError: (err: any) => message.error(getApiMutationErrorMessage(err, '取消結案失敗')),
   }); */
 
   const handleClose = () => {

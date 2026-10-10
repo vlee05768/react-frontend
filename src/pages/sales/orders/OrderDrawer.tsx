@@ -26,7 +26,7 @@ import { getFormConfig, getStatusTag } from './OrderConfig';
 import OrderItemsTab from './OrderItemsTab';
 import { DocumentWatchButton } from '@/components/common/DocumentWatchButton';
 
-import { getApiErrorMessage } from '@/utils/apiError';
+import { getApiMutationErrorContent } from '@/utils/apiErrorDisplay';
 
 export default function OrderDrawer() {
   const navigate = useNavigate();
@@ -35,6 +35,14 @@ export default function OrderDrawer() {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const { hasPermission } = useAuthStore();
+
+  const showOrderMutationError = (operation: string, error: unknown) => {
+    modal.error({
+      centered: true,
+      title: '訂單操作失敗',
+      content: <div style={{ whiteSpace: 'pre-wrap', textAlign: 'left' }}>{getApiMutationErrorContent(error, operation)}</div>,
+    });
+  };
 
   const isCreating = id === 'create';
   const [isEditing, setIsEditing] = useState(isCreating);
@@ -115,7 +123,7 @@ export default function OrderDrawer() {
       }
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(error)}` });
+      showOrderMutationError('新增訂單', error);
     }
   });
 
@@ -134,7 +142,7 @@ export default function OrderDrawer() {
       setIsEditing(false);
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${getApiErrorMessage(error)}` });
+      showOrderMutationError('更新訂單', error);
     }
   });
   const confirmMutation = useMutation({
@@ -145,7 +153,7 @@ export default function OrderDrawer() {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `確認失敗: ${getApiErrorMessage(error)}` });
+      showOrderMutationError('確認訂單', error);
     }
   });
 
@@ -157,7 +165,7 @@ export default function OrderDrawer() {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `取消確認失敗: ${getApiErrorMessage(error)}` });
+      showOrderMutationError('取消確認訂單', error);
     }
   });
 
@@ -169,7 +177,7 @@ export default function OrderDrawer() {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `結案失敗: ${getApiErrorMessage(error)}` });
+      showOrderMutationError('結案訂單', error);
     }
   });
 
@@ -181,12 +189,12 @@ export default function OrderDrawer() {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `取消結案失敗: ${getApiErrorMessage(error)}` });
+      showOrderMutationError('取消結案訂單', error);
     }
   });
 
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = (values: any) => {
     const formattedValues = {
       ...values,
       orderDate: values.orderDate ? dayjs(values.orderDate).format('YYYY-MM-DD') : undefined,
@@ -194,18 +202,14 @@ export default function OrderDrawer() {
       promisedDeliveryDate: values.promisedDeliveryDate ? dayjs(values.promisedDeliveryDate).format('YYYY-MM-DD') : undefined,
     };
 
-    try {
-      if (isCreating) {
-        // 如果是自動編碼的顯示文字，在送出前移除它避免後端驗證報錯
-        if (formattedValues.orderNumber === '【系統自動編碼】') {
-          delete formattedValues.orderNumber;
-        }
-        await createMutation.mutateAsync(formattedValues as CreateOrderDto);
-      } else {
-        await updateMutation.mutateAsync(formattedValues as UpdateOrderDto);
+    if (isCreating) {
+      // 如果是自動編碼的顯示文字，在送出前移除它避免後端驗證報錯
+      if (formattedValues.orderNumber === '【系統自動編碼】') {
+        delete formattedValues.orderNumber;
       }
-    } catch (e) {
-      // 錯誤已在 mutation onError 中處理
+      createMutation.mutate(formattedValues as CreateOrderDto);
+    } else {
+      updateMutation.mutate(formattedValues as UpdateOrderDto);
     }
   };
 

@@ -16,6 +16,7 @@ import { useErpListQuery } from '@/hooks/useErpListQuery';
 import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
 import StandardErpTable from '@/components/Table/StandardErpTable';
 import { MODAL_WIDTH_SEARCH, MODAL_BODY_MAX_HEIGHT } from '@/constants/ui';
+import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
 
 export default function CustomerMaterialReceiptList() {
   const { message } = App.useApp();
@@ -79,7 +80,7 @@ export default function CustomerMaterialReceiptList() {
       message.success('刪除成功');
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipts'] });
     },
-    onError: (err: any) => message.error(err.response?.data?.message || '刪除失敗'),
+    onError: (err: any) => message.error(getApiMutationErrorMessage(err, '刪除失敗')),
   });
 
   const actionColumn = {

@@ -48,6 +48,7 @@ import { useFileDownload } from "@/hooks/useFileDownload";
 import { AsyncSelect } from "@/components/Form/AsyncSelect";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { client } from "@/api/generated/client.gen";
+import { getApiMutationErrorMessage } from "@/utils/apiErrorDisplay";
 import { getIqcFormFields } from "./IqcConfig";
 import { DynamicForm } from "@/components/Form/DynamicForm";
 import { ActionBar } from "@/components/common/ActionBar";
@@ -701,7 +702,7 @@ export default function IqcDrawer({
       refetch();
     },
     onError: (err: any) =>
-      message.error(err.response?.data?.message || "升級全檢失敗"),
+      message.error(getApiMutationErrorMessage(err, "升級全檢失敗")),
   });
 
   // 3. 品檢結案最終過帳之 Mutation
@@ -739,7 +740,7 @@ export default function IqcDrawer({
       refetch();
     },
     onError: (err: any) =>
-      message.error(err.response?.data?.message || "過帳失敗，請重試"),
+      message.error(getApiMutationErrorMessage(err, "過帳失敗，請重試")),
   });
 
   // 4. 特採審核主管核准/拒絕 Mutations
@@ -769,7 +770,7 @@ export default function IqcDrawer({
       refetch();
     },
     onError: (err: any) =>
-      message.error(err.response?.data?.message || "核准特採失敗"),
+      message.error(getApiMutationErrorMessage(err, "核准特採失敗")),
   });
 
   const rejectConcessionMutation = useMutation({
@@ -790,7 +791,7 @@ export default function IqcDrawer({
       refetch();
     },
     onError: (err: any) =>
-      message.error(err.response?.data?.message || "拒絕特採失敗"),
+      message.error(getApiMutationErrorMessage(err, "拒絕特採失敗")),
   });
 
   // 💡 儲存品檢單草稿之 Mutation
@@ -808,7 +809,7 @@ export default function IqcDrawer({
       refetch();
     },
     onError: (err: any) =>
-      message.error(err.response?.data?.message || "儲存草稿失敗，請重試"),
+      message.error(getApiMutationErrorMessage(err, "儲存草稿失敗，請重試")),
   });
 
   const handleSaveDraft = () => {
@@ -1073,7 +1074,7 @@ export default function IqcDrawer({
       refetch();
     },
     onError: (err: any) =>
-      message.error(err.response?.data?.message || "重置待檢驗失敗"),
+      message.error(getApiMutationErrorMessage(err, "重置待檢驗失敗")),
   });
 
   const handleResetToPending = () => {
@@ -1109,8 +1110,7 @@ export default function IqcDrawer({
       refetch();
     },
     onError: (err: any) => {
-      const errMsg =
-        err.response?.data?.message || err.message || "取消過帳失敗";
+      const errMsg = getApiMutationErrorMessage(err, "取消過帳失敗");
       Modal.error({
         title: "撤銷過帳失敗 (ERP 剛性業務鎖定)",
         content: errMsg,

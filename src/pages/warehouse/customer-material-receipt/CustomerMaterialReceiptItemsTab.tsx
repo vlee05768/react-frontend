@@ -9,6 +9,7 @@ import type { CustomerMaterialReceiptDto, CustomerMaterialReceiptItemDto, Create
 import { postApiV1CustomerMaterialReceiptByCodeItems, putApiV1CustomerMaterialReceiptByCodeItemsByLineNumber, deleteApiV1CustomerMaterialReceiptByCodeItemsByLineNumber } from '@/api/generated';
 import CustomerMaterialPickerModal from './CustomerMaterialPickerModal';
 import { logger } from '@/utils/logger';
+import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
 
 interface CustomerMaterialReceiptItemsTabProps {
   receiptData: CustomerMaterialReceiptDto;
@@ -66,7 +67,7 @@ export default function CustomerMaterialReceiptItemsTab({
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipts'] });
       handleCancel();
     },
-    onError: (err: any) => message.error(err.response?.data?.message || '新增失敗'),
+    onError: (err: any) => message.error(getApiMutationErrorMessage(err, '新增失敗')),
   });
 
   const updateMutation = useMutation({
@@ -81,7 +82,7 @@ export default function CustomerMaterialReceiptItemsTab({
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipts'] });
       handleCancel();
     },
-    onError: (err: any) => message.error(err.response?.data?.message || '更新失敗'),
+    onError: (err: any) => message.error(getApiMutationErrorMessage(err, '更新失敗')),
   });
 
   const deleteMutation = useMutation({
@@ -94,7 +95,7 @@ export default function CustomerMaterialReceiptItemsTab({
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipt', documentNumber] });
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipts'] });
     },
-    onError: (err: any) => message.error(err.response?.data?.message || '刪除失敗'),
+    onError: (err: any) => message.error(getApiMutationErrorMessage(err, '刪除失敗')),
   });
 
   const handlePickerConfirm = async (selected: any[]) => {

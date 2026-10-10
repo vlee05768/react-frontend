@@ -1,12 +1,13 @@
 import axios from 'axios';
 import { useAuthStore } from '../stores/useAuthStore';
-import { antdGlobal } from '../utils/antdGlobal';
 
 export const apiClient = axios.create({
   // Production uses the same-origin reverse proxy; development keeps VITE_API_BASE_URL configurable.
   baseURL: import.meta.env.VITE_API_BASE_URL || '/',
   timeout: 10000,
 });
+
+let authRedirecting = false;
 
 apiClient.interceptors.request.use(
   (config) => {
@@ -25,26 +26,13 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    // 統一錯誤提取
-    const errorMsg = error.response?.data?.message || error.message || '系統發生錯誤';
-    const isTable = errorMsg.includes('|');
-    // 💡 支援 \n 換行排版顯示，且若含有表格則套用等寬字型並靠左對齊
-    antdGlobal.message?.error({
-      content: errorMsg,
-      style: { 
-        whiteSpace: 'pre-wrap', 
-        fontFamily: isTable ? 'Consolas, Monaco, monospace' : 'inherit',
-        textAlign: 'left'
-      }
-    });
-    if (error.response?.status === 401) {
-      useAuthStore.getState().logout();
-      if (window.location.pathname !== '/login') {
-        const redirectUrl = encodeURIComponent(window.location.pathname + window.location.search);
-        window.location.href = `/login?redirect=${redirectUrl}`;
-      } else {
-        window.location.href = '/login';
-      }
+    // 頁面 mutation 負責顯示可診斷的錯誤，避免與全域提示重複。
+    if (error.response?.status === 401 && window.location.pathname !== '/login' && !authRedirecting) {
+      authRedirecting = true;
+      const authState = useAuthStore.getState();
+      authState.logout();
+      const redirectUrl = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `/login?redirect=${redirectUrl}`;
     }
     return Promise.reject(error);
   }

@@ -4,7 +4,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getApiV1QcReceiptByMovementNumberItems, deleteApiV1QcReceiptByMovementNumberItemsByReferenceNumber, postApiV1QcReceiptByMovementNumberItems } from '@/api/generated';
-import { getApiErrorMessage } from '@/utils/apiError';
+import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
 import QcProductionReceiptSelector from './QcProductionReceiptSelector';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { DynamicForm } from '@/components/Form/DynamicForm';
@@ -37,7 +37,7 @@ export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceip
       message.success('明細刪除成功');
       queryClient.invalidateQueries({ queryKey: ['qcReceiptItems', documentNumber] });
     },
-    onError: (err) => message.error(getApiErrorMessage(err, '明細刪除失敗')),
+    onError: (err) => message.error(getApiMutationErrorMessage(err, '明細刪除失敗')),
   });
 
   const addMutation = useMutation({
@@ -47,7 +47,7 @@ export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceip
       message.success('明細新增成功');
       queryClient.invalidateQueries({ queryKey: ['qcReceiptItems', documentNumber] });
     },
-    onError: (err) => message.error(getApiErrorMessage(err, '明細新增失敗')),
+    onError: (err) => message.error(getApiMutationErrorMessage(err, '明細新增失敗')),
   });
 
   const handleImport = async (selectedItems: any[]) => {

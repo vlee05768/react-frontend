@@ -8,6 +8,7 @@ import {
   postApiV1GeneralTypes 
 } from '@/api/generated';
 import { logger } from '@/utils/logger';
+import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
 
 export function useBrandModels() {
   const [brands, setBrands] = useState<any[]>([]);
@@ -66,7 +67,7 @@ export function useBrandModels() {
         message.error((res.data as any)?.message || '載入廠牌失敗');
       }
     } catch (error: any) {
-      message.error(error.message || '載入廠牌失敗');
+      message.error(getApiMutationErrorMessage(error, '載入廠牌失敗'));
     } finally {
       setLoadingBrands(false);
     }
@@ -89,7 +90,7 @@ export function useBrandModels() {
         message.error((res.data as any)?.message || '載入型號失敗');
       }
     } catch (error: any) {
-      message.error(error.message || '載入型號失敗');
+      message.error(getApiMutationErrorMessage(error, '載入型號失敗'));
     } finally {
       setLoadingModels(false);
     }
@@ -145,7 +146,7 @@ export function useBrandModels() {
             message.error((res.data as any)?.message || '廠牌刪除失敗');
           }
         } catch (error: any) {
-          message.error(error.message || '廠牌刪除失敗');
+          message.error(getApiMutationErrorMessage(error, '廠牌刪除失敗'));
         }
       },
     });
@@ -233,7 +234,7 @@ export function useBrandModels() {
             message.error((res.data as any)?.message || '型號刪除失敗');
           }
         } catch (error: any) {
-          message.error(error.message || '型號刪除失敗');
+          message.error(getApiMutationErrorMessage(error, '型號刪除失敗'));
         }
       },
     });

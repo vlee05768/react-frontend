@@ -20,6 +20,7 @@ import {
   postApiV1WorkOrderReturnByDocumentNumberConfirm
 } from "@/api/generated/sdk.gen";
 import { getApiErrorMessage } from "@/utils/apiError";
+import { parseBomShortageError } from "./workOrderError";
 import dayjs from "dayjs";
 import { MasterDetailTabs } from "@/components/Form/MasterDetailTabs";
 import { DynamicForm } from "@/components/Form/DynamicForm";
@@ -70,29 +71,10 @@ function useStatusMutation({
     },
     onError: (error) => {
       const errorMsg = getApiErrorMessage(error);
-      let isJsonTable = false;
-      let errorData: any = null;
+      const errorData = parseBomShortageError(errorMsg);
+      let instance: { destroy: () => void } | null = null;
 
-      try {
-        // 💡 智慧提取 JSON：即便被 "備料確認失敗: " 等字串包裹，也能 100% 強健解析！
-        const firstBrace = errorMsg?.indexOf('{');
-        const lastBrace = errorMsg?.lastIndexOf('}');
-        
-        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-          const jsonString = errorMsg.substring(firstBrace, lastBrace + 1);
-          const parsed = JSON.parse(jsonString);
-          if (parsed && parsed.isBOMError) {
-            errorData = parsed;
-            isJsonTable = true;
-          }
-        }
-      } catch (e) {
-        // Not valid JSON
-      }
-
-      let instance: any = null;
-
-      if (isJsonTable && errorData) {
+      if (errorData) {
         instance = modal.error({
           title: "作業失敗",
           width: "40vw", // 💡 寬度調整為 40vw
@@ -101,7 +83,7 @@ function useStatusMutation({
           content: (
             <div className="flex flex-col gap-3">
               <div className="text-sm font-bold text-slate-800 dark:text-slate-200 text-left mb-1">
-                {errorData.title}
+                BOM 領料不足
               </div>
               
               {/* 原生高質感無隔線自適應 Dark Mode 表格 (支援防折行 whiteSpace nowrap) */}
@@ -116,7 +98,7 @@ function useStatusMutation({
                     </tr>
                   </thead>
                   <tbody>
-                    {errorData.details?.map((item: any, idx: number) => (
+                    {errorData.details.map((item, idx) => (
                       <tr key={idx} className="border-b last:border-b-0 border-gray-100 dark:border-zinc-800/80">
                         <td className="px-4 py-2.5 font-mono font-medium text-slate-800 dark:text-slate-100 whitespace-nowrap">{item.code}</td>
                         <td className="px-4 py-2.5 text-center whitespace-nowrap">

@@ -1,10 +1,15 @@
 import { client } from './generated/client.gen';
 import dayjs from 'dayjs';
 import { useAuthStore } from '../stores/useAuthStore';
-import { Modal } from "antd";
+
 import { useLoadingStore } from '../stores/useLoadingStore';
 
+let isInitialized = false;
+
 export function initializeApi() {
+  if (isInitialized) return;
+  isInitialized = true;
+
   // Configured to use relative path so Vite proxy handles it
   client.setConfig({
     baseURL: '',
@@ -76,25 +81,19 @@ export function initializeApi() {
     },
     (error) => {
       useLoadingStore.getState().hideLoading();
-      if (error.response) {
-        if (error.response.status === 401) {
-          if (window.location.pathname !== '/login') {
-            Modal.error({ centered: true, title: '登入逾期', content: '登入狀態已失效，請重新登入' });
-            useAuthStore.getState().logout();
-            const redirectUrl = encodeURIComponent(window.location.pathname + window.location.search);
-            window.location.href = `/login?redirect=${redirectUrl}`;
-          }
-        }
-        
-        // 正規化錯誤訊息，支援 .NET ProblemDetails 與自訂 ApiResponse
-        const data = error.response.data;
-        if (data && !data.message) {
-          if (data.errors && typeof data.errors === 'object') {
-            const firstError = Object.values(data.errors)[0];
-            data.message = Array.isArray(firstError) ? firstError[0] : data.title;
-          } else if (data.title) {
-            data.message = data.title;
-          }
+      // 認證失效與一般業務錯誤由 src/api/client.ts 的單一入口處理；
+      // 此攔截器不顯示 UI，只做向後相容的安全訊息正規化並保留 rejection。
+      const data = error.response?.data;
+      if (data && typeof data === 'object' && !Array.isArray(data) && !('message' in data)) {
+        const payload = data as { message?: unknown; title?: unknown; errors?: unknown };
+        const firstValidationMessage = payload.errors && typeof payload.errors === 'object'
+          ? Object.values(payload.errors as Record<string, unknown>)
+            .flatMap((value) => Array.isArray(value) ? value : [value])
+            .find((value): value is string => typeof value === 'string' && value.trim().length > 0)
+          : undefined;
+        const title = typeof payload.title === 'string' && payload.title.trim() ? payload.title : undefined;
+        if (firstValidationMessage || title) {
+          payload.message = firstValidationMessage || title;
         }
       }
       return Promise.reject(error);

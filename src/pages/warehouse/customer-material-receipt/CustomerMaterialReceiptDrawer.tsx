@@ -16,6 +16,7 @@ import { masterFormConfig, getStatusTag } from './CustomerMaterialReceiptConfig'
 import CustomerMaterialReceiptItemsTab from './CustomerMaterialReceiptItemsTab';
 
 import { getApiV1CustomerMaterialReceiptByCode, postApiV1CustomerMaterialReceipt, putApiV1CustomerMaterialReceiptByCode, postApiV1CustomerMaterialReceiptByCodeConfirm, postApiV1CustomerMaterialReceiptByCodeCancelConfirm, deleteApiV1CustomerMaterialReceiptByCode } from '@/api/generated';
+import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
 
 export default function CustomerMaterialReceiptDrawer() {
   const { documentNumber: routeId } = useParams<{ documentNumber: string }>();
@@ -98,7 +99,7 @@ export default function CustomerMaterialReceiptDrawer() {
         setIsEditing(false);
       }
     },
-    onError: (err: any) => message.error(err.response?.data?.message || '建立失敗'),
+    onError: (err: any) => message.error(getApiMutationErrorMessage(err, '建立失敗')),
   });
 
   const updateMutation = useMutation({
@@ -113,7 +114,7 @@ export default function CustomerMaterialReceiptDrawer() {
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipts'] });
       setIsEditing(false);
     },
-    onError: (err: any) => message.error(err.response?.data?.message || '更新失敗'),
+    onError: (err: any) => message.error(getApiMutationErrorMessage(err, '更新失敗')),
   });
 
   const confirmMutation = useMutation({
@@ -126,7 +127,7 @@ export default function CustomerMaterialReceiptDrawer() {
     onError: (err: any) => {
       modal.error({
         title: '過帳失敗',
-        content: err.response?.data?.message || '確認過帳發生錯誤，請檢查原料代號與儲位設定。',
+        content: getApiMutationErrorMessage(err, '確認過帳發生錯誤，請檢查原料代號與儲位設定。'),
         centered: true,
       });
     },
@@ -142,7 +143,7 @@ export default function CustomerMaterialReceiptDrawer() {
     onError: (err: any) => {
       modal.error({
         title: '無法取消確認',
-        content: err.response?.data?.message || '取消確認失敗。這通常是因為該批原料已在車間生產中被領用消耗，為了維護「帳實一致」系統禁止回滾。',
+        content: getApiMutationErrorMessage(err, '取消確認失敗。這通常是因為該批原料已在車間生產中被領用消耗，為了維護「帳實一致」系統禁止回滾。'),
         centered: true,
       });
     },
@@ -155,7 +156,7 @@ export default function CustomerMaterialReceiptDrawer() {
       queryClient.invalidateQueries({ queryKey: ['customer-material-receipts'] });
       navigate('/warehouse/customer-material-receipt');
     },
-    onError: (err: any) => message.error(err.response?.data?.message || '刪除失敗'),
+    onError: (err: any) => message.error(getApiMutationErrorMessage(err, '刪除失敗')),
   });
 
   // Handle Master Save Submit

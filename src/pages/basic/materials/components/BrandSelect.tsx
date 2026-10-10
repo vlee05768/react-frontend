@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Select, Button, Space, Modal, Input, Form, message } from 'antd';
 import { PlusOutlined, SaveOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
 import { getApiV1GeneralTypes, postApiV1GeneralTypes } from '@/api/generated/sdk.gen';
 
 interface BrandSelectProps {
@@ -53,7 +54,7 @@ export const BrandSelect: React.FC<BrandSelectProps> = ({ value, onChange, disab
       }
     },
     onError: (error: any) => {
-      message.error(error.message || '廠牌新增失敗');
+      message.error(getApiMutationErrorMessage(error, '廠牌新增失敗'));
     }
   });
 

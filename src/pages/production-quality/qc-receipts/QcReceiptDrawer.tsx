@@ -14,7 +14,7 @@ import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { DRAWER_WIDTH_MAIN } from '@/constants/ui';
-import { getApiErrorMessage } from '@/utils/apiError';
+import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
 
 import {
   getApiV1QcReceiptByMovementNumber,
@@ -107,7 +107,7 @@ export default function QcReceiptDrawer() {
       const newId = (res.data?.data as any)?.documentNumber || (res.data as any)?.documentNumber;
       navigate(`/production-quality/qc-receipts/${newId}`, { replace: true });
     },
-    onError: (err) => message.error(getApiErrorMessage(err, '新增失敗')),
+    onError: (err) => message.error(getApiMutationErrorMessage(err, '新增失敗')),
   });
 
   const updateMutation = useMutation({
@@ -118,7 +118,7 @@ export default function QcReceiptDrawer() {
       queryClient.invalidateQueries({ queryKey: ['qcReceipts'] });
       setIsEditing(false);
     },
-    onError: (err) => message.error(getApiErrorMessage(err, '更新失敗')),
+    onError: (err) => message.error(getApiMutationErrorMessage(err, '更新失敗')),
   });
 
   const confirmMutation = useMutation({
@@ -129,7 +129,7 @@ export default function QcReceiptDrawer() {
       queryClient.invalidateQueries({ queryKey: ['qcReceipts'] });
       setIsEditing(false);
     },
-    onError: (err) => message.error(getApiErrorMessage(err, '確認失敗')),
+    onError: (err) => message.error(getApiMutationErrorMessage(err, '確認失敗')),
   });
 
   const cancelConfirmMutation = useMutation({
@@ -139,7 +139,7 @@ export default function QcReceiptDrawer() {
       queryClient.invalidateQueries({ queryKey: ['qcReceipt'] });
       queryClient.invalidateQueries({ queryKey: ['qcReceipts'] });
     },
-    onError: (err) => message.error(getApiErrorMessage(err, '取消確認失敗')),
+    onError: (err) => message.error(getApiMutationErrorMessage(err, '取消確認失敗')),
   });
 
   const handleFinish = (values: any) => {
