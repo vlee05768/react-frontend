@@ -33,7 +33,7 @@ import {
   getApiV1WorkOrderReturnWipRolls,
   getApiV1Storage,
 } from "@/api/generated/sdk.gen";
-import { getApiErrorMessage } from "@/utils/apiError";
+import { getApiMutationErrorMessage } from "@/utils/apiErrorDisplay";
 import dayjs from "dayjs";
 import { DynamicForm } from "@/components/Form/DynamicForm";
 import { returnHeaderFormConfig, type WorkOrderFormValues } from "./WorkOrderConfig";
@@ -239,7 +239,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     onError: (error) => {
       modal.error({
         title: "建立失敗",
-        content: getApiErrorMessage(error),
+        content: getApiMutationErrorMessage(error, "建立失敗"),
         centered: true,
       });
     },
@@ -263,7 +263,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     onError: (error) => {
       modal.error({
         title: "儲存失敗",
-        content: getApiErrorMessage(error),
+        content: getApiMutationErrorMessage(error, "儲存失敗"),
         centered: true,
       });
     },
@@ -289,7 +289,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     onError: (error) => {
       modal.error({
         title: "刪除失敗",
-        content: getApiErrorMessage(error),
+        content: getApiMutationErrorMessage(error, "刪除失敗"),
         centered: true,
       });
     },
@@ -315,7 +315,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     onError: (error) => {
       modal.error({
         title: "取消失敗",
-        content: getApiErrorMessage(error),
+        content: getApiMutationErrorMessage(error, "取消失敗"),
         centered: true,
       });
     },

@@ -30,7 +30,7 @@ import {
   getApiV1MaterialInventoryLogical,
   getApiV1WorkOrderRequisitionFifo,
 } from "@/api/generated/sdk.gen";
-import { getApiErrorMessage } from "@/utils/apiError";
+import { getApiMutationErrorMessage } from "@/utils/apiErrorDisplay";
 import dayjs from "dayjs";
 import { DynamicForm } from "@/components/Form/DynamicForm";
 import {
@@ -195,7 +195,7 @@ export function WorkOrderRequisitionTab({
         );
       }
     } catch (err: any) {
-      message.error("一鍵配料失敗：" + (err?.message || err));
+      message.error(getApiMutationErrorMessage(err, "一鍵配料失敗"));
     } finally {
       hide();
       setIsAutoAllocating(false);
@@ -284,7 +284,7 @@ export function WorkOrderRequisitionTab({
     onError: (error) => {
       modal.error({
         title: "建立失敗",
-        content: getApiErrorMessage(error),
+        content: getApiMutationErrorMessage(error, "建立失敗"),
         centered: true,
       });
     },
@@ -309,7 +309,7 @@ export function WorkOrderRequisitionTab({
     onError: (error) => {
       modal.error({
         title: "儲存失敗",
-        content: getApiErrorMessage(error),
+        content: getApiMutationErrorMessage(error, "儲存失敗"),
         centered: true,
       });
     },
@@ -331,7 +331,7 @@ export function WorkOrderRequisitionTab({
     onError: (error) => {
       modal.error({
         title: "刪除失敗",
-        content: getApiErrorMessage(error),
+        content: getApiMutationErrorMessage(error, "刪除失敗"),
         centered: true,
       });
     },
@@ -1172,7 +1172,7 @@ export function WorkOrderRequisitionTab({
                           );
                         }
                       } catch (err: any) {
-                        message.error("自動配料失敗：" + (err?.message || err));
+                        message.error(getApiMutationErrorMessage(err, "自動配料失敗"));
                       } finally {
                         hide();
                       }

@@ -17,7 +17,7 @@ import type { OrderDto } from '@/api/generated/types.gen';
 import useOrderQueryStore from './useOrderQueryStore';
 import { searchConfig, getColumns } from './OrderConfig';
 
-import { getApiErrorMessage } from '@/utils/apiError';
+import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
 import { useErpListQuery } from '@/hooks/useErpListQuery';
 import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
 import StandardErpTable from '@/components/Table/StandardErpTable';
@@ -53,7 +53,7 @@ export default function OrdersList() {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '刪除失敗') });
     }
   });
 

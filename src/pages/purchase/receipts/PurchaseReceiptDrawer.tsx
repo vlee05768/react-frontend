@@ -24,7 +24,7 @@ import { DRAWER_WIDTH_MAIN } from '@/constants/ui';
 import { mainFormConfig, getStatusTag } from './PurchaseReceiptConfig';
 import PurchaseReceiptItemsTab from './PurchaseReceiptItemsTab';
 import { DocumentWatchButton } from '@/components/common/DocumentWatchButton';
-import { getApiErrorMessage } from '@/utils/apiError';
+import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
 
 export default function PurchaseReceiptDrawer() {
   const navigate = useNavigate();
@@ -104,7 +104,7 @@ export default function PurchaseReceiptDrawer() {
       }
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(error)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '新增失敗') });
     }
   });
 
@@ -117,7 +117,7 @@ export default function PurchaseReceiptDrawer() {
       setIsEditing(false);
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${getApiErrorMessage(error)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '更新失敗') });
     }
   });
 
@@ -129,7 +129,7 @@ export default function PurchaseReceiptDrawer() {
       queryClient.invalidateQueries({ queryKey: ['purchase-receipts'] });
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `確認失敗: ${getApiErrorMessage(error)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '確認失敗') });
     }
   });
 
@@ -141,7 +141,7 @@ export default function PurchaseReceiptDrawer() {
       queryClient.invalidateQueries({ queryKey: ['purchase-receipts'] });
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `取消確認失敗: ${getApiErrorMessage(error)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '取消確認失敗') });
     }
   });
 
@@ -153,11 +153,11 @@ export default function PurchaseReceiptDrawer() {
       navigate(basePath, { replace: true });
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '刪除失敗') });
     }
   });
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = (values: any) => {
     const formattedValues = {
       ...values,
       targetPlantCode: 'TW',
@@ -165,19 +165,15 @@ export default function PurchaseReceiptDrawer() {
       documentDate: values.documentDate ? dayjs(values.documentDate).format('YYYY-MM-DD') : undefined,
     };
 
-    try {
-      if (isCreating) {
-        if (formattedValues.documentNumber === '【系統自動編碼】') {
-          delete formattedValues.documentNumber;
-        }
-        // Set default items array on creation
-        formattedValues.items = [];
-        await createMutation.mutateAsync(formattedValues as CreatePurchaseReceiptDto);
-      } else {
-        await updateMutation.mutateAsync(formattedValues as UpdatePurchaseReceiptDto);
+    if (isCreating) {
+      if (formattedValues.documentNumber === '【系統自動編碼】') {
+        delete formattedValues.documentNumber;
       }
-    } catch (e) {
-      // 錯誤已在 mutation onError 中處理
+      // Set default items array on creation
+      formattedValues.items = [];
+      createMutation.mutate(formattedValues as CreatePurchaseReceiptDto);
+    } else {
+      updateMutation.mutate(formattedValues as UpdatePurchaseReceiptDto);
     }
   };
 

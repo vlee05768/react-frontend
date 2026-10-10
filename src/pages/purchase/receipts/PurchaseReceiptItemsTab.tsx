@@ -11,7 +11,7 @@ import { DynamicForm } from '@/components/Form/DynamicForm';
 import type { PurchaseReceiptDto, PurchaseReceiptItemDto } from '@/api/generated/types.gen';
 import { getItemColumns, getItemFormConfig } from './PurchaseReceiptConfig';
 import PurchaseOrderItemSelector from './PurchaseOrderItemSelector';
-import { getApiErrorMessage } from '@/utils/apiError';
+import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
 
 const { Text } = Typography;
 
@@ -66,7 +66,7 @@ export default function PurchaseReceiptItemsTab({ purchaseReceiptData, isMasterV
       modal.error({ 
         centered: true, 
         title: '錯誤提示', 
-        content: `加入明細失敗: ${getApiErrorMessage(err)}` 
+        content: getApiMutationErrorMessage(err, '加入明細失敗')
       });
     }
   };
@@ -87,7 +87,7 @@ export default function PurchaseReceiptItemsTab({ purchaseReceiptData, isMasterV
       modal.error({ 
         centered: true, 
         title: '錯誤提示', 
-        content: `更新明細失敗: ${getApiErrorMessage(error)}` 
+        content: getApiMutationErrorMessage(error, '更新明細失敗')
       });
     }
   });
@@ -106,7 +106,7 @@ export default function PurchaseReceiptItemsTab({ purchaseReceiptData, isMasterV
       modal.error({ 
         centered: true, 
         title: '錯誤提示', 
-        content: `刪除明細失敗: ${getApiErrorMessage(error)}` 
+        content: getApiMutationErrorMessage(error, '刪除明細失敗')
       });
     }
   });
@@ -124,16 +124,12 @@ export default function PurchaseReceiptItemsTab({ purchaseReceiptData, isMasterV
     });
   };
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = (values: any) => {
     if (!editingItem) return;
-    try {
-      await updateMutation.mutateAsync({ 
-        lineNumber: editingItem.lineNumber!, 
-        values 
-      });
-    } catch (e) {
-      // 錯誤已在 mutation onError 處理
-    }
+    updateMutation.mutate({
+      lineNumber: editingItem.lineNumber!,
+      values
+    });
   };
 
   const showForm = !!editingItem;

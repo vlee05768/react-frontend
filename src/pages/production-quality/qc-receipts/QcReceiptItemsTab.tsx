@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Table, message } from 'antd';
+import { Button, Table, App } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -17,7 +17,7 @@ interface QcReceiptItemsTabProps {
 }
 
 export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceiptItemsTabProps) {
-  // const { modal } = App.useApp();
+  const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -70,8 +70,12 @@ export default function QcReceiptItemsTab({ documentNumber, isLocked }: QcReceip
         await addMutation.mutateAsync(payload);
       }
       setIsSelectorOpen(false);
-    } catch (e) {
-      // errors handled by mutation
+    } catch (error) {
+      modal.error({
+        centered: true,
+        title: '錯誤提示',
+        content: getApiMutationErrorMessage(error, '匯入 QC 明細失敗'),
+      });
     }
   };
 
