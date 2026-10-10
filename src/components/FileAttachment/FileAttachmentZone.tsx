@@ -22,6 +22,7 @@ import {
   uploadAttachment,
   type UploadAttachmentOptions,
 } from './fileAttachmentUpload';
+import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
 import { SINGLE_TENANT_ATTACHMENT_ID } from './fileAttachmentConstants';
 
 const { Dragger } = Upload;
@@ -160,7 +161,8 @@ export const FileAttachmentZone: React.FC<FileAttachmentZoneProps> = ({
           message.success('刪除成功');
           fetchAttachments();
         } catch (error) {
-          message.error('刪除失敗');
+          message.error(getApiMutationErrorMessage(error, '刪除失敗'));
+          throw error;
         }
       }
     });

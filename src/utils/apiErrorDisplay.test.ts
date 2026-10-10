@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getApiMutationErrorContent, getAuthErrorMessage } from './apiErrorDisplay';
+import { getApiMutationErrorContent, getApiMutationErrorMessage, getAuthErrorMessage } from './apiErrorDisplay';
 
 describe('getApiMutationErrorContent', () => {
   it('renders operation and safe diagnostic fields', () => {
@@ -31,5 +31,29 @@ describe('getApiMutationErrorContent', () => {
       .toBe('重設失敗');
     expect(getAuthErrorMessage({ error: { message: 'User not found for identity lookup' } }, '啟用失敗'))
       .toBe('啟用失敗');
+  });
+
+  it('keeps corrective attachment delete reasons and safe diagnostics', () => {
+    expect(getApiMutationErrorMessage({
+      response: { data: {
+        message: '檔案已被使用，請先移除關聯',
+        errorCode: 'ATTACHMENT_IN_USE',
+        correlationId: 'corr-attachment-123',
+      } },
+    }, '刪除失敗')).toBe(
+      '原因：檔案已被使用，請先移除關聯\n錯誤代碼：ATTACHMENT_IN_USE\n關聯識別碼：corr-attachment-123',
+    );
+  });
+
+  it('masks unsafe attachment errors instead of exposing raw exception details', () => {
+    expect(getApiMutationErrorMessage({
+      response: { data: {
+        message: 'select * from attachments where token=secret-value; stack trace at Db.Connection',
+        errorCode: 'ATTACHMENT_DELETE_ERROR',
+        correlationId: 'corr-attachment-safe',
+      } },
+    }, '刪除失敗')).toBe(
+      '原因：刪除失敗\n錯誤代碼：ATTACHMENT_DELETE_ERROR\n關聯識別碼：corr-attachment-safe',
+    );
   });
 });
