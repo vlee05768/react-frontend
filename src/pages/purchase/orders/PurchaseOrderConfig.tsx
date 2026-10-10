@@ -11,6 +11,10 @@ import { getApiV1MaterialByCode, getApiV1MoldByCode } from "@/api/generated/sdk.
 import { ContactSelectWithCreate } from "@/pages/sales/orders/components/ContactSelectWithCreate";
 import { logger } from "@/utils/logger";
 
+export type GoodsCodeLookupResult =
+  | { status: "resolved" }
+  | { status: "lookup-failed" };
+
 export const getStatusTag = (status: string | null | undefined, closeDate?: string | null) => {
   const statusUpper = (status || '').toUpperCase();
   if (statusUpper === 'CLOSED' || statusUpper === 'FINISHED' || closeDate) {
@@ -699,27 +703,35 @@ export const getItemFormConfig = (): any[] => [
       } else if (code) {
         // 💡 2. 手動鍵入或掃描條碼時 (無 option)，自動發送 API 進行規格與品名同軌聯動
         if (isMold) {
-          getApiV1MoldByCode({ path: { code } }).then((res: any) => {
-            const mold = res?.data?.data;
-            if (mold && mold.code === code) {
-              setValue("goodsName", mold.name || "");
-              setValue("materialForm", undefined);
-              setValue("unit", "pcs");
-              setValue("length", null);
-              setValue("width", null);
-            }
-          }).catch(() => {
-            logger.warn('purchase-order.goods-code.mold-lookup.failed');
-          });
+          return getApiV1MoldByCode({ path: { code } })
+            .then((res: any) => {
+              const mold = res?.data?.data;
+              if (mold && mold.code === code) {
+                setValue("goodsName", mold.name || "");
+                setValue("materialForm", undefined);
+                setValue("unit", "pcs");
+                setValue("length", null);
+                setValue("width", null);
+              }
+              return { status: "resolved" as const };
+            })
+            .catch(() => {
+              logger.warn("purchase-order.goods-code.mold-lookup.failed");
+              return { status: "lookup-failed" as const };
+            });
         } else {
-          getApiV1MaterialByCode({ path: { code } }).then((res: any) => {
-            const mat = res?.data?.data;
-            if (mat && mat.code === code) {
-              syncMaterialSpecifications(mat, setValue, _context);
-            }
-          }).catch(() => {
-            logger.warn('purchase-order.goods-code.material-lookup.failed');
-          });
+          return getApiV1MaterialByCode({ path: { code } })
+            .then((res: any) => {
+              const mat = res?.data?.data;
+              if (mat && mat.code === code) {
+                syncMaterialSpecifications(mat, setValue, _context);
+              }
+              return { status: "resolved" as const };
+            })
+            .catch(() => {
+              logger.warn("purchase-order.goods-code.material-lookup.failed");
+              return { status: "lookup-failed" as const };
+            });
         }
       }
     }

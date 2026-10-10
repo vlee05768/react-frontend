@@ -18,8 +18,17 @@ export const materialFormOptions = [
   { label: "片材 (S)", value: "S" },
 ];
 
+export type MaterialBrandModelCheckResult =
+  | { status: "skipped" }
+  | { status: "checked" }
+  | { status: "conflict" }
+  | { status: "lookup-failed" };
+
 // 計算編碼與自動關聯欄位與廠牌/型號型態防呆檢查
-const generateCode = (context: any, setValue: any) => {
+export const generateCode = (
+  context: any,
+  setValue: any,
+): Promise<MaterialBrandModelCheckResult> | undefined => {
   const { materialForm, brand, modelNo, thickness } = context.values;
   
   // 只要有任何一個必要欄位為空，就清空編碼和名稱
@@ -32,7 +41,7 @@ const generateCode = (context: any, setValue: any) => {
   if (isMissingFields) {
     setValue("code", "");
     setValue("name", "");
-    return;
+    return Promise.resolve({ status: "skipped" });
   }
 
   // 數值去掉最右邊的0: 利用 Number() 自動去掉多餘的 0，再轉回字串
@@ -67,7 +76,7 @@ const generateCode = (context: any, setValue: any) => {
   }
 
   // === 非同步防呆檢核：同廠牌、型號不可同時是片料（片材）與卷料（捲材） ===
-  getApiV1Material({
+  return getApiV1Material({
     query: {
       Brand: upperBrand,
       ModelNo: upperModelNo,
@@ -97,10 +106,14 @@ const generateCode = (context: any, setValue: any) => {
         setValue("materialForm", undefined);
         setValue("code", "");
         setValue("name", "");
+        return { status: "conflict" as const };
       }
+
+      return { status: "checked" as const };
     })
     .catch(() => {
-      logger.error('material.brand-model.conflict-check.failed');
+      logger.error("material.brand-model.conflict-check.failed");
+      return { status: "lookup-failed" as const };
     });
 };
 
