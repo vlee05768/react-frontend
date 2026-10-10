@@ -8,6 +8,7 @@ import { canUpdateBom as hasBomUpdatePermission } from './bomPermissions';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { bomHeaderFormConfig, bomItemTableColumns } from '../ProductConfig';
 import { buildTableColumns } from '@/utils/tableUtils';
+import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
 import {
   createBom,
   deleteBomItem,
@@ -100,8 +101,8 @@ export default function ProductBom({ outputType, outputCode, isViewMode: isMaste
         setIsHeaderEditing(false);
       }
       await refetch();
-    } catch (error: any) {
-      message.error(error?.response?.data?.message || '儲存失敗');
+    } catch (error: unknown) {
+      message.error(getApiMutationErrorMessage(error, '儲存失敗'));
     }
   };
 
@@ -110,8 +111,8 @@ export default function ProductBom({ outputType, outputCode, isViewMode: isMaste
       await deleteBomItem(outputType, outputCode, code);
       message.success('移除明細成功');
       await refetch();
-    } catch (error: any) {
-      message.error(error?.response?.data?.message || '移除失敗');
+    } catch (error: unknown) {
+      message.error(getApiMutationErrorMessage(error, '移除失敗'));
     }
   };
 

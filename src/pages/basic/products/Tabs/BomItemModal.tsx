@@ -5,6 +5,7 @@ import { canUpdateBom } from './bomPermissions';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { bomItemFormConfig } from '../ProductConfig';
 import { createBomItem, type BomOutputType, updateBomItem } from '@/api/bomCompatibility';
+import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
 
 interface Props {
   open: boolean;
@@ -42,8 +43,8 @@ export default function BomItemModal({ open, onClose, outputType, outputCode, in
         message.success('更新明細成功');
       }
       await onSuccess();
-    } catch (error: any) {
-      message.error(error?.response?.data?.message || '儲存失敗');
+    } catch (error: unknown) {
+      message.error(getApiMutationErrorMessage(error, '儲存失敗'));
     } finally {
       setLoading(false);
     }

@@ -10,7 +10,7 @@ import {
   getApiV1SalesDeliveryAllocatedRolls
 } from '@/api/generated/sdk.gen';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { getApiErrorMessage } from '@/utils/apiError';
+import { getApiMutationErrorContent, getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
 import { MaterialLogisticsCore } from '@/utils/materialLogistics';
 import UndeliveredOrderItemPicker from './components/UndeliveredOrderItemPicker';
 import { DynamicForm } from '@/components/Form/DynamicForm';
@@ -199,8 +199,8 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
         setSelectedRolls(rolls);
         message.success(`自動分配成功！已為您依 FIFO 原則選配 ${rolls.length} 卷卷卡，總長度 ${totalLen.toLocaleString()} M`);
       }
-    } catch (err: any) {
-      message.error('自動分配 LPN 失敗: ' + getApiErrorMessage(err));
+    } catch (err: unknown) {
+      message.error(getApiMutationErrorMessage(err, '自動分配 LPN 失敗'));
     } finally {
       hide();
     }
@@ -242,9 +242,9 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
       });
       const stock = res.data?.data?.[0]?.quantity ?? 0;
       setScrapStock(stock);
-    } catch (e: any) {
+    } catch (e: unknown) {
       logger.error('sales-delivery.scrap-warehouse.fetch.failed');
-      message.error('取得報廢倉庫存失敗：' + getApiErrorMessage(e));
+      message.error(getApiMutationErrorMessage(e, '取得報廢倉庫存失敗'));
       setScrapStock(0);
     } finally {
       setLoadingStock(false);
@@ -434,9 +434,9 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
         });
         const stock = res.data?.data?.[0]?.quantity ?? 0;
         setScrapStock(stock + (record.quantity || 0));
-      } catch (e: any) {
+      } catch (e: unknown) {
         logger.error('sales-delivery.scrap-warehouse.fetch.failed');
-        message.error('取得報廢倉庫存失敗：' + getApiErrorMessage(e));
+        message.error(getApiMutationErrorMessage(e, '取得報廢倉庫存失敗'));
         setScrapStock(record.quantity || 0);
       } finally {
         setLoadingStock(false);
@@ -493,7 +493,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
       onRefresh();
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '刪除失敗', content: getApiErrorMessage(error) });
+      modal.error({ centered: true, title: '刪除失敗', content: getApiMutationErrorContent(error, '刪除明細', '刪除明細失敗') });
     }
   });
 
@@ -506,7 +506,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
       handleCancel();
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `更新明細失敗: ${getApiErrorMessage(error)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorContent(error, '更新明細', '更新明細失敗') });
     }
   });
 
@@ -525,7 +525,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
       onRefresh();
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '新增失敗', content: getApiErrorMessage(error) });
+      modal.error({ centered: true, title: '新增失敗', content: getApiMutationErrorContent(error, '新增明細', '新增明細失敗') });
     }
   });
 

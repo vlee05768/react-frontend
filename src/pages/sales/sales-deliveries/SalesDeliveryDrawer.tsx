@@ -25,7 +25,7 @@ import { getFormConfig, getStatusTag } from './SalesDeliveryConfig';
 import SalesDeliveryItemsTab from './SalesDeliveryItemsTab';
 import { DocumentWatchButton } from '@/components/common/DocumentWatchButton';
 
-import { getApiErrorMessage } from '@/utils/apiError';
+import { getApiMutationErrorContent } from '@/utils/apiErrorDisplay';
 import { useFileDownload } from '@/hooks/useFileDownload';
 
 export default function SalesDeliveryDrawer() {
@@ -124,7 +124,7 @@ export default function SalesDeliveryDrawer() {
                     queryClient.invalidateQueries({ queryKey: ['salesdelivery', id] });
                     queryClient.invalidateQueries({ queryKey: ['salesdeliveries'] });
                   } catch(e) {
-                    modal.error({ title: '錯誤', content: getApiErrorMessage(e) });
+                    modal.error({ title: '錯誤', content: getApiMutationErrorContent(e, '確認', '確認失敗') });
                   }
                 }
               });
@@ -150,7 +150,7 @@ export default function SalesDeliveryDrawer() {
                     queryClient.invalidateQueries({ queryKey: ['salesdelivery', id] });
                     queryClient.invalidateQueries({ queryKey: ['salesdeliveries'] });
                   } catch(e) {
-                    modal.error({ title: '錯誤', content: getApiErrorMessage(e) });
+                    modal.error({ title: '錯誤', content: getApiMutationErrorContent(e, '取消確認', '取消確認失敗') });
                   }
                 }
               });
@@ -208,7 +208,7 @@ export default function SalesDeliveryDrawer() {
         queryClient.invalidateQueries({ queryKey: ['salesdeliveries'] });
       }
     } catch (error) {
-      modal.error({ title: '儲存失敗', content: getApiErrorMessage(error) });
+      modal.error({ title: '儲存失敗', content: getApiMutationErrorContent(error, isCreating ? '建立' : '更新', isCreating ? '建立失敗' : '更新失敗') });
     } finally {
       setIsSaving(false);
     }

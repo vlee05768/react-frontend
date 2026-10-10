@@ -29,7 +29,7 @@ import { DRAWER_WIDTH_MAIN } from '@/constants/ui';
 import { getFormConfig, getStatusTag } from './PurchaseOrderConfig';
 import PurchaseOrderItemsTab from './PurchaseOrderItemsTab';
 import { DocumentWatchButton } from '@/components/common/DocumentWatchButton';
-import { getApiErrorMessage } from '@/utils/apiError';
+import { getApiMutationErrorContent } from '@/utils/apiErrorDisplay';
 
 export default function PurchaseOrderDrawer() {
   const navigate = useNavigate();
@@ -111,7 +111,7 @@ export default function PurchaseOrderDrawer() {
       }
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(error)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorContent(error, '新增', '新增失敗') });
     }
   });
 
@@ -124,7 +124,7 @@ export default function PurchaseOrderDrawer() {
       setIsEditing(false);
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${getApiErrorMessage(error)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorContent(error, '更新', '更新失敗') });
     }
   });
 
@@ -136,7 +136,7 @@ export default function PurchaseOrderDrawer() {
       queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `確認失敗: ${getApiErrorMessage(error)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorContent(error, '確認', '確認失敗') });
     }
   });
 
@@ -148,7 +148,7 @@ export default function PurchaseOrderDrawer() {
       queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `取消確認失敗: ${getApiErrorMessage(error)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorContent(error, '取消確認', '取消確認失敗') });
     }
   });
 
@@ -160,7 +160,7 @@ export default function PurchaseOrderDrawer() {
       queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `結案失敗: ${getApiErrorMessage(error)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorContent(error, '結案', '結案失敗') });
     }
   });
 
@@ -172,7 +172,7 @@ export default function PurchaseOrderDrawer() {
       queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `取消結案失敗: ${getApiErrorMessage(error)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorContent(error, '取消結案', '取消結案失敗') });
     }
   });
 
@@ -184,7 +184,7 @@ export default function PurchaseOrderDrawer() {
       navigate('/purchase/orders', { replace: true });
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorContent(error, '刪除', '刪除失敗') });
     }
   });
 
@@ -198,7 +198,7 @@ export default function PurchaseOrderDrawer() {
       queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '發送失敗', content: `發送郵件失敗: ${getApiErrorMessage(error)}` });
+      modal.error({ centered: true, title: '發送失敗', content: getApiMutationErrorContent(error, '發送郵件', '發送郵件失敗') });
     }
   });
 

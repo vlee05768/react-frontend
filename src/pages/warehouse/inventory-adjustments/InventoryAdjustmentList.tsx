@@ -22,7 +22,7 @@ import {
   postApiV1InventoryAdjustmentByMovementNumberConfirm,
   postApiV1InventoryAdjustmentByMovementNumberCancelConfirm
 } from '@/api/generated/sdk.gen';
-import { getApiErrorMessage } from '@/utils/apiError';
+import { getApiMutationErrorContent } from '@/utils/apiErrorDisplay';
 import { create } from 'zustand';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { DynamicForm } from '@/components/Form/DynamicForm';
@@ -140,7 +140,7 @@ export default function InventoryAdjustmentList() {
       }
     },
     onError: (err: any) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(err)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorContent(err, '新增', '新增失敗') });
     }
   });
 
@@ -153,7 +153,7 @@ export default function InventoryAdjustmentList() {
       setIsDrawerEditing(false);
     },
     onError: (err: any) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${getApiErrorMessage(err)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorContent(err, '更新', '更新失敗') });
     }
   });
 
@@ -164,7 +164,7 @@ export default function InventoryAdjustmentList() {
       queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentList'] });
     },
     onError: (err: any) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(err)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorContent(err, '刪除', '刪除失敗') });
     }
   });
 
@@ -176,7 +176,7 @@ export default function InventoryAdjustmentList() {
       queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentDetail', id] });
     },
     onError: (err: any) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `確認失敗: ${getApiErrorMessage(err)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorContent(err, '確認', '確認失敗') });
     }
   });
 
@@ -188,7 +188,7 @@ export default function InventoryAdjustmentList() {
       queryClient.invalidateQueries({ queryKey: ['inventoryAdjustmentDetail', id] });
     },
     onError: (err: any) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `取消確認失敗: ${getApiErrorMessage(err)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorContent(err, '取消確認', '取消確認失敗') });
     }
   });
 
