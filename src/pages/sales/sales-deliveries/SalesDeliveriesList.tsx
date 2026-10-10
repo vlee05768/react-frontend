@@ -20,7 +20,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import type { SalesDeliveryDto } from '@/api/generated/types.gen';
 import useSalesDeliveryQueryStore from './useSalesDeliveryQueryStore';
 import { searchConfig, getColumns } from './SalesDeliveryConfig';
-import { getApiErrorMessage } from '@/utils/apiError';
+import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
 import { useFileDownload } from '@/hooks/useFileDownload';
 import { useErpListQuery } from '@/hooks/useErpListQuery';
 import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
@@ -57,7 +57,7 @@ export default function SalesDeliveriesList() {
       queryClient.invalidateQueries({ queryKey: ['salesdeliveries'] });
     },
     onError: (error) => {
-      modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
+      modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '刪除失敗') });
     }
   });
 

@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import { EllipsisText } from "@/components/Table/EllipsisText";
 import { getApiV1MaterialByCode, getApiV1MoldByCode } from "@/api/generated/sdk.gen";
 import { ContactSelectWithCreate } from "@/pages/sales/orders/components/ContactSelectWithCreate";
+import { logger } from "@/utils/logger";
 
 export const getStatusTag = (status: string | null | undefined, closeDate?: string | null) => {
   const statusUpper = (status || '').toUpperCase();
@@ -707,14 +708,18 @@ export const getItemFormConfig = (): any[] => [
               setValue("length", null);
               setValue("width", null);
             }
-          }).catch(() => {});
+          }).catch(() => {
+            logger.warn('purchase-order.goods-code.mold-lookup.failed');
+          });
         } else {
           getApiV1MaterialByCode({ path: { code } }).then((res: any) => {
             const mat = res?.data?.data;
             if (mat && mat.code === code) {
               syncMaterialSpecifications(mat, setValue, _context);
             }
-          }).catch(() => {});
+          }).catch(() => {
+            logger.warn('purchase-order.goods-code.material-lookup.failed');
+          });
         }
       }
     }

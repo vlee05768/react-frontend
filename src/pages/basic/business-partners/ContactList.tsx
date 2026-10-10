@@ -1,4 +1,4 @@
-import { getApiErrorMessage } from "@/utils/apiError";
+import { getApiMutationErrorMessage } from "@/utils/apiErrorDisplay";
 import { useState, useMemo } from 'react';
 import { Table, Button, Space,  Drawer } from 'antd';
 import { PlusOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
@@ -54,7 +54,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
       queryClient.invalidateQueries({ queryKey: ['partnerContactList', businessPartnerCode] });
     },
     onError: (error: any) => {
-      modalApi.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(error)}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '新增失敗') });
     }
   });
 
@@ -71,7 +71,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
       queryClient.invalidateQueries({ queryKey: ['partnerContactList', businessPartnerCode] });
     },
     onError: (error: any) => {
-      modalApi.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${getApiErrorMessage(error)}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '更新失敗') });
     }
   });
 
@@ -84,7 +84,7 @@ export default function ContactList({ businessPartnerCode, isViewMode: isMasterV
       queryClient.invalidateQueries({ queryKey: ['partnerContactList', businessPartnerCode] });
     },
     onError: (error: any) => {
-      modalApi.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '刪除失敗') });
     }
   });
 

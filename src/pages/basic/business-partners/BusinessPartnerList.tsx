@@ -1,6 +1,6 @@
 import PageCard from '@/components/common/PageCard';
 // @ts-nocheck
-import { getApiErrorMessage } from "@/utils/apiError";
+import { getApiMutationErrorMessage } from "@/utils/apiErrorDisplay";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useMemo } from 'react';
 import { MasterDetailTabs } from '@/components/Form/MasterDetailTabs';
@@ -121,7 +121,7 @@ export default function BusinessPartnerList() {
       queryClient.invalidateQueries({ queryKey: ['bpList'] });
     },
     onError: (error: any) => {
-      modalApi.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(error)}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '新增失敗') });
     }
   });
 
@@ -135,7 +135,7 @@ export default function BusinessPartnerList() {
       queryClient.invalidateQueries({ queryKey: ['bpDetail'] });
     },
     onError: (error: any) => {
-      modalApi.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${getApiErrorMessage(error)}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '更新失敗') });
     }
   });
 
@@ -147,7 +147,7 @@ export default function BusinessPartnerList() {
       queryClient.invalidateQueries({ queryKey: ['bpDetail'] });
     },
     onError: (error: any) => {
-      modalApi.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '刪除失敗') });
     }
   });
 

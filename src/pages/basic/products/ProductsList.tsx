@@ -18,7 +18,7 @@ import {
   deleteApiV1ProductByCode
 } from '@/api/generated/sdk.gen';
 
-import { getApiErrorMessage } from '@/utils/apiError';
+import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
 import { create } from 'zustand';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import DynamicSearchForm from '@/components/Form/DynamicSearchForm';
@@ -115,7 +115,7 @@ export default function ProductsList() {
       queryClient.invalidateQueries({ queryKey: ['productList'] });
     },
     onError: (error: any) => {
-      modalApi.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(error)}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '新增失敗') });
     }
   });
 
@@ -129,7 +129,7 @@ export default function ProductsList() {
       queryClient.invalidateQueries({ queryKey: ['productDetail'] });
     },
     onError: (error: any) => {
-      modalApi.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${getApiErrorMessage(error)}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '更新失敗') });
     }
   });
 
@@ -141,7 +141,7 @@ export default function ProductsList() {
       queryClient.invalidateQueries({ queryKey: ['productDetail'] });
     },
     onError: (error: any) => {
-      modalApi.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
+      modalApi.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '刪除失敗') });
     }
   });
 

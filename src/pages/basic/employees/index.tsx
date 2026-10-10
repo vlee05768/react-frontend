@@ -1,6 +1,6 @@
 // @ts-nocheck
 import PageCard from '@/components/common/PageCard';
-import { getApiErrorMessage } from "@/utils/apiError";
+import { getApiMutationErrorMessage } from "@/utils/apiErrorDisplay";
 import { useParams, useNavigate } from 'react-router-dom';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { DrawerTitle } from '@/components/Form/DrawerTitle';
@@ -119,7 +119,7 @@ export default function EmployeeList() {
       queryClient.invalidateQueries({ queryKey: ['employeeList'] });
     },
     onError: (error: any) => {
-      Modal.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(error)}` });
+      Modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '新增失敗') });
     }
   });
 
@@ -134,7 +134,7 @@ export default function EmployeeList() {
       queryClient.invalidateQueries({ queryKey: ['employeeDetail'] });
     },
     onError: (error: any) => {
-      Modal.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${getApiErrorMessage(error)}` });
+      Modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '更新失敗') });
     }
   });
 
@@ -146,7 +146,7 @@ export default function EmployeeList() {
       queryClient.invalidateQueries({ queryKey: ['employeeDetail'] });
     },
     onError: (error: any) => {
-      Modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
+      Modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '刪除失敗') });
     }
   });
 

@@ -1,6 +1,6 @@
 // @ts-nocheck
 import PageCard from '@/components/common/PageCard';
-import { getApiErrorMessage } from "@/utils/apiError";
+import { getApiMutationErrorMessage } from "@/utils/apiErrorDisplay";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Spin, Button, Modal, Space, message, Drawer, Divider } from 'antd';
@@ -110,7 +110,7 @@ export default function StorageList() {
       queryClient.invalidateQueries({ queryKey: ['storageList'] });
     },
     onError: (error: any) => {
-      Modal.error({ centered: true, title: '錯誤提示', content: `新增失敗: ${getApiErrorMessage(error)}` });
+      Modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '新增失敗') });
     }
   });
 
@@ -125,7 +125,7 @@ export default function StorageList() {
       queryClient.invalidateQueries({ queryKey: ['storageDetail'] });
     },
     onError: (error: any) => {
-      Modal.error({ centered: true, title: '錯誤提示', content: `更新失敗: ${getApiErrorMessage(error)}` });
+      Modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '更新失敗') });
     }
   });
 
@@ -137,7 +137,7 @@ export default function StorageList() {
       closeViewDrawer();
     },
     onError: (error: any) => {
-      Modal.error({ centered: true, title: '錯誤提示', content: `刪除失敗: ${getApiErrorMessage(error)}` });
+      Modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '刪除失敗') });
     }
   });
 

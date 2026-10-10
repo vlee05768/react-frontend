@@ -22,7 +22,7 @@ import StandardErpTable from '@/components/Table/StandardErpTable';
 import { useFileDownload } from '@/hooks/useFileDownload';
 import { WorkOrderDrawer } from "./WorkOrderDrawer";
 import { MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from "@/constants";
-import { getApiErrorMessage } from "@/utils/apiError";
+import { getApiMutationErrorMessage } from "@/utils/apiErrorDisplay";
 
 export const WorkOrdersList: React.FC = () => {
   const { message, modal } = App.useApp();
@@ -84,7 +84,7 @@ export const WorkOrdersList: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ["workorders"] });
     },
     onError: (error) => {
-      modal.error({ title: "刪除失敗", content: getApiErrorMessage(error), centered: true });
+      modal.error({ title: "錯誤提示", content: getApiMutationErrorMessage(error, "刪除失敗"), centered: true });
     },
     onSettled: () => {
       setDeletingRecordId(null);
