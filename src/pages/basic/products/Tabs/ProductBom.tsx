@@ -94,7 +94,7 @@ export default function ProductBom({ outputType, outputCode, isViewMode: isMaste
     try {
       if (!bomExists) {
         await createBom(toCreatePayload(values, outputType, outputCode));
-        message.success('BOM 草稿建立成功');
+        message.success('BOM 建立成功');
         setIsCreating(false);
       } else {
         await updateBom(outputType, outputCode, toUpdatePayload(values));
@@ -159,7 +159,7 @@ export default function ProductBom({ outputType, outputCode, isViewMode: isMaste
   ), [outputType, bomExists]);
   const headerDefaults: Record<string, unknown> = bomData
     ? { ...bomData, outputType: bomData.outputType || outputType || 'P' }
-    : { outputType: outputType || 'P', outputCode, isActive: false };
+    : { outputType: outputType || 'P', outputCode, isActive: true };
 
   if (isLoading) return <Spin className="w-full mt-10 flex justify-center" />;
 
@@ -167,7 +167,7 @@ export default function ProductBom({ outputType, outputCode, isViewMode: isMaste
     <div className="flex flex-col gap-4">
       {!bomExists && !isCreating && (
         <Empty description="尚未建立 BOM 表" className="mt-10">
-          {isMasterViewMode && <Button type="primary" onClick={() => setIsCreating(true)}>建立 BOM 草稿</Button>}
+          {isMasterViewMode && <Button type="primary" onClick={() => setIsCreating(true)}>建立 BOM</Button>}
         </Empty>
       )}
 

@@ -130,16 +130,16 @@ describe('BOM 更新權限', () => {
     expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', String(wasActive));
   });
 
-  it.each(['P', 'M'] as const)('%s 新建草稿的啟用欄位唯讀且建立不傳 isActive', async (outputType) => {
+  it.each(['P', 'M'] as const)('%s 新建 BOM 預設啟用且建立不傳 isActive', async (outputType) => {
     getBom.mockResolvedValue({ data: null });
     renderBom(outputType);
-    await userEvent.click(await screen.findByRole('button', { name: /建立 BOM 草稿/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /^建立 BOM$/ }));
     expect(screen.getByRole('switch')).toBeDisabled();
-    expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'false');
+    expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'true');
     await userEvent.click(screen.getByRole('button', { name: /取\s*消$/ }));
     expect(createBom).not.toHaveBeenCalled();
     expect(updateBom).not.toHaveBeenCalled();
-    await userEvent.click(screen.getByRole('button', { name: /建立 BOM 草稿/ }));
+    await userEvent.click(screen.getByRole('button', { name: /^建立 BOM$/ }));
     fireEvent.mouseDown(document.querySelector('#defaultMachineType')!);
     await userEvent.click(await screen.findByText('測試機台', { selector: '.ant-select-item-option-content' }));
     fireEvent.change(document.querySelector('#defaultToolingRangeMm')!, { target: { value: '10' } });
