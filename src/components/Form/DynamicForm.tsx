@@ -74,7 +74,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
     },
   });
 
-  const { control, handleSubmit, watch, setValue, trigger, formState: { isDirty } } = methods;
+  const { control, handleSubmit, watch, setValue, clearErrors, trigger, formState: { isDirty } } = methods;
 
   // 3. 監聽所有表單數值，建立執行期上下文 (Context)
   const currentValues = watch() as TValues;
@@ -195,6 +195,7 @@ export function DynamicForm<TValues extends Record<string, any>>({
               config={field as FieldConfig<any>}
               control={control as any}
               setValue={setValue as any}
+              clearErrors={clearErrors as any}
               trigger={trigger as any}
               context={context as any}
               isUpdateMode={isUpdateMode}

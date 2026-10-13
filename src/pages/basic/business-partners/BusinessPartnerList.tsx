@@ -13,7 +13,7 @@ import {
   SaveOutlined
 } from '@ant-design/icons';
 import { TableActions } from '@/utils/tableActions';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { 
   getApiV1BusinessPartners, 
   getApiV1BusinessPartnersByCode,
@@ -33,11 +33,22 @@ import ContactList from './ContactList';
 import { ANIMATION_DELAY_MS, DEFAULT_PAGE_SIZE, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from '@/constants';;
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 
-
 import { ActionBar } from '@/components/common/ActionBar';
 import { useErpListQuery } from '@/hooks/useErpListQuery';
 import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
 import StandardErpTable from '@/components/Table/StandardErpTable';
+
+export const SUPPLIER_AUTOCOMPLETE_KEYS = [
+  'MATERIAL_SUPPLIER',
+  'TOOLING_SUPPLIER',
+  'OUTSOURCE_VENDOR',
+] as const;
+
+export function invalidateSupplierAutocompleteQueries(queryClient: Pick<QueryClient, 'invalidateQueries'>) {
+  for (const configKey of SUPPLIER_AUTOCOMPLETE_KEYS) {
+    void queryClient.invalidateQueries({ queryKey: ['async-select', configKey] });
+  }
+}
 
 // Local store for query params
 export const useBPQueryStore = create((set) => ({
@@ -119,6 +130,7 @@ export default function BusinessPartnerList() {
       messageApi.success('新增成功');
       setIsCreateDrawerOpen(false);
       queryClient.invalidateQueries({ queryKey: ['bpList'] });
+      invalidateSupplierAutocompleteQueries(queryClient);
     },
     onError: (error: any) => {
       modalApi.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '新增失敗') });
@@ -132,6 +144,7 @@ export default function BusinessPartnerList() {
       messageApi.success('更新成功');
       setIsDrawerEditing(false);
       queryClient.invalidateQueries({ queryKey: ['bpList'] });
+      invalidateSupplierAutocompleteQueries(queryClient);
       queryClient.invalidateQueries({ queryKey: ['bpDetail'] });
     },
     onError: (error: any) => {

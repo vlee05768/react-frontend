@@ -2,7 +2,7 @@
 import React from 'react';
 import { Form, Tooltip } from 'antd';
 import { Controller } from 'react-hook-form';
-import type { Control, UseFormSetValue, UseFormTrigger } from 'react-hook-form';
+import type { Control, UseFormClearErrors, UseFormSetValue, UseFormTrigger } from 'react-hook-form';
 import { z } from 'zod';
 import type { FieldConfig, FormContext } from './types';
 import { FIELD_REGISTRY } from './FieldRegistry';
@@ -11,13 +11,14 @@ interface DynamicFieldProps {
   config: FieldConfig;
   control: Control<any>;
   setValue: UseFormSetValue<any>;
+  clearErrors: UseFormClearErrors<any>;
   trigger: UseFormTrigger<any>;
   context: FormContext<any>;
   isUpdateMode?: boolean;
   isViewMode?: boolean;
 }
 
-export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, setValue, trigger, context, isUpdateMode, isViewMode }) => {
+export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, setValue, clearErrors, trigger, context, isUpdateMode, isViewMode }) => {
   // 解析動態屬性
   const isHidden = typeof config.hidden === 'function' ? config.hidden(context) : config.hidden;
   if (isHidden) return null;
@@ -86,6 +87,18 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({ config, control, set
           }
 
           field.onChange(value); // 更新 RHF 狀態
+
+          // AsyncSelect 常用於送出後才驗證的主檔關聯欄位。
+          // 使用者重新選擇有效選項後，應立即移除上一次提交留下的錯誤狀態；
+          // 若使用者清空欄位則保留錯誤，讓必填驗證仍能正常提示。
+          if (
+            resolvedComponentType === 'AsyncSelect' &&
+            value !== undefined &&
+            value !== null &&
+            value !== ''
+          ) {
+            clearErrors(config.name);
+          }
           
           if (config.onChange) {
             // 觸發自訂連動邏輯

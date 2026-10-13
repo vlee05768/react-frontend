@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Select, Spin } from 'antd';
+import { Select, Spin, Space, Button } from 'antd';
+import { SyncOutlined } from '@ant-design/icons';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { debounce } from 'lodash-es';
 import { AUTO_COMPLETE_REGISTRY } from '@/config/autoCompleteRegistry';
@@ -12,6 +13,7 @@ export interface AsyncSelectProps extends Omit<SelectProps<any>, 'options' | 'on
   additionalParams?: any;
   excludeValues?: any[];
   autoSelectIfSingle?: boolean;
+  showRefresh?: boolean;
   /** 自訂選項的渲染方式，如果提供將覆蓋預設的 value (label) 顯示 */
   optionRender?: (option: any, info: { index: number }) => React.ReactNode;
 }
@@ -23,7 +25,9 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
   additionalParams,
   excludeValues = [],
   autoSelectIfSingle,
+  showRefresh = true,
   optionRender,
+  popupRender,
   ...props 
 }) => {
   if (!configKey) {
@@ -54,7 +58,7 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
   const debounceFetcher = useMemo(() => debounce((val: string) => setKeyword(val), 500), []);
 
   // 1. 動態搜尋資料 (輸入文字才發動)
-  const { data: searchData, isFetching } = useQuery({
+  const { data: searchData, isFetching, refetch } = useQuery({
     queryKey: ['async-select', configKey, keyword, additionalParams],
     queryFn: () => config.queryFn(keyword, additionalParams),
     enabled: shouldFetch,
@@ -153,6 +157,37 @@ export const AsyncSelect: React.FC<AsyncSelectProps> = ({
       value={value}
       onChange={onChange}
       optionRender={optionRender}
+      popupRender={(menu) => (
+        <div
+          data-testid="async-select-popup"
+          className="overflow-hidden rounded-lg border border-[var(--ant-color-border)] bg-[var(--ant-color-bg-elevated)] shadow-[var(--ant-box-shadow-secondary)]"
+        >
+          <div>{popupRender ? popupRender(menu) : menu}</div>
+          {showRefresh && (
+            <div
+              data-testid="async-select-refresh-footer"
+              className="border-t-[var(--ant-color-border-secondary)] border-solid px-2 py-2"
+            >
+              <Space className="flex w-full justify-center">
+                <Button
+                  type="default"
+                  size="small"
+                  className="min-w-[120px] transition-colors"
+                  icon={<SyncOutlined spin={isFetching} />}
+                  disabled={!shouldFetch || isFetching}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    void refetch();
+                  }}
+                >
+                  更新選項
+                </Button>
+              </Space>
+            </div>
+          )}
+        </div>
+      )}
       {...props}
     />
   );
