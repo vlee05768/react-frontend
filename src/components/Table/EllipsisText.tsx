@@ -1,76 +1,20 @@
-import React, { useRef } from 'react';
-import { Tooltip } from 'antd';
+import React from 'react';
+import { TableText } from './TableTextContent';
 
 export interface EllipsisTextProps {
-  text?: string | React.ReactNode;
+  text?: React.ReactNode;
   maxWidth?: number | string;
+  /** 明確多行設計可指定大於 1；預設單行。 */
   maxLines?: number;
-  showHint?: boolean; // 新增：是否顯示 Hover 的 Tooltip
+  showHint?: boolean;
+  /** 短表頭可另外提供完整欄位意義，不改變資料值。 */
+  hint?: string;
 }
 
-/**
- * 處理表格長文字或包含換行(\n)資料的元件
- * UX 模式:
- * 1. 預設將文字截斷為單行，若是包含換行符號(\n)，則將換行符號取代為空白，維持表格整齊。
- * 2. 滑鼠游標 Hover 時，彈出 Tooltip。Tooltip 內部使用 white-space: pre-wrap 保留原始換行格式。
- */
-export const EllipsisText: React.FC<EllipsisTextProps> = ({ text, maxWidth = 300, maxLines = 1, showHint = false }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+/** 表格純文字單行預覽；提示保留原始 CRLF／換行。未知互動節點原樣保留。 */
+export function EllipsisText({ text, maxWidth = '100%', maxLines = 1, showHint, hint }: EllipsisTextProps) {
+  if (text === undefined || text === null || text === '') return <>{text}</>;
+  if (typeof text !== 'string' && typeof text !== 'number') return <>{text}</>;
 
-  // 處理非字串的情況 (例如 ReactNode)
-  if (text === undefined || text === null || text === '') {
-    return <>{text}</>;
-  }
-
-  // 判斷是否為純文字
-  const isString = typeof text === 'string' || typeof text === 'number';
-  const strValue = isString ? String(text) : '';
-  
-  // 單行預覽用：把換行取代成空白，以免把 Row 撐高
-  const previewText = isString ? strValue.replace(/\n/g, ' ') : text;
-
-  const contentNode = (
-    <div
-      ref={containerRef}
-      style={{
-        display: '-webkit-box',
-        WebkitLineClamp: maxLines,
-        WebkitBoxOrient: 'vertical',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        maxWidth: maxWidth,
-        // 確保如果是字串時單行顯示不要斷在奇怪的地方
-        wordBreak: maxLines === 1 ? 'keep-all' : 'break-word',
-        whiteSpace: maxLines === 1 ? 'nowrap' : 'normal',
-      }}
-    >
-      {previewText}
-    </div>
-  );
-
-  if (!showHint) {
-    return contentNode;
-  }
-
-  return (
-    <Tooltip
-      title={
-        <div 
-          style={{ 
-            whiteSpace: 'pre-wrap', // 保留原本的 \n
-            wordBreak: 'break-word', 
-            maxHeight: '400px', 
-            overflowY: 'auto' 
-          }}
-        >
-          {text}
-        </div>
-      }
-      placement="topLeft"
-      // 設定滑鼠只要移上去就提示，不用等太久
-      mouseEnterDelay={0.3} 
-    >
-      {contentNode}
-    </Tooltip>
-  );
-};
+  return <TableText value={text} maxWidth={maxWidth} maxLines={maxLines} tooltipContent={hint} tooltipMode={showHint === undefined ? 'overflow' : showHint ? 'always' : 'never'} />;
+}

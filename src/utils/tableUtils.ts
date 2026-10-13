@@ -1,7 +1,6 @@
 import type { FieldConfig, TableColumnConfig } from '@/components/Form/types';
-import { EllipsisText } from '@/components/Table/EllipsisText';
+import { normalizeTableColumns } from '@/components/Table/tableText';
 import React from 'react';
-import { Tooltip } from 'antd';
 import dayjs from 'dayjs';
 import { TableActions } from './tableActions';
 
@@ -28,13 +27,8 @@ export function generateTableColumns<TValues>(
       // 動態 Label 解析，在 Table header 通常只取純字串 (傳入空物件當 context)
       const rawTitle = typeof config.label === 'function' ? config.label({ values: {} as TValues }) : config.label;
       
-      // 如果支援排序且啟用 showHint，則包裝表頭 Title 加上 Tooltip 提示
-      const title = (tableProps.sortable && tableProps.showHint) ? (
-        React.createElement(Tooltip, {
-          title: "點擊可排序，按住 Shift 鍵可啟用多欄位排序",
-          placement: "top"
-        }, React.createElement('span', { style: { cursor: 'pointer', textDecoration: 'underline dotted var(--ant-color-text-quaternary, #bfbfbf)', textUnderlineOffset: '4px' } }, rawTitle))
-      ) : rawTitle;
+      // 表頭與內容提示由共用文字規範處理，排序提示併入完整欄名。
+      const title = rawTitle;
       
       // 根據型別設定預設對齊 (數字預設靠右，其餘靠左)
       let defaultAlign: 'left' | 'center' | 'right' = 'left';
@@ -76,19 +70,7 @@ export function generateTableColumns<TValues>(
         };
       }
 
-      // 預設所有 Table column 欄位皆加上 ellipsis: true
       const isEllipsis = tableProps.ellipsis !== false;
-      if (isEllipsis) {
-        const originalRender = render;
-        render = (value: any, record: any, index: number) => {
-          const content = originalRender ? originalRender(value, record, index) : value;
-          return React.createElement(EllipsisText, { 
-            text: content, 
-            maxWidth: tableProps.width ? (typeof tableProps.width === 'number' ? tableProps.width - 32 : 300) : 300,
-            showHint: !!tableProps.showHint
-          });
-        };
-      }
 
       return {
         title,
@@ -100,6 +82,9 @@ export function generateTableColumns<TValues>(
         sorter: tableProps.sortable === true ? true : (tableProps.sortable ? tableProps.sortable : undefined),
         fixed: tableProps.fixed,
         ellipsis: isEllipsis,
+        maxLines: tableProps.maxLines,
+        showHint: tableProps.showHint,
+        headerHint: tableProps.headerHint,
       };
     });
 
@@ -112,7 +97,7 @@ export function generateTableColumns<TValues>(
     }
   }
 
-  return columns;
+  return normalizeTableColumns<TValues>(columns);
 }
 
 
@@ -221,31 +206,12 @@ export function buildTableColumns<TValues>(
       };
     }
 
-    // 預設所有 Table column 欄位皆加上 ellipsis: true
     const isEllipsis = config.ellipsis !== false;
-    if (isEllipsis) {
-      const originalRender = render;
-      render = (value: any, record: TValues, index: number) => {
-        // 如果原本就有提供 render，先取得它的結果，否則直接使用 value
-        const content = originalRender ? originalRender(value, record, index) : value;
-        return React.createElement(EllipsisText, { 
-          text: content, 
-          maxWidth: config.width ? (typeof config.width === 'number' ? config.width - 32 : 300) : 300,
-          showHint: !!config.showHint
-        });
-      };
-    }
 
     // 判斷當前此欄位的受控 sortOrder
     const currentSortOrder = sortMap[config.name] || null;
 
-    // 如果支援排序且啟用 showHint，則包裝表頭 Title 加上 Tooltip 提示
-    const title = (config.sortable && config.showHint) ? (
-      React.createElement(Tooltip, {
-        title: "點擊可排序，按住 Shift 鍵可啟用多欄位排序",
-        placement: "top"
-      }, React.createElement('span', { style: { cursor: 'pointer', textDecoration: 'underline dotted var(--ant-color-text-quaternary, #bfbfbf)', textUnderlineOffset: '4px' } }, config.label))
-    ) : config.label;
+    const title = config.label;
 
     return {
       title: title,
@@ -259,6 +225,9 @@ export function buildTableColumns<TValues>(
       sortOrder: config.sortable ? currentSortOrder : undefined,
       fixed: config.fixed,
       ellipsis: isEllipsis,
+      maxLines: config.maxLines,
+      showHint: config.showHint,
+      headerHint: config.headerHint,
     };
   });
 
@@ -270,7 +239,7 @@ export function buildTableColumns<TValues>(
     }
   }
 
-  return columns;
+  return normalizeTableColumns<TValues>(columns);
 }
 
 /**

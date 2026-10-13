@@ -1,0 +1,28 @@
+/* 表格文字沿用主題色；單行與明確多行皆採 24px 行高。 */
+.erp-table-text-preview {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 24px;
+  vertical-align: middle;
+}
+
+.erp-table-text-preview--single-line {
+  display: block;
+  word-break: normal;
+  white-space: nowrap;
+}
+
+.erp-table-text-preview--multi-line {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.erp-table-text-hint {
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 400px;
+  overflow-y: auto;
+}

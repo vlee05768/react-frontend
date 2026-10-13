@@ -1,4 +1,5 @@
-import { Table, theme } from 'antd';
+import { theme } from 'antd';
+import Table from './ErpTable';
 import type { TableProps } from 'antd';
 
 export interface StandardErpTableProps<RecordType> extends Omit<TableProps<RecordType>, 'columns'> {
@@ -45,12 +46,8 @@ export default function StandardErpTable<RecordType extends object>({
         .ant-table-content, .ant-table-body { flex: 1; overflow-x: auto !important; overflow-y: auto !important; max-height: none !important; }
         .ant-table-pagination { margin-top: auto !important; margin-bottom: 0 !important; padding: 12px 0 4px 0 !important; }
         .ant-table-thead > tr > th { text-align: center !important; }
-        .ant-table-cell-ellipsis, .ant-table-cell-ellipsis * {
-          white-space: nowrap !important;
-          overflow: hidden !important;
-          text-overflow: ellipsis !important;
-          max-width: 100% !important;
-        }
+        .ant-table-column-title { min-width: 0; }
+        .ant-table-column-sorters { min-width: 0; }
         .ant-table-cell[style*="text-align: right"], .text-right, .tabular-nums { font-variant-numeric: tabular-nums; }
         .selected-table-row > td { background-color: ${token.controlItemBgActive} !important; }
         .deleting-row-highlight > td { background-color: ${token.colorErrorBg} !important; opacity: 0.6; }
