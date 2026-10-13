@@ -3,7 +3,6 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Drawer,
   Card,
-  Table,
   InputNumber,
   Radio,
   Select,
@@ -23,6 +22,7 @@ import {
   Modal,
   Tooltip,
 } from "antd";
+import Table from '@/components/Table/ErpTable';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,

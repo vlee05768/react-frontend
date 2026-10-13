@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { App, Button, Card, Empty, Space, Spin, Table, Tag, theme } from 'antd';
+import { App, Button, Card, Empty, Space, Spin, Tag, theme } from 'antd';
+import Table from '@/components/Table/ErpTable';
 import { DeleteOutlined, EditOutlined, PlusOutlined, SaveOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/useAuthStore';

@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Modal, Table, Button, Form, Input, InputNumber, Tag, message } from 'antd';
+import { Modal, Button, Form, Input, InputNumber, Tag, message } from 'antd';
+import Table from '@/components/Table/ErpTable';
 import { useQuery } from '@tanstack/react-query';
 import { getApiV1QcReceiptUnprocessedProductionReceipts } from '@/api/generated';
 import { MODAL_PICK_BODY_MAX_HEIGHT, MODAL_WIDTH_PICK } from '@/constants/ui';

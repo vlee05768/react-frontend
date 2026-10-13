@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Table, Button, Space, message, Typography, Drawer, Empty, Tooltip , App } from 'antd';
+import { Button, Space, message, Typography, Drawer, Empty, Tooltip , App } from 'antd';
+import Table from '@/components/Table/ErpTable';
 import { PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 

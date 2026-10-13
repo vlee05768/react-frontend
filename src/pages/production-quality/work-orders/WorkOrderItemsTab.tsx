@@ -1,5 +1,6 @@
 import React from "react";
-import { Table } from "antd";
+
+import Table from '@/components/Table/ErpTable';
 import type { WorkOrderMaterialDto } from "@/api/generated/types.gen";
 import { itemColumns, type WorkOrderFormValues } from "./WorkOrderConfig";
 import { buildTableColumns } from "@/utils/tableUtils";

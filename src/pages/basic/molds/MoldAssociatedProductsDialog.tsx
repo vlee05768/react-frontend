@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Button, Empty, Modal, Spin, Table, Typography } from 'antd';
+import { Button, Empty, Modal, Spin, Typography } from 'antd';
+import Table from '@/components/Table/ErpTable';
 import { ReloadOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { getMoldProducts, type MoldProduct } from '@/api/moldProducts';

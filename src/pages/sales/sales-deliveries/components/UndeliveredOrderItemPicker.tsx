@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Modal, Table, Input, Button, Space, Checkbox, Tooltip, InputNumber, App } from 'antd';
+import { Modal, Input, Button, Space, Checkbox, Tooltip, InputNumber, App } from 'antd';
+import Table from '@/components/Table/ErpTable';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import type { UndeliveredOrderItemsDto, CreateSalesDeliveryItemDto } from '@/api/generated/types.gen';

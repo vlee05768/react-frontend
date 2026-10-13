@@ -343,12 +343,13 @@ export const getIqcFormFields = (ctx: {
     },
     {
       name: "standardLength",
-      label: isRollMaterial ? "標準長度 (M)" : "標準長度 (mm)",
+      label: isRollMaterial ? "每卷長度(m)" : "標準長度 (mm)",
       componentType: "InputNumber",
       editable: isReadOnly ? "never" : "always",
       colSpan: 6,
       componentProps: {
         className: "text-right",
+        placeholder: isRollMaterial ? "請輸入每卷長度(m)" : "請輸入標準長度(mm)",
       },
     },
     {

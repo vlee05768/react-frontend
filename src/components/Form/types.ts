@@ -61,7 +61,9 @@ export interface TableColumnConfig<TValues = any> extends FieldDef<TValues> {
   fixed?: 'left' | 'right' | boolean;
   show?: boolean;
   ellipsis?: boolean; // 支援文字過長折疊與 Tooltip 預覽
-  showHint?: boolean; // 是否在表頭顯示排序 Tooltip 提示
+  showHint?: boolean; // 預設完整文字提示，false 可明確停用內容提示
+  maxLines?: number; // 表格文字預設單行；明確多行設計可指定行數
+  headerHint?: string; // 短欄頭的完整欄位名稱／單位說明
 }
 
 // ================= 舊版相容 (Deprecated) =================

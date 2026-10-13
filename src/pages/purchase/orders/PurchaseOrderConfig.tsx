@@ -2,7 +2,7 @@ import { z } from "zod";
 import { Tag, Space, Button } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import type { SearchFieldConfig, TableColumnConfig } from "@/components/Form/types";
-import type { ColumnsType } from "antd/es/table";
+import type { ErpColumnsType as ColumnsType } from "@/components/Table/tableText";
 import type { PurchaseOrderDto, PurchaseOrderItemDto } from "@/api/generated/types.gen";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
@@ -118,7 +118,7 @@ export const getColumns = (): TableColumnConfig<PurchaseOrderDto>[] => [
           renderContent={text => (
             <Link
               to={`/basic/business-partners/${bpCode}`}
-              style={{ color: '#1677ff', textDecoration: "underline", cursor: "pointer" }}
+              style={{ color: '#1677ff', textDecoration: 'underline', cursor: 'pointer' }}
             >
               {text}
             </Link>
@@ -419,7 +419,7 @@ export const getItemColumns = (
   {
     title: "商品代碼",
     dataIndex: "goodsCode",
-    width: 150,
+    width: 100,
     render: (val: string, record: any) => {
       if (!val) return "-";
       if (record.purchaseOrderType === "Mold") {
@@ -449,7 +449,7 @@ export const getItemColumns = (
     ellipsis: true,
   },
   {
-    title: "寬度 (mm)",
+    title: "採購幅寬(mm)",
     dataIndex: "width",
     width: 100,
     align: "right",
@@ -463,9 +463,10 @@ export const getItemColumns = (
     }
   },
   {
-    title: "長度",
+    title: "每卷／片長",
+    headerHint: "卷料：每卷長度(m)\n片料：片料長度(mm)",
     dataIndex: "length",
-    width: 100,
+    width: 140,
     align: "right",
     render: (val: number, record: any) => {
       if (record.purchaseOrderType === "Mold" || val == null) return "-";
@@ -475,7 +476,7 @@ export const getItemColumns = (
       
       if (isRoll) {
         return (
-          <span className="text-emerald-600 dark:text-emerald-400 font-mono font-medium">
+          <span className="text-[var(--ant-color-success)] font-mono font-medium inline-block leading-[24px] align-middle w-full text-right">
             {formattedVal} m
           </span>
         );
@@ -483,12 +484,12 @@ export const getItemColumns = (
       if (isSheet) {
         // 💡 為了跨模組 UX 一致性，片料規格長度 (mm) 統一採用高質感橘色/琥珀色 (Amber)
         return (
-          <span className="text-amber-600 dark:text-amber-400 font-mono font-medium">
+          <span className="text-[var(--ant-color-warning)] font-mono font-medium inline-block leading-[24px] align-middle w-full text-right">
             {formattedVal} mm
           </span>
         );
       }
-      return <span className="font-mono">{formattedVal}</span>;
+      return <span className="font-mono inline-block leading-[24px] align-middle w-full text-right">{formattedVal}</span>;
     }
   },
   {
@@ -504,14 +505,14 @@ export const getItemColumns = (
     render: (val: string) => val || "-",
   },
   {
-    title: "單價",
+    title: "每卷單價／單價",
     dataIndex: "unitPrice",
     width: 100,
     align: "right",
     render: (val: number) => (val != null ? Number(val.toFixed(2)).toLocaleString() : "0"),
   },
   {
-    title: "平方米單價",
+    title: "面積成本（參考）",
     key: "unitPricePerSqm",
     width: 120,
     align: "right",
@@ -633,10 +634,11 @@ const syncMaterialSpecifications = (mat: any, setValue: any, context: any) => {
   const defaultWidth = mat.width ?? mat.widthMm ?? mat.productWidth;
   const defaultLength = mat.length ?? mat.lengthMm;
   
-  if (defaultWidth !== undefined && defaultWidth !== null) {
+  // 主檔僅提供空白規格的預設值，不得覆寫已填採購幅寬。
+  if (context?.values?.width == null && defaultWidth != null) {
     setValue("width", defaultWidth);
   }
-  if (defaultLength !== undefined && defaultLength !== null) {
+  if (context?.values?.length == null && defaultLength != null) {
     setValue("length", defaultLength);
   }
 
@@ -756,7 +758,7 @@ export const getItemFormConfig = (): any[] => [
   },  
   {
     name: "width",
-    label: "寬度 (mm)",
+    label: "採購幅寬 (mm)",
     componentType: "InputNumber",
     colSpan: 4,
     hidden: (context: any) => context?.values?.purchaseOrderType !== "Material",
@@ -781,7 +783,7 @@ export const getItemFormConfig = (): any[] => [
     name: "length",
     label: (context: any) => {
       const isSheet = context?.values?.materialForm === "S" || context?.values?.goodsCode?.startsWith("S-") || context?.values?.goodsCode?.endsWith("-S") || context?.values?.unit === "pcs";
-      return isSheet ? "長度 (mm)" : "長度 (m)";
+      return isSheet ? "片料長度(mm)" : "每卷長度(m)";
     },
     componentType: "InputNumber",
     colSpan: 4,
@@ -791,14 +793,16 @@ export const getItemFormConfig = (): any[] => [
       return {
         controls: false,
         style: { width: "100%" },
-        placeholder: isSheet ? "請輸入片料長度 (毫米)" : "請輸入卷料長度 (米)",
+        placeholder: isSheet ? "請輸入片料長度(mm)" : "請輸入每卷長度(m)",
       };
     },
     validation: z.union([z.number(), z.null(), z.undefined()]).optional(),
     dynamicValidation: (context: any) => {
       const isMaterial = context?.values?.purchaseOrderType === "Material";
       if (isMaterial) {
-        return z.number({ required_error: "原料採購之長度為必填項目", invalid_type_error: "長度必須為數值" }).min(0.0001, "長度必須大於 0");
+        const isSheet = context?.values?.materialForm === "S" || context?.values?.goodsCode?.startsWith("S-") || context?.values?.goodsCode?.endsWith("-S") || context?.values?.unit === "pcs";
+        const label = isSheet ? "片料長度(mm)" : "每卷長度(m)";
+        return z.number({ required_error: `原料採購之${label}為必填項目`, invalid_type_error: `${label}必須為數值` }).min(0.0001, `${label}必須大於 0`);
       }
       return z.union([z.number(), z.null(), z.undefined()]).optional();
     },
@@ -843,7 +847,7 @@ export const getItemFormConfig = (): any[] => [
     name: "unitPrice",
     label: (context: any) => {
       const unit = context?.values?.unit;
-      return unit ? `單價 (${unit})` : "單價";
+      return context?.values?.materialForm === "R" ? "每卷單價" : unit ? `單價 (${unit})` : "單價";
     },
     componentType: "InputNumber",
     colSpan: 4,

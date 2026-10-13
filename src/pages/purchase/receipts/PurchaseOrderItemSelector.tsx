@@ -2,19 +2,20 @@ import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import {
   Modal,
-  Table,
   Button,
   Input,
   Spin,
-  message,
+  App,
   InputNumber,
 } from "antd";
+import Table from '@/components/Table/ErpTable';
 import { useQuery } from "@tanstack/react-query";
 import { getApiV1PurchaseOrder } from "@/api/generated";
 import { MODAL_PICK_BODY_MAX_HEIGHT, MODAL_WIDTH_PICK } from "@/constants/ui";
 import { SearchOutlined, ClearOutlined } from "@ant-design/icons";
 import type { TableColumnConfig } from "@/components/Form/types";
 import { buildTableColumns } from "@/utils/tableUtils";
+import { calculatePurchaseReceiptRollArea } from "./purchaseReceiptItemCalculations";
 
 interface PurchaseOrderItemSelectorProps {
   open: boolean;
@@ -35,6 +36,7 @@ export default function PurchaseOrderItemSelector({
   excludedKeys,
   isMold = false,
 }: PurchaseOrderItemSelectorProps) {
+  const { message } = App.useApp();
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [customArrivalQuantities, setCustomArrivalQuantities] = useState<
     Record<string, number>
@@ -96,45 +98,13 @@ export default function PurchaseOrderItemSelector({
       const undelivered = Math.max(0, qty - rec - cancel);
       const key = `${item.purchaseOrderNumber}_${item.lineNumber}`;
       
-      const isRoll = item.purchaseOrderType === "Material" && (item.unit === "m" || item.unit === "m2" || item.unit === "卷" || item.unit === "roll");
-
-      let arrivalQuantity = 0;
-      let rollCount = 0;
-      let rollLength = item.length || 50;
-      let undeliveredLength = undelivered; // remaining in PO unit
-
-      if (isRoll) {
-        if (item.unit === "m2") {
-          const widthMm = item.width && item.width > 0 ? item.width : 1000;
-          undeliveredLength = undelivered / (widthMm / 1000);
-        }
-      }
-
-      if (isRoll) {
-        if (item.unit === "卷" || item.unit === "roll") {
-          // 💡 「以卷下單與點收」模式：到貨量代表到貨卷數
-          arrivalQuantity = customArrivalQuantities[key] !== undefined 
-            ? customArrivalQuantities[key] 
-            : Math.max(1, Math.ceil(undelivered)); // 預設到貨量 = 未到貨卷數
-          rollCount = arrivalQuantity;
-          rollLength = item.length || 50;
-        } else {
-          // 💡 歷史相容長度核銷模式
-          arrivalQuantity = customArrivalQuantities[key] !== undefined 
-            ? customArrivalQuantities[key] 
-            : undeliveredLength;
-          rollLength = item.length || 300;
-          rollCount = Math.max(1, Math.ceil(arrivalQuantity / rollLength));
-        }
-      } else {
-        // 💡 片料模式
-        arrivalQuantity = customArrivalQuantities[key] !== undefined 
-          ? customArrivalQuantities[key] 
-          : undelivered;
-        rollCount = 1;
-        rollLength = item.length || 0;
-      }
-
+      const isRoll = item.purchaseOrderType === "Material" && item.materialForm !== "S" &&
+        (item.materialForm === "R" || ["m", "m2", "SQM", "卷", "roll"].includes(item.unit));
+      // PO Quantity 一律為採購卷數；庫存 SQM 不作為報價依據。
+      const arrivalQuantity = customArrivalQuantities[key] ?? undelivered;
+      const rollCount = isRoll ? arrivalQuantity : 1;
+      const rollLength = item.length || 0;
+      const undeliveredLength = undelivered;
       return {
         ...item,
         cancelledQuantity: cancel,
@@ -179,23 +149,12 @@ export default function PurchaseOrderItemSelector({
       } else {
         // 容差與上限檢核
         if (row.isRoll) {
-          if (row.unit === "卷" || row.unit === "roll") {
-            const maxAllowedRolls = Number((row.undeliveredQuantity * 1.1).toFixed(4));
-            if (arrivalQty > maxAllowedRolls) {
-              newErrorKeys.push(key);
-              if (!firstErrorRow) {
-                firstErrorRow = row;
-                firstErrorMessage = `採購單 [${row.purchaseOrderNumber}] 項次 [${row.lineNumber}] 的到貨卷數 [${arrivalQty} 卷] 已超過未到貨卷數 110% 限制 [${Number(maxAllowedRolls.toFixed(2))} 卷]`;
-              }
-            }
-          } else {
-            const maxAllowedLength = Number((row.undeliveredLength * 1.1).toFixed(4));
-            if (arrivalQty > maxAllowedLength) {
-              newErrorKeys.push(key);
-              if (!firstErrorRow) {
-                firstErrorRow = row;
-                firstErrorMessage = `採購單 [${row.purchaseOrderNumber}] 項次 [${row.lineNumber}] 的本次到貨量 [${arrivalQty} m] 已超過未到貨量 110% 限制 [${Number(maxAllowedLength.toFixed(2))} m]`;
-              }
+          const maxAllowedRolls = Number((row.undeliveredQuantity * 1.1).toFixed(4));
+          if (arrivalQty > maxAllowedRolls || !Number.isInteger(arrivalQty)) {
+            newErrorKeys.push(key);
+            if (!firstErrorRow) {
+              firstErrorRow = row;
+              firstErrorMessage = `採購單 [${row.purchaseOrderNumber}] 項次 [${row.lineNumber}] 的到貨卷數須為整數且不可超過未到貨卷數 110% 限制 [${maxAllowedRolls} 卷]`;
             }
           }
         } else {
@@ -237,7 +196,7 @@ export default function PurchaseOrderItemSelector({
     const selectedItems = selectedRowKeys.map((key) => {
       const row = poItems.find((item: any) => item.key === key);
       const arrivalQty = row.arrivalQuantity;
-      const widthVal = row.width && row.width > 0 ? row.width : 1000;
+      const widthVal = row.width || 0;
 
       const originalPrice = row.unitPrice || 0;
       const undeliveredQty = row.undeliveredQuantity || 0;
@@ -250,18 +209,26 @@ export default function PurchaseOrderItemSelector({
 
       return {
         referenceNumber: row.lineNumber,
-        partnerDocumentNumber: row.purchaseOrderNumber, // PO Number on receipt item level
+        partnerDocumentNumber: row.purchaseOrderNumber, // 進貨明細層級的採購單號
         materialCode: row.goodsCode,
         materialName: row.goodsName,
-        unit: row.unit || "卷",
+        unit: row.isRoll ? "卷" : row.unit || "pcs",
         unitPrice: originalPrice, // 💡 100% 與採購單單價一樣，徹底移除前台折算包袱
         rollCount: row.isRoll ? arrivalQty : 1, // 💡 到貨量即為到貨卷數
         width: widthVal,
         length: row.length || 0,
-        quantity: arrivalQty, // 💡 進貨量完全等於到貨量批量
+        // Quantity 為 SQM 總量，不是卷數；片料維持現行數量，因契約尚未
+        // 定義片料面積換算公式。
+        quantity: row.isRoll
+          ? calculatePurchaseReceiptRollArea({
+              rollCount: arrivalQty,
+              width: widthVal,
+              length: row.length || 0,
+            })
+          : arrivalQty,
         isRoll: row.isRoll,
         amount: amountVal,
-        targetStorageCode: "TW-QC-GEN", // Default waiting for IQC storage
+        targetStorageCode: "TW-QC-GEN", // 預設待 IQC 檢驗儲位
         notes: "",
       };
     });
@@ -295,7 +262,7 @@ export default function PurchaseOrderItemSelector({
         ellipsis: true,
       },
       {
-        label: "寬度(mm)",
+        label: "採購幅寬(mm)",
         name: "width" as any,
         width: 100,
         align: "right",
@@ -309,9 +276,10 @@ export default function PurchaseOrderItemSelector({
         }
       },
       {
-        label: "長度",
+        label: "每卷／片長",
+        headerHint: "卷料：每卷長度(m)\n片料：片料長度(mm)",
         name: "length" as any,
-        width: 100,
+        width: 140,
         align: "right",
         render: (val: number, record: any) => {
           if (record.purchaseOrderType === "Mold" || val == null) return "-";
@@ -321,7 +289,7 @@ export default function PurchaseOrderItemSelector({
 
           if (isRoll) {
             return (
-              <span className="text-emerald-600 dark:text-emerald-400 font-mono font-medium">
+              <span className="text-[var(--ant-color-success)] font-mono font-medium inline-block leading-[24px] align-middle w-full text-right">
                 {formattedVal} m
               </span>
             );
@@ -329,49 +297,31 @@ export default function PurchaseOrderItemSelector({
           if (isSheet) {
             // 💡 單位相同的用一樣的顏色：片材長度為 mm，故與寬度 (mm) 統一採用高質感靛藍色 (Indigo)
             return (
-              <span className="text-indigo-600 dark:text-indigo-400 font-mono font-medium">
+              <span className="text-[var(--ant-color-primary)] font-mono font-medium inline-block leading-[24px] align-middle w-full text-right">
                 {formattedVal} mm
               </span>
             );
           }
-          return <span className="font-mono">{formattedVal}</span>;
+          return <span className="font-mono inline-block leading-[24px] align-middle w-full text-right">{formattedVal}</span>;
         }
       },
       {
-        label: "採購單價",
+        label: "每卷單價／單價",
         name: "unitPrice" as any,
         width: 90,
         align: "right",
         render: (v: number, record: any) => {
-          const isChecked = selectedRowKeys.includes(record.key);
-          const qty = isChecked ? (record.arrivalQuantity || 0) : 0;
-          const undelivered = record.undeliveredQuantity || 0;
-          const price = v || 0;
-
-          const isOver = qty > undelivered;
-          let recalculatedPrice = price;
-          if (isOver && qty > 0) {
-            const subtotal = Math.round(price * undelivered);
-            recalculatedPrice = subtotal / qty;
-          }
-
           return (
-            <div className="flex flex-col items-end">
-              <span className="font-semibold text-[#0958d9] dark:text-[#177ddc]">
-                {v != null ? Number(v.toFixed(2)).toLocaleString("zh-TW") : "0"}
-              </span>
-              {isChecked && isOver && recalculatedPrice !== price && (
-                <span className="text-[11px] text-[#8c8c8c] dark:text-[#8c8c8c] font-normal">
-                  重算: {Number(recalculatedPrice.toFixed(2)).toLocaleString("zh-TW")}
-                </span>
-              )}
-            </div>
+            <span className="leading-[24px] text-[var(--ant-color-primary)]">
+              {v != null ? Number(v.toFixed(2)).toLocaleString("zh-TW") : "0"}
+              {record.isRoll ? " /卷" : ` /${record.unit || "PCS"}`}
+            </span>
           );
         },
       },
 
       {
-        label: "採購量",
+        label: "採購數量（卷／PCS）",
         name: "quantity" as any,
         width: 90,
         align: "right",
@@ -381,7 +331,7 @@ export default function PurchaseOrderItemSelector({
           </span>
         ),
       },
-      { label: "單位", name: "unit" as any, width: 60, align: "center" },
+      { label: "採購單位", name: "unit" as any, width: 80, align: "center", render: (value: string, record: any) => record.isRoll ? "卷" : value },
       {
         label: "未到貨量",
         name: "undeliveredQuantity" as any,
@@ -403,7 +353,7 @@ export default function PurchaseOrderItemSelector({
         },
       },
       {
-        label: "到貨量",
+        label: "到貨卷數／件數",
         name: "arrivalQuantity" as any,
         width: 100,
         align: "right",
@@ -444,8 +394,8 @@ export default function PurchaseOrderItemSelector({
                 e.target.select();
               }}
               size="small"
-              style={{ width: "100%", fontWeight: "bold" }}
-              className="font-bold [&_input]:!text-[#18a058] dark:[&_input]:!text-[#389e0d]"
+              style={{ width: "100%", height: 24, fontWeight: "bold" }}
+              className="font-bold [&_input]:!text-[var(--ant-color-success)]"
               controls={false}
             />
           );
@@ -480,6 +430,16 @@ export default function PurchaseOrderItemSelector({
         },
       },
       {
+        label: "到貨總長 (M)", name: "arrivalTotalLength" as any, width: 120, align: "right",
+        render: (_value: unknown, record: any) => record.isRoll && selectedRowKeys.includes(record.key)
+          ? `${record.arrivalQuantity * record.length} M` : "-",
+      },
+      {
+        label: "庫存面積 (SQM)", name: "arrivalArea" as any, width: 140, align: "right",
+        render: (_value: unknown, record: any) => record.isRoll && selectedRowKeys.includes(record.key)
+          ? `${calculatePurchaseReceiptRollArea({ rollCount: record.arrivalQuantity, width: record.width, length: record.length })} SQM` : "-",
+      },
+      {
         label: "已到貨量",
         name: "receivedQuantity" as any,
         width: 90,
@@ -501,8 +461,10 @@ export default function PurchaseOrderItemSelector({
     let finalConfigs = configs;
     if (isMold) {
       finalConfigs = configs.filter(col => 
-        col.label !== "寬度" &&
-        col.label !== "長度" &&
+        col.label !== "採購幅寬(mm)" &&
+        col.name !== "length" &&
+        col.name !== "arrivalTotalLength" &&
+        col.name !== "arrivalArea" &&
         col.label !== "取消量"
       );
       finalConfigs = finalConfigs.map(col => {

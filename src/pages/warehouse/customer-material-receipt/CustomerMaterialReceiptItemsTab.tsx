@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Button, Table, Space, Popconfirm, App } from 'antd';
+import { Button, Space, Popconfirm, App } from 'antd';
+import Table from '@/components/Table/ErpTable';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { DynamicForm } from '@/components/Form/DynamicForm';

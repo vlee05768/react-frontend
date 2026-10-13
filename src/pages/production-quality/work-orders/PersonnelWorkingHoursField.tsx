@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Modal, Input, Button, Table, Space, InputNumber, message, Select } from 'antd';
+import { Modal, Input, Button, Space, InputNumber, message, Select } from 'antd';
+import Table from '@/components/Table/ErpTable';
 import { EditOutlined, EyeOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { getApiV1Employee } from '@/api/generated/sdk.gen';

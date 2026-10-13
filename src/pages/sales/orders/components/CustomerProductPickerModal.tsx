@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Modal, Table, Input, Button, Space, InputNumber, Tag, DatePicker, theme, App, message as antdMessage } from 'antd';
+import { Modal, Input, Button, Space, InputNumber, Tag, DatePicker, theme, App, message as antdMessage } from 'antd';
+import Table from '@/components/Table/ErpTable';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';

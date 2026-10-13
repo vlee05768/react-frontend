@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { 
   Button, Card, Spin, InputNumber, Radio, Typography, 
-  App, Empty, Form, Row, Col, Select, Descriptions, Table
+  App, Empty, Form, Row, Col, Select, Descriptions
 } from "antd";
+import Table from '@/components/Table/ErpTable';
 import { 
   SyncOutlined, CheckCircleOutlined, QuestionCircleOutlined 
 } from "@ant-design/icons";

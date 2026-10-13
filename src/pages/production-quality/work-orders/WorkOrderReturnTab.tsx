@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Card,
-  Table,
   Tag,
   Space,
   Button,
@@ -13,6 +12,7 @@ import {
   Select,
   Tooltip,
 } from "antd";
+import Table from '@/components/Table/ErpTable';
 import {
   SaveOutlined,
   EditOutlined,

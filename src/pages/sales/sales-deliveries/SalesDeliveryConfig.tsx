@@ -111,7 +111,7 @@ export const getColumns = (): TableColumnConfig<SalesDeliveryDto>[] => [
           renderContent={text => (
             <Link
               to={`/basic/business-partners/${bpCode}`}
-              style={{ color: '#1677ff', textDecoration: "underline", cursor: "pointer" }}
+              style={{ color: '#1677ff', textDecoration: 'underline', cursor: 'pointer' }}
             >
               {text}
             </Link>

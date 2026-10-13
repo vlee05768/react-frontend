@@ -57,6 +57,13 @@ body {
 /* 全域規範：Table 欄位名稱 (Header) 一律置中 */
 .ant-table-thead > tr > th {
   text-align: center !important;
+  white-space: nowrap;
+}
+
+/* 僅讓欄頭文字的 flex 區域縮小，排序／篩選圖示不被一併裁切。 */
+.ant-table-thead .ant-table-column-title,
+.ant-table-thead .ant-table-column-sorters {
+  min-width: 0;
 }
 
 /* === Tab 標籤頁辨識度優化 (支援亮/暗模式) === */

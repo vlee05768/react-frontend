@@ -1,5 +1,6 @@
 import React from 'react';
-import { Card, Input, Button, Badge, Spin, Table, Tag, Popconfirm, Tooltip, Select, Checkbox } from 'antd';
+import { Card, Input, Button, Badge, Spin, Tag, Popconfirm, Tooltip, Select, Checkbox } from 'antd';
+import Table from '@/components/Table/ErpTable';
 import { 
   ScanOutlined, 
   ArrowRightOutlined, 

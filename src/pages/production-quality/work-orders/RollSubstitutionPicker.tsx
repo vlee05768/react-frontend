@@ -1,5 +1,6 @@
 import React from "react";
-import { Modal, Table, Tag, Button, Typography, App } from "antd";
+import { Modal, Tag, Button, Typography, App } from "antd";
+import Table from '@/components/Table/ErpTable';
 import { useQuery } from "@tanstack/react-query";
 import { getApiV1WorkOrderRequisitionSelectableRolls } from "@/api/generated/sdk.gen";
 import { buildTableColumns } from "@/utils/tableUtils";

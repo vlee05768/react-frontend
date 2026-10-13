@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Table, Button, Space, App } from 'antd';
+import { Button, Space, App } from 'antd';
+import Table from '@/components/Table/ErpTable';
 import { PlusOutlined } from '@ant-design/icons';
 import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';

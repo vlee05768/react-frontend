@@ -169,7 +169,7 @@ export const getColumns = (): TableColumnConfig<OrderDto>[] => [
           renderContent={text => (
             <Link
               to={`/basic/business-partners/${bpCode}`}
-              style={{ color: '#1677ff', textDecoration: "underline", cursor: "pointer" }}
+              style={{ color: '#1677ff', textDecoration: 'underline', cursor: 'pointer' }}
             >
               {text}
             </Link>

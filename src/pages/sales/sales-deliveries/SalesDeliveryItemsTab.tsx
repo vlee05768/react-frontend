@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Table, Button, App, Space, Typography, Modal, InputNumber, Input, Form, Spin, Descriptions, Select, Tag } from 'antd';
+import { Button, App, Space, Typography, Modal, InputNumber, Input, Form, Spin, Descriptions, Select, Tag } from 'antd';
+import Table from '@/components/Table/ErpTable';
 import type { SalesDeliveryItemDto, CreateSalesDeliveryItemDto } from '@/api/generated/types.gen';
 import { 
   deleteApiV1SalesDeliveryByMovementNumberItemsByLineNumber,

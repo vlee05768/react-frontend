@@ -1,4 +1,5 @@
-import { Table, Button, Input, Modal, Form, Tag, Space, Typography, Tooltip, Empty } from 'antd';
+import { Button, Input, Modal, Form, Tag, Space, Typography, Tooltip, Empty } from 'antd';
+import Table from '@/components/Table/ErpTable';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import PageCard from '@/components/common/PageCard';
 import { useBrandModels } from './useBrandModels';

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Form, Input, Button, Collapse, Row, Col, message, Modal, Divider, Table, Popconfirm } from 'antd';
+import { Form, Input, Button, Collapse, Row, Col, message, Modal, Divider, Popconfirm } from 'antd';
+import Table from '@/components/Table/ErpTable';
 import { EditOutlined, UserOutlined, SaveOutlined, CloseOutlined, LockOutlined, StarFilled, LaptopOutlined } from '@ant-design/icons';
 import { getApiV1AuthProfile, putApiV1AuthProfile, postApiV1AuthChangePassword } from '@/api/generated/sdk.gen';
 import { useDeviceDetect } from '@/hooks/useDeviceDetect';

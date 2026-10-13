@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Table, Button, Select, Tag, theme, App } from 'antd';
+import { Button, Select, Tag, theme, App } from 'antd';
+import Table from '@/components/Table/ErpTable';
 import { useQuery, useQueries, useQueryClient } from '@tanstack/react-query';
 import { 
   getApiV1ProductByProductCodeMolds, 

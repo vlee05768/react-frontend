@@ -7,6 +7,11 @@ import { z } from "zod";
 import { ContactSelectWithCreate } from "@/pages/sales/orders/components/ContactSelectWithCreate";
 import { Link } from "react-router-dom";
 import { TableText } from "@/components/Table/tableText";
+import {
+  calculatePurchaseReceiptTotalLength,
+  calculatePurchaseReceiptRollArea,
+  getReceiptItemDimensions,
+} from "./purchaseReceiptItemCalculations";
 
 export const purchaseReceiptSearchConfig = (): any[] => [
   {
@@ -320,7 +325,7 @@ export const itemTableColumns = (): TableColumnConfig[] => [
   },
   { label: "單位", name: "unit", width: 80, align: "center" },
   {
-    label: "單價",
+    label: "採購單價（卷料每卷）",
     name: "unitPrice",
     width: 100,
     align: "right",
@@ -335,9 +340,9 @@ export const itemTableColumns = (): TableColumnConfig[] => [
     render: (val: number) =>
       val != null ? Number(val.toFixed(2)).toLocaleString() : "0",
   },
-  { label: "拆卷數", name: "rollCount", width: 90, align: "right" },
-  { label: "規格寬度 (mm)", name: "width", width: 120, align: "right" },
-  { label: "規格長度 (M)", name: "length", width: 120, align: "right" },
+  { label: "到貨卷數", name: "rollCount", width: 90, align: "right" },
+  { label: "採購幅寬 (mm)", name: "width", width: 120, align: "right" },
+  { label: "每卷／片長", headerHint: "卷料：每卷長度(m)\n片料：片料長度(mm)", name: "length", width: 140, align: "right" },
 ];
 
 export const getItemColumns = (
@@ -376,24 +381,35 @@ export const getItemColumns = (
       }
     },
     { title: isMold ? "模具名稱" : "原料名稱", dataIndex: "materialName", width: 150, ellipsis: true },
+    { title: "到貨卷數", dataIndex: "rollCount", width: 100, align: "right" as const,
+      render: (val: number, record: any) => (
+        <span className="inline-block leading-[24px] align-middle w-full text-right">
+          {record.isRoll ? `${val || 0} 卷` : "-"}
+        </span>
+      ) },
     {
-      title: "單價",
+      title: "每卷單價／單價",
       dataIndex: "unitPrice",
       width: 100,
       align: "right" as const,
-      render: (val: number) =>
-        val != null ? Number(val.toFixed(4)).toLocaleString("zh-TW") : "0",
+      render: (val: number, record: any) => (
+        <span className="inline-block leading-[24px] align-middle w-full text-right">
+          {`${val != null ? Number(val.toFixed(4)).toLocaleString("zh-TW") : "0"}${record.isRoll ? " /卷" : ""}`}
+        </span>
+      ),
     },
     {
-      title: "進貨量",
+      title: "庫存面積／件數",
       dataIndex: "quantity",
       width: 100,
       align: "right" as const,
       render: (val: number, record: any) => (
-        <span className="font-semibold text-[var(--ant-color-success)]">
+        <span
+          className="font-semibold text-[var(--ant-color-success)] inline-block leading-[24px] align-middle w-full text-right"
+        >
           {val != null ? Number(val.toFixed(2)).toLocaleString("zh-TW") : "0"}
           <span className="text-xs text-gray-500 ml-1 font-normal">
-            {isMold ? " pcs" : (record.isRoll ? " 卷" : " pcs")}
+            {isMold ? " PCS" : record.isRoll ? " SQM" : " PCS"}
           </span>
         </span>
       ),
@@ -403,13 +419,13 @@ export const getItemColumns = (
       dataIndex: "totalLength",
       width: 100,
       align: "right" as const,
-      render: (val: number, record: any) => {
-        const length = record.extraData?.length || record.length || 0;
-        const rollCount = record.rollCount || 0;
-        const total = record.isRoll ? (val ?? (rollCount * length)) : 0;
+      render: (_val: number, record: any) => {
+        const total = calculatePurchaseReceiptTotalLength(record);
         return (
-          <span className="font-bold text-blue-600">
-            {total != null ? Number(total.toFixed(2)).toLocaleString("zh-TW") : "0"} M
+          <span
+            className="font-bold text-[var(--ant-color-primary)] inline-block leading-[24px] align-middle w-full text-right"
+          >
+            {record.isRoll ? `${Number(total.toFixed(2)).toLocaleString("zh-TW")} M` : "-"}
           </span>
         );
       }
@@ -423,27 +439,33 @@ export const getItemColumns = (
         val != null ? Number(val).toLocaleString("zh-TW") : "0",
     },
     {
-      title: "規格寬度(mm)",
-      dataIndex: ["extraData", "width"],
+      title: "採購幅寬(mm)",
+      dataIndex: "width",
       width: 120,
       align: "right" as const,
+      render: (_val: number, record: any) => (
+        <span className="inline-block leading-[24px] align-middle w-full text-right">
+          {getReceiptItemDimensions(record).width || "-"}
+        </span>
+      ),
     },
     {
-      title: "規格長度",
-      dataIndex: ["extraData", "length"],
-      width: 120,
+      title: "每卷／片長",
+      headerHint: "卷料：每卷長度(m)\n片料：片料長度(mm)",
+      dataIndex: "length",
+      width: 140,
       align: "right" as const,
-      render: (val: number, record: any) => {
-        const length = val ?? record.length ?? 0;
+      render: (_val: number, record: any) => {
+        const length = getReceiptItemDimensions(record).length;
         if (record.isRoll) {
           return (
-            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+            <span className="font-semibold text-[var(--ant-color-success)] inline-block leading-[24px] align-middle w-full text-right">
               {Number(length).toLocaleString("zh-TW")} <span className="text-xs text-gray-500 font-normal">m</span>
             </span>
           );
         } else {
           return (
-            <span className="font-semibold text-amber-600 dark:text-amber-400">
+            <span className="font-semibold text-[var(--ant-color-warning)] inline-block leading-[24px] align-middle w-full text-right">
               {Number(length).toLocaleString("zh-TW")} <span className="text-xs text-gray-500 font-normal">mm</span>
             </span>
           );
@@ -484,11 +506,16 @@ export const getItemColumns = (
   if (isMold) {
     columns = columns.filter(
       col =>
-        col.title !== "規格寬度 (mm)" &&
-        col.title !== "規格長度 (M)"
+        !["width", "length", "rollCount", "totalLength"].includes(col.dataIndex as string)
     );
   }
 
+  if (!isMold) {
+    const paymentKeys = ["unitPrice", "amount"];
+    const payment = columns.filter(col => paymentKeys.includes(col.dataIndex as string));
+    columns = columns.filter(col => !paymentKeys.includes(col.dataIndex as string));
+    columns.splice(4, 0, ...payment);
+  }
   return columns;
 };
 
@@ -535,7 +562,7 @@ export const getItemFormConfig = (isMold?: boolean): any[] => {
     },
     {
       name: "unitPrice",
-      label: "單價",
+      label: (context: any) => context?.values?.isRoll ? "每卷單價" : "單價",
       componentType: "InputNumber",
       editable: "always",
       colSpan: 4,
@@ -549,7 +576,7 @@ export const getItemFormConfig = (isMold?: boolean): any[] => {
     },
     {
       name: "rollCount",
-      label: "拆卷數",
+      label: "到貨卷數",
       componentType: "InputNumber",
       editable: "always",
       colSpan: 4,
@@ -559,11 +586,11 @@ export const getItemFormConfig = (isMold?: boolean): any[] => {
         controls: false,
         allowClear: false,
       },
-      validation: z.number().min(1, "拆卷數必須大於等於 1"),
+      validation: z.number().min(1, "到貨卷數必須大於等於 1"),
     },
     {
       name: "width",
-      label: "規格寬度 (mm)",
+      label: "採購幅寬 (mm)",
       componentType: "InputNumber",
       editable: "always",
       colSpan: 4,
@@ -577,17 +604,22 @@ export const getItemFormConfig = (isMold?: boolean): any[] => {
     },
     {
       name: "length",
-      label: "規格長度 (M)",
+      label: (context: any) => context?.values?.isRoll ? "每卷長度(m)" : "片料長度(mm)",
       componentType: "InputNumber",
       editable: "always",
       colSpan: 4,
-      componentProps: {
+      componentProps: (context: any) => ({
         min: 1,
         precision: 4,
         controls: false,
         allowClear: false,
+        placeholder: context?.values?.isRoll ? "請輸入每卷長度(m)" : "請輸入片料長度(mm)",
+      }),
+      validation: z.number().min(1, "每卷長度(m)／片料長度(mm)必須大於 0"),
+      dynamicValidation: (context: any) => {
+        const label = context?.values?.isRoll ? "每卷長度(m)" : "片料長度(mm)";
+        return z.number({ required_error: `請輸入${label}`, invalid_type_error: `${label}必須為數值` }).min(1, `${label}必須大於 0`);
       },
-      validation: z.number().min(1, "長度必須大於 0"),
     },
     {
       name: "totalLength",
@@ -597,18 +629,53 @@ export const getItemFormConfig = (isMold?: boolean): any[] => {
       colSpan: 4,
       customRender: (_props: any, context: any) => {
         const isRoll = context?.values?.isRoll ?? true;
-        const rollCount = context?.values?.rollCount || 0;
-        const length = context?.values?.length || 0;
-        const total = isRoll ? rollCount * length : 0;
+        const total = calculatePurchaseReceiptTotalLength({
+          isRoll,
+          rollCount: context?.values?.rollCount,
+          length: context?.values?.length,
+        });
         return (
           <InputNumber
+            id="totalLength"
             value={total}
             disabled
-            style={{ width: "100%", fontWeight: "bold", color: "#2563eb" }}
+            style={{ width: "100%", fontWeight: "bold", color: "var(--ant-color-primary)" }}
             formatter={(val) => val != null ? `${val} M` : ""}
           />
         );
       }
+    },
+    {
+      name: "quantity",
+      label: "庫存面積 (SQM)",
+      componentType: "Custom",
+      editable: "always",
+      colSpan: 4,
+      hidden: (context: any) => !context?.values?.isRoll,
+      customRender: (_props: any, context: any) => (
+        <InputNumber id="quantity" disabled value={calculatePurchaseReceiptRollArea(context.values)}
+          formatter={(val) => `${val} SQM`} className="w-full" />
+      ),
+    },
+    {
+      name: "amount",
+      label: "已存貨款（按卷／超收封頂，儲存後重算）",
+      componentType: "InputNumber",
+      editable: "never",
+      colSpan: 4,
+    },
+    {
+      name: "costPerSqmPreview",
+      label: "面積成本參考（已存貨款 ÷ SQM）",
+      componentType: "Custom",
+      editable: "always",
+      colSpan: 4,
+      hidden: (context: any) => !context?.values?.isRoll,
+      customRender: (_props: any, context: any) => {
+        const area = calculatePurchaseReceiptRollArea(context.values);
+        return <InputNumber id="costPerSqmPreview" disabled value={area > 0 ? (context.values.amount || 0) / area : 0}
+          precision={4} className="w-full" />;
+      },
     },
     {
       name: "notes",
@@ -625,9 +692,20 @@ export const getItemFormConfig = (isMold?: boolean): any[] => {
       col =>
         col.name !== "targetStorageCode" &&
         col.name !== "width" &&
-        col.name !== "length"
+        col.name !== "length" &&
+        col.name !== "rollCount" &&
+        col.name !== "totalLength" &&
+        col.name !== "quantity" &&
+        col.name !== "costPerSqmPreview"
     );
   }
 
-  return configs;
+  return configs.map(config => ({
+    ...config,
+    group: ["rollCount", "unitPrice", "amount"].includes(config.name)
+      ? "採購貨款（卷數 × 每卷單價，超收封頂）"
+      : ["width", "length", "totalLength", "quantity", "costPerSqmPreview"].includes(config.name)
+        ? "庫存換算（長度／幅寬／面積，非採購計價）"
+        : "基本資料",
+  }));
 };

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Table, Button, Space, App, Typography } from 'antd';
+import { Button, Space, App, Typography } from 'antd';
+import Table from '@/components/Table/ErpTable';
 // import { PlusOutlined } from '@ant-design/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';

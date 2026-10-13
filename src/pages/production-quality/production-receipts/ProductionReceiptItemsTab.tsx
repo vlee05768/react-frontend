@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Table, Button } from 'antd';
+import { Button } from 'antd';
+import Table from '@/components/Table/ErpTable';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { itemTableColumns, itemFormConfig } from './ProductionReceiptConfig';

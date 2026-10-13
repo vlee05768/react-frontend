@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Table, Button, Space, App, Typography } from 'antd';
+import { Button, Space, App, Typography } from 'antd';
+import Table from '@/components/Table/ErpTable';
 import { PlusOutlined } from '@ant-design/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -8,8 +9,13 @@ import {
   deleteApiV1PurchaseReceiptByCodeItemsByLineNumber
 } from '@/api/generated/sdk.gen';
 import { DynamicForm } from '@/components/Form/DynamicForm';
-import type { PurchaseReceiptDto, PurchaseReceiptItemDto } from '@/api/generated/types.gen';
+import type {
+  PurchaseReceiptDto,
+  PurchaseReceiptItemDto,
+  UpdatePurchaseReceiptItemDto,
+} from '@/api/generated/types.gen';
 import { getItemColumns, getItemFormConfig } from './PurchaseReceiptConfig';
+import { buildPurchaseReceiptItemUpdatePayload, getReceiptItemDimensions } from './purchaseReceiptItemCalculations';
 import PurchaseOrderItemSelector from './PurchaseOrderItemSelector';
 import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
 
@@ -72,7 +78,7 @@ export default function PurchaseReceiptItemsTab({ purchaseReceiptData, isMasterV
   };
 
   const updateMutation = useMutation({
-    mutationFn: ({ lineNumber, values }: { lineNumber: string; values: any }) => 
+    mutationFn: ({ lineNumber, values }: { lineNumber: string; values: UpdatePurchaseReceiptItemDto }) =>
       putApiV1PurchaseReceiptByCodeItemsByLineNumber({ 
         path: { code: purchaseReceiptData.documentNumber!, lineNumber }, 
         body: values 
@@ -128,7 +134,7 @@ export default function PurchaseReceiptItemsTab({ purchaseReceiptData, isMasterV
     if (!editingItem) return;
     updateMutation.mutate({
       lineNumber: editingItem.lineNumber!,
-      values
+      values: buildPurchaseReceiptItemUpdatePayload(values)
     });
   };
 
@@ -170,7 +176,7 @@ export default function PurchaseReceiptItemsTab({ purchaseReceiptData, isMasterV
           <DynamicForm
             formId="purchaseReceiptItemForm"
             fields={getItemFormConfig(purchaseReceiptData.subType === "Mold")}
-            defaultValues={editingItem}
+            defaultValues={{ ...editingItem, ...getReceiptItemDimensions(editingItem) }}
             isViewMode={false}
             isUpdateMode={true}
             hideDefaultFooter={true}

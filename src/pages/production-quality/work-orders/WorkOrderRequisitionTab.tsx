@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import {
   Card,
-  Table,
   Tag,
   Space,
   Button,
@@ -12,6 +11,7 @@ import {
   InputNumber,
   Tooltip,
 } from "antd";
+import Table from '@/components/Table/ErpTable';
 import {
   PlusOutlined,
   DeleteOutlined,

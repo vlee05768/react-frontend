@@ -1,6 +1,7 @@
 import { getApiMutationErrorMessage } from "@/utils/apiErrorDisplay";
 import { useState, useMemo } from 'react';
-import { Table, Button, Space,  Drawer } from 'antd';
+import { Button, Space,  Drawer } from 'antd';
+import Table from '@/components/Table/ErpTable';
 import { PlusOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
 import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
