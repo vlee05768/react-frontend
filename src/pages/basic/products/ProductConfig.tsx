@@ -6,7 +6,7 @@ import type {
 } from "@/components/Form/types";
 import { Tag } from "antd";
 import { Link } from "react-router-dom";
-import { EllipsisText } from "@/components/Table/EllipsisText";
+import { TableText } from "@/components/Table/tableText";
 import { AsyncSelect } from "@/components/Form/AsyncSelect";
 
 export const bomItemFormConfig = (_isUpdateMode: boolean = false, existingMaterialCodes: string[] = []): FormFieldConfig[] => [
@@ -95,7 +95,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     name: "name",
     sortable: { multiple: 2 },
     width: 220,
-    render: (val: string) => <EllipsisText text={val} maxWidth={220} />,
+    render: (val: string) => <TableText value={val} maxWidth={220} />,
   },
   {
     label: "類別",
@@ -144,18 +144,14 @@ export const mainTableColumns = (): TableColumnConfig[] => [
       const displayCode = customerCode || bpCode;
       const name = val && displayCode ? `[${displayCode}] ${val}` : (val || displayCode || "-");
       if (!bpCode) return "-";
-      return (
-        <Link 
-          to={`/basic/business-partners/${bpCode}`} 
-          style={{ 
-            color: '#1677ff', 
-            textDecoration: 'underline',
-            cursor: 'pointer'
-          }}
+      return <TableText value={name} maxWidth={220} renderContent={text => (
+        <Link
+          to={`/basic/business-partners/${bpCode}`}
+          style={{ color: '#1677ff', textDecoration: 'underline', cursor: 'pointer' }}
         >
-          <EllipsisText text={name} maxWidth={220} />
+          {text}
         </Link>
-      );
+      )} />;
     },
   },
   { label: "客戶產品代碼", name: "customerProductId", width: 150 },
@@ -212,19 +208,19 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     label: "規格",
     name: "specifications",
     width: 200,
-    render: (val: string) => <EllipsisText text={val} maxWidth={180} />,
+    render: (val: string) => <TableText value={val} maxWidth={180} />,
   },
   {
     label: "描述",
     name: "description",
     width: 200,
-    render: (val: string) => <EllipsisText text={val} maxWidth={180} />,
+    render: (val: string) => <TableText value={val} maxWidth={180} />,
   },
   {
     label: "備註",
     name: "notes",
     width: 200,
-    render: (val: string) => <EllipsisText text={val} maxWidth={180} />,
+    render: (val: string) => <TableText value={val} maxWidth={180} />,
   },
 ];
 

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Modal, Table, Input, Space, Button } from 'antd';
+import { Modal, Input, Space, Button } from 'antd';
+import Table from '@/components/Table/ErpTable';
 import { useQuery } from '@tanstack/react-query';
 import { getApiV1Material } from '@/api/generated';
 import type { MaterialDto } from '@/api/generated/types.gen';
 import { DEFAULT_PAGE_SIZE } from '@/constants';
 import { MODAL_WIDTH_PICK, MODAL_PICK_BODY_MAX_HEIGHT } from '@/constants/ui';
-import { EllipsisText } from '@/components/Table/EllipsisText';
+import { TableText } from '@/components/Table/tableText';
 
 interface CustomerMaterialPickerModalProps {
   open: boolean;
@@ -84,7 +85,7 @@ export default function CustomerMaterialPickerModal({
       title: '原料名稱',
       dataIndex: 'name',
       width: 220,
-      render: (val: string) => <EllipsisText text={val || '-'} maxWidth={200} />,
+      render: (val: string) => <TableText value={val || '-'} maxWidth={200} />,
     },
     {
       title: '型態',

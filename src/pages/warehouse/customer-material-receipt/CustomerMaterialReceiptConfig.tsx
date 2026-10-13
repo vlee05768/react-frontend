@@ -3,7 +3,7 @@ import { Tag, InputNumber, Input } from "antd";
 import dayjs from "dayjs";
 import { z } from "zod";
 import { Link } from "react-router-dom";
-import { EllipsisText } from "@/components/Table/EllipsisText";
+import { TableText } from "@/components/Table/tableText";
 import { DictSelect } from "@/components/Form/DictSelect";
 
 export const customerMaterialReceiptSearchConfig = (): any[] => [
@@ -154,25 +154,18 @@ export const mainTableColumns = (): TableColumnConfig[] => [
       }
       const isSemi = (record?.subType || "").toUpperCase() === "SEMI";
       if (isSemi || val.startsWith("WO")) {
-        return (
+        return <TableText value={val} maxWidth={140} renderContent={text => (
           <Link
             to={`/production-quality/work-orders/${val}`}
-            style={{
-              color: "#1668dc",
-              textDecoration: "underline",
-              cursor: "pointer",
-              lineHeight: "24px",
-              display: "inline-block",
-              verticalAlign: "middle",
-            }}
+            style={{ color: "#1668dc", textDecoration: "underline", cursor: "pointer", lineHeight: "24px", display: "inline-block", verticalAlign: "middle" }}
           >
-            <EllipsisText text={val} maxWidth={140} />
+            {text}
           </Link>
-        );
+        )} />;
       }
       return (
         <span style={{ display: "inline-block", lineHeight: "24px", verticalAlign: "middle", width: "100%", textAlign: "left" }}>
-          <EllipsisText text={val} maxWidth={140} />
+          <TableText value={val} maxWidth={140} />
         </span>
       );
     },
@@ -196,21 +189,14 @@ export const mainTableColumns = (): TableColumnConfig[] => [
         val && displayCode
           ? `[${displayCode}] ${val}`
           : val || displayCode || "-";
-      return (
+      return <TableText value={name} maxWidth={170} renderContent={text => (
         <Link
           to={`/basic/business-partners/${bpCode}`}
-          style={{
-            color: "#1668dc",
-            textDecoration: "underline",
-            cursor: "pointer",
-            lineHeight: "24px",
-            display: "inline-block",
-            verticalAlign: "middle",
-          }}
+          style={{ color: "#1668dc", textDecoration: "underline", cursor: "pointer", lineHeight: "24px", display: "inline-block", verticalAlign: "middle" }}
         >
-          <EllipsisText text={name} maxWidth={170} />
+          {text}
         </Link>
-      );
+      )} />;
     },
   },
   {
@@ -250,7 +236,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     width: 180,
     render: (val: string) => (
       <span style={{ display: "inline-block", lineHeight: "24px", verticalAlign: "middle", width: "100%", textAlign: "left" }}>
-        <EllipsisText text={val || "-"} maxWidth={160} />
+        <TableText value={val || "-"} maxWidth={160} />
       </span>
     ),
   },
@@ -373,7 +359,7 @@ export const itemTableColumns = (): TableColumnConfig[] => [
     label: "原料品名",
     name: "materialName",
     width: 180,
-    render: (val: string) => <EllipsisText text={val || "-"} maxWidth={160} />,
+    render: (val: string) => <TableText value={val || "-"} maxWidth={160} />,
   },
   {
     label: "類型",
@@ -426,7 +412,7 @@ export const itemTableColumns = (): TableColumnConfig[] => [
     label: "備註",
     name: "notes",
     width: 150,
-    render: (val: string) => <EllipsisText text={val || "-"} maxWidth={130} />,
+    render: (val: string) => <TableText value={val || "-"} maxWidth={130} />,
   },
 ];
 

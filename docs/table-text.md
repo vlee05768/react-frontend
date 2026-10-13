@@ -96,6 +96,24 @@ import { TableText } from '@/components/Table/tableText';
 4. **Batch 4：生產／品質高風險互動表格** — 先驗證 11 個 C 類檔案的選取、展開、`onCell`、多表與多 renderer，再考慮任何直接 `TableText` 客製。
 5. **Batch 5：清理與回歸** — 再評估未使用的 antd `Table` import、`EllipsisText` 相容入口及重複 wrapper；最後才處理直接表格防回歸掃描。表單永不併入這個採用批次。
 
+## Batch 2 完成矩陣（2026-10-13）
+
+本批只處理基礎／倉儲指定的 6 個檔案；未改表單、後端、版號或業務計算。六檔均已由 `ErpTable`／`StandardErpTable` 或 `buildTableColumns` 進入 `normalizeTableColumns`，一般純文字交由共用正規化，欄位特殊寬度／空值／單一 Link 才直接使用 `TableText`。
+
+| 檔案 | 共用正規化 | 本批完成 | 保留／未處理 |
+|---|---|---|---|
+| `pages/basic/products/ProductConfig.tsx` | `buildTableColumns` → `normalizeTableColumns` | 品名、規格、描述、備註改直接 `TableText`；客戶單一 Link 改 `renderContent` | Tag、圖示、數值與複合 renderer 原樣 |
+| `pages/warehouse/inventory/StorageInventoryList.tsx` | `StandardErpTable` | 移除儲位／物料名稱重複 `EllipsisText`，回到共用純文字處理 | 庫存數值 Button、展開主從表、日期與空值 renderer 原樣 |
+| `pages/warehouse/inventory-movements/StorageTransactionsList.tsx` | `StandardErpTable` | 名稱、來源單號、備註、建立人員改直接 `TableText`，保留欄位寬度 | 複製圖示＋來源單號複合 renderer、Tag、數量與日期原樣 |
+| `pages/warehouse/inventory-adjustments/InventoryAdjustmentConfig.tsx` | `buildTableColumns` → `normalizeTableColumns` | 備註與帶寬度 suffix 的品名改直接 `TableText` | 日期、狀態 Tag、數量與庫位原樣，保留 0／空值語意 |
+| `pages/warehouse/customer-material-receipt/CustomerMaterialReceiptConfig.tsx` | `buildTableColumns` → `normalizeTableColumns` | 單號／品名／備註等特殊寬度改直接 `TableText`；單一 Link 用 `renderContent`；明確 `-` 改 `emptyText` | Tag、日期、金額、規格／數量計算與複合 span 原樣 |
+| `pages/warehouse/customer-material-receipt/CustomerMaterialPickerModal.tsx` | `ErpTable` | 原料名稱改直接 `TableText` | checkbox 選取、分頁與其餘數值欄位原樣 |
+
+### Batch 2 focused regression
+
+- 新增 `src/pages/warehouse/tableTextBatch2.regression.test.tsx`：4 tests，覆蓋六檔無重複 `EllipsisText`、長文字多行、空值、`0`、單一 Link，以及 Button／Tag 複合 renderer 不被文字正規化包裝。
+- 驗證保留日期格式、庫存數值格式及既有互動／計算 renderer；未處理欄位見上表「保留／未處理」。
+
 ## 未決風險
 
 - **欄位級判斷仍需逐檔確認**：本盤點能確認入口與 renderer 形狀，但不能僅靠靜態搜尋判定每個 `EllipsisText` 的業務語意、實際寬度或是否應保留 `emptyText`。

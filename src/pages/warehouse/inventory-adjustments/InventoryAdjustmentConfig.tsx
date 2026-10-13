@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { SearchFieldConfig, FormFieldConfig, TableColumnConfig } from "@/components/Form/types";
-import { EllipsisText } from "@/components/Table/EllipsisText";
+import { TableText } from "@/components/Table/tableText";
 import dayjs from "dayjs";
 import { AsyncSelect } from "@/components/Form/AsyncSelect";
 import { DictSelect } from "@/components/Form/DictSelect";
@@ -47,7 +47,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     render: (val: string) => getStatusTag(val)
   },
   { label: "負責人員", name: "responsibleUserName", width: 100 },
-  { label: "備註", name: "notes", width: 200, render: (val: string) => <EllipsisText text={val} maxWidth={180} /> },
+  { label: "備註", name: "notes", width: 200, render: (val: string) => <TableText value={val} maxWidth={180} /> },
   { label: "建立時間", name: "createdAt", width: 160, render: (val: string) => val ? dayjs(val).format("YYYY-MM-DD HH:mm:ss") : "-" , sortable: { multiple: 5 } },
   { label: "更新時間", name: "updatedAt", width: 160, render: (val: string) => val ? dayjs(val).format("YYYY-MM-DD HH:mm:ss") : "-" },
 ];
@@ -140,7 +140,7 @@ export const itemTableColumns = (): TableColumnConfig[] => [
         }
       }
       const displayVal = (val || "") + suffix;
-      return <EllipsisText text={displayVal} maxWidth={200} />;
+      return <TableText value={displayVal} maxWidth={200} />;
     }
   },
   { 
@@ -155,7 +155,7 @@ export const itemTableColumns = (): TableColumnConfig[] => [
     }
   },
   { label: "調整庫位", name: "targetStorageCode", width: 110, align: "center" },
-  { label: "備註", name: "notes", width: 150, render: (val: string) => <EllipsisText text={val} maxWidth={130} /> },
+  { label: "備註", name: "notes", width: 150, render: (val: string) => <TableText value={val} maxWidth={130} /> },
 ];
 
 export const itemFormConfig = (_isUpdateMode: boolean = false, currentType?: string): FormFieldConfig[] => {

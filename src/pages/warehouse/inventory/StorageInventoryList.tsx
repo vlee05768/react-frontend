@@ -10,7 +10,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 import { inventoryTypeOptions, searchFields } from './StorageInventoryConfig';
-import { EllipsisText } from '@/components/Table/EllipsisText';
+
 import { useErpListQuery } from '@/hooks/useErpListQuery';
 import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
 import StandardErpTable from '@/components/Table/StandardErpTable';
@@ -156,7 +156,7 @@ export default function StorageInventoryList() {
   const subColumnsForInventory = [
     { title: '儲位類別', dataIndex: 'storageType', align: 'center', width: 100 },
     { title: '儲位編號', dataIndex: 'storageCode', width: 200 },
-    { title: '儲位名稱', dataIndex: 'storageName', render: (val: string) => <EllipsisText text={val} /> },
+    { title: '儲位名稱', dataIndex: 'storageName' },
     { title: '庫存量', dataIndex: 'quantity', align: 'right', width: 120, render: renderQuantity },
     { title: '最後更新時間', dataIndex: 'updatedAt', width: 180, render: (val: string) => val ? dayjs(val).format('YYYY/MM/DD HH:mm:ss') : '-' },
   ];
@@ -165,7 +165,7 @@ export default function StorageInventoryList() {
     { title: '庫存類型', dataIndex: 'type', align: 'center', width: 100, render: (val: string) => inventoryTypeOptions.find(o => o.value === val)?.label || '-' },
     { title: '客戶', dataIndex: 'customerName', width: 300, render: (val: string) => val || <span className="text-gray-400">-</span> },
     { title: '物料編號', dataIndex: 'inventoryCode', width: 300 },
-    { title: '物料名稱', dataIndex: 'inventoryName', render: (val: string) => <EllipsisText text={val} /> },
+    { title: '物料名稱', dataIndex: 'inventoryName' },
     { title: '庫存量', dataIndex: 'quantity', align: 'right', width: 160, render: renderQuantity },
     { title: '最後更新時間', dataIndex: 'updatedAt', width: 180, render: (val: string) => val ? dayjs(val).format('YYYY/MM/DD HH:mm:ss') : '-' },
   ];
@@ -175,7 +175,7 @@ export default function StorageInventoryList() {
     { title: '庫存類型', dataIndex: 'type', align: 'center', width: 100, render: (val: string) => inventoryTypeOptions.find(o => o.value === val)?.label || '-' },
     { title: '客戶', dataIndex: 'customerName', width: 300, render: (val: string) => val || <span className="text-gray-400">-</span> },
     { title: '物料編號', dataIndex: 'inventoryCode', width: 300 },
-    { title: '物料名稱', dataIndex: 'inventoryName', render: (val: string) => <EllipsisText text={val} /> },
+    { title: '物料名稱', dataIndex: 'inventoryName' },
     { title: '總庫存量', dataIndex: 'totalQuantity', align: 'right', width: 160, render: (val: number) => val.toLocaleString('zh-TW') },
     { title: '儲位數', dataIndex: 'storageCount', align: 'right', width: 100 },
   ];
@@ -183,7 +183,7 @@ export default function StorageInventoryList() {
   const storageMasterColumns = [
     { title: '儲位類別', dataIndex: 'storageType', align: 'center', width: 100 },
     { title: '儲位編號', dataIndex: 'storageCode', width: 200 },
-    { title: '儲位名稱', dataIndex: 'storageName', render: (val: string) => <EllipsisText text={val} /> },
+    { title: '儲位名稱', dataIndex: 'storageName' },
     { title: '總庫存量', dataIndex: 'totalQuantity', align: 'right', width: 120, render: (val: number) => val.toLocaleString('zh-TW') },
     { title: '物料數', dataIndex: 'inventoryCount', align: 'right', width: 100 },
   ];

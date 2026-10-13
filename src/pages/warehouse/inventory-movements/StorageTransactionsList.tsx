@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getApiV1StorageTransactions } from '@/api/generated/sdk.gen';
 import type { InventoryTransactionDto } from '@/api/generated/types.gen';
 import dayjs from 'dayjs';
-import { EllipsisText } from '@/components/Table/EllipsisText';
+import { TableText } from '@/components/Table/tableText';
 import { useErpListQuery } from '@/hooks/useErpListQuery';
 import ActiveQueryAndSortTags from '@/components/Table/ActiveQueryAndSortTags';
 import StandardErpTable from '@/components/Table/StandardErpTable';
@@ -219,13 +219,13 @@ export default function StorageTransactionsList() {
       title: '物料名稱',
       dataIndex: 'inventoryName',
       width: 160,
-      render: (val: string) => <EllipsisText text={val} />
+      render: (val: string) => <TableText value={val} maxWidth={160} />
     },
     {
       title: '儲位名稱',
       dataIndex: 'storageName',
       width: 120,
-      render: (val: string) => <EllipsisText text={val} />
+      render: (val: string) => <TableText value={val} maxWidth={120} />
     },
     {
       title: '異動時間',
@@ -289,7 +289,7 @@ export default function StorageTransactionsList() {
               message.success('已複製來源單據編號');
             }} 
           />
-          <EllipsisText text={val} />
+          <TableText value={val} maxWidth={150} />
         </div>
       ) : '-'
     },
@@ -297,7 +297,7 @@ export default function StorageTransactionsList() {
       title: '備註',
       dataIndex: 'notes',
       width: 200,
-      render: (val: string) => <EllipsisText text={val} />
+      render: (val: string) => <TableText value={val} maxWidth={200} />
     },
     {
       title: '建立時間',
@@ -310,7 +310,7 @@ export default function StorageTransactionsList() {
       title: '建立人員',
       dataIndex: 'createdBy',
       width: 120,
-      render: (val: string) => <EllipsisText text={val} />
+      render: (val: string) => <TableText value={val} maxWidth={120} />
     }
   ];
 
