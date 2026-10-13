@@ -9,7 +9,7 @@ import { ContactSelectWithCreate } from "./components/ContactSelectWithCreate";
 import { DictLabel } from "@/components/Form/DictLabel";
 import { DictTag } from "@/components/Form/DictTag";
 import { Link } from "react-router-dom";
-import { EllipsisText } from "@/components/Table/EllipsisText";
+import { TableText } from "@/components/Table/tableText";
 
 export const isRollUnit = (goodsType: string | undefined | null, goodsCode: string | undefined | null, unit?: string | undefined | null) => {
   if (goodsType === "M" && goodsCode) {
@@ -163,16 +163,18 @@ export const getColumns = (): TableColumnConfig<OrderDto>[] => [
       const name = val && displayCode ? `[${displayCode}] ${val}` : (val || displayCode || "-");
       if (!bpCode) return "-";
       return (
-        <Link 
-          to={`/basic/business-partners/${bpCode}`} 
-          style={{ 
-            color: '#1677ff', 
-            textDecoration: 'underline',
-            cursor: 'pointer'
-          }}
-        >
-          <EllipsisText text={name} maxWidth={220} />
-        </Link>
+        <TableText
+          value={name}
+          maxWidth={220}
+          renderContent={text => (
+            <Link
+              to={`/basic/business-partners/${bpCode}`}
+              style={{ color: '#1677ff', textDecoration: "underline", cursor: "pointer" }}
+            >
+              {text}
+            </Link>
+          )}
+        />
       );
     },
   },

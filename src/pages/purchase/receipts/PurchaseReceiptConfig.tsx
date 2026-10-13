@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 import { z } from "zod";
 import { ContactSelectWithCreate } from "@/pages/sales/orders/components/ContactSelectWithCreate";
 import { Link } from "react-router-dom";
-import { EllipsisText } from "@/components/Table/EllipsisText";
+import { TableText } from "@/components/Table/tableText";
 
 export const purchaseReceiptSearchConfig = (): any[] => [
   {
@@ -109,16 +109,18 @@ export const mainTableColumns = (): TableColumnConfig[] => [
           : val || displayCode || "-";
       if (!bpCode) return "-";
       return (
-        <Link
-          to={`/basic/business-partners/${bpCode}`}
-          style={{
-            color: "#1677ff",
-            textDecoration: "underline",
-            cursor: "pointer",
-          }}
-        >
-          <EllipsisText text={name} maxWidth={180} />
-        </Link>
+        <TableText
+          value={name}
+          maxWidth={180}
+          renderContent={text => (
+            <Link
+              to={`/basic/business-partners/${bpCode}`}
+              style={{ color: "#1677ff", textDecoration: "underline", cursor: "pointer" }}
+            >
+              {text}
+            </Link>
+          )}
+        />
       );
     },
   },

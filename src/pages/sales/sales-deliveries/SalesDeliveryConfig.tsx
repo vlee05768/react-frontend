@@ -22,7 +22,7 @@ import { ContactSelectWithCreate } from "../orders/components/ContactSelectWithC
 import { DictTag } from "@/components/Form/DictTag";
 // import { DictLabel } from "@/components/Form/DictLabel";
 import { Link } from "react-router-dom";
-import { EllipsisText } from "@/components/Table/EllipsisText";
+import { TableText } from "@/components/Table/tableText";
 
 export const getStatusTag = (row: SalesDeliveryDto) => {
   if (row.confirmDate) {
@@ -105,16 +105,18 @@ export const getColumns = (): TableColumnConfig<SalesDeliveryDto>[] => [
       const name = val && displayCode ? `[${displayCode}] ${val}` : (val || displayCode || "-");
       if (!bpCode) return "-";
       return (
-        <Link 
-          to={`/basic/business-partners/${bpCode}`} 
-          style={{ 
-            color: '#1677ff', 
-            textDecoration: 'underline',
-            cursor: 'pointer'
-          }}
-        >
-          <EllipsisText text={name} maxWidth={220} />
-        </Link>
+        <TableText
+          value={name}
+          maxWidth={220}
+          renderContent={text => (
+            <Link
+              to={`/basic/business-partners/${bpCode}`}
+              style={{ color: '#1677ff', textDecoration: "underline", cursor: "pointer" }}
+            >
+              {text}
+            </Link>
+          )}
+        />
       );
     },
   },

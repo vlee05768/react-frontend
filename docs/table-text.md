@@ -128,3 +128,32 @@ import { TableText } from '@/components/Table/tableText';
 - 只讀搜尋 `react-frontend/src`，排除測試檔後得到 52 個頁面表格檔、78 個表格 JSX 入口。
 - `ErpTable.tsx`、`StandardErpTable.tsx`、`tableText.tsx`、`tableUtils.ts` 已逐一核對共用正規化路徑。
 - 既有 TableText 測試：`src/components/Table/tableText.test.tsx`、`src/components/Table/TableText.behavior.test.tsx`、`src/components/Table/EllipsisText.test.tsx`；本 Task 未新增或修改測試。
+
+## Batch 3 完成矩陣（2026-10-13）
+
+本批處理採購／進貨／銷售／出貨單據的文字欄位。一般品名、規格、單號、客戶／供應商、備註欄位由 `ErpTable`／`StandardErpTable`／`buildTableColumns` 的 `normalizeTableColumns` 統一處理；只有既有固定寬度且需要保留單一 Link 的主檔欄位直接使用 `TableText`。未改表單、後端、版號，也未重算金額、數量、卷數、每卷單價、總長或面積。
+
+| 檔案 | 共用正規化／本批完成 | 保留／未處理例外 |
+|---|---|---|
+| `pages/purchase/orders/PurchaseOrderConfig.tsx` | 供應商欄位改 `TableText maxWidth=220`，以 `renderContent` 保留單一供應商 Link；品名／單號／備註及明細一般文字交共用正規化 | 狀態 Tag、日期、金額、數量、卷料／片料尺寸與計價 renderer 原樣 |
+| `pages/purchase/orders/PurchaseOrderItemsTab.tsx` | 使用 `ErpTable`，明細文字由共用正規化處理 | 操作 Button、金額／數量／卷數／長度／面積顯示原樣 |
+| `pages/purchase/receipts/PurchaseReceiptConfig.tsx` | 供應商欄位改 `TableText maxWidth=180`，以 `renderContent` 保留單一供應商 Link；進貨明細文字交共用正規化 | 狀態 Tag、日期、單價、到貨卷數、總長、面積、尺寸與備註的既有規則原樣 |
+| `pages/purchase/receipts/PurchaseReceiptItemsTab.tsx` | 使用 `ErpTable`，一般明細文字由共用正規化處理 | 編輯表單、數值／成本計算與操作欄不包裝 |
+| `pages/purchase/receipts/PurchaseOrderItemSelector.tsx` | 使用 `ErpTable`／`buildTableColumns`，品名／規格／單號等純文字交共用正規化 | checkbox、選取、InputNumber、Button、操作欄及數值／卷料換算 renderer 原樣 |
+| `pages/sales/orders/OrderConfig.tsx` | 客戶欄位改 `TableText maxWidth=220`，以 `renderContent` 保留單一客戶 Link；品名／規格／單號／備註由共用正規化 | Tag、checkbox／狀態圖示、日期、金額、數量與複合 renderer 原樣 |
+| `pages/sales/orders/OrderItemsTab.tsx` | 使用 `ErpTable`，一般明細文字由共用正規化處理 | 操作欄、計價／數量／日期 renderer 原樣 |
+| `pages/sales/orders/components/CustomerProductPickerModal.tsx` | 使用 `ErpTable`，產品代碼／品名／客戶產品代碼等一般文字由共用正規化處理 | checkbox／選取、Tag、InputNumber、DatePicker、Button、展開明細及操作欄原樣 |
+| `pages/sales/sales-deliveries/SalesDeliveryConfig.tsx` | 客戶欄位改 `TableText maxWidth=220`，以 `renderContent` 保留單一客戶 Link；出貨明細文字由共用正規化處理 | Tag、檢貨 Tooltip、日期、金額、數量、單價與複合品名 renderer 原樣 |
+| `pages/sales/sales-deliveries/SalesDeliveryItemsTab.tsx` | 使用 `ErpTable`，一般明細文字由共用正規化處理 | 操作欄、Tag、Input、Select、數量／金額／庫存規則原樣 |
+| `pages/sales/sales-deliveries/components/UndeliveredOrderItemPicker.tsx` | 使用 `ErpTable`／`buildTableColumns`，單號／品名／備註等純文字交共用正規化 | checkbox、選取、InputNumber、Tooltip、Tag、Button、檢貨／出貨數量與操作欄原樣 |
+
+### Batch 3 focused regression
+
+- 新增 `src/pages/tableTextBatch3.regression.test.tsx`：4 tests，確認採購單、進貨單、銷售單、出貨單的單一供應商／客戶 Link 由直接 `TableText` 承載，且 `renderContent` 仍產生原本路徑與文字。
+- 驗證原有數值／計價 renderer 不由本批文字正規化重算；picker 的 checkbox、選取、輸入控制項、Tag、Button 與操作欄列為未處理例外。
+
+### Batch 3 未處理例外
+
+- 多 Link、Tag、Button、checkbox、Input／InputNumber／DatePicker、Tooltip 及複合 renderer 不包裝。
+- 金額、數量、卷數、每卷單價、總長、面積、日期、狀態與庫存／出貨計算沿用既有 renderer。
+- 既有 `EllipsisText` 相容入口仍可存在於其他批次檔案；本批指定的四個單一供應商／客戶固定寬度欄位已改直接 `TableText`，未將所有相容入口一次替換。

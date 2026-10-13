@@ -6,7 +6,7 @@ import type { ColumnsType } from "antd/es/table";
 import type { PurchaseOrderDto, PurchaseOrderItemDto } from "@/api/generated/types.gen";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
-import { EllipsisText } from "@/components/Table/EllipsisText";
+import { TableText } from "@/components/Table/tableText";
 import { getApiV1MaterialByCode, getApiV1MoldByCode } from "@/api/generated/sdk.gen";
 import { ContactSelectWithCreate } from "@/pages/sales/orders/components/ContactSelectWithCreate";
 import { logger } from "@/utils/logger";
@@ -112,16 +112,18 @@ export const getColumns = (): TableColumnConfig<PurchaseOrderDto>[] => [
       const name = val && displayCode ? `[${displayCode}] ${val}` : (val || displayCode || "-");
       if (!bpCode) return "-";
       return (
-        <Link 
-          to={`/basic/business-partners/${bpCode}`} 
-          style={{ 
-            color: '#1677ff', 
-            textDecoration: 'underline',
-            cursor: 'pointer'
-          }}
-        >
-          <EllipsisText text={name} maxWidth={220} />
-        </Link>
+        <TableText
+          value={name}
+          maxWidth={220}
+          renderContent={text => (
+            <Link
+              to={`/basic/business-partners/${bpCode}`}
+              style={{ color: '#1677ff', textDecoration: "underline", cursor: "pointer" }}
+            >
+              {text}
+            </Link>
+          )}
+        />
       );
     },
   },
