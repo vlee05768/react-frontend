@@ -439,13 +439,30 @@ export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
     colSpan: 4,
   },
   {
+    name: "materialForm",
+    label: "物料型態",
+    componentType: "Select",
+    editable: "always",
+    colSpan: 4,
+    componentProps: {
+      disabled: isViewMode,
+      options: [
+        { label: "捲料 (R)", value: "R" },
+        { label: "片料 (S)", value: "S" },
+      ],
+    },
+    validation: z.enum(["R", "S"], { errorMap: () => ({ message: "請選擇物料型態" }) }),
+  },
+  {
     name: "unit",
     label: "單位",
     componentType: "Custom",
     editable: "never",
     colSpan: 4,
     customRender: (_props: any, context: any) => {
-      const isRoll = context?.values?.isRoll ?? true;
+      const isRoll = context?.values?.materialForm
+        ? context.values.materialForm === "R"
+        : (context?.values?.isRoll ?? true);
       const unitStr = isRoll ? "卷" : "pcs";
       return (
         <Input
@@ -460,9 +477,9 @@ export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
     name: "targetStorageCode",
     label: "目的儲位",
     componentType: "Custom",
-    editable: "never",
+    editable: "always",
     customRender: (field: any) => (
-      <DictSelect {...field} dictKey="STORAGE" disabled />
+      <DictSelect {...field} dictKey="STORAGE" disabled={isViewMode} />
     ),
     colSpan: 4,
     validation: z.string().min(1, "請選擇目的儲位"),
@@ -502,7 +519,9 @@ export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
     editable: "always",
     colSpan: 4,
     componentProps: (context: any) => {
-      const isRoll = context?.values?.isRoll ?? true;
+      const isRoll = context?.values?.materialForm
+        ? context.values.materialForm === "R"
+        : (context?.values?.isRoll ?? true);
       return {
         disabled: isViewMode,
         min: 0.1,
@@ -530,22 +549,33 @@ export const itemFormConfig = (isViewMode: boolean): FormFieldConfig[] => [
     validation: z.number().min(0.1, "到貨量必須大於 0"),
   },
   {
+    name: "packageSeq",
+    label: "包裝序號",
+    componentType: "Input",
+    editable: "always",
+    colSpan: 4,
+    componentProps: { disabled: isViewMode },
+  },
+  {
     name: "quantity",
     label: "預估面積 (SQM)",
     componentType: "Custom",
     editable: "always",
     colSpan: 4,
     customRender: (_props: any, context: any) => {
-      const isRoll = context?.values?.isRoll ?? true;
+      const isRoll = context?.values?.materialForm
+        ? context.values.materialForm === "R"
+        : (context?.values?.isRoll ?? true);
       const rollCount = context?.values?.rollCount || 0;
       const width = context?.values?.width || 0;
       const length = context?.values?.length || 0;
       const physicalQuantity = context?.values?.physicalQuantity || 0;
       
       const widthM = width / 1000;
-      const totalSqm = isRoll 
-        ? rollCount * length * widthM 
-        : physicalQuantity * widthM;
+      const lengthM = isRoll ? length : length / 1000;
+      const totalSqm = isRoll
+        ? rollCount * lengthM * widthM
+        : physicalQuantity * widthM * lengthM;
         
       return (
         <InputNumber
@@ -583,9 +613,11 @@ export const customerMaterialReceiptItemSchema = z.object({
   materialCode: z.string().min(1, "請選擇物料"),
   targetStorageCode: z.string().min(1, "請選擇儲位"),
   isRoll: z.boolean(),
+  materialForm: z.enum(["R", "S"], { errorMap: () => ({ message: "請選擇物料型態" }) }),
   rollCount: z.number().int().min(1, "分卷/包數必須大於 0"),
   width: z.number().positive("寬度必須大於 0"),
   length: z.number().positive("長度必須大於 0"),
   physicalQuantity: z.number().positive("到貨量必須大於 0"),
+  packageSeq: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
 });

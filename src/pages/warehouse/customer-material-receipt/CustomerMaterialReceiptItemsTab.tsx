@@ -18,6 +18,40 @@ interface CustomerMaterialReceiptItemsTabProps {
   onEditingChange?: (isEditing: boolean) => void;
 }
 
+type CustomerMaterialReceiptItemValues = Partial<CustomerMaterialReceiptItemDto> & {
+  isRoll?: boolean;
+  materialForm?: string | null;
+};
+
+export const isCustomerMaterialReceiptItemEditable = (receipt: Pick<CustomerMaterialReceiptDto, 'status' | 'confirmDate' | 'closeDate'>) => {
+  const status = (receipt.status || '').toUpperCase();
+  return !receipt.closeDate && !receipt.confirmDate && (status === 'DRAFT' || status === 'UNCONFIRMED' || status === '');
+};
+
+export const calculateCustomerMaterialReceiptAreaSqm = (values: CustomerMaterialReceiptItemValues) => {
+  const isSheet = values.materialForm === 'S' || values.isRoll === false;
+  const widthM = Number(values.width || 0) / 1000;
+  if (isSheet) {
+    const lengthM = Number(values.length || 0) / 1000;
+    return Number(values.physicalQuantity || 0) * widthM * lengthM;
+  }
+  return Number(values.rollCount || 0) * Number(values.length || 0) * widthM;
+};
+
+export const buildUpdateCustomerMaterialReceiptItemDto = (
+  values: CustomerMaterialReceiptItemValues,
+): UpdateCustomerMaterialReceiptItemDto => ({
+  physicalQuantity: values.physicalQuantity ?? null,
+  rollCount: values.rollCount ?? null,
+  width: values.width ?? null,
+  length: values.length ?? null,
+  quantity: values.quantity ?? calculateCustomerMaterialReceiptAreaSqm(values),
+  packageSeq: values.packageSeq ?? null,
+  materialForm: values.materialForm ?? (values.isRoll ? 'R' : 'S'),
+  targetStorageCode: values.targetStorageCode ?? null,
+  notes: values.notes ?? null,
+});
+
 export default function CustomerMaterialReceiptItemsTab({
   receiptData,
   isMasterViewMode,
@@ -30,8 +64,7 @@ export default function CustomerMaterialReceiptItemsTab({
   const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   const documentNumber = receiptData.documentNumber!;
-  const isDraft = (receiptData.status || '').toUpperCase() === 'UNCONFIRMED' || !receiptData.confirmDate;
-  const isEditable = isMasterViewMode && isDraft;
+  const isEditable = isMasterViewMode && isCustomerMaterialReceiptItemEditable(receiptData);
 
   // Direct array from parent payload - standard reuse optimization
   const items: CustomerMaterialReceiptItemDto[] = Array.isArray(receiptData.items) ? receiptData.items : [];
@@ -146,14 +179,12 @@ export default function CustomerMaterialReceiptItemsTab({
       return;
     }
 
-    // 2. 智慧到貨理算：若為卷料，依分卷規格重新算總 SQM (僅作為前端回報，後端還會更新)
-    let calculatedQty = values.physicalQuantity;
-    if (values.isRoll) {
-      calculatedQty = values.rollCount * values.length * (values.width / 1000);
-    }
+    // 2. 依規格預覽總面積；卷料以 M 計，片料以 mm × mm 計。
+    const materialForm = values.materialForm || (values.isRoll ? 'R' : 'S');
     const finalValues = {
       ...values,
-      quantity: calculatedQty,
+      materialForm,
+      quantity: calculateCustomerMaterialReceiptAreaSqm({ ...values, materialForm }),
     };
 
     if (isCreatingItem) {
@@ -161,7 +192,7 @@ export default function CustomerMaterialReceiptItemsTab({
     } else if (editingItem) {
       updateMutation.mutate({
         lineNumber: editingItem.lineNumber!,
-        body: finalValues as any,
+        body: buildUpdateCustomerMaterialReceiptItemDto(finalValues),
       });
     }
   };
@@ -202,8 +233,13 @@ export default function CustomerMaterialReceiptItemsTab({
 
   // 渲染建立或編輯明細的 DynamicForm 視圖 (Inline view pattern)
   if (isCreatingItem || editingItem) {
-    const defaultVals = editingItem || {
+    const defaultVals = editingItem ? {
+      ...editingItem,
+      isRoll: editingItem.isRoll ?? editingItem.materialForm === 'R',
+      materialForm: editingItem.materialForm || (editingItem.isRoll ? 'R' : 'S'),
+    } : {
       isRoll: true,
+      materialForm: 'R',
       rollCount: 1,
       width: 1000,
       length: 200,
