@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { getApiMutationErrorContent, getApiMutationErrorMessage, getAuthErrorMessage } from './apiErrorDisplay';
+import {
+  getApiMutationErrorContent,
+  getApiMutationErrorMessage,
+  getAuthErrorMessage,
+  getMaterialDeleteNotice,
+} from './apiErrorDisplay';
 
 describe('getApiMutationErrorContent', () => {
   it('renders operation and safe diagnostic fields', () => {
@@ -55,5 +60,48 @@ describe('getApiMutationErrorContent', () => {
     }, '刪除失敗')).toBe(
       '原因：刪除失敗\n錯誤代碼：ATTACHMENT_DELETE_ERROR\n關聯識別碼：corr-attachment-safe',
     );
+  });
+
+  it('correctly maps material deletion business blocking rules to warnings', () => {
+    const error = {
+      response: {
+        data: {
+          message: '無法刪除此原料：此原料已被採購單明細引用',
+          errorCode: 'MATERIAL_REFERENCED_BY_PURCHASE_ORDER',
+          correlationId: 'corr-mat-po-123',
+        },
+      },
+    };
+    const notice = getMaterialDeleteNotice(error);
+    expect(notice.isBlocked).toBe(true);
+    expect(notice.title).toBe('無法刪除原料（業務規則限制）');
+    expect(notice.content).toBe(
+      '原因：無法刪除此原料：此原料已被採購單明細引用\n錯誤代碼：MATERIAL_REFERENCED_BY_PURCHASE_ORDER\n關聯識別碼：corr-mat-po-123',
+    );
+  });
+
+  it('uses default friendly message when material blocked error has no safe message', () => {
+    const error = {
+      response: {
+        data: {
+          errorCode: 'MATERIAL_HAS_ROLL',
+          correlationId: 'corr-mat-roll-456',
+        },
+      },
+    };
+    const notice = getMaterialDeleteNotice(error);
+    expect(notice.isBlocked).toBe(true);
+    expect(notice.title).toBe('無法刪除原料（業務規則限制）');
+    expect(notice.content).toBe(
+      '原因：該原料已存在實體 LPN 捲卡/片包庫存記錄，無法刪除。\n錯誤代碼：MATERIAL_HAS_ROLL\n關聯識別碼：corr-mat-roll-456',
+    );
+  });
+
+  it('falls back to standard error title and content for non-blocked material deletion failure', () => {
+    const error = new Error('Network error');
+    const notice = getMaterialDeleteNotice(error);
+    expect(notice.isBlocked).toBe(false);
+    expect(notice.title).toBe('錯誤提示');
+    expect(notice.content).toBe('原因：刪除失敗');
   });
 });

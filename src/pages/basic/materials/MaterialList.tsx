@@ -1,6 +1,6 @@
 // @ts-nocheck
 import PageCard from '@/components/common/PageCard';
-import { getApiMutationErrorMessage } from "@/utils/apiErrorDisplay";
+import { getApiMutationErrorMessage, getMaterialDeleteNotice } from "@/utils/apiErrorDisplay";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Spin, Button, Modal, Space, Divider, message, Drawer, App } from 'antd';
@@ -172,7 +172,12 @@ export default function MaterialList() {
       queryClient.invalidateQueries({ queryKey: ['materialDetail'] });
     },
     onError: (error: any) => {
-      Modal.error({ centered: true, title: '錯誤提示', content: getApiMutationErrorMessage(error, '刪除失敗') });
+      const notice = getMaterialDeleteNotice(error);
+      if (notice.isBlocked) {
+        Modal.warning({ centered: true, title: notice.title, content: notice.content });
+      } else {
+        Modal.error({ centered: true, title: notice.title, content: notice.content });
+      }
     }
   });
 

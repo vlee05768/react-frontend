@@ -16,6 +16,54 @@ export function getApiMutationErrorMessage(error: unknown, operationFallback: st
   return lines.filter((line): line is string => Boolean(line)).join('\n');
 }
 
+export const MATERIAL_DELETE_BLOCKED_MESSAGES: Record<string, string> = {
+  MATERIAL_REFERENCED_BY_PURCHASE_ORDER: '該原料已被採購單引用，無法刪除。',
+  MATERIAL_REFERENCED_BY_PURCHASE_RECEIPT: '該原料已被進貨單引用，無法刪除。',
+  MATERIAL_REFERENCED_BY_BOM: '該原料已被 BOM 配方引用，無法刪除。',
+  MATERIAL_REFERENCED_BY_WORK_ORDER: '該原料已被生產工單用料引用，無法刪除。',
+  MATERIAL_HAS_ROLL: '該原料已存在實體 LPN 捲卡/片包庫存記錄，無法刪除。',
+  MATERIAL_HAS_LOT: '該原料已存在實體庫存批次記錄，無法刪除。',
+};
+
+export function isMaterialDeleteBlockedCode(errorCode?: string): boolean {
+  if (!errorCode) return false;
+  return errorCode in MATERIAL_DELETE_BLOCKED_MESSAGES;
+}
+
+export interface MaterialDeleteNotice {
+  isBlocked: boolean;
+  title: string;
+  content: string;
+}
+
+/** 針對原料刪除進行業務規則阻擋分析，區分業務警示與一般系統錯誤 */
+export function getMaterialDeleteNotice(error: unknown): MaterialDeleteNotice {
+  const details = getApiErrorDetails(error);
+  const code = details.errorCode;
+
+  if (code && isMaterialDeleteBlockedCode(code)) {
+    const defaultMsg = MATERIAL_DELETE_BLOCKED_MESSAGES[code];
+    const safeReason = details.message && details.message !== '系統發生錯誤' ? details.message : defaultMsg;
+    const lines = [
+      `原因：${safeReason}`,
+      `錯誤代碼：${code}`,
+      details.correlationId ? `關聯識別碼：${details.correlationId}` : undefined,
+    ].filter(Boolean) as string[];
+
+    return {
+      isBlocked: true,
+      title: '無法刪除原料（業務規則限制）',
+      content: lines.join('\n'),
+    };
+  }
+
+  return {
+    isBlocked: false,
+    title: '錯誤提示',
+    content: getApiMutationErrorMessage(error, '刪除失敗'),
+  };
+}
+
 export function getApiMutationErrorContent(error: unknown, operation: string, operationFallback = `${operation}失敗`): string {
   return [`操作失敗：${operation}`, getApiMutationErrorMessage(error, operationFallback)].join('\n');
 }
