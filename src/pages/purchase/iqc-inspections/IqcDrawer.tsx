@@ -1487,14 +1487,14 @@ export default function IqcDrawer({
     const hasNg = displayedRolls.some((r) => r.isOk === false);
     if (hasNg && overallResult === "AllPass") {
       message.warning(
-        "明細中存有異常卷料，判定結果不可為 AllPass (全部通過)！",
+        "明細中存有不合格項目，依「任一不良即整批退貨」規定，判定結果不可為 AllPass (全部通過)！請選擇全部退回 (Reject) 或申請特採 (Concession)。",
       );
       return;
     }
 
     if (!hasNg && overallResult === "Concession") {
       message.warning(
-        "明細中無異常不良品，不可申請特採！請選擇 AllPass (全部通過)。",
+        "明細中無不合格項目，不可申請特採！請選擇 AllPass (全部通過)。",
       );
       return;
     }
