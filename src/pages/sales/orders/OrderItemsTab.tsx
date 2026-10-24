@@ -215,7 +215,7 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
         );
       }
 
-      // 3.2 執行更新
+      // 3.2 執行更新；選品視窗未編輯備品量與委外註記，省略以保留伺服器現值。
       if (modifiedItems.length > 0) {
         await Promise.all(
           modifiedItems.map(p =>
@@ -228,12 +228,10 @@ export default function OrderItemsTab({ orderData, isMasterViewMode, onEditingCh
                 customerProductId: p.customerProductId || undefined,
                 unitPrice: p.orderUnitPrice || 0,
                 quantity: p.orderQuantity || 1,
-                spareQuantity: 0,
                 requestedDeliveryDate: p.requestedDeliveryDate 
                   ? dayjs(p.requestedDeliveryDate).format('YYYY-MM-DD')
                   : (orderData.requestedDeliveryDate && dayjs(orderData.requestedDeliveryDate).isValid() ? dayjs(orderData.requestedDeliveryDate).format('YYYY-MM-DD') : undefined),
                 promisedDeliveryDate: orderData.promisedDeliveryDate && dayjs(orderData.promisedDeliveryDate).isValid() ? dayjs(orderData.promisedDeliveryDate).format('YYYY-MM-DD') : undefined,
-                isOutsource: false,
                 priority: '0001',
               }
             })
