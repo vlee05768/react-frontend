@@ -15,6 +15,7 @@ import type { PurchaseOrderDto, PurchaseOrderItemDto } from '@/api/generated/typ
 import { getItemColumns, getItemFormConfig } from './PurchaseOrderConfig';
 import { getApiErrorMessage } from '@/utils/apiError';
 import { logger } from '@/utils/logger';
+import { adaptPurchaseOrderItem, type PurchaseOrderItemWithMaterialForm } from './purchaseOrderMaterialForm';
 
 const { Text } = Typography;
 
@@ -28,10 +29,10 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
-  const [editingItem, setEditingItem] = useState<PurchaseOrderItemDto | null>(null);
+  const [editingItem, setEditingItem] = useState<PurchaseOrderItemWithMaterialForm | null>(null);
 
-  const listData: PurchaseOrderItemDto[] = Array.isArray(purchaseOrderData.items) 
-    ? purchaseOrderData.items 
+  const listData: PurchaseOrderItemWithMaterialForm[] = Array.isArray(purchaseOrderData.items)
+    ? purchaseOrderData.items.map(adaptPurchaseOrderItem)
     : [];
 
   const notifyEdit = (editing: boolean) => {
@@ -44,15 +45,17 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
   };
 
   const handleEditOpen = async (record: PurchaseOrderItemDto) => {
-    if (record.purchaseOrderType === 'Material' && record.goodsCode) {
+    const adapted = adaptPurchaseOrderItem(record);
+    if (adapted.materialForm == null && record.purchaseOrderType === 'Material' && record.goodsCode) {
       try {
         const res = await getApiV1MaterialByCode({ path: { code: record.goodsCode } });
-        const material = (res.data as any)?.data;
+        const material = res.data?.data;
         if (material) {
-          setEditingItem({
+          const withMaterial = {
             ...record,
             materialForm: material.materialForm
-          } as any);
+          };
+          setEditingItem(adaptPurchaseOrderItem(withMaterial));
         } else {
           setEditingItem(record);
         }
@@ -61,7 +64,7 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
         setEditingItem(record);
       }
     } else {
-      setEditingItem(record);
+      setEditingItem(adapted);
     }
     notifyEdit(true);
   };
@@ -184,8 +187,8 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
       } 
     : {
         purchaseOrderType: purchaseOrderData.purchaseOrderType || 'Material',
-        materialForm: 'R',
-        unit: '卷',
+        materialForm: undefined,
+        unit: undefined,
         quantity: 0,
         unitPrice: 0,
         subTotal: 0,

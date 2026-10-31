@@ -159,6 +159,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     name: 'standardSpec', 
     width: 140,
     render: (_: any, record: any) => {
+      if (record.inspectionType === 'Production') return '未設定';
       const isRoll = record.materialForm === 'R';
       const width = record.standardWidth;
       const length = record.standardLength;
@@ -234,7 +235,7 @@ export const getIqcFormFields = (ctx: {
   setHeaderCoreDia: (val: number | null) => void;
   incomingStorageCode: string;
   setIncomingStorageCode: (val: string) => void;
-  totalLength: number;
+  totalLength: number | null;
 }): any[] => {
   const {
     isRollMaterial,
@@ -328,6 +329,7 @@ export const getIqcFormFields = (ctx: {
       editable: "never",
       colSpan: 6,
       componentProps: {
+        placeholder: detail?.inspectionType === "Production" ? "未設定" : undefined,
         className: "text-right",
       },
     },
@@ -338,6 +340,7 @@ export const getIqcFormFields = (ctx: {
       editable: "never",
       colSpan: 6,
       componentProps: {
+        placeholder: detail?.inspectionType === "Production" ? "未設定" : undefined,
         className: "text-right",
       },
     },
@@ -345,11 +348,11 @@ export const getIqcFormFields = (ctx: {
       name: "standardLength",
       label: isRollMaterial ? "每卷長度(m)" : "標準長度 (mm)",
       componentType: "InputNumber",
-      editable: isReadOnly ? "never" : "always",
+      editable: isReadOnly || detail?.inspectionType === "Production" ? "never" : "always",
       colSpan: 6,
       componentProps: {
         className: "text-right",
-        placeholder: isRollMaterial ? "請輸入每卷長度(m)" : "請輸入標準長度(mm)",
+        placeholder: detail?.inspectionType === "Production" ? "未設定" : isRollMaterial ? "請輸入每卷長度(m)" : "請輸入標準長度(mm)",
       },
     },
     {
@@ -369,7 +372,7 @@ export const getIqcFormFields = (ctx: {
       colSpan: 6,
       customRender: () => (
         <Input
-          value={`${totalLength.toLocaleString()} ${isRollMaterial ? "M" : "PCS"}`}
+          value={totalLength == null ? "未設定" : `${totalLength.toLocaleString()} ${isRollMaterial ? "M" : "PCS"}`}
           disabled
           className="w-full text-[var(--ant-color-text)] font-semibold text-right"
         />

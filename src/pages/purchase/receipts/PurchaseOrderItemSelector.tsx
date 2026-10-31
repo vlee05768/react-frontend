@@ -10,12 +10,13 @@ import {
 } from "antd";
 import Table from '@/components/Table/ErpTable';
 import { useQuery } from "@tanstack/react-query";
-import { getApiV1PurchaseOrder } from "@/api/generated";
+import { getApiV1PurchaseOrder, getApiV1MaterialByCode } from "@/api/generated";
 import { MODAL_PICK_BODY_MAX_HEIGHT, MODAL_WIDTH_PICK } from "@/constants/ui";
 import { SearchOutlined, ClearOutlined } from "@ant-design/icons";
 import type { TableColumnConfig } from "@/components/Form/types";
 import { buildTableColumns } from "@/utils/tableUtils";
 import { calculatePurchaseReceiptRollArea } from "./purchaseReceiptItemCalculations";
+import { adaptPurchaseOrderItem } from "../orders/purchaseOrderMaterialForm";
 
 interface PurchaseOrderItemSelectorProps {
   open: boolean;
@@ -58,24 +59,23 @@ export default function PurchaseOrderItemSelector({
   });
 
   const poItems = useMemo(() => {
-    const orders = (data?.data?.data as any)?.data || [];
+    const orders = data?.data?.data?.data || [];
     if (!Array.isArray(orders)) return [];
 
-    const rawItems: any[] = [];
-    orders.forEach((order: any) => {
+    const rawItems = orders.flatMap((order) => {
       const items = order.items || [];
-      if (Array.isArray(items)) {
-        items.forEach((item: any) => {
-          rawItems.push({
-            ...item,
-            purchaseOrderNumber: order.code,
-          });
-        });
-      }
+      return items.map((item) => ({
+        ...adaptPurchaseOrderItem(item),
+        // 明細與表頭均為採購類別來源；未知值或互相衝突時不可猜測。
+        purchaseOrderType: item.purchaseOrderType != null && order.purchaseOrderType != null && item.purchaseOrderType !== order.purchaseOrderType
+          ? undefined
+          : item.purchaseOrderType ?? order.purchaseOrderType,
+        purchaseOrderNumber: order.code,
+      }));
     });
 
     // Filter out already imported/excluded reference numbers by composite key
-    let filtered = rawItems.filter((item: any) => {
+    let filtered = rawItems.filter((item) => {
       const compositeKey = `${item.purchaseOrderNumber}_${item.lineNumber}`;
       return !excludedKeys.includes(compositeKey);
     });
@@ -83,7 +83,7 @@ export default function PurchaseOrderItemSelector({
     if (keyword) {
       const lower = keyword.toLowerCase();
       filtered = filtered.filter(
-        (item: any) =>
+        (item) =>
           item.goodsCode?.toLowerCase().includes(lower) ||
           item.goodsName?.toLowerCase().includes(lower) ||
           item.lineNumber?.toLowerCase().includes(lower) ||
@@ -91,15 +91,14 @@ export default function PurchaseOrderItemSelector({
       );
     }
 
-    const mapped = filtered.map((item: any) => {
+    const mapped = filtered.map((item) => {
       const qty = item.quantity || 0;
       const rec = item.receivedQuantity || 0;
       const cancel = item.cancelledQuantity || 0;
       const undelivered = Math.max(0, qty - rec - cancel);
       const key = `${item.purchaseOrderNumber}_${item.lineNumber}`;
       
-      const isRoll = item.purchaseOrderType === "Material" && item.materialForm !== "S" &&
-        (item.materialForm === "R" || ["m", "m2", "SQM", "卷", "roll"].includes(item.unit));
+      const isRoll = item.purchaseOrderType === "Material" && item.materialForm === "R";
       // PO Quantity 一律為採購卷數；庫存 SQM 不作為報價依據。
       const arrivalQuantity = customArrivalQuantities[key] ?? undelivered;
       const rollCount = isRoll ? arrivalQuantity : 1;
@@ -119,14 +118,45 @@ export default function PurchaseOrderItemSelector({
     });
 
     if (isMold) {
-      return mapped.filter((item: any) => item.undeliveredQuantity > 0);
+      return mapped.filter((item) => item.undeliveredQuantity > 0);
     }
     return mapped;
   }, [data, excludedKeys, keyword, customArrivalQuantities, isMold]);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (selectedRowKeys.length === 0) {
       message.warning("請至少選擇一項採購項目明細");
+      return;
+    }
+
+    if (selectedRowKeys.some(key => {
+      const row = poItems.find(item => item.key === key);
+      return row && row.purchaseOrderType !== "Material" && row.purchaseOrderType !== "Mold";
+    })) {
+      message.error("無法確認採購類別，請確認採購單資料後重試");
+      return;
+    }
+
+    // 舊採購資料可能沒有型態；僅以原料主檔補查，無法確認時停止。
+    const resolved = await Promise.all(selectedRowKeys.map(async key => {
+      const row = poItems.find(item => item.key === key);
+      if (!row || row.purchaseOrderType !== "Material" || row.materialForm === "R" || row.materialForm === "S") return row;
+      try {
+        if (!row.goodsCode) return row;
+        const response = await getApiV1MaterialByCode({ path: { code: row.goodsCode } });
+        const form = response.data?.data?.materialForm;
+        if (form !== "R" && form !== "S") return row;
+        return { ...row, materialForm: form, isRoll: form === "R" };
+      } catch {
+        return row;
+      }
+    }));
+    if (resolved.some(row => !row)) {
+      message.error("所選採購明細已變更，請重新選擇");
+      return;
+    }
+    if (resolved.some(row => row?.purchaseOrderType === "Material" && row.materialForm !== "R" && row.materialForm !== "S")) {
+      message.error("無法確認原料型態，請確認原料主檔後重試");
       return;
     }
 
@@ -136,7 +166,7 @@ export default function PurchaseOrderItemSelector({
     let firstErrorMessage = "";
 
     for (const key of selectedRowKeys) {
-      const row = poItems.find((item: any) => item.key === key);
+      const row = resolved.find((item) => item?.key === key);
       if (!row) continue;
 
       const arrivalQty = row.arrivalQuantity;
@@ -193,8 +223,12 @@ export default function PurchaseOrderItemSelector({
       return;
     }
 
-    const selectedItems = selectedRowKeys.map((key) => {
-      const row = poItems.find((item: any) => item.key === key);
+    const selectedRows = resolved;
+    if (selectedRows.some((row) => row === undefined)) {
+      message.error("所選採購明細已變更，請重新選擇");
+      return;
+    }
+    const selectedItems = selectedRows.filter((row) => row !== undefined).map((row) => {
       const arrivalQty = row.arrivalQuantity;
       const widthVal = row.width || 0;
 
@@ -283,8 +317,8 @@ export default function PurchaseOrderItemSelector({
         align: "right",
         render: (val: number, record: any) => {
           if (record.purchaseOrderType === "Mold" || val == null) return "-";
-          const isRoll = record.materialForm === "R" || record.goodsCode?.startsWith("R-") || record.goodsCode?.endsWith("-R") || record.unit === "卷" || record.unit === "roll" || record.unit === "m2";
-          const isSheet = record.materialForm === "S" || record.goodsCode?.startsWith("S-") || record.goodsCode?.endsWith("-S") || record.unit === "pcs";
+          const isRoll = record.purchaseOrderType === "Material" && record.materialForm === "R";
+          const isSheet = record.purchaseOrderType === "Material" && record.materialForm === "S";
           const formattedVal = Number(val.toFixed(2)).toLocaleString();
 
           if (isRoll) {
@@ -302,7 +336,7 @@ export default function PurchaseOrderItemSelector({
               </span>
             );
           }
-          return <span className="font-mono inline-block leading-[24px] align-middle w-full text-right">{formattedVal}</span>;
+          return <span className="font-mono inline-block leading-[24px] align-middle w-full text-right">{formattedVal}（型態未知）</span>;
         }
       },
       {
@@ -311,10 +345,12 @@ export default function PurchaseOrderItemSelector({
         width: 90,
         align: "right",
         render: (v: number, record: any) => {
+          const classificationUnknown = (record.purchaseOrderType !== "Material" && record.purchaseOrderType !== "Mold") ||
+            (record.purchaseOrderType === "Material" && record.materialForm !== "R" && record.materialForm !== "S");
           return (
             <span className="leading-[24px] text-[var(--ant-color-primary)]">
               {v != null ? Number(v.toFixed(2)).toLocaleString("zh-TW") : "0"}
-              {record.isRoll ? " /卷" : ` /${record.unit || "PCS"}`}
+              {classificationUnknown ? " /?" : record.isRoll ? " /卷" : ` /${record.unit || "PCS"}`}
             </span>
           );
         },
@@ -407,6 +443,8 @@ export default function PurchaseOrderItemSelector({
         width: 100,
         align: "right",
         render: (_v: any, record: any) => {
+          if ((record.purchaseOrderType !== "Material" && record.purchaseOrderType !== "Mold") ||
+              (record.purchaseOrderType === "Material" && record.materialForm !== "R" && record.materialForm !== "S")) return "-";
           const isChecked = selectedRowKeys.includes(record.key);
           const qty = isChecked ? (record.arrivalQuantity || 0) : 0;
           const undelivered = record.undeliveredQuantity || 0;

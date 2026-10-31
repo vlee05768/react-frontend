@@ -10,6 +10,7 @@ import { TableText } from "@/components/Table/tableText";
 import { getApiV1MaterialByCode, getApiV1MoldByCode } from "@/api/generated/sdk.gen";
 import { ContactSelectWithCreate } from "@/pages/sales/orders/components/ContactSelectWithCreate";
 import { logger } from "@/utils/logger";
+import type { PurchaseOrderItemWithMaterialForm } from "./purchaseOrderMaterialForm";
 
 export type GoodsCodeLookupResult =
   | { status: "resolved" }
@@ -365,6 +366,10 @@ export const getFormConfig = (): any[] => [
   },
 ];
 
+// 未知型態不得根據料號或單位推斷。
+const isSheetForDisplay = (record: PurchaseOrderItemWithMaterialForm = {}) => record.materialForm === "S";
+const isRollForDisplay = (record: PurchaseOrderItemWithMaterialForm) => record.materialForm === "R";
+
 export const getItemColumns = (
   isViewMode: boolean,
   onEdit: (record: PurchaseOrderItemDto) => void,
@@ -470,8 +475,8 @@ export const getItemColumns = (
     align: "right",
     render: (val: number, record: any) => {
       if (record.purchaseOrderType === "Mold" || val == null) return "-";
-      const isRoll = record.materialForm === "R" || record.goodsCode?.startsWith("R-") || record.goodsCode?.endsWith("-R") || record.unit === "卷" || record.unit === "roll" || record.unit === "m2";
-      const isSheet = record.materialForm === "S" || record.goodsCode?.startsWith("S-") || record.goodsCode?.endsWith("-S") || record.unit === "pcs";
+      const isRoll = isRollForDisplay(record);
+      const isSheet = isSheetForDisplay(record);
       const formattedVal = Number(val.toFixed(2)).toLocaleString();
       
       if (isRoll) {
@@ -489,7 +494,7 @@ export const getItemColumns = (
           </span>
         );
       }
-      return <span className="font-mono inline-block leading-[24px] align-middle w-full text-right">{formattedVal}</span>;
+      return <span className="font-mono inline-block leading-[24px] align-middle w-full text-right">{formattedVal}（型態未知）</span>;
     }
   },
   {
@@ -517,7 +522,7 @@ export const getItemColumns = (
     width: 120,
     align: "right",
     render: (_: any, record: any) => {
-      const isRoll = record.materialForm === "R" || record.goodsCode?.startsWith("R-") || record.goodsCode?.endsWith("-R") || record.unit === "卷" || record.unit === "roll" || record.unit === "m2";
+      const isRoll = isRollForDisplay(record);
       if (!isRoll) return "-";
       
       const width = record.width || 0;
@@ -542,7 +547,7 @@ export const getItemColumns = (
     align: "right",
     render: (val: number, record: any) => {
       if (val == null) return "0";
-      const isRoll = record.materialForm === "R" || record.goodsCode?.startsWith("R-") || record.goodsCode?.endsWith("-R") || record.unit === "卷" || record.unit === "roll" || record.unit === "m2";
+      const isRoll = isRollForDisplay(record);
       const unitStr = isRoll ? " 卷" : (record.purchaseOrderType === "Mold" ? " pcs" : ` ${record.unit || "pcs"}`);
       return (
         <span className="font-semibold text-gray-900 dark:text-gray-100">
@@ -559,7 +564,7 @@ export const getItemColumns = (
     align: "right",
     render: (val: number, record: any) => {
       if (val == null) return "0";
-      const isRoll = record.materialForm === "R" || record.goodsCode?.startsWith("R-") || record.goodsCode?.endsWith("-R") || record.unit === "卷" || record.unit === "roll" || record.unit === "m2";
+      const isRoll = isRollForDisplay(record);
       const unitStr = isRoll ? " 卷" : (record.purchaseOrderType === "Mold" ? " pcs" : ` ${record.unit || "pcs"}`);
       return (
         <span className="font-medium text-emerald-600 dark:text-emerald-400">
@@ -576,7 +581,7 @@ export const getItemColumns = (
     align: "center",
     render: (val: string, record: any) => {
       if (record.purchaseOrderType === "Mold") return val || "pcs";
-      const isRoll = record.materialForm === "R" || record.goodsCode?.startsWith("R-") || record.goodsCode?.endsWith("-R") || val === "卷" || val === "roll" || val === "m2";
+      const isRoll = isRollForDisplay({ ...record, unit: val });
       if (isRoll) return "卷";
       return val || "pcs";
     }
@@ -629,7 +634,7 @@ const syncMaterialSpecifications = (mat: any, setValue: any, context: any) => {
   setValue("goodsName", mat.name || "");
   const form = mat.materialForm; // "R" = 捲材, "S" = 片材
   setValue("materialForm", form);
-  setValue("unit", form === "R" ? "卷" : "pcs");
+  setValue("unit", form === "R" ? "卷" : form === "S" ? "pcs" : undefined);
 
   const defaultWidth = mat.width ?? mat.widthMm ?? mat.productWidth;
   const defaultLength = mat.length ?? mat.lengthMm;
@@ -648,7 +653,7 @@ const syncMaterialSpecifications = (mat: any, setValue: any, context: any) => {
     setValue("quantity", currentQty);
     const price = context?.values?.unitPrice ?? 0;
     setValue("subTotal", Math.round(price * currentQty));
-  } else {
+  } else if (form === "S") {
     if (defaultLength === undefined || defaultLength === null) {
       setValue("length", undefined);
     }
@@ -782,26 +787,26 @@ export const getItemFormConfig = (): any[] => [
   {
     name: "length",
     label: (context: any) => {
-      const isSheet = context?.values?.materialForm === "S" || context?.values?.goodsCode?.startsWith("S-") || context?.values?.goodsCode?.endsWith("-S") || context?.values?.unit === "pcs";
-      return isSheet ? "片料長度(mm)" : "每卷長度(m)";
+      const isSheet = isSheetForDisplay(context?.values);
+      return isSheet ? "片料長度(mm)" : isRollForDisplay(context?.values) ? "每卷長度(m)" : "長度（型態未知）";
     },
     componentType: "InputNumber",
     colSpan: 4,
     hidden: (context: any) => context?.values?.purchaseOrderType !== "Material",
     componentProps: (context: any) => {
-      const isSheet = context?.values?.materialForm === "S" || context?.values?.goodsCode?.startsWith("S-") || context?.values?.goodsCode?.endsWith("-S") || context?.values?.unit === "pcs";
+      const isSheet = isSheetForDisplay(context?.values);
       return {
         controls: false,
         style: { width: "100%" },
-        placeholder: isSheet ? "請輸入片料長度(mm)" : "請輸入每卷長度(m)",
+        placeholder: isSheet ? "請輸入片料長度(mm)" : isRollForDisplay(context?.values) ? "請輸入每卷長度(m)" : "請確認原料型態",
       };
     },
     validation: z.union([z.number(), z.null(), z.undefined()]).optional(),
     dynamicValidation: (context: any) => {
       const isMaterial = context?.values?.purchaseOrderType === "Material";
       if (isMaterial) {
-        const isSheet = context?.values?.materialForm === "S" || context?.values?.goodsCode?.startsWith("S-") || context?.values?.goodsCode?.endsWith("-S") || context?.values?.unit === "pcs";
-        const label = isSheet ? "片料長度(mm)" : "每卷長度(m)";
+        const isSheet = isSheetForDisplay(context?.values);
+        const label = isSheet ? "片料長度(mm)" : isRollForDisplay(context?.values) ? "每卷長度(m)" : "長度（型態未知）";
         return z.number({ required_error: `原料採購之${label}為必填項目`, invalid_type_error: `${label}必須為數值` }).min(0.0001, `${label}必須大於 0`);
       }
       return z.union([z.number(), z.null(), z.undefined()]).optional();

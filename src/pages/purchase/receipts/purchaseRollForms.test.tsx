@@ -10,9 +10,9 @@ import { getItemFormConfig as receiptFields, getItemColumns as receiptColumns, i
 import { getItemFormConfig as orderFields, getItemColumns as orderColumns } from '../orders/PurchaseOrderConfig';
 import { getIqcFormFields } from '../iqc-inspections/IqcConfig';
 
-const { getOrders, updateReceipt } = vi.hoisted(() => ({ getOrders: vi.fn(), updateReceipt: vi.fn() }));
+const { getOrders, getMaterial, updateReceipt } = vi.hoisted(() => ({ getOrders: vi.fn(), getMaterial: vi.fn(), updateReceipt: vi.fn() }));
 vi.mock('@/api/generated/sdk.gen', async (original) => ({ ...await original<object>(), putApiV1PurchaseReceiptByCodeItemsByLineNumber: updateReceipt }));
-vi.mock('@/api/generated', async (original) => ({ ...await original<object>(), getApiV1PurchaseOrder: getOrders }));
+vi.mock('@/api/generated', async (original) => ({ ...await original<object>(), getApiV1PurchaseOrder: getOrders, getApiV1MaterialByCode: getMaterial }));
 vi.mock('@/components/DictSelect', () => ({ DictSelect: () => <span>待驗倉</span> }));
 beforeAll(() => {
   Object.defineProperty(window, 'matchMedia', { value: () => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }) });
@@ -28,6 +28,8 @@ describe('按卷採購表單與實際挑選器', () => {
   it.each([
     ['PO 卷料', orderFields, { purchaseOrderType: 'Material', materialForm: 'R' }, '每卷長度(m)'],
     ['PO 片料', orderFields, { purchaseOrderType: 'Material', materialForm: 'S' }, '片料長度(mm)'],
+    ['PO 明確卷料與片料舊資料衝突', orderFields, { purchaseOrderType: 'Material', materialForm: 'R', goodsCode: 'S-LEGACY', unit: 'pcs' }, '每卷長度(m)'],
+    ['PO 明確片料與卷料舊資料衝突', orderFields, { purchaseOrderType: 'Material', materialForm: 'S', goodsCode: 'R-LEGACY', unit: 'm2' }, '片料長度(mm)'],
     ['進貨卷料', receiptFields, { isRoll: true }, '每卷長度(m)'],
     ['進貨片料', receiptFields, { isRoll: false }, '片料長度(mm)'],
   ] as const)('%s 的 DOM 標籤、placeholder 與驗證訊息使用相同語義', (_name, fields, values, label) => {
@@ -61,6 +63,16 @@ describe('按卷採購表單與實際挑選器', () => {
     expect(screen.getByText('mm')).toBeInTheDocument();
     expect(receiptColumns(true, undefined, undefined, true).some(col => col.dataIndex === 'length')).toBe(false);
   });
+  it('明確片料型態優先於舊料號或單位，長度不誤標為卷料公尺', () => {
+    const columns = orderColumns(true, () => {}, () => {});
+    const record = { materialForm: 'S', goodsCode: 'R-LEGACY', unit: 'm2', purchaseOrderType: 'Material', width: 500, length: 600, unitPrice: 100 };
+    const column = (name: string): any => columns.find(col => ('dataIndex' in col && col.dataIndex === name) || col.key === name);
+    wrap(<>{column('length').render(600, record)}{column('unitPricePerSqm').render(null, record)}{column('quantity').render(3, record)}{column('receivedQuantity').render(2, record)}<span>{column('unit').render('m2', record)}</span></>);
+    expect(screen.getByText('600 mm')).toBeInTheDocument();
+    expect(screen.queryByText(/\/m²/)).not.toBeInTheDocument();
+    expect(screen.queryByText('卷')).not.toBeInTheDocument();
+    expect(screen.getAllByText('m2').length).toBeGreaterThan(0);
+  });
   it('IQC 的標準長度確為每卷驗收規格；片料標準與到貨總長不改', () => {
     const context = { isReadOnly: false, setRolls: vi.fn(), detail: {}, inspectorId: '', setInspectorId: vi.fn(), headerCoreDia: null, setHeaderCoreDia: vi.fn(), incomingStorageCode: '', setIncomingStorageCode: vi.fn(), totalLength: 300 };
     const rollFields = getIqcFormFields({ ...context, isRollMaterial: true });
@@ -71,13 +83,54 @@ describe('按卷採購表單與實際挑選器', () => {
     expect(rollFields.find(field => field.name === 'totalActualQty').label).toBe('到貨總長度');
     expect(getIqcFormFields({ ...context, isRollMaterial: false }).find(field => field.name === 'standardLength').label).toBe('標準長度 (mm)');
   });
+  it('未知原料型態不按料號或單位換算，主檔無法取得時禁止加入', async () => {
+    getOrders.mockResolvedValue({ data: { data: { data: [{ code: 'PO-UNKNOWN', items: [{ lineNumber: '1', goodsCode: 'R-UNKNOWN', goodsName: '未知料', materialForm: null, purchaseOrderType: 'Material', unit: 'm2', quantity: 3, width: 500, length: 100 }] }] } } });
+    const confirm = vi.fn();
+    wrap(<PurchaseOrderItemSelector open onClose={() => {}} onConfirm={confirm} businessPartnerCode="S1" excludedKeys={[]} />);
+    await screen.findByText('未知料');
+    expect(screen.getByText(/型態未知/)).toBeInTheDocument();
+    expect(screen.queryByText('100 m')).not.toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole('checkbox')[0]);
+    fireEvent.click(screen.getByRole('button', { name: /加入進貨明細/ }));
+    await screen.findByText(/無法確認原料型態/);
+    expect(confirm).not.toHaveBeenCalled();
+  });
+  it.each(['R', 'S'])('未知型態以主檔 %s 補查後才加入', async (form) => {
+    getMaterial.mockResolvedValue({ data: { data: { materialForm: form } } });
+    getOrders.mockResolvedValue({ data: { data: { data: [{ code: 'PO-LOOKUP', items: [{ lineNumber: '1', goodsCode: 'R-LOOKUP', goodsName: '補查料', purchaseOrderType: 'Material', unit: 'm2', quantity: 3, width: 500, length: 100 }] }] } } });
+    const confirm = vi.fn();
+    wrap(<PurchaseOrderItemSelector open onClose={() => {}} onConfirm={confirm} businessPartnerCode="S1" excludedKeys={[]} />);
+    await screen.findByText('補查料');
+    fireEvent.click(screen.getAllByRole('checkbox')[0]);
+    fireEvent.click(screen.getByRole('button', { name: /加入進貨明細/ }));
+    await waitFor(() => expect(confirm).toHaveBeenCalledWith([expect.objectContaining({ isRoll: form === 'R', quantity: form === 'R' ? 150 : 3 })]));
+    expect(getMaterial).toHaveBeenCalledWith({ path: { code: 'R-LOOKUP' } });
+  });
+  it('非原料模具不查原料主檔仍可加入', async () => {
+    getOrders.mockResolvedValue({ data: { data: { data: [{ code: 'PO-MOLD', items: [{ lineNumber: '1', goodsCode: 'M1', goodsName: '模具', purchaseOrderType: 'Mold', unit: 'pcs', quantity: 3 }] }] } } });
+    const confirm = vi.fn();
+    wrap(<PurchaseOrderItemSelector open isMold onClose={() => {}} onConfirm={confirm} businessPartnerCode="S1" excludedKeys={[]} />);
+    await screen.findByText('M1');
+    fireEvent.click(screen.getAllByRole('checkbox')[0]);
+    fireEvent.click(screen.getByRole('button', { name: /加入進貨明細/ }));
+    await waitFor(() => expect(confirm).toHaveBeenCalledWith([expect.objectContaining({ isRoll: false, quantity: 3 })]));
+    expect(getMaterial).not.toHaveBeenCalled();
+  });
+  it('採購顯示未知型態不以料號或單位推斷', () => {
+    const columns = orderColumns(true, () => {}, () => {});
+    const record = { materialForm: null, goodsCode: 'R-UNKNOWN', unit: 'm2', purchaseOrderType: 'Material', width: 500, length: 100, unitPrice: 100 };
+    const column = (name: string): any => columns.find(col => ('dataIndex' in col && col.dataIndex === name) || col.key === name);
+    wrap(<>{column('length').render(100, record)}<span>{column('unitPricePerSqm').render(null, record)}</span></>);
+    expect(screen.getByText(/型態未知/)).toBeInTheDocument();
+    expect(screen.queryByText(/\/m²/)).not.toBeInTheDocument();
+  });
   it('實際 PO selector 同時呈現卷料 m 與片料 mm，不混稱總長或每卷片料', async () => {
     getOrders.mockResolvedValue({ data: { data: { data: [{ code: 'PO-MIX', items: [
-      { lineNumber: '1', goodsCode: 'R-1', goodsName: '卷料', materialForm: 'R', purchaseOrderType: 'Material', unit: '卷', quantity: 3, receivedQuantity: 0, unitPrice: 1000, width: 500, length: 100 },
-      { lineNumber: '2', goodsCode: 'S-1', goodsName: '片料', materialForm: 'S', purchaseOrderType: 'Material', unit: 'pcs', quantity: 3, receivedQuantity: 0, unitPrice: 20, width: 500, length: 600 },
+      { lineNumber: '1', goodsCode: 'S-LEGACY', goodsName: '卷料', materialForm: 'R', purchaseOrderType: 'Material', unit: 'pcs', quantity: 3, receivedQuantity: 0, unitPrice: 1000, width: 500, length: 100 },
+      { lineNumber: '2', goodsCode: 'R-LEGACY', goodsName: '片料', materialForm: 'S', purchaseOrderType: 'Material', unit: 'm2', quantity: 3, receivedQuantity: 0, unitPrice: 20, width: 500, length: 600 },
     ] }] } } });
     wrap(<PurchaseOrderItemSelector open onClose={() => {}} onConfirm={() => {}} businessPartnerCode="S1" excludedKeys={[]} />);
-    await screen.findByText('R-1');
+    await screen.findByText('R-LEGACY');
     expect(screen.getByRole('columnheader', { name: '每卷／片長' })).toBeInTheDocument();
     expect(screen.getByText('100 m')).toBeInTheDocument();
     expect(screen.getByText('600 mm')).toBeInTheDocument();
