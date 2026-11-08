@@ -9,6 +9,7 @@ import type { TableColumnConfig } from '@/components/Form/types';
 import { buildTableColumns } from '@/utils/tableUtils';
 import { DictTag } from '@/components/Form/DictTag';
 import { MaterialLogisticsCore } from '@/utils/materialLogistics';
+import { allocationGroupKey } from '../sheetAllocation';
 
 interface Props {
   open: boolean;
@@ -155,6 +156,10 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
   };
 
   const handleConfirm = () => {
+    if (selectedItems.length !== checkedRowKeys.length) {
+      message.error('所選訂單不全在目前頁面，請回到原頁取消選取後再確認，避免遺漏來源。');
+      return;
+    }
     if (selectedItems.length === 0) {
       message.warning('請至少選擇一項訂單明細');
       return;
@@ -270,7 +275,9 @@ export default function UndeliveredOrderItemPicker({ open, customerCode, origina
 
     allocationUnits.forEach(unit => {
       // 合併 Key：編碼 + 單價 + 交易類型
-      const groupKey = `${unit.goodsCode}_${unit.unitPrice}_${unit.transactionType}`;
+      const groupKey = unit.goodsType === 'M' && !MaterialLogisticsCore.isRollMaterial(unit.goodsCode, unit.unit)
+        ? allocationGroupKey(unit, unit.orderItemLineNumber)
+        : JSON.stringify([unit.goodsCode, unit.goodsType, unit.unitPrice, unit.transactionType]);
       if (!groups[groupKey]) {
         groups[groupKey] = {
           units: [],

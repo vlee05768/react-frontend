@@ -37,6 +37,7 @@ import { getApiMutationErrorMessage } from "@/utils/apiErrorDisplay";
 import dayjs from "dayjs";
 import { DynamicForm } from "@/components/Form/DynamicForm";
 import { returnHeaderFormConfig, type WorkOrderFormValues } from "./WorkOrderConfig";
+import { estimateReturnQuantity, readWipSnapshot } from "./returnQuantity";
 import { logger } from '@/utils/logger';
 
 interface WorkOrderReturnTabProps {
@@ -53,7 +54,7 @@ interface FlatReturnRoll {
   thicknessMm: number;
   coreDiaMm: number;
   originalQtyAux: number;
-  wipQtyAux: number; // 領用長度 (WIP)
+  wipQtyAux: number | null | undefined; // 未提供快照時不可推測領用長度
   qtyAux: number; // 退回長度 (預設為 0)
   measuredDiaMm: number | null; // 實測外徑
   storageCode: string; // 目的儲位
@@ -157,14 +158,14 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     const Do = dia; // 實測外徑
     const Di = Number(roll.coreDiaMm || 86); // 紙芯外徑 (預設86)
     const t = Number(roll.thicknessMm || 0.05); // 厚度 (mm)
-    const maxWipQty = Number(roll.wipQtyAux); // 現場上限長度
+    const maxWipQty = roll.wipQtyAux ?? Infinity; // 現場上限長度
 
     if (Do < Di) {
       return 0;
     }
 
     const calculatedLength = (Math.PI * (Do * Do - Di * Di)) / (4000 * t);
-    return Math.max(0, Math.min(maxWipQty, parseFloat(calculatedLength.toFixed(2))));
+    return Math.max(0, Math.min(maxWipQty, calculatedLength));
   };
 
   // 當 activeRecord (草稿載入) 變更時，初始化狀態與扁平化明細
@@ -192,7 +193,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
                   thicknessMm: r.thicknessMm ?? r.ThicknessMm ?? 0.05,
                   coreDiaMm: r.coreDiaMm ?? r.CoreDiaMm ?? 86,
                   originalQtyAux: r.originalQtyAux ?? r.OriginalQtyAux ?? qty,
-                  wipQtyAux: r.wipQtyAux ?? r.WipQtyAux ?? qty,
+                  wipQtyAux: readWipSnapshot(r),
                   qtyAux: qty,
                   measuredDiaMm: r.measuredDiaMm ?? r.MeasuredDiaMm ?? null,
                   storageCode: r.storageCode ?? r.StorageCode ?? item.targetStorageCode ?? defaultStorageCode,
@@ -328,6 +329,11 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
       return;
     }
 
+    if (flatRolls.some(r => r.wipQtyAux == null)) {
+      message.warning("部分卷卡缺少 WIP 快照，無法估算退料量。");
+      return;
+    }
+
     // 1. 整理各原料在工單中的理論消耗量
     const usageMap: { [key: string]: number } = {};
     masterData.items?.forEach(item => {
@@ -357,17 +363,10 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
       indices.forEach(idx => {
         const r = updatedRolls[idx];
         const wipQty = r.wipQtyAux;
+        if (wipQty == null) return;
 
-        let qty = 0;
-        if (theoreticalUsage >= wipQty) {
-          qty = 0;
-          theoreticalUsage -= wipQty;
-        } else {
-          qty = wipQty - theoreticalUsage;
-          theoreticalUsage = 0;
-        }
-
-        const roundedQty = Math.round(qty * 100) / 100;
+        const roundedQty = estimateReturnQuantity(wipQty, theoreticalUsage);
+        theoreticalUsage = Math.max(0, theoreticalUsage - wipQty);
         updatedRolls[idx] = {
           ...r,
           measuredDiaMm: null,
@@ -433,17 +432,10 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
       indices.forEach(idx => {
         const r = preloaded[idx];
         const wipQty = r.wipQtyAux;
+        if (wipQty == null) return;
 
-        let qty = 0;
-        if (theoreticalUsage >= wipQty) {
-          qty = 0;
-          theoreticalUsage -= wipQty;
-        } else {
-          qty = wipQty - theoreticalUsage;
-          theoreticalUsage = 0;
-        }
-
-        const roundedQty = Math.round(qty * 100) / 100;
+        const roundedQty = estimateReturnQuantity(wipQty, theoreticalUsage);
+        theoreticalUsage = Math.max(0, theoreticalUsage - wipQty);
         preloaded[idx] = {
           ...r,
           qtyAux: roundedQty,
@@ -535,7 +527,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
     setFlatRolls(prev =>
       prev.map(r => {
         if (r.rollNo === rollNo) {
-          const qty = val !== null ? Math.max(0, Math.min(r.wipQtyAux, val)) : 0;
+          const qty = val !== null ? Math.max(0, Math.min(r.wipQtyAux ?? Infinity, val)) : 0;
           return {
             ...r,
             measuredDiaMm: null, // 手動改長度時清除實測外徑
@@ -571,6 +563,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
       prev.map(r => {
         if (r.rollNo === rollNo) {
           const qty = r.wipQtyAux;
+          if (qty == null) return r;
           return {
             ...r,
             measuredDiaMm: null,
@@ -657,6 +650,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
                 ghost
                 size="small"
                 icon={<RollbackOutlined />}
+                disabled={r.wipQtyAux == null}
                 onClick={() => handleFullReturn(r.rollNo)}
               />
             </Tooltip>
@@ -675,7 +669,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
         const text = isDepleted ? "● 已消耗" : "● 剩餘退回";
         const color = isDepleted ? "error" : "success";
         return (
-          <Tooltip title={`原領用 ${r.wipQtyAux}M，退回 ${r.qtyAux}M，車間耗用 ${(r.wipQtyAux - r.qtyAux).toFixed(2)}M`} style={{ whiteSpace: "nowrap" }}>
+          <Tooltip title={r.wipQtyAux == null ? `原領用未知，退回 ${r.qtyAux}M` : `原領用 ${r.wipQtyAux}M，退回 ${r.qtyAux}M，車間耗用 ${(r.wipQtyAux - r.qtyAux).toFixed(4)}M`} style={{ whiteSpace: "nowrap" }}>
             <span style={{ display: "inline-block", textAlign: "right", width: "100%" }}>
               <Tag color={color} style={{ marginRight: 0, fontWeight: 600 }}>{text}</Tag>
             </span>
@@ -717,7 +711,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
       key: "wipQtyAux",
       width: 110,
       align: "right" as const,
-      render: (v: number) => <span className="text-blue-500 dark:text-blue-400 font-bold">{v} M</span>,
+      render: (v: number | null | undefined) => <span className="text-blue-500 dark:text-blue-400 font-bold">{v == null ? "未提供" : `${v} M`}</span>,
     },
     {
       title: "實測外徑(mm)",
@@ -757,8 +751,7 @@ export function WorkOrderReturnTab({ masterData, onEditingChange }: WorkOrderRet
           size="small"
           value={v}
           min={0}
-          max={r.wipQtyAux}
-          precision={2}
+          max={r.wipQtyAux ?? undefined}
           style={{ width: "100%" }}
           disabled={!isEditable || isPosted}
           onChange={val => handleQtyChange(r.rollNo, val)}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { z } from 'zod';
 import { App, Button, Card, Empty, Space, Spin, Tag, theme } from 'antd';
 import Table from '@/components/Table/ErpTable';
 import { DeleteOutlined, EditOutlined, PlusOutlined, SaveOutlined } from '@ant-design/icons';
@@ -20,6 +21,29 @@ import {
   updateBom,
 } from '@/api/bomCompatibility';
 
+type SemiSpec = { materialForm: 'R' | 'S' | null; standardWidthMm: number | null; standardLength: number | null; standardThicknessMm: number | null; items: unknown[] };
+type BomWithSpec = BomContract & { semiFinishedInspectionSpec?: SemiSpec | null };
+const scaledDimension = (value: string) => {
+  const [whole, fraction = ''] = value.split('.');
+  return BigInt(whole) * 10000n + BigInt(fraction.padEnd(4, '0'));
+};
+const dimension = z.string().refine(value => {
+  if (!value) return true;
+  if (!/^(?:0|[1-9]\d{0,13})(?:\.\d{1,4})?$/.test(value) || Number(value) <= 0) return false;
+  const serialized = String(Number(value));
+  return /^(?:0|[1-9]\d*)(?:\.\d{1,4})?$/.test(serialized) && scaledDimension(value) === scaledDimension(serialized);
+}, '請輸入大於 0 且最多四位小數的數值');
+const specPayload = (values: Record<string, unknown>, outputType: BomOutputType, original?: SemiSpec | null) => {
+  if (outputType !== 'M') return {};
+  const width = values.standardWidthMm as string || '';
+  const length = values.standardLength as string || '';
+  const standardWidthMm = width ? Number(width) : null;
+  const standardLength = length ? Number(length) : null;
+  if (standardWidthMm === (original?.standardWidthMm ?? null) && standardLength === (original?.standardLength ?? null)) return {};
+  if (original && standardWidthMm === null && standardLength === null) return { semiFinishedInspectionSpec: null };
+  return { semiFinishedInspectionSpec: { standardWidthMm, standardLength } };
+};
+
 interface Props {
   outputType: BomOutputType;
   outputCode: string;
@@ -28,6 +52,7 @@ interface Props {
 }
 
 const toCreatePayload = (values: Record<string, unknown>, outputType: BomOutputType, outputCode: string) => ({
+  ...specPayload(values, outputType),
   outputType,
   outputCode,
   defaultMachineType: values.defaultMachineType as string | undefined,
@@ -37,8 +62,9 @@ const toCreatePayload = (values: Record<string, unknown>, outputType: BomOutputT
   notes: values.notes as string | undefined,
 });
 
-const toUpdatePayload = (values: Partial<BomContract>): UpdateBomPayload => ({
-  isActive: values.isActive,
+const toUpdatePayload = (values: Record<string, unknown>, outputType: BomOutputType, original?: SemiSpec | null): UpdateBomPayload => ({
+  ...specPayload(values, outputType, original),
+  isActive: values.isActive as boolean | undefined,
   defaultMachineType: values.defaultMachineType as string | undefined,
   defaultToolingRangeMm: values.defaultToolingRangeMm as number | undefined,
   defaultPunchHolesCount: values.defaultPunchHolesCount as number | undefined,
@@ -97,7 +123,7 @@ export default function ProductBom({ outputType, outputCode, isViewMode: isMaste
         message.success('BOM 建立成功');
         setIsCreating(false);
       } else {
-        await updateBom(outputType, outputCode, toUpdatePayload(values));
+        await updateBom(outputType, outputCode, toUpdatePayload(values, outputType, (bomData as BomWithSpec)?.semiFinishedInspectionSpec));
         message.success('BOM 表頭更新成功');
         setIsHeaderEditing(false);
       }
@@ -154,12 +180,22 @@ export default function ProductBom({ outputType, outputCode, isViewMode: isMaste
   };
 
   const columns = buildTableColumns(bomItemTableColumns(), actionColumn);
-  const headerFields = useMemo(() => bomHeaderFormConfig({ outputType }).map((field) =>
-    field.name === 'isActive' && bomExists ? { ...field, editable: 'always' as const } : field
-  ), [outputType, bomExists]);
-  const headerDefaults: Record<string, unknown> = bomData
-    ? { ...bomData, outputType: bomData.outputType || outputType || 'P' }
-    : { outputType: outputType || 'P', outputCode, isActive: true };
+  const spec = (bomData as BomWithSpec | null | undefined)?.semiFinishedInspectionSpec;
+  const lengthLabel = spec?.materialForm === 'R' ? '標準長度 (m)' : spec?.materialForm === 'S' ? '標準長度 (mm)' : '標準長度 (捲料 m／片料 mm)';
+  const headerFields = useMemo(() => {
+    const fields = bomHeaderFormConfig({ outputType }).map((field) =>
+      field.name === 'isActive' && bomExists ? { ...field, editable: 'always' as const } : field
+    );
+    if (outputType === 'M') fields.push(
+      { name: 'standardWidthMm', label: '標準寬度 (mm)', componentType: 'Input', componentProps: { 'aria-label': '標準寬度 (mm)', inputMode: 'decimal' }, editable: 'always', validation: dimension, colSpan: 4 },
+      { name: 'standardLength', label: lengthLabel, componentType: 'Input', componentProps: { 'aria-label': lengthLabel, inputMode: 'decimal' }, editable: 'always', validation: dimension, colSpan: 4 },
+    );
+    return fields;
+  }, [outputType, bomExists, lengthLabel]);
+  const headerDefaults: Record<string, unknown> = {
+    ...(bomData ? { ...bomData, outputType: bomData.outputType || outputType || 'P' } : { outputType: outputType || 'P', outputCode, isActive: true }),
+    ...(outputType === 'M' ? { standardWidthMm: spec?.standardWidthMm?.toString() ?? '', standardLength: spec?.standardLength?.toString() ?? '' } : {}),
+  };
 
   if (isLoading) return <Spin className="w-full mt-10 flex justify-center" />;
 

@@ -7,7 +7,8 @@ import IqcDrawer from './IqcDrawer';
 const api = vi.hoisted(() => ({ detail: vi.fn(), post: vi.fn(), complete: vi.fn() }));
 vi.mock('@/api/generated', () => ({ getApiV1IqcInspectionByIqcRecordId: api.detail, postApiV1IqcInspectionByIqcRecordIdEscalate: vi.fn(), postApiV1IqcInspectionByIqcRecordIdComplete: api.complete, getApiV1IqcInspectionByIqcRecordIdPdf: vi.fn() }));
 vi.mock('@/api/generated/client.gen', () => ({ client: { post: api.post } }));
-vi.mock('@/stores/useAuthStore', () => ({ useAuthStore: () => ({ user: null }) }));
+const auth = vi.hoisted(() => ({ user: { permissions: ['Purchase.IqcInspections.View'] } }));
+vi.mock('@/stores/useAuthStore', () => ({ useAuthStore: () => ({ user: auth.user, hasPermission: (code: string) => auth.user.permissions.includes(code) }) }));
 vi.mock('@/hooks/useFileDownload', () => ({ useFileDownload: () => ({ downloadFile: vi.fn(), isDownloading: false }) }));
 vi.mock('@/components/Form/DynamicForm', () => ({ DynamicForm: () => null }));
 vi.mock('@/components/Form/AsyncSelect', () => ({ AsyncSelect: () => null }));
@@ -15,6 +16,7 @@ vi.mock('@/components/common/ActionBar', () => ({ ActionBar: ({ actions }: any) 
 vi.mock('@/components/Table/ErpTable', () => ({ default: ({ dataSource, columns }: any) => <div>{dataSource.map((row: any, i: number) => <div key={row.id ?? row.rollNo}>{columns.map((col: any, j: number) => <div key={j}>{col.render ? col.render(row[col.dataIndex], row, i) : row[col.dataIndex]}</div>)}</div>)}</div> }));
 
 beforeEach(() => {
+  auth.user.permissions = ['Purchase.IqcInspections.View'];
   vi.stubGlobal('matchMedia', () => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }));
   vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} });
   api.post.mockReset();
@@ -27,7 +29,7 @@ async function renderGroups(completeItems = false, ambiguous = false) {
     lotNo: 'IQC-CORE', materialForm: 'R', revision: 7, inspectionStatus: 'Pending', inspectorId: 'EMP-1', incomingStorageCode: 'ST-1', rollCount: 2,
     standardThickness: 0.05, standardWidth: 150, standardLength: 20, measuredCoreDiaMm: 86,
     groups: [86, 90].map((core, i) => ({ id: `g${i}`, supplierLotNo: 'LOT', allocatedQty: 1, sampleQty: 1, measuredCoreDiaMm: core, samples: ambiguous ? [] : [{ sampleId: `s${i}` }] })),
-    rolls: [86, 90].map((core, i) => ({ sampleId: `s${i}`, seq: i + 1, rollNo: `R${i}`, supplierLotNo: 'LOT', actualQtyAux: 1, measuredThicknessMm: completeItems ? 0.05 : undefined, measuredCoreDiaMm: core, measuredOuterDiaMm: 150 + i, isOk: true, inspectionItems: completeItems ? [
+    rolls: [86, 90].map((core, i) => ({ sampleId: `s${i}`, seq: i + 1, rollNo: `R${i}`, supplierLotNo: 'LOT', actualQtyAux: 1, measuredSampleThicknessMm: completeItems ? 0.05 : undefined, measuredCoreDiaMm: core, measuredOuterDiaMm: 150 + i, isOk: true, inspectionItems: completeItems ? [
       { itemCode: 'thickness', itemName: '厚度(mm)', measuredValue: '0.05', isOk: true },
       { itemCode: 'width', itemName: '寬度(mm)', measuredValue: '150', isOk: true },
       { itemCode: 'core_dia', itemName: '內管芯外徑(mm)', measuredValue: String(core), isOk: true },

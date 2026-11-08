@@ -4,10 +4,18 @@ import { App } from 'antd';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import IqcDrawer from './IqcDrawer';
 
+// Production 完成案例沿用已解鎖政策；仍保留可注入政策的測試 seam。
+vi.mock('./productionPostingPolicy', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./productionPostingPolicy')>();
+  return { isProductionPostingPaused: vi.fn(actual.isProductionPostingPaused) };
+});
+import { isProductionPostingPaused } from './productionPostingPolicy';
+
 const api = vi.hoisted(() => ({ detail: vi.fn(), draft: vi.fn(), complete: vi.fn() }));
 vi.mock('@/api/generated', () => ({ getApiV1IqcInspectionByIqcRecordId: api.detail, postApiV1IqcInspectionByIqcRecordIdEscalate: vi.fn(), postApiV1IqcInspectionByIqcRecordIdComplete: api.complete, getApiV1IqcInspectionByIqcRecordIdPdf: vi.fn() }));
 vi.mock('@/api/generated/client.gen', () => ({ client: { post: api.draft } }));
-vi.mock('@/stores/useAuthStore', () => ({ useAuthStore: () => ({ user: null }) }));
+const auth = vi.hoisted(() => ({ user: { permissions: ['Purchase.IqcInspections.View'] } }));
+vi.mock('@/stores/useAuthStore', () => ({ useAuthStore: () => ({ user: auth.user, hasPermission: (code: string) => auth.user.permissions.includes(code) }) }));
 vi.mock('@/hooks/useFileDownload', () => ({ useFileDownload: () => ({ downloadFile: vi.fn(), isDownloading: false }) }));
 vi.mock('@/components/Form/DynamicForm', () => ({ DynamicForm: () => null }));
 vi.mock('@/components/Form/AsyncSelect', () => ({ AsyncSelect: () => null }));
@@ -16,6 +24,8 @@ vi.mock('@/components/common/ActionBar', () => ({ ActionBar: ({ actions }: any) 
 vi.mock('@/components/Table/ErpTable', () => ({ default: ({ dataSource, columns }: any) => <div>{dataSource.map((row: any, i: number) => <div key={row.id ?? row.rollNo}>{columns.map((col: any, j: number) => <div key={j}>{col.render ? col.render(row[col.dataIndex], row, i) : row[col.dataIndex]}</div>)}</div>)}</div> }));
 
 beforeEach(() => {
+  auth.user.permissions = ['Purchase.IqcInspections.View'];
+  vi.mocked(isProductionPostingPaused).mockReset().mockReturnValue(false);
   vi.stubGlobal('matchMedia', () => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }));
   vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} });
   api.draft.mockReset().mockImplementation(() => new Promise(() => {}));
@@ -24,12 +34,13 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 async function openSheet({ sameLotGroups = false, multipleSamples = false, unlinked = false, initialLot = '' } = {}) {
+  // 本檔驗證已開放政策下的完整送出路徑。
   const detail = {
-    lotNo: 'IQC-SHEET-QTY', inspectionType: 'Production', sourceDocNumber: 'CR-TEST',
+    lotNo: 'IQC-SHEET-QTY', inspectionType: 'Production', productionTotalQuantity: 10, productionGoodQuantity: 10, productionDefectQuantity: 0, productionQuantityUnit: 'PCS', sourceDocNumber: 'CR-TEST',
     materialForm: 'S', revision: 7, inspectionStatus: 'Pending', inspectorId: 'EMP-1', incomingStorageCode: 'ST-1', rollCount: 10,
     standardThickness: 0.05, standardWidth: 150, standardLength: 300,
     groups: [{ id: 'group-a', supplierLotNo: initialLot, allocatedQty: 10, sampleQty: 1, samples: [{ sampleId: 'sample-a' }] }],
-    rolls: [{ sampleId: 'sample-a', seq: 1, rollNo: 'SOURCE-A', supplierLotNo: initialLot, actualQtyAux: 10, measuredThicknessMm: 0.05, isOk: true, inspectionItems: [
+    rolls: [{ sampleId: 'sample-a', seq: 1, rollNo: 'SOURCE-A', supplierLotNo: initialLot, actualQtyAux: 10, measuredSampleThicknessMm: 0.05, isOk: true, inspectionItems: [
       { itemCode: 'thickness', itemName: '厚度', measuredValue: '0.05', isOk: true },
       { itemCode: 'width', itemName: '寬度', measuredValue: '150', isOk: true },
       { itemCode: 'length', itemName: '長度', measuredValue: '300', isOk: true },
@@ -37,6 +48,8 @@ async function openSheet({ sameLotGroups = false, multipleSamples = false, unlin
   };
   if (sameLotGroups) {
     detail.rollCount = 30;
+    detail.productionTotalQuantity = 30;
+    detail.productionGoodQuantity = 30;
     detail.groups = [
       { id: 'group-a', supplierLotNo: 'SAME', allocatedQty: 10, sampleQty: 1, samples: [{ sampleId: 'sample-a' }] },
       { id: 'group-b', supplierLotNo: 'SAME', allocatedQty: 20, sampleQty: 1, samples: [{ sampleId: 'sample-b' }] },

@@ -80,7 +80,7 @@ it('preserves sheet NG and measurements when a lot is renamed through another gr
     lotNo: 'IQC-SHEET', materialForm: 'S', revision: 7, inspectionStatus: 'Pending', inspectorId: 'EMP-1', rollCount: 2,
     standardThickness: 0.05, standardWidth: 150, standardLength: 300,
     groups: ['A', 'B'].map((supplierLotNo, i) => ({ id: `s${i}`, supplierLotNo, allocatedQty: 1, sampleQty: 1, samples: [{ sampleId: `sample-${i}` }] })),
-    rolls: ['A', 'B'].map((supplierLotNo, i) => ({ sampleId: `sample-${i}`, seq: i + 1, rollNo: `S${i}`, supplierLotNo, isOk: i !== 0, measuredThicknessMm: 0.05, inspectionItems: [{ itemCode: 'appearance', itemName: '外觀', measuredValue: i ? 'Pass' : 'NG', isOk: i !== 0 }] })),
+    rolls: ['A', 'B'].map((supplierLotNo, i) => ({ sampleId: `sample-${i}`, seq: i + 1, rollNo: `S${i}`, supplierLotNo, isOk: i !== 0, measuredSampleThicknessMm: 0.05, inspectionItems: [{ itemCode: 'appearance', itemName: '外觀', measuredValue: i ? 'Pass' : 'NG', isOk: i !== 0 }] })),
   } } });
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(<QueryClientProvider client={qc}><App><IqcDrawer iqcRecordId="sheet" open onClose={() => {}} onSuccess={() => {}} /></App></QueryClientProvider>);

@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { blocksSamplingReduction, hasSamplingDefect, markNewBlankSample, canRemoveBlankSamples, updateSampleGroupLot } from "./iqcSamplingGuard";
 import { validateGroupSubmission } from "./iqcGroupSubmissionGuard";
+import { parseProductionQuantity } from "./productionQuantity";
+import { isProductionPostingPaused } from "./productionPostingPolicy";
 import { allocateSheetGroupQuantities } from "./iqcSheetQuantityAllocation";
 import {
   Drawer,
@@ -57,6 +59,14 @@ import { DynamicForm } from "@/components/Form/DynamicForm";
 import { ActionBar } from "@/components/common/ActionBar";
 
 const { Title, Text } = Typography;
+
+const positiveMeasurement = (value: unknown): number | null => {
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  if (typeof value === "string" && !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(value.trim())) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
+
 
 interface MeasuredInputProps {
   rollNo: string;
@@ -198,11 +208,13 @@ export default function IqcDrawer({
 }: IqcDrawerProps) {
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
-  const { user } = useAuthStore();
+  const { user, hasPermission } = useAuthStore();
   const [rolls, setRolls] = useState<any[]>([]);
   const [overallResult, setOverallResult] = useState<
-    "AllPass" | "Concession" | "Reject"
+    "AllPass" | "Concession" | "Reject" | "Partial"
   >("AllPass");
+  const [productionGoodQuantity, setProductionGoodQuantity] = useState<string | null>(null);
+  const [productionDefectQuantity, setProductionDefectQuantity] = useState<string | null>(null);
   const [inspectorId, setInspectorId] = useState("");
   const [notes, setNotes] = useState("");
   const [responsibleParty, setResponsibleParty] = useState("");
@@ -298,10 +310,13 @@ export default function IqcDrawer({
     refetchOnMount: "always",
   });
 
-  // The current Production API fields are derived from measurements/fallbacks, not a spec snapshot.
-  const rawDetail = response?.data?.data;
+  // 生產來源的標準只信任製令保存的快照，不採用其他欄位的推測值。
+  const rawDetail = response?.data?.data as (NonNullable<typeof response>['data']['data'] & {
+    semiFinishedInspectionSpec?: { materialForm: "R" | "S" | null; standardThicknessMm: number | null; standardWidthMm: number | null; standardLength: number | null; items: Array<{ itemCode: string; itemName: string; specification: string; standardValue: number | null; tolerance: number | null; unit: string | null }> } | null;
+    productionTotalQuantity?: number | null; productionGoodQuantity?: number | null; productionDefectQuantity?: number | null; productionQuantityUnit?: "m" | "PCS" | null;
+  }) | undefined;
   const detail = useMemo(() => rawDetail?.inspectionType === "Production"
-    ? { ...rawDetail, standardThickness: undefined, standardWidth: undefined, standardLength: undefined }
+    ? { ...rawDetail, standardThickness: rawDetail.semiFinishedInspectionSpec?.standardThicknessMm ?? undefined, standardWidth: rawDetail.semiFinishedInspectionSpec?.standardWidthMm ?? undefined, standardLength: rawDetail.semiFinishedInspectionSpec?.standardLength ?? undefined }
     : rawDetail, [rawDetail]);
 
   const currentStatus = localStatus || detail?.inspectionStatus || "Pending";
@@ -323,10 +338,10 @@ export default function IqcDrawer({
     const Di = Number(DiInput);
     const t = Number(tInput);
 
-    if (isNaN(Do) || isNaN(Di) || isNaN(t) || !Do || !Di || !t) return 0;
+    if (positiveMeasurement(DoInput) == null || positiveMeasurement(DiInput) == null || positiveMeasurement(tInput) == null) return 0;
     if (Do <= Di || t <= 0) return 0;
     const length = (Math.PI * (Math.pow(Do, 2) - Math.pow(Di, 2))) / (4000 * t);
-    return Math.round(length * 10) / 10; // 四捨五入到小數點第一位，與 UI 規格 100% 物理對齊
+    return Number.isFinite(length) ? Math.round(length * 10) / 10 : 0; // 四捨五入到小數點第一位，與 UI 規格 100% 物理對齊
   }, []);
 
   const recalculateRollLengthForRoll = useCallback((r: any, _standardThickness?: number, preserveExisting = false) => {
@@ -337,8 +352,7 @@ export default function IqcDrawer({
     const DiItem = r.inspectionItems?.find((i: any) => i.itemCode === "core_dia");
     const Di = Number(DiItem?.measuredValue);
 
-    const tItem = r.inspectionItems?.find((i: any) => i.itemCode === "thickness");
-    const t = Number(tItem?.measuredValue);
+    const t = positiveMeasurement(r.measuredSampleThicknessMm);
 
     const calculatedMeters = calculateRollLength(Do, Di, t);
     if (!calculatedMeters) return preserveExisting ? r : { ...r, measuredLengthMm: null, lengthMm: null, inspectionItems: r.inspectionItems.map((i: any) => i.itemCode === "length" ? { ...i, measuredValue: "" } : i) };
@@ -397,7 +411,7 @@ export default function IqcDrawer({
         requiredCodes.forEach((code) => {
           if (!finalItems.some((item: any) => item.itemCode === code)) {
             let valStr = "";
-            if (code === "thickness") valStr = String(r.measuredSampleThicknessMm ?? r.measuredThicknessMm ?? "");
+            if (code === "thickness") valStr = String(r.measuredSampleThicknessMm ?? "");
             else if (code === "width") valStr = String(r.measuredWidthMm ?? "");
             else if (code === "core_dia") valStr = String(r.measuredCoreDiaMm ?? "");
             else if (code === "length") valStr = String(r.measuredLengthMm ?? "");
@@ -429,8 +443,7 @@ export default function IqcDrawer({
           coreDiameterInputConfirmed: false, // 僅本次互動可產生證據，讀回不可沿用
           actualQtyAux: r.actualQtyAux,
           isOk: r.isOk, // 💡 嚴格讀取資料庫狀態，不判定預設 true！未檢驗時為 null
-          measuredThicknessMm: r.measuredThicknessMm ?? null,
-          measuredSampleThicknessMm: r.measuredSampleThicknessMm ?? null,
+          ...(r.measuredSampleThicknessMm !== undefined ? { measuredSampleThicknessMm: r.measuredSampleThicknessMm } : {}),
           measuredWidthMm: r.measuredWidthMm ?? null,
           measuredOuterDiaMm: outerDiaVal, // 💡 實測外徑獨立
           measuredCoreDiaMm: coreDiaVal, // 💡 內管芯外徑獨立
@@ -525,15 +538,19 @@ export default function IqcDrawer({
       setNotes(detail.notes || "");
       setResponsibleParty(detail.responsibleParty || "");
       setIncomingStorageCode(detail.incomingStorageCode || "");
-      setStandardLength(detail.standardLength || null);
+      setStandardLength(detail.standardLength ?? null);
+      setProductionGoodQuantity(detail.productionGoodQuantity?.toString() ?? null);
+      setProductionDefectQuantity(detail.productionDefectQuantity?.toString() ?? null);
 
       const hasNgRoll = detail.rolls?.some((r: any) => r.isOk === false);
 
       const defResult =
         detail.inspectionStatus === "Pending"
-          ? (hasNgRoll ? "Concession" : "AllPass")
+          ? (hasNgRoll && detail.inspectionType !== "Production" ? "Concession" : "AllPass")
           : detail.inspectionStatus === "FullInspecting"
-            ? (hasNgRoll ? "Concession" : "AllPass")
+            ? (hasNgRoll && detail.inspectionType !== "Production" ? "Concession" : "AllPass")
+            : detail.inspectionStatus === "Partial"
+              ? "Partial"
             : detail.inspectionStatus === "Reject"
               ? "Reject"
               : detail.inspectionStatus?.startsWith("Concession")
@@ -562,7 +579,7 @@ export default function IqcDrawer({
         used.add(rollNo);
         next.push(markNewBlankSample({
           seq: seq - 1, rollNo, _groupId: groupId, _groupAmbiguous: false,
-          actualQtyAux: isRollMaterial ? detail.standardLength : 0, supplierLotNo: sheetLots.find(l => l.id === groupId)?.supplierLotNo || "", isOk: null, measuredThicknessMm: null,
+          actualQtyAux: isRollMaterial ? detail.standardLength : 0, supplierLotNo: sheetLots.find(l => l.id === groupId)?.supplierLotNo || "", isOk: null,
           measuredCoreDiaMm: null, lengthMm: null, disposition: template.disposition,
           responsibleParty: template.responsibleParty,
           inspectionItems: (template.inspectionItems || []).map((item: any) => ({
@@ -572,6 +589,42 @@ export default function IqcDrawer({
       }
       return next;
     });
+  };
+
+  // Production 完成過帳的呈現與 handler 共用政策 seam；草稿編輯不受影響，全檢與特採另維持 fail-closed。
+  const isProductionDispositionPaused = () =>
+    detail?.inspectionType === "Production" && isProductionPostingPaused();
+
+  // 僅沿用既有路由檢視權限，不代表後端授權；未知權限一律拒絕。
+  // 延遲確認可能保留舊 closure，故送出時讀取 query cache 與 store 的即時值。
+  const getDispositionBlockReason = (action: "complete" | "escalate" | "concession" = "complete") => {
+    const latest = queryClient.getQueryData<typeof response>(["iqc-detail", iqcRecordId])?.data?.data;
+    if (!open || !iqcRecordId || !latest ||
+        !["Pending", "FullInspecting"].includes(latest.inspectionStatus) ||
+        (localStatus && !["Pending", "FullInspecting"].includes(localStatus)) ||
+        (action === "escalate" && latest.inspectionStatus !== "Pending")) {
+      return "品檢單狀態已變更，目前無法進行此處置，請重新確認。";
+    }
+    if (!hasPermission?.("Purchase.IqcInspections.View")) {
+      return "目前已無此品檢單的操作權限，請重新確認權限。";
+    }
+    if (latest.inspectionType === "Production") {
+      if (action !== "complete") {
+        return "Production 全檢與特採目前暫停，請保留草稿並等待後端支援。";
+      }
+      if (isProductionPostingPaused()) {
+        return "Production 過帳目前暫停，請保留草稿並等待後端支援。";
+      }
+    }
+    return null;
+  };
+
+  const guardDisposition = (action: "complete" | "escalate" | "concession" = "complete") => {
+    const reason = getDispositionBlockReason(action);
+    if (!reason) return false;
+    message.warning(reason);
+    if (!isProductionDispositionPaused()) setIsDecisionModalOpen(false);
+    return true;
   };
 
   // 2. 升級加嚴 100% 全檢之 Mutation
@@ -617,11 +670,13 @@ export default function IqcDrawer({
             handlePrintLabelsPdf();
           }
         });
+      } else if (detail?.inspectionType === "Production") {
+        message.success("生產品質判定已過帳。");
       } else {
         message.success("品質檢驗判定已整批拒收過帳。已自動回彈採購單已到貨量。");
       }
       setIsEditing(false); // 💡 結案後回到唯讀狀態
-      setLocalStatus(overallResult === "Concession" ? "Concession" : "AllPass"); // 💡 立即變更本地狀態
+      setLocalStatus(overallResult === "Concession" ? "Concession" : overallResult); // 💡 立即變更本地狀態
       queryClient.invalidateQueries({ queryKey: ["iqc-detail", iqcRecordId] });
       queryClient.invalidateQueries({ queryKey: ["iqc-inspections"] });
       refetch();
@@ -729,6 +784,14 @@ export default function IqcDrawer({
     return samples;
   };
 
+  const toleranceStatus = (item: any): "unknown" | "within" | "exceeded" => {
+    if (detail?.inspectionType !== "Production") return "unknown";
+    const spec = detail.semiFinishedInspectionSpec?.items.find((entry) => entry.itemCode === item.itemCode);
+    const value = positiveMeasurement(item.measuredValue);
+    if (!spec || value == null || typeof spec.standardValue !== "number" || !Number.isFinite(spec.standardValue) || spec.standardValue <= 0 || typeof spec.tolerance !== "number" || !Number.isFinite(spec.tolerance) || spec.tolerance < 0) return "unknown";
+    return Math.abs(value - spec.standardValue) > spec.tolerance + 1e-9 ? "exceeded" : "within";
+  };
+
   const handleSaveDraft = () => {
     if (!validateRevisionAndReasons()) return;
     if (!resolveSampleGroups(rolls, sheetLots)) return;
@@ -762,6 +825,10 @@ export default function IqcDrawer({
       uniqueKeys.add(uniqueKey);
     }
 
+    if (detail.inspectionType === "Production" && [productionGoodQuantity, productionDefectQuantity].some(v => v != null && parseProductionQuantity(v, detail.productionQuantityUnit) === null)) {
+      message.warning("生產數量須為非負 decimal(18,4)，且不可失真；PCS 須為整數。");
+      return;
+    }
     const tempSheetLots = sheetLots.map(l => ({
           ...l,
           supplierLotNo: (!l.supplierLotNo || l.supplierLotNo.trim() === "") ? "" : l.supplierLotNo.trim().toUpperCase()
@@ -796,8 +863,7 @@ export default function IqcDrawer({
           rollNo: r.rollNo || `S-${String(rIdx + 1).padStart(2, "0")}`,
           actualQtyAux: r.actualQtyAux,
           isOk: r.isOk ?? null,
-          measuredThicknessMm: r.measuredThicknessMm ?? null,
-          measuredSampleThicknessMm: r.measuredSampleThicknessMm ?? null,
+          ...(r.measuredSampleThicknessMm !== undefined ? { measuredSampleThicknessMm: r.measuredSampleThicknessMm } : {}),
           ...(isRollMaterial && r.coreDiameterInputConfirmed && r.measuredCoreDiaMm != null ? { coreDiameterInputConfirmed: true } : {}),
           measuredCoreDiaMm: isRollMaterial ? (r.measuredCoreDiaMm ?? null) : null,
           measuredOuterDiaMm: isRollMaterial ? (r.measuredOuterDiaMm ?? null) : null, // 💡 儲存實測外徑
@@ -810,6 +876,7 @@ export default function IqcDrawer({
           inspectionItems: (r.inspectionItems || []).map((item: any) => ({
             inspectionItemId: item.inspectionItemId,
             judgmentChangeReason: item.judgmentChangeReason,
+            toleranceOverrideReason: item.toleranceOverrideReason,
             itemCode: item.itemCode,
             itemName: item.itemName,
             specification: item.specification,
@@ -825,7 +892,10 @@ export default function IqcDrawer({
       inspectorId,
       incomingStorageCode: incomingStorageCode || null,
       measuredCoreDiaMm: isRollMaterial ? (headerCoreDia ?? null) : null, // 💡 極致純淨方案
-      ...(detail.inspectionType === "Production" ? {} : { standardLength: standardLength || null }),
+      ...(detail.inspectionType === "Production" ? {
+        ...(productionGoodQuantity !== (detail.productionGoodQuantity?.toString() ?? null) ? { productionGoodQuantity: productionGoodQuantity === null ? null : parseProductionQuantity(productionGoodQuantity, detail.productionQuantityUnit) } : {}),
+        ...(productionDefectQuantity !== (detail.productionDefectQuantity?.toString() ?? null) ? { productionDefectQuantity: productionDefectQuantity === null ? null : parseProductionQuantity(productionDefectQuantity, detail.productionQuantityUnit) } : {}),
+      } : { standardLength: standardLength || null }),
       rolls: balancedRolls.map((r: any) => ({
         sampleId: r.sampleId,
         judgmentChangeReason: r.judgmentChangeReason,
@@ -833,8 +903,7 @@ export default function IqcDrawer({
         rollNo: r.rollNo,
         actualQtyAux: r.actualQtyAux,
         isOk: r.isOk ?? null, // 預設單項合格
-        measuredThicknessMm: r.measuredThicknessMm ?? null,
-        measuredSampleThicknessMm: r.measuredSampleThicknessMm ?? null,
+        ...(r.measuredSampleThicknessMm !== undefined ? { measuredSampleThicknessMm: r.measuredSampleThicknessMm } : {}),
         ...(isRollMaterial && r.coreDiameterInputConfirmed && r.measuredCoreDiaMm != null ? { coreDiameterInputConfirmed: true } : {}),
         measuredCoreDiaMm: isRollMaterial ? (r.measuredCoreDiaMm ?? null) : null, // 💡 內管芯外徑
         measuredOuterDiaMm: isRollMaterial ? (r.measuredOuterDiaMm ?? null) : null, // 💡 實測外徑
@@ -847,6 +916,7 @@ export default function IqcDrawer({
         inspectionItems: (r.inspectionItems || []).map((item: any) => ({
           inspectionItemId: item.inspectionItemId,
             judgmentChangeReason: item.judgmentChangeReason,
+            toleranceOverrideReason: item.toleranceOverrideReason,
             itemCode: item.itemCode,
           itemName: item.itemName,
           specification: item.specification,
@@ -889,21 +959,20 @@ export default function IqcDrawer({
             // 💡 同步更新最上端實體屬性，確保 DTO/API 儲存與物理卷卡建立之屬性 100% 正確
             const extraUpdates: any = {};
             if (itemCode === "core_dia") {
-              const numVal = parseFloat(value);
-              extraUpdates.measuredCoreDiaMm = isNaN(numVal) ? null : numVal;
-              extraUpdates.coreDiameterInputConfirmed = !isNaN(numVal);
-              extraUpdates.coreDiameterSource = isNaN(numVal) ? "None" : "Measured";
+              const numVal = positiveMeasurement(value);
+              extraUpdates.measuredCoreDiaMm = numVal;
+              extraUpdates.coreDiameterInputConfirmed = numVal !== null;
+              extraUpdates.coreDiameterSource = numVal === null ? "None" : "Measured";
             } else if (itemCode === "thickness") {
-              const numVal = parseFloat(value);
-              extraUpdates.measuredThicknessMm = isNaN(numVal) ? null : numVal;
-              extraUpdates.measuredSampleThicknessMm = isNaN(numVal) ? null : numVal;
+              const numVal = positiveMeasurement(value);
+              extraUpdates.measuredSampleThicknessMm = numVal;
             } else if (itemCode === "width") {
-              const numVal = parseFloat(value);
-              extraUpdates.measuredWidthMm = isNaN(numVal) ? null : numVal;
+              const numVal = positiveMeasurement(value);
+              extraUpdates.measuredWidthMm = numVal;
             } else if (itemCode === "length") {
-              const numVal = parseFloat(value);
-              extraUpdates.measuredLengthMm = isNaN(numVal) ? null : numVal;
-              extraUpdates.lengthMm = isNaN(numVal) ? null : numVal;
+              const numVal = positiveMeasurement(value);
+              extraUpdates.measuredLengthMm = numVal;
+              extraUpdates.lengthMm = numVal;
             }
 
             let finalRoll = { ...r, inspectionItems: updatedItems, ...extraUpdates };
@@ -1263,14 +1332,14 @@ export default function IqcDrawer({
 
         // 1. 實測厚度 (Roll / Sheet 皆有)
         if (
-          r.measuredThicknessMm === null ||
-          r.measuredThicknessMm === undefined ||
-          r.measuredThicknessMm === ""
+          r.measuredSampleThicknessMm === null ||
+          r.measuredSampleThicknessMm === undefined ||
+          r.measuredSampleThicknessMm === ""
         ) {
           message.warning(`請輸入 ${nameLabel} 的「實測厚度」`);
           return false;
         }
-        if (Number(r.measuredThicknessMm) <= 0) {
+        if (positiveMeasurement(r.measuredSampleThicknessMm) == null || positiveMeasurement(r.inspectionItems?.find((itm: any) => itm.itemCode === "thickness")?.measuredValue) == null) {
           message.warning(`${nameLabel} 的「實測厚度」必須大於 0`);
           return false;
         }
@@ -1282,7 +1351,7 @@ export default function IqcDrawer({
           message.warning(`請輸入 ${nameLabel} 的「實測寬度」`);
           return false;
         }
-        if (Number(widthVal) <= 0) {
+        if (positiveMeasurement(widthVal) == null) {
           message.warning(`${nameLabel} 的「實測寬度」必須大於 0`);
           return false;
         }
@@ -1297,7 +1366,7 @@ export default function IqcDrawer({
             message.warning(`請輸入 ${nameLabel} 的「實測數量」`);
             return false;
           }
-          if (Number(r.actualQtyAux) <= 0) {
+          if (positiveMeasurement(r.actualQtyAux) == null) {
             message.warning(`${nameLabel} 的「實測數量」必須大於 0`);
             return false;
           }
@@ -1311,7 +1380,7 @@ export default function IqcDrawer({
             message.warning(`請輸入 ${nameLabel} 的「內管芯外徑」`);
             return false;
           }
-          if (Number(r.measuredCoreDiaMm) <= 0) {
+          if (positiveMeasurement(r.measuredCoreDiaMm) == null) {
             message.warning(`${nameLabel} 的「內管芯外徑」必須大於 0`);
             return false;
           }
@@ -1325,7 +1394,7 @@ export default function IqcDrawer({
             message.warning(`請輸入 ${nameLabel} 的「實測外徑」`);
             return false;
           }
-          if (Number(r.measuredOuterDiaMm) <= 0) {
+          if (positiveMeasurement(r.measuredOuterDiaMm) == null) {
             message.warning(`${nameLabel} 的「實測外徑」必須大於 0`);
             return false;
           }
@@ -1337,7 +1406,7 @@ export default function IqcDrawer({
             message.warning(`請輸入 ${nameLabel} 的「實測長度」`);
             return false;
           }
-          if (Number(lengthVal) <= 0) {
+          if (positiveMeasurement(lengthVal) == null) {
             message.warning(`${nameLabel} 的「實測長度」必須大於 0`);
             return false;
           }
@@ -1355,6 +1424,14 @@ export default function IqcDrawer({
           message.warning(
             `請填寫 ${nameLabel} 檢驗項目【${item.itemName || item.itemCode}】的「實測值」`,
           );
+          return false;
+        }
+        if (["thickness", "width", "length", "core_dia"].includes(item.itemCode) && positiveMeasurement(measuredVal) == null) {
+          message.warning(`${nameLabel} 的「${item.itemName || item.itemCode}」必須為有效數字且大於 0`);
+          return false;
+        }
+        if (item.isOk === true && toleranceStatus(item) === "exceeded" && !String(item.toleranceOverrideReason || "").trim()) {
+          message.warning(`請填寫 ${nameLabel} 檢驗項目【${item.itemName || item.itemCode}】的超差允收理由`);
           return false;
         }
         if (item.isOk !== true && item.isOk !== false) {
@@ -1387,7 +1464,16 @@ export default function IqcDrawer({
     return true;
   };
 
+  const handleEscalate = () => {
+    if (guardDisposition("escalate")) return;
+    escalateMutation.mutate(undefined, {
+      onSuccess: () => setIsDecisionModalOpen(false),
+    });
+  };
+
   const handleSubmit = () => {
+    const action = overallResult === "Concession" ? "concession" : "complete";
+    if (guardDisposition(action)) return;
     if (!validateRevisionAndReasons()) return;
     if (!resolveSampleGroups(rolls, sheetLots)) return;
     if (blocksSamplingReduction(detail?.rolls, rolls, detail?.rolls?.length ?? 0, sampleCount) ||
@@ -1404,6 +1490,13 @@ export default function IqcDrawer({
           supplierLotNo: (!l.supplierLotNo || l.supplierLotNo.trim() === "") ? "" : l.supplierLotNo.trim().toUpperCase()
         }));
 
+    if (detail.inspectionType === "Production") {
+      const good = productionGoodQuantity === null ? null : parseProductionQuantity(productionGoodQuantity, detail.productionQuantityUnit), defect = productionDefectQuantity === null ? null : parseProductionQuantity(productionDefectQuantity, detail.productionQuantityUnit), total = detail.productionTotalQuantity;
+      if (good == null || defect == null || total == null || !Number.isFinite(good) || !Number.isFinite(defect) || good < 0 || defect < 0 || (detail.productionQuantityUnit === "PCS" && (!Number.isInteger(good) || !Number.isInteger(defect))) || Math.abs(good + defect - total) > 1e-9 || (overallResult === "AllPass" && (good !== total || defect !== 0)) || (overallResult === "Reject" && (good !== 0 || defect !== total)) || (overallResult === "Partial" && (good <= 0 || defect <= 0)) || overallResult === "Concession") {
+        message.warning("請確認良品及不良數量與來源總量及判定結果一致。");
+        return;
+      }
+    }
     const hasNg = displayedRolls.some((r) => r.isOk === false || r.inspectionItems?.some((i: any) => i.isOk === false));
     if (hasNg && overallResult === "AllPass") {
       message.warning(
@@ -1428,6 +1521,7 @@ export default function IqcDrawer({
       : allocateSheetGroupQuantities(displayedRolls, tempSheetLots);
 
     const executeSubmit = (finalRolls: any[], finalLots: any[]) => {
+      if (guardDisposition(action)) return;
       const resolved = resolveSampleGroups(finalRolls, finalLots);
       if (!resolved) return;
       const groupsPayload = finalLots.map((lot, idx) => {
@@ -1448,8 +1542,7 @@ export default function IqcDrawer({
             rollNo: r.rollNo || `S-${String(rIdx + 1).padStart(2, "0")}`,
             actualQtyAux: r.actualQtyAux,
             isOk: r.isOk ?? null,
-            measuredThicknessMm: r.measuredThicknessMm ?? null,
-            measuredSampleThicknessMm: r.measuredSampleThicknessMm ?? null,
+            ...(r.measuredSampleThicknessMm !== undefined ? { measuredSampleThicknessMm: r.measuredSampleThicknessMm } : {}),
             ...(isRollMaterial && r.coreDiameterInputConfirmed && r.measuredCoreDiaMm != null ? { coreDiameterInputConfirmed: true } : {}),
           measuredCoreDiaMm: isRollMaterial ? (r.measuredCoreDiaMm ?? null) : null,
             measuredOuterDiaMm: isRollMaterial ? (r.measuredOuterDiaMm ?? null) : null, // 💡 儲存實測外徑
@@ -1462,6 +1555,7 @@ export default function IqcDrawer({
             inspectionItems: (r.inspectionItems || []).map((item: any) => ({
               inspectionItemId: item.inspectionItemId,
             judgmentChangeReason: item.judgmentChangeReason,
+            toleranceOverrideReason: item.toleranceOverrideReason,
             itemCode: item.itemCode,
               itemName: item.itemName,
               specification: item.specification,
@@ -1485,7 +1579,7 @@ export default function IqcDrawer({
         incomingStorageCode: incomingStorageCode || undefined,
         sampleSize: sampleCount, // 💡 同步將計算出的抽樣數回寫至資料庫
         measuredCoreDiaMm: isRollMaterial ? (headerCoreDia ?? undefined) : undefined, // 💡 極致純淨方案
-        ...(detail.inspectionType === "Production" ? {} : { standardLength: standardLength || undefined }),
+        ...(detail.inspectionType === "Production" ? { productionGoodQuantity: productionGoodQuantity === null ? null : parseProductionQuantity(productionGoodQuantity, detail.productionQuantityUnit), productionDefectQuantity: productionDefectQuantity === null ? null : parseProductionQuantity(productionDefectQuantity, detail.productionQuantityUnit) } : { standardLength: standardLength || undefined }),
         rolls: finalRolls.map((r) => ({
           sampleId: r.sampleId,
           judgmentChangeReason: r.judgmentChangeReason,
@@ -1493,8 +1587,7 @@ export default function IqcDrawer({
           rollNo: r.rollNo,
           actualQtyAux: r.actualQtyAux,
           isOk: r.isOk,
-          measuredThicknessMm: r.measuredThicknessMm ?? null,
-          measuredSampleThicknessMm: r.measuredSampleThicknessMm ?? null,
+          ...(r.measuredSampleThicknessMm !== undefined ? { measuredSampleThicknessMm: r.measuredSampleThicknessMm } : {}),
           ...(isRollMaterial && r.coreDiameterInputConfirmed && r.measuredCoreDiaMm != null ? { coreDiameterInputConfirmed: true } : {}),
           measuredCoreDiaMm: isRollMaterial ? r.measuredCoreDiaMm : undefined, // 💡 內管芯外徑
           measuredOuterDiaMm: isRollMaterial ? r.measuredOuterDiaMm : undefined, // 💡 實測外徑
@@ -1505,6 +1598,7 @@ export default function IqcDrawer({
           inspectionItems: r.inspectionItems.map((i: any) => ({
             inspectionItemId: i.inspectionItemId,
             judgmentChangeReason: i.judgmentChangeReason,
+            toleranceOverrideReason: i.toleranceOverrideReason,
             itemCode: i.itemCode,
             itemName: i.itemName,
             specification: i.specification,
@@ -2012,8 +2106,7 @@ export default function IqcDrawer({
           const Do = record.measuredOuterDiaMm;
           const DiItem = record.inspectionItems?.find((i: any) => i.itemCode === "core_dia");
           const Di = Number(DiItem?.measuredValue);
-          const tItem = record.inspectionItems?.find((i: any) => i.itemCode === "thickness");
-          const t = Number(tItem?.measuredValue);
+          const t = positiveMeasurement(record.measuredSampleThicknessMm);
 
           const calculatedMeters = calculateRollLength(Do, Di, t);
           const stdLength = standardLength != null && Number.isFinite(standardLength) && standardLength > 0 ? standardLength : null;
@@ -2094,6 +2187,28 @@ export default function IqcDrawer({
             {item.isOk == null && <span>未判定</span>}
             <Radio value={false}>不合格</Radio><Radio value={true}>{wasNg ? "改判合格" : "細項合格"}</Radio>
           </Radio.Group>
+        </div>;
+      })}</Space>,
+    });
+
+    if (detail?.inspectionType === "Production") baseCols.push({
+      title: "超差允收理由",
+      key: "toleranceOverrideReason",
+      width: 220,
+      render: (_: any, record: any) => <Space orientation="vertical">{(record.inspectionItems || []).map((item: any, index: number) => {
+        const spec = detail.semiFinishedInspectionSpec?.items.find((entry) => entry.itemCode === item.itemCode);
+        const status = toleranceStatus(item);
+        if (status === "unknown") {
+          return spec || ["thickness", "width", "length", "core_dia"].includes(item.itemCode)
+            ? <span key={item.inspectionItemId || `${item.itemCode}-${index}`}>{item.itemName || item.itemCode}：無法判定容差</span>
+            : null;
+        }
+        return <div key={item.inspectionItemId || `${item.itemCode}-${index}`}>
+          {toleranceStatus(item) === "exceeded" && <span>超差：{item.itemName || item.itemCode} </span>}
+          <Input aria-label={`${item.itemName || item.itemCode}超差允收理由`} placeholder="超差判合格時必填" value={item.toleranceOverrideReason ?? ""} disabled={isReadOnly} onChange={(e) => {
+            const value = e.target.value;
+            setRolls(prev => prev.map(r => r === record || (record.sampleId ? r.sampleId === record.sampleId : r.rollNo === record.rollNo) ? { ...r, inspectionItems: r.inspectionItems.map((i: any, n: number) => n === index ? { ...i, toleranceOverrideReason: value } : i) } : r));
+          }} />
         </div>;
       })}</Space>,
     });
@@ -2373,6 +2488,23 @@ export default function IqcDrawer({
       }
     >
       <Spin spinning={isLoading}>
+        {isProductionDispositionPaused() && <Alert type="warning" showIcon message="Production 過帳目前暫停" description="後端尚未開放生產檢驗過帳；草稿欄位是否保存須重新讀回確認。" />}
+        {detail?.inspectionType === "Production" && <Card title="製令檢驗規格快照" size="small">
+          {detail.semiFinishedInspectionSpec ? <Table bordered size="small" pagination={false} scroll={{ x: "max-content" }} rowKey="itemCode" dataSource={detail.semiFinishedInspectionSpec.items} columns={[
+            { title: "檢驗項目", dataIndex: "itemName" },
+            { title: "規格", dataIndex: "specification" },
+            { title: "標準值", dataIndex: "standardValue", render: (v: number | null) => v ?? "未設定" },
+            { title: "容差", dataIndex: "tolerance", render: (v: number | null) => v ?? "未設定" },
+            { title: "單位", dataIndex: "unit", render: (v: string | null) => v ?? "—" },
+          ]} /> : <Text type="secondary">未提供製令檢驗規格快照</Text>}
+        </Card>}
+        {detail?.inspectionType === "Production" && <Card title="生產整批數量" size="small">
+          <Space wrap>
+            <span>來源總量：{detail.productionTotalQuantity ?? "未提供"} {detail.productionQuantityUnit ?? ""}</span>
+            <label>良品數量 <InputNumber stringMode aria-label="良品數量" value={productionGoodQuantity} disabled={isReadOnly} onChange={setProductionGoodQuantity} /></label>
+            <label>不良數量 <InputNumber stringMode aria-label="不良數量" value={productionDefectQuantity} disabled={isReadOnly} onChange={setProductionDefectQuantity} /></label>
+          </Space>
+        </Card>}
         {detail?.judgmentHistory?.length > 0 && (
           <Card title="逐筆改判歷史" size="small">
             <Table bordered size="small" pagination={false} scroll={{ x: 'max-content' }} rowKey="id" dataSource={detail.judgmentHistory} columns={[
@@ -2606,17 +2738,16 @@ export default function IqcDrawer({
                       : "確認過帳"
                 }
                 cancelText="取消"
+                okButtonProps={{ disabled: !!getDispositionBlockReason(
+                  overallResult === "Concession"
+                    ? detail?.inspectionStatus === "Pending" && isRollMaterial ? "escalate" : "concession"
+                    : "complete"
+                ) }}
                 onOk={
                   overallResult === "Concession" &&
                   detail?.inspectionStatus === "Pending" &&
                   isRollMaterial
-                    ? () => {
-                        escalateMutation.mutate(undefined, {
-                          onSuccess: () => {
-                            setIsDecisionModalOpen(false);
-                          },
-                        });
-                      }
+                    ? handleEscalate
                     : handleSubmit
                 }
                 confirmLoading={
@@ -2636,13 +2767,8 @@ export default function IqcDrawer({
                         type="dashed"
                         className="border-amber-500 text-amber-600 hover:bg-amber-50/10 font-bold"
                         loading={escalateMutation.isPending}
-                        onClick={() => {
-                          escalateMutation.mutate(undefined, {
-                            onSuccess: () => {
-                              setIsDecisionModalOpen(false);
-                            },
-                          });
-                        }}
+                        disabled={!!getDispositionBlockReason("escalate")}
+                        onClick={handleEscalate}
                       >
                         啟動 100% 全檢
                       </Button>
@@ -2650,6 +2776,7 @@ export default function IqcDrawer({
                         type="primary"
                         className="bg-blue-600 hover:bg-blue-500 text-white border-none font-bold"
                         loading={completeMutation.isPending}
+                        disabled={!!getDispositionBlockReason("concession")}
                         onClick={handleSubmit}
                       >
                         直接提交特採申請
@@ -2689,7 +2816,8 @@ export default function IqcDrawer({
                         </Text>
                       </Radio.Button>
 
-                      <Radio.Button
+                      {detail.inspectionType === "Production" && <Radio.Button value="Partial">Partial (部分合格，部分報廢)</Radio.Button>}
+                      {detail.inspectionType !== "Production" && <Radio.Button
                         value="Concession"
                         disabled={ngCount === 0}
                         className="w-full py-2 h-auto flex flex-col items-center"
@@ -2701,7 +2829,7 @@ export default function IqcDrawer({
                         <Text type="secondary" className="text-xs">
                           有瑕疵但急需/客戶允收，走會簽流程，核准後全數入庫。
                         </Text>
-                      </Radio.Button>
+                      </Radio.Button>}
 
                       <Radio.Button
                         value="Reject"
@@ -2709,17 +2837,17 @@ export default function IqcDrawer({
                       >
                         <CloseCircleOutlined className="text-red-500 text-lg mb-1" />
                         <Text strong className="text-red-700">
-                          Reject (全部退回)
+                          {detail.inspectionType === "Production" ? "Reject (全部報廢)" : "Reject (全部退回)"}
                         </Text>
                         <Text type="secondary" className="text-xs">
-                          整批拒收退回，全數不建卡入庫，採購量全額扣回。
+                          {detail.inspectionType === "Production" ? "整批報廢，不建立可用庫存。" : "整批拒收退回，全數不建卡入庫，採購量全額扣回。"}
                         </Text>
                       </Radio.Button>
                     </Radio.Group>
                   </div>
 
                   {/* 當有 NG 卷判定退貨時，彈出剛性對帳與扣款警告 */}
-                  {ngCount > 0 && overallResult === "Reject" && (
+                  {detail.inspectionType !== "Production" && ngCount > 0 && overallResult === "Reject" && (
                     <Alert
                       type="warning"
                       showIcon

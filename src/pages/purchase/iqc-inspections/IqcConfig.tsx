@@ -159,12 +159,11 @@ export const mainTableColumns = (): TableColumnConfig[] => [
     name: 'standardSpec', 
     width: 140,
     render: (_: any, record: any) => {
-      if (record.inspectionType === 'Production') return '未設定';
       const isRoll = record.materialForm === 'R';
       const width = record.standardWidth;
       const length = record.standardLength;
       
-      if (width == null || length == null) return "-";
+      if (width == null || length == null) return record.inspectionType === 'Production' ? '未設定' : '-';
 
       const formattedWidth = Number(width).toLocaleString();
       const formattedLength = Number(length).toLocaleString();

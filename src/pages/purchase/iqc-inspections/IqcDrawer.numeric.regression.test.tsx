@@ -28,7 +28,7 @@ async function renderRoll(outer: number, isOk = true, completeItems = false) {
     lotNo: 'IQC-TEST', materialForm: 'R', revision: 7, inspectionStatus: 'Pending', inspectorId: 'EMP-1', incomingStorageCode: 'ST-1', rollCount: 1,
     standardThickness: 0.05, standardWidth: 150, standardLength: 20, measuredCoreDiaMm: 86,
     groups: [{ id: 'g1', supplierLotNo: 'LOT1', allocatedQty: 1, sampleQty: 1, measuredCoreDiaMm: 86, samples: [{ sampleId: 'sample-1' }] }],
-    rolls: [{ sampleId: 'sample-1', seq: 1, rollNo: 'ROLL1', supplierLotNo: 'LOT1', actualQtyAux: 1, measuredThicknessMm: completeItems ? 0.05 : undefined, measuredCoreDiaMm: 86, measuredOuterDiaMm: outer, isOk, inspectionItems: completeItems ? [
+    rolls: [{ sampleId: 'sample-1', seq: 1, rollNo: 'ROLL1', supplierLotNo: 'LOT1', actualQtyAux: 1, measuredSampleThicknessMm: completeItems ? 0.05 : undefined, measuredCoreDiaMm: 86, measuredOuterDiaMm: outer, isOk, inspectionItems: completeItems ? [
       { itemCode: 'thickness', itemName: '厚度(mm)', measuredValue: '0.05', isOk: true },
       { itemCode: 'width', itemName: '寬度(mm)', measuredValue: '150', isOk: true },
       { itemCode: 'core_dia', itemName: '內管芯外徑(mm)', measuredValue: '86', isOk: true },
@@ -39,15 +39,15 @@ async function renderRoll(outer: number, isOk = true, completeItems = false) {
   await screen.findByPlaceholderText('實測外徑');
 }
 
-it('keeps missing sample thickness null in both draft payload shapes', async () => {
+it('省略缺失厚度而不向非 nullable 舊欄送 null', async () => {
   await renderRoll(93.1);
   fireEvent.click(screen.getByRole('button', { name: /編輯/ }));
   fireEvent.click(screen.getByRole('button', { name: /儲存/ }));
   await waitFor(() => expect(api.post).toHaveBeenCalled());
   const body = api.post.mock.calls[0][0].body;
   for (const sample of [body.rolls[0], body.groups[0].samples[0]]) {
-    expect(sample.measuredThicknessMm).toBeNull();
-    expect(sample.measuredSampleThicknessMm).toBeNull();
+    expect(sample).not.toHaveProperty('measuredThicknessMm');
+    expect(sample).not.toHaveProperty('measuredSampleThicknessMm');
   }
 });
 

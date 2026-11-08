@@ -57,11 +57,11 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
           };
           setEditingItem(adaptPurchaseOrderItem(withMaterial));
         } else {
-          setEditingItem(record);
+          setEditingItem(adapted);
         }
       } catch (err) {
         logger.error('purchase-order.material-fetch.failed');
-        setEditingItem(record);
+        setEditingItem(adapted);
       }
     } else {
       setEditingItem(adapted);

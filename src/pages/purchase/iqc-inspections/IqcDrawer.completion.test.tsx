@@ -4,10 +4,18 @@ import { App } from 'antd';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import IqcDrawer from './IqcDrawer';
 
-const api = vi.hoisted(() => ({ detail: vi.fn(), post: vi.fn(), complete: vi.fn() }));
-vi.mock('@/api/generated', () => ({ getApiV1IqcInspectionByIqcRecordId: api.detail, postApiV1IqcInspectionByIqcRecordIdEscalate: vi.fn(), postApiV1IqcInspectionByIqcRecordIdComplete: api.complete, getApiV1IqcInspectionByIqcRecordIdPdf: vi.fn() }));
+// 正常 Production 完成案例沿用已解鎖政策；暫停 UI 案例明確模擬 true。
+vi.mock('./productionPostingPolicy', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./productionPostingPolicy')>();
+  return { isProductionPostingPaused: vi.fn(actual.isProductionPostingPaused) };
+});
+import { isProductionPostingPaused } from './productionPostingPolicy';
+
+const api = vi.hoisted(() => ({ detail: vi.fn(), post: vi.fn(), complete: vi.fn(), escalate: vi.fn() }));
+vi.mock('@/api/generated', () => ({ getApiV1IqcInspectionByIqcRecordId: api.detail, postApiV1IqcInspectionByIqcRecordIdEscalate: api.escalate, postApiV1IqcInspectionByIqcRecordIdComplete: api.complete, getApiV1IqcInspectionByIqcRecordIdPdf: vi.fn() }));
 vi.mock('@/api/generated/client.gen', () => ({ client: { post: api.post } }));
-vi.mock('@/stores/useAuthStore', () => ({ useAuthStore: () => ({ user: null }) }));
+const access = vi.hoisted(() => ({ allowed: true }));
+vi.mock('@/stores/useAuthStore', () => ({ useAuthStore: () => ({ user: null, hasPermission: (code: string) => code === 'Purchase.IqcInspections.View' && access.allowed }) }));
 vi.mock('@/hooks/useFileDownload', () => ({ useFileDownload: () => ({ downloadFile: vi.fn(), isDownloading: false }) }));
 vi.mock('@/components/Form/DynamicForm', () => ({ DynamicForm: () => null }));
 vi.mock('@/components/Form/AsyncSelect', () => ({ AsyncSelect: () => null }));
@@ -15,23 +23,27 @@ vi.mock('@/components/common/ActionBar', () => ({ ActionBar: ({ actions }: any) 
 vi.mock('@/components/Table/ErpTable', () => ({ default: ({ dataSource, columns }: any) => <div>{dataSource.map((row: any, i: number) => <div key={row.id ?? row.rollNo}>{columns.map((col: any, j: number) => <div key={j}>{col.render ? col.render(row[col.dataIndex], row, i) : row[col.dataIndex]}</div>)}</div>)}</div> }));
 
 beforeEach(() => {
+  access.allowed = true;
+  vi.mocked(isProductionPostingPaused).mockReset().mockReturnValue(false);
   vi.stubGlobal('matchMedia', () => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }));
   vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} });
   api.post.mockReset();
+  api.escalate.mockReset().mockImplementation(() => new Promise(() => {}));
   api.post.mockImplementation(() => new Promise(() => {}));
 });
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
-async function renderInspection(measuredValue: string, isOk: boolean | null, post = true, sampleIsOk: boolean | null = true, overrides: any = {}) {
+async function renderInspection(measuredValue: string, isOk: boolean | null, post = true, sampleIsOk: boolean | null = true, overrides: any = {}, dimensions: { thickness?: string; width?: string; length?: string } = {}) {
   api.complete.mockReset();
   api.detail.mockResolvedValue({ data: { data: {
-    ...overrides, lotNo: 'IQC-TEST', materialForm: 'S', revision: 1, inspectionStatus: 'Pending', inspectorId: 'EMP-1', incomingStorageCode: 'ST-1', rollCount: 1,
+    ...overrides, lotNo: 'IQC-TEST', materialForm: overrides.materialForm ?? 'S', revision: 1, inspectionStatus: 'Pending', inspectorId: 'EMP-1', incomingStorageCode: 'ST-1', rollCount: overrides.rollCount ?? 1,
     standardThickness: 0.05, standardWidth: 150, standardLength: 300,
-    groups: [{ id: 'g1', supplierLotNo: 'LOT', allocatedQty: 1, sampleQty: 1, samples: [{ sampleId: 'sample-1' }] }],
-    rolls: [{ sampleId: 'sample-1', seq: 1, rollNo: 'S1', supplierLotNo: 'LOT', actualQtyAux: 1, measuredThicknessMm: 0.05, isOk: sampleIsOk, inspectionItems: [
-      { itemCode: 'thickness', itemName: '厚度', measuredValue: '0.05', isOk: true },
-      { itemCode: 'width', itemName: '寬度', measuredValue: '150', isOk: true },
-      { itemCode: 'length', itemName: '長度', measuredValue: '300', isOk: true },
+    groups: [{ id: 'g1', supplierLotNo: 'LOT', allocatedQty: overrides.rollCount ?? 1, sampleQty: 1, samples: [{ sampleId: 'sample-1' }] }],
+    rolls: [{ sampleId: 'sample-1', seq: 1, rollNo: 'S1', supplierLotNo: 'LOT', actualQtyAux: 1, measuredCoreDiaMm: 86, measuredOuterDiaMm: 160.5, measuredSampleThicknessMm: 0.05, isOk: sampleIsOk, inspectionItems: [
+      { itemCode: 'thickness', itemName: '厚度', measuredValue: dimensions.thickness ?? '0.05', isOk: true },
+      { itemCode: 'width', itemName: '寬度', measuredValue: dimensions.width ?? '150', isOk: true },
+      { itemCode: 'length', itemName: '長度', measuredValue: dimensions.length ?? '300', isOk: true },
+      ...(overrides.materialForm === 'R' ? [{ itemCode: 'core_dia', itemName: '管芯', measuredValue: '86', isOk: true }] : []),
       { itemCode: 'extra', itemName: '黏著力', measuredValue, isOk },
     ] }],
   } } });
@@ -39,7 +51,56 @@ async function renderInspection(measuredValue: string, isOk: boolean | null, pos
   render(<QueryClientProvider client={qc}><App><IqcDrawer iqcRecordId="test" open onClose={() => {}} onSuccess={() => {}} /></App></QueryClientProvider>);
   await screen.findAllByText('LOT');
   if (post) fireEvent.click(screen.getByRole('button', { name: /進行品質判定與過帳/ }));
+  return qc;
 }
+
+it.each(['complete', 'escalate', 'concession'] as const)('採購已開判定視窗在 refetch 結案後阻擋 %s', async action => {
+  const qc = await renderInspection('10', action === 'complete', true, true, { inspectionType: 'Incoming', materialForm: action === 'complete' ? 'S' : 'R' });
+  const button = await screen.findByRole('button', { name: action === 'complete' ? /確認過帳/ : action === 'escalate' ? '啟動 100% 全檢' : '直接提交特採申請' });
+  const previous = (await api.detail()).data.data;
+  api.detail.mockResolvedValue({ data: { data: { ...previous, inspectionStatus: 'AllPass', revision: 2 } } });
+  await qc.refetchQueries({ queryKey: ['iqc-detail', 'test'] });
+  await waitFor(() => expect(screen.queryByRole('button', { name: /進行品質判定與過帳/ })).toBeNull());
+  fireEvent.click(button);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(api.complete).not.toHaveBeenCalled();
+  expect(api.escalate).not.toHaveBeenCalled();
+});
+
+it.each(['complete', 'escalate', 'concession'] as const)('採購呈現後撤回權限時 handler 阻擋 %s', async action => {
+  await renderInspection('10', action === 'complete', true, true, { inspectionType: 'Incoming', materialForm: action === 'complete' ? 'S' : 'R' });
+  const button = await screen.findByRole('button', { name: action === 'complete' ? /確認過帳/ : action === 'escalate' ? '啟動 100% 全檢' : '直接提交特採申請' });
+  access.allowed = false;
+  fireEvent.click(button);
+  expect(await screen.findByText('目前已無此品檢單的操作權限，請重新確認權限。')).toBeTruthy();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(api.complete).not.toHaveBeenCalled();
+  expect(api.escalate).not.toHaveBeenCalled();
+});
+
+it.each(['closed', 'permission'] as const)('直接特採二次確認開啟後重讀最新 %s 防線', async change => {
+  const qc = await renderInspection('10', false, true, true, { inspectionType: 'Incoming', materialForm: 'R', rollCount: 2 });
+  fireEvent.click(await screen.findByRole('button', { name: '直接提交特採申請' }));
+  const confirm = await screen.findByRole('button', { name: '確認直接提交特採' });
+  if (change === 'permission') access.allowed = false;
+  else {
+    const previous = (await api.detail()).data.data;
+    api.detail.mockResolvedValue({ data: { data: { ...previous, inspectionStatus: 'Reject', revision: 2 } } });
+    await qc.refetchQueries({ queryKey: ['iqc-detail', 'test'] });
+  }
+  fireEvent.click(confirm);
+  expect(await screen.findByText(change === 'permission' ? '目前已無此品檢單的操作權限，請重新確認權限。' : '品檢單狀態已變更，目前無法進行此處置，請重新確認。')).toBeTruthy();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(api.complete).not.toHaveBeenCalled();
+});
+
+it('採購 NG 卷料合法直接特採仍送出完成 API', async () => {
+  await renderInspection('10', false, true, true, { inspectionType: 'Incoming', materialForm: 'R' });
+  api.complete.mockImplementation(() => new Promise(() => {}));
+  fireEvent.click(await screen.findByRole('button', { name: '直接提交特採申請' }));
+  await waitFor(() => expect(api.complete).toHaveBeenCalledOnce());
+  expect(api.complete.mock.calls[0][0].body.overallResult).toBe('Concession');
+});
 
 it('blocks posting when a required sample is unjudged even if its items passed', async () => {
   await renderInspection('10', true, true, null);
@@ -76,6 +137,15 @@ it('blocks completion when an inspected item is unjudged', async () => {
   expect(api.complete).not.toHaveBeenCalled();
 });
 
+it.each([
+  ['width', 'abc'], ['width', 'Infinity'], ['width', '150mm'],
+  ['length', 'NaN'], ['length', '1e999'], ['thickness', '0.05mm'],
+] as const)('拒絕不合法的 %s 實測值 %s', async (field, value) => {
+  await renderInspection('10', true, true, true, {}, { [field]: value });
+  expect(await screen.findByText(/必須.*大於 0/)).toBeTruthy();
+  expect(api.complete).not.toHaveBeenCalled();
+});
+
 it('blocks completion for a blank measured value', async () => {
   await renderInspection('   ', true);
   expect(await screen.findByText(/黏著力.*實測值/)).toBeTruthy();
@@ -108,7 +178,7 @@ it('allows saving an incomplete draft', async () => {
 });
 
 
-it.each([['CR-1', 'Production'], ['PMR-1', 'Production'], ['PR-1', 'Incoming']])('saves and completes %s without changing source contract', async (sourceDocNumber, inspectionType) => {
+it.each([['PR-1', 'Incoming']])('saves and completes %s without changing source contract', async (sourceDocNumber, inspectionType) => {
   await renderInspection('10', true, false, true, { sourceDocNumber, inspectionType });
   api.complete.mockImplementation(() => new Promise(() => {}));
   api.post.mockImplementation(async ({ body }: any) => {
@@ -128,4 +198,97 @@ it.each([['CR-1', 'Production'], ['PMR-1', 'Production'], ['PR-1', 'Incoming']])
   const completed = api.complete.mock.calls[0][0].body;
   if (inspectionType === 'Production') expect(completed).not.toHaveProperty('standardLength');
   else expect(completed.standardLength).toBe(300);
+});
+
+
+it('saves production batch quantities without treating the sample as a package', async () => {
+  await renderInspection('10', true, false, true, { inspectionType: 'Production', productionTotalQuantity: 10, productionGoodQuantity: null, productionDefectQuantity: null, productionQuantityUnit: 'PCS' });
+  fireEvent.click(screen.getByRole('button', { name: /編輯/ }));
+  fireEvent.change(screen.getByRole('spinbutton', { name: '良品數量' }), { target: { value: '7' } });
+  fireEvent.change(screen.getByRole('spinbutton', { name: '不良數量' }), { target: { value: '3' } });
+  fireEvent.click(screen.getByRole('button', { name: /儲存/ }));
+  await waitFor(() => expect(api.post).toHaveBeenCalled());
+  const body = api.post.mock.calls[0][0].body;
+  expect(body.productionGoodQuantity).toBe(7);
+  expect(body.productionDefectQuantity).toBe(3);
+  expect(body.rolls[0].sampleId).toBe('sample-1');
+  expect(body.rolls[0]).not.toHaveProperty('packageSeq');
+});
+
+
+it('預設解鎖後以輸入批次數量提交 Production Partial', async () => {
+  await renderInspection('10', true, false, true, { inspectionType: 'Production', productionTotalQuantity: 10, productionGoodQuantity: 7, productionDefectQuantity: 3, productionQuantityUnit: 'PCS' });
+  api.complete.mockImplementation(() => new Promise(() => {}));
+  fireEvent.click(screen.getByRole('button', { name: /進行品質判定與過帳/ }));
+  fireEvent.click(await screen.findByRole('radio', { name: /Partial/ }));
+  fireEvent.click(screen.getByRole('button', { name: /確認過帳/ }));
+  await waitFor(() => expect(api.complete).toHaveBeenCalled());
+  expect(api.complete.mock.calls[0][0].body).toEqual(expect.objectContaining({ overallResult: 'Partial', productionGoodQuantity: 7, productionDefectQuantity: 3 }));
+});
+
+
+it.each(['render', 'handler'] as const)('Production NG 卷料全檢與特採在完成過帳解鎖後仍維持 fail-closed：%s', async seam => {
+  const qc = await renderInspection('10', false, false, true, { inspectionType: seam === 'render' ? 'Production' : 'Incoming', materialForm: 'R' });
+  fireEvent.click(screen.getByRole('button', { name: /進行品質判定與過帳/ }));
+  const escalate = await screen.findByRole('button', { name: '啟動 100% 全檢' });
+  const concession = screen.getByRole('button', { name: '直接提交特採申請' });
+  if (seam === 'render') {
+    expect(escalate).toBeDisabled();
+    expect(concession).toBeDisabled();
+  } else {
+    expect(escalate).toBeEnabled();
+    expect(concession).toBeEnabled();
+    const cached = qc.getQueryData<any>(['iqc-detail', 'test']);
+    qc.setQueryData(['iqc-detail', 'test'], {
+      ...cached,
+      data: { ...cached.data, data: { ...cached.data.data, inspectionType: 'Production' } },
+    });
+  }
+  fireEvent.click(escalate);
+  fireEvent.click(concession);
+  if (seam === 'handler') {
+    await waitFor(() => expect(screen.getAllByText('Production 全檢與特採目前暫停，請保留草稿並等待後端支援。')).toHaveLength(2));
+  }
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(api.escalate).not.toHaveBeenCalled();
+  expect(api.complete).not.toHaveBeenCalled();
+});
+
+it('採購 NG 卷料仍可啟動全檢，不受 Production 暫停影響', async () => {
+  await renderInspection('10', false, false, true, { inspectionType: 'Incoming', materialForm: 'R' });
+  fireEvent.click(screen.getByRole('button', { name: /進行品質判定與過帳/ }));
+  const escalate = await screen.findByRole('button', { name: '啟動 100% 全檢' });
+  expect(escalate).toBeEnabled();
+  fireEvent.click(escalate);
+  await waitFor(() => expect(api.escalate).toHaveBeenCalledOnce());
+  expect(api.complete).not.toHaveBeenCalled();
+});
+
+it('Production 顯示暫停過帳並禁止送出', async () => {
+  vi.mocked(isProductionPostingPaused).mockReturnValue(true);
+  await renderInspection('10', true, false, true, { inspectionType: 'Production', productionTotalQuantity: 10, productionGoodQuantity: 7, productionDefectQuantity: 3, productionQuantityUnit: 'PCS' });
+  expect(screen.getByText('Production 過帳目前暫停')).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', { name: /進行品質判定與過帳/ }));
+  const button = await screen.findByRole('button', { name: /確認過帳/ });
+  expect(button).toBeDisabled();
+  fireEvent.click(button);
+  expect(api.complete).not.toHaveBeenCalled();
+});
+
+it('草稿省略未修改數量並以 null 清除，重新讀取顯示伺服器值', async () => {
+  await renderInspection('10', true, false, true, { inspectionType: 'Production', productionGoodQuantity: 7, productionDefectQuantity: 3, productionQuantityUnit: 'PCS' });
+  api.post.mockImplementation(async ({ body }: any) => {
+    const old = (await api.detail()).data.data;
+    api.detail.mockResolvedValue({ data: { data: { ...old, ...body, groups: body.groups.map((g: any) => ({ ...g, id: 'g1' })) } } });
+    return { data: {} };
+  });
+  fireEvent.click(screen.getByRole('button', { name: /編輯/ }));
+  fireEvent.change(screen.getByRole('spinbutton', { name: '良品數量' }), { target: { value: '' } });
+  fireEvent.click(screen.getByRole('button', { name: /儲存/ }));
+  await waitFor(() => expect(api.post).toHaveBeenCalled());
+  const body = api.post.mock.calls[0][0].body;
+  expect(body.productionGoodQuantity).toBeNull();
+  expect(body).not.toHaveProperty('productionDefectQuantity');
+  await waitFor(() => expect(screen.getByRole('spinbutton', { name: '良品數量' })).toHaveValue(''));
+  expect(screen.getByRole('spinbutton', { name: '不良數量' })).toHaveValue('3');
 });

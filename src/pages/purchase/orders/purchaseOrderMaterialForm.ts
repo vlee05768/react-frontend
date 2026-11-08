@@ -1,6 +1,6 @@
 import type { PurchaseOrderItemDto } from '@/api/generated/types.gen';
 
-// Temporary response extension until the SDK is regenerated from the updated Swagger.
+// 保留窄化邊界：SDK 欄位仍可能收到後端未知字串，僅讓 R／S／null 進入表單。
 export type MaterialForm = 'R' | 'S' | null;
 export type PurchaseOrderItemWithMaterialForm = PurchaseOrderItemDto & {
   readonly materialForm?: MaterialForm;

@@ -28,7 +28,7 @@ async function renderRoll(outer: number | null, isOk = true, completeItems = fal
     lotNo: 'IQC-TEST', materialForm: 'R', revision: 7, inspectionStatus: 'Pending', inspectorId: 'EMP-1', incomingStorageCode: 'ST-1', rollCount: 1,
     standardThickness: 0.05, standardWidth: 150, standardLength: 20, measuredCoreDiaMm: 86,
     groups: [{ id: 'g1', supplierLotNo: 'LOT1', allocatedQty: 1, sampleQty: 1, measuredCoreDiaMm: 86 }],
-    rolls: [{ sampleId: 'sample-1', seq: 1, rollNo: 'ROLL1', supplierLotNo: 'LOT1', actualQtyAux: 1, measuredThicknessMm: completeItems ? 0.05 : undefined, measuredCoreDiaMm: 86, measuredOuterDiaMm: outer, isOk, inspectionItems: completeItems ? [
+    rolls: [{ sampleId: 'sample-1', seq: 1, rollNo: 'ROLL1', supplierLotNo: 'LOT1', actualQtyAux: 1, measuredSampleThicknessMm: completeItems ? 0.05 : undefined, measuredCoreDiaMm: 86, measuredOuterDiaMm: outer, isOk, inspectionItems: completeItems ? [
       { itemCode: 'thickness', itemName: '厚度(mm)', measuredValue: '0.05', isOk: true },
       { itemCode: 'width', itemName: '寬度(mm)', measuredValue: '150', isOk: true },
       { itemCode: 'core_dia', itemName: '內管芯外徑(mm)', measuredValue: '86', isOk: true },
@@ -87,6 +87,13 @@ it('shows no invented sheet length specification', async () => {
   expect(screen.getByText('實測長度(mm) (未設定)')).toBeTruthy();
 });
 
+
+it('uses the saved production specification snapshot instead of measured fields', async () => {
+  await renderRoll(null, true, false, { inspectionType: 'Production', semiFinishedInspectionSpec: { materialForm: 'R', standardThicknessMm: 0.08, standardWidthMm: 250, standardLength: 500, items: [] } });
+  expect(screen.getByText('實測厚度(mm) (0.08±0.002)')).toBeTruthy();
+  expect(screen.getByText('實測寬度(mm) (250±0.5)')).toBeTruthy();
+  expect(screen.getByText('實測長度(M) (500±5)')).toBeTruthy();
+});
 
 it.each(['CR-1', 'PMR-1'])('does not display untrusted production measurements as specifications for %s', async (sourceDocNumber) => {
   await renderRoll(160.5, true, true, { inspectionType: 'Production', sourceDocNumber, standardThickness: 0.05, standardWidth: 175, standardLength: 300 });

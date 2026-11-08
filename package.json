@@ -1,7 +1,7 @@
 {
   "name": "erp-frontend",
   "private": true,
-  "version": "1.10.24.2018",
+  "version": "1.26.1028.0021",
   "type": "module",
   "scripts": {
     "dev": "vite",

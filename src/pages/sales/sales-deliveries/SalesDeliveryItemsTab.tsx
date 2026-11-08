@@ -17,6 +17,7 @@ import UndeliveredOrderItemPicker from './components/UndeliveredOrderItemPicker'
 import { DynamicForm } from '@/components/Form/DynamicForm';
 import { getItemColumns, getItemFormConfig, getDeliveryItemWidth } from './SalesDeliveryConfig';
 import { logger } from '@/utils/logger';
+import { sheetSaveGuard } from './sheetAllocation';
 
 const { Text } = Typography;
 
@@ -550,6 +551,17 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
       if (editingItem) {
         let finalValues = { ...values };
         if (editingItem.inventoryType === 'M') {
+          if (!isRoll) {
+            const result = sheetSaveGuard(editingItem.extraData, editingItem.referenceNumber, Number(editingItem.quantity), Number(values.quantity), selectedRolls);
+            if (result.error) {
+              message.error(result.error);
+              return;
+            }
+            finalValues.extraData = result.extraData;
+            if (selectedRolls.length) {
+              finalValues.quantity = MaterialLogisticsCore.calculateTotalAreaAndLength(false, selectedRolls).totalQtyPcs;
+            }
+          } else {
           // 💡 如果是物料，將我們手動調整的 LPN rolls 分配、數量、面積覆蓋提交！
           if (selectedRolls.length > 0) {
             // 💡 智慧映射：注入 OrderItemLineNumber 與 Quantity，使 LPN 條目完美兼顧「來源單號與訂單分攤扣減」和「LPN實物卡檢貨」雙重角色！
@@ -577,6 +589,7 @@ export default function SalesDeliveryItemsTab({ documentNumber, customerCode, it
           } else {
             // 如果清空了 LPN 檢貨內容，則需要將 extraData 清空 (重置為空)
             finalValues.extraData = null;
+          }
           }
         }
         await updateMutation.mutateAsync({ lineNumber: editingItem.lineNumber!, values: finalValues });

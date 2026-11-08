@@ -75,6 +75,7 @@ beforeEach(() => {
     matches: false, addListener: vi.fn(), removeListener: vi.fn(),
     addEventListener: vi.fn(), removeEventListener: vi.fn(), dispatchEvent: vi.fn(),
   })));
+  Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, value: vi.fn() });
   vi.stubGlobal('ResizeObserver', class {
     observe() {}
     unobserve() {}
@@ -97,6 +98,7 @@ afterEach(() => {
   cleanup();
   clients.splice(0).forEach((client) => client.clear());
   useAuthStore.setState({ user: null, permissionTree: null });
+  vi.restoreAllMocks();
   vi.clearAllMocks();
   vi.unstubAllGlobals();
 });
@@ -479,4 +481,85 @@ describe('BOM 更新權限', () => {
     expect(screen.queryByRole('button', { name: /儲\s*存$/ })).not.toBeInTheDocument();
     expect(addBtn).toBeEnabled();
   });
+});
+
+ describe('半成品 BOM 標準長寬', () => {
+  it('顯示唯讀規格，編輯後提交兩欄並可取消還原', async () => {
+    setPermissions([updatePermission]);
+    Object.assign(bom, { semiFinishedInspectionSpec: { materialForm: 'R', standardWidthMm: 100.1234, standardLength: 50, standardThicknessMm: 0.2, items: [] } });
+    renderBom('M');
+    const width = await screen.findByLabelText('標準寬度 (mm)');
+    const length = screen.getByLabelText('標準長度 (m)');
+    expect(width).toBeDisabled();
+    await userEvent.click(screen.getByRole('button', { name: /編\s*輯$/ }));
+    await userEvent.clear(width); await userEvent.type(width, '125.1234');
+    await userEvent.clear(length); await userEvent.type(length, '60');
+    await userEvent.click(screen.getByRole('button', { name: /儲\s*存$/ }));
+    await waitFor(() => expect(updateBom).toHaveBeenCalledWith('M', 'OUTPUT-001', expect.objectContaining({ semiFinishedInspectionSpec: { standardWidthMm: 125.1234, standardLength: 60 } })));
+  });
+  it('取消或權限撤銷不保存草稿，重新編輯還原', async () => {
+    setPermissions([updatePermission]);
+    Object.assign(bom, { semiFinishedInspectionSpec: { materialForm: 'S', standardWidthMm: 20, standardLength: 30, standardThicknessMm: 1, items: [] } });
+    renderBom('M');
+    const width = await screen.findByLabelText('標準寬度 (mm)');
+    expect(screen.getByLabelText('標準長度 (mm)')).toHaveValue('30');
+    await userEvent.click(screen.getByRole('button', { name: /編\s*輯$/ }));
+    await userEvent.clear(width); await userEvent.type(width, '42');
+    await userEvent.click(screen.getByRole('button', { name: /取\s*消$/ }));
+    expect(width).toHaveValue('20'); expect(updateBom).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole('button', { name: /編\s*輯$/ }));
+    await userEvent.clear(width); await userEvent.type(width, '43');
+    act(() => setPermissions([]));
+    expect(width).toBeDisabled(); expect(width).toHaveValue('20'); expect(updateBom).not.toHaveBeenCalled();
+  });
+  it.each(['0', '-1', '1.12345', '100000000000000'])('明確非法長寬 %s 不得送出', async (value) => {
+    setPermissions([updatePermission]); renderBom('M');
+    const width = await screen.findByLabelText('標準寬度 (mm)');
+    await userEvent.click(screen.getByRole('button', { name: /編\s*輯$/ }));
+    await userEvent.type(width, value);
+    await userEvent.click(screen.getByRole('button', { name: /儲\s*存$/ }));
+    expect(await screen.findByText('請輸入大於 0 且最多四位小數的數值')).toBeInTheDocument();
+    expect(updateBom).not.toHaveBeenCalled();
+  });
+  it('單欄清空時提交 null，未變更規格則省略', async () => {
+    setPermissions([updatePermission]);
+    Object.assign(bom, { semiFinishedInspectionSpec: { materialForm: 'R', standardWidthMm: 20, standardLength: 30, standardThicknessMm: 1, items: [] } });
+    renderBom('M'); const width = await screen.findByLabelText('標準寬度 (mm)');
+    await userEvent.click(screen.getByRole('button', { name: /編\s*輯$/ }));
+    await userEvent.clear(width); await userEvent.click(screen.getByRole('button', { name: /儲\s*存$/ }));
+    await waitFor(() => expect(updateBom).toHaveBeenCalledWith('M', 'OUTPUT-001', expect.objectContaining({ semiFinishedInspectionSpec: { standardWidthMm: null, standardLength: 30 } })));
+  });
+  it('成品不顯示或送出半成品規格', async () => {
+    setPermissions([updatePermission]); renderBom('P'); await activeSwitch();
+    expect(screen.queryByLabelText('標準寬度 (mm)')).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: /編\s*輯$/ }));
+    await userEvent.click(screen.getByRole('button', { name: /儲\s*存$/ }));
+    await waitFor(() => expect(updateBom).toHaveBeenCalled());
+    expect(updateBom.mock.calls[0][2]).not.toHaveProperty('semiFinishedInspectionSpec');
+  });
+
+  it('建立半成品可保存部分規格草稿', async () => {
+    getBom.mockResolvedValue({ data: null }); renderBom('M');
+    await userEvent.click(await screen.findByRole('button', { name: /^建立 BOM$/ }));
+    fireEvent.mouseDown(document.querySelector('#defaultMachineType')!);
+    await userEvent.click(await screen.findByText('測試機台', { selector: '.ant-select-item-option-content' }));
+    fireEvent.change(document.querySelector('#defaultToolingRangeMm')!, { target: { value: '10' } });
+    fireEvent.change(document.querySelector('#defaultPunchHolesCount')!, { target: { value: '1' } });
+    await userEvent.type(screen.getByLabelText('標準寬度 (mm)'), '12.3456');
+    await userEvent.click(screen.getByRole('button', { name: /儲\s*存$/ }));
+    await waitFor(() => expect(createBom).toHaveBeenCalledWith(expect.objectContaining({ semiFinishedInspectionSpec: { standardWidthMm: 12.3456, standardLength: null } })));
+  });
+
+});
+
+it('半成品規格兩欄均清空時明確清除整份規格', async () => {
+  setPermissions([updatePermission]);
+  Object.assign(bom, { semiFinishedInspectionSpec: { materialForm: 'R', standardWidthMm: 20, standardLength: 30, standardThicknessMm: 1, items: [] } });
+  renderBom('M');
+  const width = await screen.findByLabelText('標準寬度 (mm)');
+  await userEvent.click(screen.getByRole('button', { name: /編\s*輯$/ }));
+  await userEvent.clear(width);
+  await userEvent.clear(screen.getByLabelText('標準長度 (m)'));
+  await userEvent.click(screen.getByRole('button', { name: /儲\s*存$/ }));
+  await waitFor(() => expect(updateBom).toHaveBeenCalledWith('M', 'OUTPUT-001', expect.objectContaining({ semiFinishedInspectionSpec: null })));
 });
