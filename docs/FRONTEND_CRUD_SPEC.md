@@ -20,11 +20,11 @@
   - 數字欄位內容靠右對齊 (`align: 'right'`)。
   - 布林值 (Boolean) 欄位內容置中對齊 (`align: 'center'`)，且內容請使用綠色打勾圖示表示 true，紅色打叉圖示表示 false，未設定 (undefined/null) 則顯示空白。
 - **頁面標題與暗色模式 (Theming & Typography)**：
-  - 模組標題應包含左側藍色飾條 (Width: 4px, Height: 24px, Color: `#1677ff`)。
-  - 避免使用 `<Typography.Title>` 以防被 Tailwind 覆蓋樣式。文字顏色應依賴 CSS 變數動態適應主題 (`color: 'var(--ant-color-text, inherit)'`)，嚴禁寫死 `#262626` 或 `#000`。
+  - 模組標題應包含左側藍色飾條 (Width: 4px, Height: 24px, Color: `var(--ant-color-primary)`)。
+  - 避免使用 `<Typography.Title>` 以防被 Tailwind 覆蓋樣式。文字顏色應依賴 CSS 變數動態適應主題 (`color: 'var(--ant-color-text, inherit)'`)，嚴禁寫死 `#262626`、`#1677ff` 或 `#000`。
 - **按鈕動線 (Action Buttons)**：
   - 表格右上角放置「進階查詢」(Default 樣式, `SearchOutlined`) 與「新增資料」(Primary 樣式, `PlusOutlined`)。
-  - 兩按鈕間使用 `<Divider type="vertical" />` 分隔。
+  - 兩按鈕間使用 `<Divider orientation="vertical" />` 分隔。
 
 ## 2. 查詢與過濾 (Search & Filtering)
 
