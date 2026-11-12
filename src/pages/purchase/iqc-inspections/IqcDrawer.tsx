@@ -2488,7 +2488,7 @@ export default function IqcDrawer({
       }
     >
       <Spin spinning={isLoading}>
-        {isProductionDispositionPaused() && <Alert type="warning" showIcon message="Production 過帳目前暫停" description="後端尚未開放生產檢驗過帳；草稿欄位是否保存須重新讀回確認。" />}
+        {isProductionDispositionPaused() && <Alert type="warning" showIcon title="Production 過帳目前暫停" description="後端尚未開放生產檢驗過帳；草稿欄位是否保存須重新讀回確認。" />}
         {detail?.inspectionType === "Production" && <Card title="製令檢驗規格快照" size="small">
           {detail.semiFinishedInspectionSpec ? <Table bordered size="small" pagination={false} scroll={{ x: "max-content" }} rowKey="itemCode" dataSource={detail.semiFinishedInspectionSpec.items} columns={[
             { title: "檢驗項目", dataIndex: "itemName" },
@@ -2654,7 +2654,7 @@ export default function IqcDrawer({
 
                 {isSheetTotalMismatched && !isReadOnly && (
                   <Alert
-                    message={
+                    title={
                       <span className="font-bold">
                         ⚠️ 片料入庫數量分配不平衡！進貨總量: <span className="underline">{(detail?.rollCount ?? 0).toLocaleString()} PCS</span>，目前分配加總: <span className="underline text-orange-500 font-mono">{totalAllocatedPcs.toLocaleString()} PCS</span>，尚差 <span className="font-mono text-red-500 font-bold">{Math.abs((detail?.rollCount ?? 0) - totalAllocatedPcs).toLocaleString()} PCS</span>。請調整各組數量以符合帳實一致原則。
                       </span>
@@ -2854,7 +2854,7 @@ export default function IqcDrawer({
                       icon={
                         <WarningOutlined className="text-amber-600 text-lg" />
                       }
-                      message={
+                      title={
                         <Text strong className="text-amber-800">
                           採購對帳與扣款安全防護
                         </Text>
@@ -2875,7 +2875,7 @@ export default function IqcDrawer({
                     <Alert
                       type="info"
                       showIcon
-                      message={
+                      title={
                         <Text strong className="text-blue-800">
                           特採過帳防護與列印說明
                         </Text>
@@ -2946,7 +2946,7 @@ export default function IqcDrawer({
                   <Alert
                     type="info"
                     showIcon
-                    message="目前此單處於【特採會簽審核中】"
+                    title="目前此單處於【特採會簽審核中】"
                     description="請點擊下方下載/列印帶入全部 QC 實測數據的紙本會簽單。完成線下跨部門會簽後，主管請在下方輸入核定意見並點擊「核准」或「拒絕」。"
                   />
 
