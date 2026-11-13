@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button, Space, App, Typography } from 'antd';
 import Table from '@/components/Table/ErpTable';
 import { PlusOutlined } from '@ant-design/icons';
@@ -30,6 +30,7 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
   const queryClient = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
   const [editingItem, setEditingItem] = useState<PurchaseOrderItemWithMaterialForm | null>(null);
+  const itemFormFields = useMemo(() => getItemFormConfig(), []);
 
   const listData: PurchaseOrderItemWithMaterialForm[] = Array.isArray(purchaseOrderData.items)
     ? purchaseOrderData.items.map(adaptPurchaseOrderItem)
@@ -175,16 +176,16 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
     }
   };
 
-  const defaultValues = editingItem 
+  const defaultValues = useMemo(() => editingItem
     ? {
         ...editingItem,
-        requestedDeliveryDate: editingItem.requestedDeliveryDate 
-          ? dayjs(editingItem.requestedDeliveryDate) 
+        requestedDeliveryDate: editingItem.requestedDeliveryDate
+          ? dayjs(editingItem.requestedDeliveryDate)
           : undefined,
-        promisedDeliveryDate: editingItem.promisedDeliveryDate 
-          ? dayjs(editingItem.promisedDeliveryDate) 
+        promisedDeliveryDate: editingItem.promisedDeliveryDate
+          ? dayjs(editingItem.promisedDeliveryDate)
           : undefined,
-      } 
+      }
     : {
         purchaseOrderType: purchaseOrderData.purchaseOrderType || 'Material',
         materialForm: undefined,
@@ -196,10 +197,10 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
         length: null,
         customerCode: null,
         productCode: null,
-        requestedDeliveryDate: purchaseOrderData.expectedArrivalDate 
-          ? dayjs(purchaseOrderData.expectedArrivalDate) 
+        requestedDeliveryDate: purchaseOrderData.expectedArrivalDate
+          ? dayjs(purchaseOrderData.expectedArrivalDate)
           : dayjs(),
-      };
+      }, [editingItem, purchaseOrderData.expectedArrivalDate, purchaseOrderData.purchaseOrderType]);
 
   const showForm = isCreating || !!editingItem;
 
@@ -233,7 +234,7 @@ export default function PurchaseOrderItemsTab({ purchaseOrderData, isMasterViewM
           </div>
           <DynamicForm
             formId="purchaseOrderItemForm"
-            fields={getItemFormConfig()}
+            fields={itemFormFields}
             defaultValues={defaultValues}
             isViewMode={false}
             isUpdateMode={!!editingItem}

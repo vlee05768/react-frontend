@@ -673,7 +673,6 @@ export const getItemFormConfig = (): any[] => [
     name: "materialForm",
     label: "原料形態",
     componentType: "Input",
-    editable: "never",
     colSpan: 4,
     hidden: true,
   },
@@ -758,7 +757,7 @@ export const getItemFormConfig = (): any[] => [
     label: "採購單位",
     componentType: "Input",
     colSpan: 4,
-    editable: "never",
+    disabled: () => true,
     validation: z.string().nullable().optional(),
   },  
   {
@@ -914,7 +913,7 @@ export const getItemFormConfig = (): any[] => [
     label: "小計",
     componentType: "InputNumber",
     colSpan: 4,
-    editable: "never",
+    disabled: () => true,
     componentProps: {
       controls: false,
       style: { width: "100%" }
