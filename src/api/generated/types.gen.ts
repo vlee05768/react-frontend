@@ -584,6 +584,10 @@ export type CompleteIqcDto = {
      * 允許修改的 IQC 驗收規格長度：卷料每卷長度(m)，片料每片長度(mm)。
      */
     standardLength?: number | null;
+    /**
+     * 卷料標準內管芯外徑 (mm)
+     */
+    standardCoreDiaMm?: number | null;
 };
 
 /**
@@ -614,6 +618,14 @@ export type CompleteSampleRollDto = {
      * 是否判定合格
      */
     isOk?: boolean | null;
+    /**
+     * 樣品判定異常原因
+     */
+    defectReason?: string | null;
+    /**
+     * 表面外觀 (Pass/NG；相容正常)
+     */
+    appearance?: string | null;
     /**
      * 實測厚度
      */
@@ -4246,6 +4258,10 @@ export type IqcDetailDto = {
      */
     standardLength?: number | null;
     /**
+     * 卷料標準內管芯外徑 (mm)
+     */
+    standardCoreDiaMm?: number | null;
+    /**
      * 到貨總卷/包數
      */
     rollCount?: number;
@@ -4546,6 +4562,10 @@ export type IqcListDto = {
      * 驗收規格長度：卷料為每卷長度(m)，片料為每片長度(mm)；非總長度。
      */
     standardLength?: number | null;
+    /**
+     * 卷料標準內管芯外徑 (mm)
+     */
+    standardCoreDiaMm?: number | null;
 };
 
 /**
@@ -4612,6 +4632,10 @@ export type IqcSampleDetailDto = {
      * 是否判定合格
      */
     isOk?: boolean | null;
+    /**
+     * 樣品判定異常原因
+     */
+    defectReason?: string | null;
     /**
      * 不良品處置 (Rejected:退貨, Concession:特採)
      */
@@ -8429,6 +8453,10 @@ export type SaveIqcDraftDto = {
      * 允許修改的 IQC 驗收規格長度：卷料每卷長度(m)，片料每片長度(mm)。
      */
     standardLength?: number | null;
+    /**
+     * 卷料標準內管芯外徑 (mm)
+     */
+    standardCoreDiaMm?: number | null;
 };
 
 /**

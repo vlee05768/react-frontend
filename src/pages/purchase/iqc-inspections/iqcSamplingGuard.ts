@@ -1,13 +1,3 @@
-type Sample = { isOk?: boolean | null; inspectionItems?: { isOk?: boolean | null }[] };
-
-export function hasSamplingDefect(samples: readonly Sample[] | null | undefined): boolean {
-  return samples?.some(sample => sample.isOk === false || sample.inspectionItems?.some(item => item.isOk === false)) ?? false;
-}
-
-export function blocksSamplingReduction(saved: readonly Sample[] | null | undefined, current: readonly Sample[], previousCount: number, nextCount: number): boolean {
-  return nextCount < previousCount && (hasSamplingDefect(saved) || hasSamplingDefect(current));
-}
-
 /** Only samples created in this editing session and unchanged may be discarded. */
 export function markNewBlankSample<T extends object>(sample: T): T & { _blankSnapshot: string } {
   return { ...sample, _blankSnapshot: JSON.stringify(sample) };

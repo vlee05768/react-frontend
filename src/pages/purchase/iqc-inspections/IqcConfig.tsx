@@ -162,6 +162,7 @@ export const mainTableColumns = (): TableColumnConfig[] => [
       const isRoll = record.materialForm === 'R';
       const width = record.standardWidth;
       const length = record.standardLength;
+      const standardCoreDiaMm = record.standardCoreDiaMm;
       
       if (width == null || length == null) return record.inspectionType === 'Production' ? '未設定' : '-';
 
@@ -170,10 +171,13 @@ export const mainTableColumns = (): TableColumnConfig[] => [
       
       if (isRoll) {
         return (
-          <div className="flex items-center gap-1 font-mono font-medium">
+          <div className="flex flex-wrap items-center gap-1 font-mono font-medium">
             <span className="text-indigo-600 dark:text-indigo-400">{formattedWidth} mm</span>
             <span className="text-gray-400">x</span>
             <span className="text-emerald-600 dark:text-emerald-400">{formattedLength} m</span>
+            {standardCoreDiaMm != null && (
+              <span className="text-cyan-600 dark:text-cyan-400">Ø{Number(standardCoreDiaMm).toLocaleString()} mm</span>
+            )}
           </div>
         );
       } else {
@@ -230,8 +234,12 @@ export const getIqcFormFields = (ctx: {
   detail: any;
   inspectorId: string;
   setInspectorId: (val: string) => void;
-  headerCoreDia: number | null;
-  setHeaderCoreDia: (val: number | null) => void;
+  standardCoreDia?: number | null;
+  setStandardCoreDia?: (val: number | null) => void;
+  // Compatibility aliases for callers compiled before Issue #108.
+  headerCoreDia?: number | null;
+  // Compatibility aliases for callers compiled before Issue #108.
+  setHeaderCoreDia?: (val: number | null) => void;
   incomingStorageCode: string;
   setIncomingStorageCode: (val: string) => void;
   totalLength: number | null;
@@ -239,16 +247,15 @@ export const getIqcFormFields = (ctx: {
   const {
     isRollMaterial,
     isReadOnly,
-    setRolls,
     detail,
     inspectorId,
     setInspectorId,
-    headerCoreDia,
-    setHeaderCoreDia,
     incomingStorageCode,
     setIncomingStorageCode,
     totalLength
   } = ctx;
+  const standardCoreDia = ctx.standardCoreDia ?? ctx.headerCoreDia ?? null;
+  const setStandardCoreDia = ctx.setStandardCoreDia ?? ctx.setHeaderCoreDia ?? (() => {});
 
   return [
     {
@@ -378,38 +385,23 @@ export const getIqcFormFields = (ctx: {
       ),
     },
     {
-      name: "measuredCoreDiaMm",
-      label: "內管芯外徑 (mm)",
+      name: "standardCoreDiaMm",
+      label: "標準內管芯外徑 (mm)",
       componentType: "Custom",
       colSpan: 6,
       hidden: !isRollMaterial,
       customRender: (props: any) => (
         <InputNumber
-          value={props.value !== undefined ? props.value : headerCoreDia}
+          value={props.value !== undefined ? props.value : standardCoreDia}
           disabled={isReadOnly || !isRollMaterial}
-          precision={1}
+          precision={2}
+          min={0.01}
           style={{ width: "100%" }}
           className="w-full text-right"
           onChange={(val) => {
             const numVal = val != null ? Number(val) : null;
-            setHeaderCoreDia(numVal);
+            setStandardCoreDia(numVal);
             props.onChange(numVal);
-            
-            setRolls((prevRolls) =>
-              prevRolls.map((r) => {
-                const updatedItems = r.inspectionItems.map((i: any) => {
-                  if (i.itemCode === "core_dia") {
-                    return { ...i, measuredValue: numVal !== null ? String(numVal) : "" };
-                  }
-                  return i;
-                });
-                return {
-                  ...r,
-                  measuredCoreDiaMm: numVal,
-                  inspectionItems: updatedItems,
-                };
-              }),
-            );
           }}
         />
       ),

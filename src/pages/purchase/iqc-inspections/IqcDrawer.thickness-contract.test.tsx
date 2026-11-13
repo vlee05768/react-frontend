@@ -30,7 +30,7 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 async function renderThickness(thickness: number | null | undefined, form = 'S', itemValue = '', judgment: boolean | null = true) {
   const sample = { sampleId: 'sample-1', seq: 1, rollNo: 'S1', supplierLotNo: 'LOT', actualQtyAux: 1,
     ...(thickness !== undefined ? { measuredSampleThicknessMm: thickness } : {}),
-    measuredCoreDiaMm: 86, measuredOuterDiaMm: 160.5, isOk: judgment,
+    appearance: 'Pass', measuredCoreDiaMm: 86, measuredOuterDiaMm: 160.5, isOk: judgment,
     inspectionItems: [
       ...(itemValue ? [{ itemCode: 'thickness', itemName: '厚度', measuredValue: itemValue, isOk: judgment }] : []),
       { itemCode: 'width', itemName: '寬度', measuredValue: '150', isOk: true },
@@ -38,7 +38,7 @@ async function renderThickness(thickness: number | null | undefined, form = 'S',
     ] };
   const original = { lotNo: 'IQC-THICKNESS', materialForm: form, revision: 7, inspectionType: 'Incoming',
     inspectionStatus: 'Pending', inspectorId: 'EMP-1', incomingStorageCode: 'ST-1', rollCount: 1,
-    standardThickness: 0.99, standardWidth: 150, standardLength: 300,
+    standardCoreDiaMm: 76.2, standardThickness: 0.99, standardWidth: 150, standardLength: 300,
     groups: [{ id: 'g1', supplierLotNo: 'LOT', allocatedQty: 1, sampleQty: 1, measuredCoreDiaMm: 86, samples: [{ sampleId: 'sample-1' }] }], rolls: [sample] };
   api.detail.mockResolvedValue({ data: { data: original } });
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -55,8 +55,7 @@ it.each([undefined, null, 0.05])('GET 厚度 %s 草稿雙 payload 保留缺失�
   await waitFor(() => expect(api.post).toHaveBeenCalledOnce());
   for (const sample of samples(api.post.mock.calls[0][0].body)) {
     expect(sample).not.toHaveProperty('measuredThicknessMm');
-    if (thickness === undefined) expect(sample).not.toHaveProperty('measuredSampleThicknessMm');
-    else expect(sample.measuredSampleThicknessMm).toBe(thickness);
+    expect(sample.measuredSampleThicknessMm).toBe(thickness ?? null);
   }
 });
 
@@ -68,10 +67,9 @@ it.each([undefined, null])('厚度 %s 即使細項有值也不得計算長度或
   expect(api.complete).not.toHaveBeenCalled();
 });
 
-it('樣品實測厚度填入缺少的細項但維持未判定', async () => {
+it('樣品實測厚度填入缺少的細項但不取代樣品層級判定', async () => {
   await renderThickness(0.05, 'S', '', null);
-  const group = screen.getByRole('radiogroup', { name: '厚度(mm)細項判定' });
-  expect(within(group).getByText('未判定')).toBeTruthy();
+  expect(screen.queryByRole('radiogroup', { name: /厚度.*細項判定/ })).toBeNull();
   fireEvent.click(screen.getByRole('button', { name: /編輯/ }));
   expect(screen.getAllByPlaceholderText('實測值').some(e => (e as HTMLInputElement).value === '0.05')).toBe(true);
   fireEvent.click(screen.getByRole('button', { name: /儲存/ }));
@@ -101,14 +99,13 @@ it.each(['0.06', ''])('手動厚度 %s 草稿與真 DTO 形狀 mock 讀回一致
     expect(sample.measuredSampleThicknessMm).toBe(value ? 0.06 : null);
     expect(sample.isOk).toBeNull();
     expect(sample.inspectionItems.find((i: any) => i.itemCode === 'thickness').isOk).toBeNull();
-    if (!value) expect(sample.measuredLengthMm).toBeNull();
+    if (!value) expect(sample.measuredLengthMm).toBe(14.6);
   }
   await screen.findByRole('button', { name: /編輯/ });
   await waitFor(() => expect(api.detail.mock.calls.length).toBeGreaterThan(1));
   fireEvent.click(screen.getByRole('button', { name: /編輯/ }));
   const row = screen.getByTestId('sample-S1');
-  const group = within(row).getByRole('radiogroup', { name: '厚度細項判定' });
-  expect(within(group).getByText('未判定')).toBeTruthy();
+  expect(within(row).queryByRole('radiogroup', { name: /厚度.*細項判定/ })).toBeNull();
   expect(within(row).getByRole('radio', { name: /^合格$/ })).not.toBeChecked();
   const thicknessCell = within(row).getByTestId('sample-S1-thickness');
   expect(within(thicknessCell).getByPlaceholderText('實測值')).toHaveValue(value);

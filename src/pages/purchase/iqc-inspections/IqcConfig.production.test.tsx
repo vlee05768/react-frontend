@@ -11,12 +11,29 @@ beforeAll(() => {
 afterEach(cleanup);
 
 it('shows unset and disables production specification inputs in the actual form', () => {
-  const fields = getIqcFormFields({ isRollMaterial: true, isReadOnly: false, detail: { inspectionType: 'Production' }, setRolls: vi.fn(), inspectorId: '', setInspectorId: vi.fn(), headerCoreDia: null, setHeaderCoreDia: vi.fn(), incomingStorageCode: '', setIncomingStorageCode: vi.fn(), totalLength: null });
+  const fields = getIqcFormFields({ isRollMaterial: true, isReadOnly: false, detail: { inspectionType: 'Production' }, setRolls: vi.fn(), inspectorId: '', setInspectorId: vi.fn(), standardCoreDia: null, setStandardCoreDia: vi.fn(), incomingStorageCode: '', setIncomingStorageCode: vi.fn(), totalLength: null });
   render(<App><DynamicForm fields={fields.filter(f => ['standardThickness', 'standardWidth', 'standardLength', 'totalActualQty'].includes(f.name))} defaultValues={{}} onSubmit={() => {}} /></App>);
   const inputs = screen.getAllByPlaceholderText('未設定');
   expect(inputs).toHaveLength(3);
   inputs.forEach(input => expect(input).toBeDisabled());
   expect(screen.getByDisplayValue('未設定')).toBeDisabled();
+});
+
+it.each(['Purchase', 'CustomerSupplied', 'Production'])('卷料 %s 可編輯標準管芯且不綁定樣品實測值', inspectionType => {
+  const setStandardCoreDia = vi.fn();
+  const fields = getIqcFormFields({ isRollMaterial: true, isReadOnly: false, detail: { inspectionType }, setRolls: vi.fn(), inspectorId: '', setInspectorId: vi.fn(), standardCoreDia: 76.2, setStandardCoreDia, incomingStorageCode: '', setIncomingStorageCode: vi.fn(), totalLength: null });
+  const field = fields.find(item => item.name === 'standardCoreDiaMm');
+  const onChange = vi.fn();
+  render(<>{field.customRender({ value: 76.2, onChange })}</>);
+  const input = screen.getByRole('spinbutton');
+  expect(input).toBeEnabled();
+  expect(input).toHaveValue('76.20');
+});
+
+it('卷料標準規格一併顯示表頭標準管芯', () => {
+  const column = mainTableColumns().find(c => c.name === 'standardSpec')!;
+  render(<>{column.render!(null, { materialForm: 'R', standardWidth: 150, standardLength: 300, standardCoreDiaMm: 76.2 }, 0)}</>);
+  expect(screen.getByText('Ø76.2 mm')).toBeTruthy();
 });
 
 it.each([['R', 'm'], ['S', 'mm']])('顯示 Production %s 快照尺寸及單位', (materialForm, unit) => {

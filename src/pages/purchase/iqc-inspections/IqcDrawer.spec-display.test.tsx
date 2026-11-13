@@ -26,7 +26,7 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 async function renderRoll(outer: number | null, isOk = true, completeItems = false, overrides: any = {}) {
   api.detail.mockResolvedValue({ data: { data: {
     lotNo: 'IQC-TEST', materialForm: 'R', revision: 7, inspectionStatus: 'Pending', inspectorId: 'EMP-1', incomingStorageCode: 'ST-1', rollCount: 1,
-    standardThickness: 0.05, standardWidth: 150, standardLength: 20, measuredCoreDiaMm: 86,
+    standardCoreDiaMm: 76.2, standardThickness: 0.05, standardWidth: 150, standardLength: 20, measuredCoreDiaMm: 86,
     groups: [{ id: 'g1', supplierLotNo: 'LOT1', allocatedQty: 1, sampleQty: 1, measuredCoreDiaMm: 86 }],
     rolls: [{ sampleId: 'sample-1', seq: 1, rollNo: 'ROLL1', supplierLotNo: 'LOT1', actualQtyAux: 1, measuredSampleThicknessMm: completeItems ? 0.05 : undefined, measuredCoreDiaMm: 86, measuredOuterDiaMm: outer, isOk, inspectionItems: completeItems ? [
       { itemCode: 'thickness', itemName: '厚度(mm)', measuredValue: '0.05', isOk: true },
@@ -41,7 +41,7 @@ async function renderRoll(outer: number | null, isOk = true, completeItems = fal
 }
 
 it('does not display a tolerance when thickness is not specified', async () => {
-  await renderRoll(null, true, false, { standardThickness: null });
+  await renderRoll(null, true, false, { standardCoreDiaMm: 76.2, standardThickness: null });
   expect(screen.getByText('實測厚度(mm) (未設定)')).toBeTruthy();
 });
 
@@ -51,13 +51,16 @@ it.each([0, -1, NaN, Infinity])('treats unusable thickness %s as unspecified', a
 });
 
 it('preserves the existing display for an actual thickness specification', async () => {
-  await renderRoll(null, true, false, { standardThickness: 0.05 });
+  await renderRoll(null, true, false, { standardCoreDiaMm: 76.2, standardThickness: 0.05 });
   expect(screen.getByText('實測厚度(mm) (0.05±0.002)')).toBeTruthy();
 });
 
-it('does not present measured core diameter as a specification or invent a tolerance', async () => {
-  await renderRoll(null);
-  expect(screen.getByText('內管芯外徑(mm) (未設定規格)')).toBeTruthy();
+it('uses only the dedicated standard core diameter as the specification reference', async () => {
+  await renderRoll(null, true, false, { standardCoreDiaMm: null, measuredCoreDiaMm: 86 });
+  expect(screen.getByText('內管芯外徑(mm) (未設定)')).toBeTruthy();
+  cleanup();
+  await renderRoll(null, true, false, { standardCoreDiaMm: 76.2, measuredCoreDiaMm: 90 });
+  expect(screen.getByText('內管芯外徑(mm) (76.2)')).toBeTruthy();
 });
 
 it('shows missing specifications and unavailable measurement without inventing values', async () => {
@@ -96,7 +99,7 @@ it('uses the saved production specification snapshot instead of measured fields'
 });
 
 it.each(['CR-1', 'PMR-1'])('does not display untrusted production measurements as specifications for %s', async (sourceDocNumber) => {
-  await renderRoll(160.5, true, true, { inspectionType: 'Production', sourceDocNumber, standardThickness: 0.05, standardWidth: 175, standardLength: 300 });
+  await renderRoll(160.5, true, true, { inspectionType: 'Production', sourceDocNumber, standardCoreDiaMm: 76.2, standardThickness: 0.05, standardWidth: 175, standardLength: 300 });
   expect(screen.getByText('實測厚度(mm) (未設定)')).toBeTruthy();
   expect(screen.getByText('實測寬度(mm) (未設定)')).toBeTruthy();
   expect(screen.getByText('實測長度(M) (未設定)')).toBeTruthy();

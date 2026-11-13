@@ -37,9 +37,9 @@ async function renderInspection(measuredValue: string, isOk: boolean | null, pos
   api.complete.mockReset();
   api.detail.mockResolvedValue({ data: { data: {
     ...overrides, lotNo: 'IQC-TEST', materialForm: overrides.materialForm ?? 'S', revision: 1, inspectionStatus: 'Pending', inspectorId: 'EMP-1', incomingStorageCode: 'ST-1', rollCount: overrides.rollCount ?? 1,
-    standardThickness: 0.05, standardWidth: 150, standardLength: 300,
+    standardCoreDiaMm: overrides.standardCoreDiaMm === undefined ? 76.2 : overrides.standardCoreDiaMm, standardThickness: 0.05, standardWidth: 150, standardLength: 300,
     groups: [{ id: 'g1', supplierLotNo: 'LOT', allocatedQty: overrides.rollCount ?? 1, sampleQty: 1, samples: [{ sampleId: 'sample-1' }] }],
-    rolls: [{ sampleId: 'sample-1', seq: 1, rollNo: 'S1', supplierLotNo: 'LOT', actualQtyAux: 1, measuredCoreDiaMm: 86, measuredOuterDiaMm: 160.5, measuredSampleThicknessMm: 0.05, isOk: sampleIsOk, inspectionItems: [
+    rolls: [{ sampleId: 'sample-1', seq: 1, rollNo: 'S1', supplierLotNo: 'LOT', actualQtyAux: 1, measuredCoreDiaMm: 86, measuredOuterDiaMm: 160.5, measuredSampleThicknessMm: 0.05, appearance: overrides.appearance === undefined ? 'Pass' : overrides.appearance, isOk: sampleIsOk, defectReason: overrides.sampleDefectReason === undefined ? (sampleIsOk === false ? '外觀異常' : null) : overrides.sampleDefectReason, inspectionItems: [
       { itemCode: 'thickness', itemName: '厚度', measuredValue: dimensions.thickness ?? '0.05', isOk: true },
       { itemCode: 'width', itemName: '寬度', measuredValue: dimensions.width ?? '150', isOk: true },
       { itemCode: 'length', itemName: '長度', measuredValue: dimensions.length ?? '300', isOk: true },
@@ -55,7 +55,7 @@ async function renderInspection(measuredValue: string, isOk: boolean | null, pos
 }
 
 it.each(['complete', 'escalate', 'concession'] as const)('採購已開判定視窗在 refetch 結案後阻擋 %s', async action => {
-  const qc = await renderInspection('10', action === 'complete', true, true, { inspectionType: 'Incoming', materialForm: action === 'complete' ? 'S' : 'R' });
+  const qc = await renderInspection('10', action === 'complete', true, action === 'complete', { inspectionType: 'Incoming', materialForm: action === 'complete' ? 'S' : 'R' });
   const button = await screen.findByRole('button', { name: action === 'complete' ? /確認過帳/ : action === 'escalate' ? '啟動 100% 全檢' : '直接提交特採申請' });
   const previous = (await api.detail()).data.data;
   api.detail.mockResolvedValue({ data: { data: { ...previous, inspectionStatus: 'AllPass', revision: 2 } } });
@@ -68,7 +68,7 @@ it.each(['complete', 'escalate', 'concession'] as const)('採購已開判定視�
 });
 
 it.each(['complete', 'escalate', 'concession'] as const)('採購呈現後撤回權限時 handler 阻擋 %s', async action => {
-  await renderInspection('10', action === 'complete', true, true, { inspectionType: 'Incoming', materialForm: action === 'complete' ? 'S' : 'R' });
+  await renderInspection('10', action === 'complete', true, action === 'complete', { inspectionType: 'Incoming', materialForm: action === 'complete' ? 'S' : 'R' });
   const button = await screen.findByRole('button', { name: action === 'complete' ? /確認過帳/ : action === 'escalate' ? '啟動 100% 全檢' : '直接提交特採申請' });
   access.allowed = false;
   fireEvent.click(button);
@@ -79,7 +79,7 @@ it.each(['complete', 'escalate', 'concession'] as const)('採購呈現後撤回�
 });
 
 it.each(['closed', 'permission'] as const)('直接特採二次確認開啟後重讀最新 %s 防線', async change => {
-  const qc = await renderInspection('10', false, true, true, { inspectionType: 'Incoming', materialForm: 'R', rollCount: 2 });
+  const qc = await renderInspection('10', false, true, false, { inspectionType: 'Incoming', materialForm: 'R', rollCount: 2 });
   fireEvent.click(await screen.findByRole('button', { name: '直接提交特採申請' }));
   const confirm = await screen.findByRole('button', { name: '確認直接提交特採' });
   if (change === 'permission') access.allowed = false;
@@ -95,11 +95,16 @@ it.each(['closed', 'permission'] as const)('直接特採二次確認開啟後重
 });
 
 it('採購 NG 卷料合法直接特採仍送出完成 API', async () => {
-  await renderInspection('10', false, true, true, { inspectionType: 'Incoming', materialForm: 'R' });
+  await renderInspection('10', false, true, false, { inspectionType: 'Incoming', materialForm: 'R' });
   api.complete.mockImplementation(() => new Promise(() => {}));
   fireEvent.click(await screen.findByRole('button', { name: '直接提交特採申請' }));
   await waitFor(() => expect(api.complete).toHaveBeenCalledOnce());
-  expect(api.complete.mock.calls[0][0].body.overallResult).toBe('Concession');
+  const body = api.complete.mock.calls[0][0].body;
+  expect(body.overallResult).toBe('Concession');
+  expect(body.standardCoreDiaMm).toBe(76.2);
+  expect(body.measuredCoreDiaMm).toBeNull();
+  expect(body.rolls[0]).toMatchObject({ appearance: 'Pass', defectReason: '外觀異常', measuredCoreDiaMm: 86, measuredOuterDiaMm: 160.5, measuredSampleThicknessMm: 0.05 });
+  expect(body.groups[0].samples[0]).toMatchObject({ appearance: 'Pass', defectReason: '外觀異常', measuredCoreDiaMm: 86, measuredOuterDiaMm: 160.5, measuredSampleThicknessMm: 0.05 });
 });
 
 it('blocks posting when a required sample is unjudged even if its items passed', async () => {
@@ -130,10 +135,20 @@ it('allows a manually passed sample to complete with matching judgment in both p
   expect(groups[0].samples[0].actualQtyAux).toBe(rolls[0].actualQtyAux);
 });
 
-it('blocks completion when an inspected item is unjudged', async () => {
+it('does not require deprecated item-level judgments when the sample is judged', async () => {
   await renderInspection('10', null);
-  expect(await screen.findByText(/黏著力.*判定/)).toBeTruthy();
-  expect(screen.queryByRole('button', { name: /確認過帳/ })).toBeNull();
+  expect(await screen.findByRole('radio', { name: /AllPass/ })).toBeTruthy();
+});
+
+it('blocks roll completion without a positive standard core diameter', async () => {
+  await renderInspection('10', true, true, true, { materialForm: 'R', standardCoreDiaMm: null });
+  expect(await screen.findByText('卷料完成品檢前必須填寫標準內管芯外徑')).toBeTruthy();
+  expect(api.complete).not.toHaveBeenCalled();
+});
+
+it('requires a defect reason when the sample is judged abnormal', async () => {
+  await renderInspection('10', true, true, false, { materialForm: 'R', sampleDefectReason: '   ' });
+  expect(await screen.findByText(/請輸入.*異常原因/)).toBeTruthy();
   expect(api.complete).not.toHaveBeenCalled();
 });
 
@@ -152,7 +167,7 @@ it('blocks completion for a blank measured value', async () => {
   expect(api.complete).not.toHaveBeenCalled();
 });
 
-it.each([true, false])('accepts explicit item judgment %s', async (judgment) => {
+it.each([true, false])('allows sample-level pass regardless of deprecated item judgment %s', async (judgment) => {
   await renderInspection('10', judgment);
   expect(await screen.findByRole('radio', { name: /AllPass/ })).toBeTruthy();
 });
@@ -228,7 +243,7 @@ it('預設解鎖後以輸入批次數量提交 Production Partial', async () => 
 
 
 it.each(['render', 'handler'] as const)('Production NG 卷料全檢與特採在完成過帳解鎖後仍維持 fail-closed：%s', async seam => {
-  const qc = await renderInspection('10', false, false, true, { inspectionType: seam === 'render' ? 'Production' : 'Incoming', materialForm: 'R' });
+  const qc = await renderInspection('10', false, false, false, { inspectionType: seam === 'render' ? 'Production' : 'Incoming', materialForm: 'R' });
   fireEvent.click(screen.getByRole('button', { name: /進行品質判定與過帳/ }));
   const escalate = await screen.findByRole('button', { name: '啟動 100% 全檢' });
   const concession = screen.getByRole('button', { name: '直接提交特採申請' });
@@ -255,7 +270,7 @@ it.each(['render', 'handler'] as const)('Production NG 卷料全檢與特採在�
 });
 
 it('採購 NG 卷料仍可啟動全檢，不受 Production 暫停影響', async () => {
-  await renderInspection('10', false, false, true, { inspectionType: 'Incoming', materialForm: 'R' });
+  await renderInspection('10', false, false, false, { inspectionType: 'Incoming', materialForm: 'R' });
   fireEvent.click(screen.getByRole('button', { name: /進行品質判定與過帳/ }));
   const escalate = await screen.findByRole('button', { name: '啟動 100% 全檢' });
   expect(escalate).toBeEnabled();
@@ -291,4 +306,28 @@ it('草稿省略未修改數量並以 null 清除，重新讀取顯示伺服器�
   expect(body).not.toHaveProperty('productionDefectQuantity');
   await waitFor(() => expect(screen.getByRole('spinbutton', { name: '良品數量' })).toHaveValue(''));
   expect(screen.getByRole('spinbutton', { name: '不良數量' })).toHaveValue('3');
+});
+
+it('未填表面外觀時草稿保留 null 且完成過帳予以阻擋', async () => {
+  await renderInspection('10', true, false, true, { appearance: null });
+  fireEvent.click(screen.getByRole('button', { name: /編輯/ }));
+  fireEvent.click(screen.getByRole('button', { name: /儲存/ }));
+  await waitFor(() => expect(api.post).toHaveBeenCalledOnce());
+  const draftBody = api.post.mock.calls[0][0].body;
+  expect(draftBody.rolls[0].appearance).toBeNull();
+  expect(draftBody.groups[0].samples[0].appearance).toBeNull();
+
+  cleanup();
+  await renderInspection('10', true, false, true, { appearance: null });
+  fireEvent.click(screen.getByRole('button', { name: /進行品質判定與過帳/ }));
+  expect(await screen.findByText(/表面外觀/)).toBeTruthy();
+  expect(screen.queryByRole('button', { name: /確認過帳/ })).toBeNull();
+  expect(api.complete).not.toHaveBeenCalled();
+});
+
+it('客供料存在異常樣品時預設整批退回且不開放特採選項', async () => {
+  await renderInspection('10', false, true, false, { sourceDocNumber: 'CR-202611-0001', inspectionType: 'Incoming' });
+  expect(await screen.findByRole('button', { name: /確認過帳/ })).toBeTruthy();
+  expect(screen.queryByText(/Concession \(申請特採\)/)).toBeNull();
+  expect(screen.getByText(/Reject \(全部退回\)/)).toBeTruthy();
 });

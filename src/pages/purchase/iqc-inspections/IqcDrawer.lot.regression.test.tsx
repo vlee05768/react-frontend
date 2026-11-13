@@ -24,7 +24,7 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 it('preserves measured sample when renaming POC lot during draft save', async () => {
   api.detail.mockResolvedValue({ data: { data: {
     lotNo: 'IQC-TEST', materialForm: 'R', revision: 7, inspectionStatus: 'Pending', inspectorId: 'EMP-1', rollCount: 1,
-    standardThickness: 0.05, standardWidth: 150, standardLength: 300, measuredCoreDiaMm: 86,
+    standardCoreDiaMm: 76.2, standardThickness: 0.05, standardWidth: 150, standardLength: 300, measuredCoreDiaMm: 86,
     groups: [{ id: 'group-1', supplierLotNo: 'POC-OLD-0002', allocatedQty: 1, sampleQty: 1, measuredCoreDiaMm: 86, samples: [{ sampleId: 'sample-1' }] }],
     rolls: [{ sampleId: 'sample-1', seq: 1, rollNo: 'IQC-TEST-R01', supplierLotNo: 'POC-OLD-0002', measuredCoreDiaMm: 86, measuredOuterDiaMm: 250, isOk: true, inspectionItems: [] }],
   } } });
@@ -50,7 +50,7 @@ it('keeps other groups intact through an intermediate matching lot and blank-to-
   const cores = [86, 86, 90];
   api.detail.mockResolvedValue({ data: { data: {
     lotNo: 'IQC-MULTI', materialForm: 'R', revision: 7, inspectionStatus: 'Pending', inspectorId: 'EMP-1', rollCount: 3,
-    standardThickness: 0.05, standardWidth: 150, standardLength: 300, measuredCoreDiaMm: 86,
+    standardCoreDiaMm: 76.2, standardThickness: 0.05, standardWidth: 150, standardLength: 300, measuredCoreDiaMm: 86,
     groups: lots.map((supplierLotNo, i) => ({ id: `g${i}`, supplierLotNo, allocatedQty: 1, sampleQty: 1, measuredCoreDiaMm: cores[i], samples: [{ sampleId: `s${i}` }] })),
     rolls: lots.map((supplierLotNo, i) => ({ sampleId: `s${i}`, seq: i + 1, rollNo: `R${i}`, supplierLotNo, measuredCoreDiaMm: cores[i], measuredOuterDiaMm: 150 + i, isOk: true, inspectionItems: [] })),
   } } });
@@ -78,7 +78,7 @@ it('keeps other groups intact through an intermediate matching lot and blank-to-
 it('preserves sheet NG and measurements when a lot is renamed through another group', async () => {
   api.detail.mockResolvedValue({ data: { data: {
     lotNo: 'IQC-SHEET', materialForm: 'S', revision: 7, inspectionStatus: 'Pending', inspectorId: 'EMP-1', rollCount: 2,
-    standardThickness: 0.05, standardWidth: 150, standardLength: 300,
+    standardCoreDiaMm: 76.2, standardThickness: 0.05, standardWidth: 150, standardLength: 300,
     groups: ['A', 'B'].map((supplierLotNo, i) => ({ id: `s${i}`, supplierLotNo, allocatedQty: 1, sampleQty: 1, samples: [{ sampleId: `sample-${i}` }] })),
     rolls: ['A', 'B'].map((supplierLotNo, i) => ({ sampleId: `sample-${i}`, seq: i + 1, rollNo: `S${i}`, supplierLotNo, isOk: i !== 0, measuredSampleThicknessMm: 0.05, inspectionItems: [{ itemCode: 'appearance', itemName: '外觀', measuredValue: i ? 'Pass' : 'NG', isOk: i !== 0 }] })),
   } } });
@@ -95,16 +95,16 @@ it('preserves sheet NG and measurements when a lot is renamed through another gr
   await waitFor(() => expect(api.post).toHaveBeenCalled());
   const body = api.post.mock.calls[0][0].body;
   expect(body.groups[0].samples[0]).toMatchObject({ supplierLotNo: 'C', isOk: false });
-  expect(body.groups[0].samples[0].inspectionItems).toContainEqual(expect.objectContaining({ itemCode: 'appearance', measuredValue: 'NG', isOk: false }));
+  expect(body.groups[0].samples[0].inspectionItems).toContainEqual(expect.objectContaining({ itemCode: 'appearance', measuredValue: 'NG', isOk: null }));
   expect(body.groups[1].samples[0]).toMatchObject({ supplierLotNo: 'B', isOk: true });
-  expect(body.groups[1].samples[0].inspectionItems).toContainEqual(expect.objectContaining({ itemCode: 'appearance', measuredValue: 'Pass', isOk: true }));
+  expect(body.groups[1].samples[0].inspectionItems).toContainEqual(expect.objectContaining({ itemCode: 'appearance', measuredValue: 'Pass', isOk: null }));
 });
 
 
 it('keeps explicitly linked sheet samples and NG with same-lot groups in reversed sample order', async () => {
   api.detail.mockResolvedValue({ data: { data: {
     lotNo: 'SHEET-ID', materialForm: 'S', revision: 7, inspectionStatus: 'Pending', inspectorId: 'EMP-1', rollCount: 2,
-    standardThickness: 0.05, standardWidth: 150, standardLength: 300,
+    standardCoreDiaMm: 76.2, standardThickness: 0.05, standardWidth: 150, standardLength: 300,
     groups: ['a', 'b'].map(id => ({ id, supplierLotNo: 'LOT', allocatedQty: 1, sampleQty: 1, samples: [{ sampleId: id }] })),
     rolls: ['b', 'a'].map((id, i) => ({ sampleId: id, seq: i + 1, rollNo: `S-${id}`, supplierLotNo: 'LOT', isOk: id !== 'a', inspectionItems: [{ itemCode: 'appearance', itemName: '外觀', measuredValue: id === 'a' ? 'NG' : 'Pass', isOk: id !== 'a' }] })),
   } } });
@@ -120,14 +120,14 @@ it('keeps explicitly linked sheet samples and NG with same-lot groups in reverse
   await waitFor(() => expect(api.post).toHaveBeenCalled());
   const body = api.post.mock.calls[0][0].body;
   expect(body.groups.map((g: any) => g.samples.map((s: any) => [s.sampleId, s.rollNo, s.isOk]))).toEqual([[['a', 'S-a', false]], [['b', 'S-b', true]]]);
-  expect(body.groups[0].samples[0].inspectionItems).toContainEqual(expect.objectContaining({ measuredValue: 'NG', isOk: false }));
+  expect(body.groups[0].samples[0].inspectionItems).toContainEqual(expect.objectContaining({ measuredValue: 'NG', isOk: null }));
 });
 
 
 it.each([false, true])('撤回既有組新增的空白樣品（批號變更：%s）', async (rename) => {
   api.detail.mockResolvedValue({ data: { data: {
     lotNo: 'RETRACT', materialForm: 'R', revision: 1, inspectionStatus: 'Pending', inspectorId: 'EMP-1', rollCount: 2,
-    standardThickness: 0.05, standardWidth: 150, standardLength: 300,
+    standardCoreDiaMm: 76.2, standardThickness: 0.05, standardWidth: 150, standardLength: 300,
     groups: [{ id: 'g', supplierLotNo: 'OLD', allocatedQty: 2, sampleQty: 1, measuredCoreDiaMm: 86, samples: [{ sampleId: 'persisted' }] }],
     rolls: [{ sampleId: 'persisted', seq: 1, rollNo: 'R1', supplierLotNo: 'OLD', measuredOuterDiaMm: 150, isOk: true, inspectionItems: [] }],
   } } });
@@ -149,10 +149,10 @@ it.each([false, true])('撤回既有組新增的空白樣品（批號變更：%s
 });
 
 
-it('批號更新不會將已量測的新樣品重設為可撤回', async () => {
+it('批號更新後仍允許依草稿抽樣數移除已量測尾端新樣品', async () => {
   api.detail.mockResolvedValue({ data: { data: {
     lotNo: 'KEEP', materialForm: 'R', revision: 1, inspectionStatus: 'Pending', inspectorId: 'EMP-1', rollCount: 2,
-    standardThickness: 0.05, standardWidth: 150, standardLength: 300,
+    standardCoreDiaMm: 76.2, standardThickness: 0.05, standardWidth: 150, standardLength: 300,
     groups: [{ id: 'g', supplierLotNo: 'OLD', allocatedQty: 2, sampleQty: 1, measuredCoreDiaMm: 86, samples: [{ sampleId: 'persisted' }] }],
     rolls: [{ sampleId: 'persisted', seq: 1, rollNo: 'R1', supplierLotNo: 'OLD', measuredOuterDiaMm: 150, isOk: true, inspectionItems: [] }],
   } } });
@@ -166,8 +166,8 @@ it('批號更新不會將已量測的新樣品重設為可撤回', async () => {
   const lot = screen.getByPlaceholderText('請輸入或掃描原廠生產批號');
   fireEvent.focus(lot); fireEvent.change(lot, { target: { value: 'NEW' } }); fireEvent.blur(lot);
   fireEvent.change(screen.getByLabelText('抽樣數 NEW'), { target: { value: '1' } });
-  expect(document.getElementById('iqc_input_KEEP-R02_core_dia')).toBeTruthy();
+  expect(document.getElementById('iqc_input_KEEP-R02_core_dia')).toBeNull();
   fireEvent.click(screen.getByRole('button', { name: /儲存/ }));
   await waitFor(() => expect(api.post).toHaveBeenCalled());
-  expect(api.post.mock.calls[0][0].body.rolls).toContainEqual(expect.objectContaining({ rollNo: 'KEEP-R02', supplierLotNo: 'NEW', measuredCoreDiaMm: 88 }));
+  expect(api.post.mock.calls[0][0].body.rolls).not.toContainEqual(expect.objectContaining({ rollNo: 'KEEP-R02' }));
 });

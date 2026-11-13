@@ -38,9 +38,9 @@ async function openSheet({ sameLotGroups = false, multipleSamples = false, unlin
   const detail = {
     lotNo: 'IQC-SHEET-QTY', inspectionType: 'Production', productionTotalQuantity: 10, productionGoodQuantity: 10, productionDefectQuantity: 0, productionQuantityUnit: 'PCS', sourceDocNumber: 'CR-TEST',
     materialForm: 'S', revision: 7, inspectionStatus: 'Pending', inspectorId: 'EMP-1', incomingStorageCode: 'ST-1', rollCount: 10,
-    standardThickness: 0.05, standardWidth: 150, standardLength: 300,
+    standardCoreDiaMm: 76.2, standardThickness: 0.05, standardWidth: 150, standardLength: 300,
     groups: [{ id: 'group-a', supplierLotNo: initialLot, allocatedQty: 10, sampleQty: 1, samples: [{ sampleId: 'sample-a' }] }],
-    rolls: [{ sampleId: 'sample-a', seq: 1, rollNo: 'SOURCE-A', supplierLotNo: initialLot, actualQtyAux: 10, measuredSampleThicknessMm: 0.05, isOk: true, inspectionItems: [
+    rolls: [{ sampleId: 'sample-a', seq: 1, rollNo: 'SOURCE-A', supplierLotNo: initialLot, actualQtyAux: 10, appearance: 'Pass', measuredSampleThicknessMm: 0.05, isOk: true, inspectionItems: [
       { itemCode: 'thickness', itemName: '厚度', measuredValue: '0.05', isOk: true },
       { itemCode: 'width', itemName: '寬度', measuredValue: '150', isOk: true },
       { itemCode: 'length', itemName: '長度', measuredValue: '300', isOk: true },
