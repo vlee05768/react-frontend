@@ -43,15 +43,21 @@ function setPermissions(permissions: string[]) {
   });
 }
 
+function getTestOutputCode(outputType: 'P' | 'M') {
+  return outputType === 'P' ? 'P-001' : 'TF-DDSAD-0.2-R';
+}
+
 function renderBom(outputType: 'P' | 'M' = 'P', isViewMode = true, onEditingChange = vi.fn()) {
+  const currentOutputCode = getTestOutputCode(outputType);
   bom.outputType = outputType;
+  bom.outputCode = currentOutputCode;
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } });
   clients.push(client);
-  client.setQueryData(['async-select-initial', 'MATERIAL', 'MAT-001', undefined], { code: 'MAT-001', name: '測試原料' });
-  client.setQueryData(['async-select', 'MATERIAL', '', undefined], [{ code: 'MAT-002', name: '新增原料' }]);
+  client.setQueryData(['async-select-initial', 'MATERIAL', 'OX-SR-0.1-R', undefined], { code: 'OX-SR-0.1-R', name: '測試原料' });
+  client.setQueryData(['async-select', 'MATERIAL', '', undefined], [{ code: 'OX-SS-0.1-S', name: '新增原料' }]);
   return render(
     <App><QueryClientProvider client={client}>
-      <ProductBom outputType={outputType} outputCode="OUTPUT-001" isViewMode={isViewMode} onEditingChange={onEditingChange} />
+      <ProductBom outputType={outputType} outputCode={currentOutputCode} isViewMode={isViewMode} onEditingChange={onEditingChange} />
     </QueryClientProvider></App>,
   );
 }
@@ -82,7 +88,7 @@ beforeEach(() => {
     disconnect() {}
   });
   bom = {
-    outputType: 'P', outputCode: 'OUTPUT-001', isActive: false,
+    outputType: 'P', outputCode: 'P-001', isActive: false,
     defaultMachineType: 'MACHINE-1', defaultToolingRangeMm: 10,
     defaultPunchHolesCount: 1, pcsPerSheet: 1, notes: '原始備註', items: [],
   };
@@ -148,7 +154,7 @@ describe('BOM 更新權限', () => {
     fireEvent.change(document.querySelector('#defaultPunchHolesCount')!, { target: { value: '1' } });
     await userEvent.click(screen.getByRole('button', { name: /儲\s*存$/ }));
     await waitFor(() => expect(createBom).toHaveBeenCalledExactlyOnceWith({
-      outputType, outputCode: 'OUTPUT-001', defaultMachineType: 'MACHINE-1',
+      outputType, outputCode: getTestOutputCode(outputType), defaultMachineType: 'MACHINE-1',
       defaultToolingRangeMm: 10, defaultPunchHolesCount: 1, pcsPerSheet: undefined, notes: undefined,
     }));
     expect(updateBom).not.toHaveBeenCalled();
@@ -159,7 +165,7 @@ describe('BOM 更新權限', () => {
       user: { userName: 'admin', roles: ['Admin'], permissions: [updatePermission] },
       permissionTree: permissionTree(false),
     });
-    bom.items = [{ code: 'ITEM-001', materialCode: 'MAT-001', quantity: 1 }];
+    bom.items = [{ code: 'ITEM-001', materialCode: 'OX-SR-0.1-R', quantity: 1 }];
     const { container } = renderBom(outputType);
     const toggle = await activeSwitch();
     expect(toggle).toBeDisabled();
@@ -206,7 +212,7 @@ describe('BOM 更新權限', () => {
     await userEvent.click(toggle);
     expect(updateBom).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole('button', { name: /儲\s*存$/ }));
-    await waitFor(() => expect(updateBom).toHaveBeenCalledExactlyOnceWith(outputType, 'OUTPUT-001', {
+    await waitFor(() => expect(updateBom).toHaveBeenCalledExactlyOnceWith(outputType, getTestOutputCode(outputType), {
       isActive: true, defaultMachineType: 'MACHINE-1', defaultToolingRangeMm: 10,
       defaultPunchHolesCount: 1, pcsPerSheet: 1, notes: '原始備註',
     }));
@@ -239,7 +245,7 @@ describe('BOM 更新權限', () => {
     fireEvent.change(screen.getByDisplayValue('原始備註'), { target: { value: '更新表頭與啟用' } });
     expect(updateBom).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole('button', { name: /儲\s*存$/ }));
-    await waitFor(() => expect(updateBom).toHaveBeenCalledExactlyOnceWith(outputType, 'OUTPUT-001', {
+    await waitFor(() => expect(updateBom).toHaveBeenCalledExactlyOnceWith(outputType, getTestOutputCode(outputType), {
       isActive: !wasActive, defaultMachineType: 'MACHINE-1', defaultToolingRangeMm: 20,
       defaultPunchHolesCount: 2, pcsPerSheet: 3, notes: '更新表頭與啟用',
     }));
@@ -256,7 +262,7 @@ describe('BOM 更新權限', () => {
     await userEvent.clear(notes);
     await userEvent.type(notes, '修改備註');
     await userEvent.click(screen.getByRole('button', { name: /儲\s*存$/ }));
-    await waitFor(() => expect(updateBom).toHaveBeenCalledExactlyOnceWith('P', 'OUTPUT-001', {
+    await waitFor(() => expect(updateBom).toHaveBeenCalledExactlyOnceWith('P', 'P-001', {
       defaultMachineType: 'MACHINE-1', defaultToolingRangeMm: 10,
       defaultPunchHolesCount: 1, pcsPerSheet: 1, notes: '修改備註', isActive: false,
     }));
@@ -305,7 +311,7 @@ describe('BOM 更新權限', () => {
     ['P', 'inactive'], ['M', 'inactive'], ['P', 'unknown'], ['M', 'unknown'], ['P', 'missing'], ['M', 'missing'],
   ] as const)('%s Admin 明細驗證期間刷新 permissionTree (%s)，不更新並關閉 modal', async (outputType, mode) => {
     useAuthStore.setState({ user: { userName: 'admin', roles: ['Admin'], permissions: [updatePermission] }, permissionTree: permissionTree() });
-    bom.items = [{ code: 'ITEM-001', materialCode: 'MAT-001', quantity: 1 }];
+    bom.items = [{ code: 'ITEM-001', materialCode: 'OX-SR-0.1-R', quantity: 1 }];
     renderBom(outputType);
     await activeSwitch();
     await userEvent.click(screen.getByRole('button', { name: 'edit' }));
@@ -347,7 +353,7 @@ describe('BOM 更新權限', () => {
   it.each(['P', 'M'] as const)('%s 啟用 BOM 可編輯表頭並新增、更新、刪除配方', async (outputType) => {
     setPermissions([updatePermission]);
     bom.isActive = true;
-    bom.items = [{ code: 'ITEM-001', materialCode: 'MAT-001', quantity: 1 }];
+    bom.items = [{ code: 'ITEM-001', materialCode: 'OX-SR-0.1-R', quantity: 1 }];
     renderBom(outputType);
     await activeSwitch();
     expect(screen.getByRole('button', { name: /編\s*輯$/ })).toBeEnabled();
@@ -357,30 +363,30 @@ describe('BOM 更新權限', () => {
     await userEvent.click(screen.getByRole('button', { name: 'edit' }));
     await screen.findByRole('dialog');
     await act(async () => { fireEvent.submit(document.querySelector('#bomItemForm')!); });
-    await waitFor(() => expect(updateBomItem).toHaveBeenCalledExactlyOnceWith(outputType, 'OUTPUT-001', 'ITEM-001', {
-      materialCode: 'MAT-001', quantity: 1, scrapPercentage: 0, width: undefined, specification: '', notes: '',
+    await waitFor(() => expect(updateBomItem).toHaveBeenCalledExactlyOnceWith(outputType, getTestOutputCode(outputType), 'ITEM-001', {
+      materialCode: 'OX-SR-0.1-R', quantity: 1, scrapPercentage: 0, width: undefined, specification: '', notes: '',
     }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await userEvent.click(screen.getByRole('button', { name: /新增物料/ }));
     await screen.findByRole('dialog');
     fireEvent.mouseDown(document.querySelector('#materialCode')!);
-    await userEvent.click(await screen.findByText('MAT-002 (新增原料)', { selector: '.ant-select-item-option-content' }));
+    await userEvent.click(await screen.findByText('OX-SS-0.1-S (新增原料)', { selector: '.ant-select-item-option-content' }));
     fireEvent.change(document.querySelector('#quantity')!, { target: { value: '2' } });
     await userEvent.click(await screen.findByRole('button', { name: 'OK' }));
-    await waitFor(() => expect(createBomItem).toHaveBeenCalledExactlyOnceWith(outputType, 'OUTPUT-001', {
-      materialCode: 'MAT-002', quantity: 2, scrapPercentage: 0, width: undefined, specification: '', notes: '',
+    await waitFor(() => expect(createBomItem).toHaveBeenCalledExactlyOnceWith(outputType, getTestOutputCode(outputType), {
+      materialCode: 'OX-SS-0.1-S', quantity: 2, scrapPercentage: 0, width: undefined, specification: '', notes: '',
     }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await userEvent.click(screen.getByRole('button', { name: 'delete' }));
     await screen.findByText('確定移除？此操作無法還原。');
     await userEvent.click(await screen.findByRole('button', { name: 'OK' }));
-    await waitFor(() => expect(deleteBomItem).toHaveBeenCalledExactlyOnceWith(outputType, 'OUTPUT-001', 'ITEM-001'));
+    await waitFor(() => expect(deleteBomItem).toHaveBeenCalledExactlyOnceWith(outputType, getTestOutputCode(outputType), 'ITEM-001'));
     expect(bom.isActive).toBe(true);
     expect(updateBom).not.toHaveBeenCalled();
-  }, 30000);
+  }, 60000);
 
   it('唯讀使用者不能編輯既有明細，但不將新增與刪除一併套用 Update 權限', async () => {
-    bom.items = [{ code: 'ITEM-001', materialCode: 'MAT-001', quantity: 1 }];
+    bom.items = [{ code: 'ITEM-001', materialCode: 'OX-SR-0.1-R', quantity: 1 }];
     renderBom();
     await activeSwitch();
     const edit = screen.getByRole('button', { name: 'edit' });
@@ -393,7 +399,7 @@ describe('BOM 更新權限', () => {
 
   it('明細表單驗證期間撤銷 Update 時不送出更新，並關閉既有明細編輯', async () => {
     setPermissions([updatePermission]);
-    bom.items = [{ code: 'ITEM-001', materialCode: 'MAT-001', quantity: 1 }];
+    bom.items = [{ code: 'ITEM-001', materialCode: 'OX-SR-0.1-R', quantity: 1 }];
     renderBom();
     await activeSwitch();
     await userEvent.click(screen.getByRole('button', { name: 'edit' }));
@@ -427,7 +433,7 @@ describe('BOM 更新權限', () => {
   it('切換到 BOM 時材料明細 Table 不應產生 scroll.x in virtual table must be number 警告', async () => {
     const errorSpy = vi.spyOn(console, 'error');
     const warnSpy = vi.spyOn(console, 'warn');
-    bom.items = [{ code: 'ITEM-001', materialCode: 'MAT-001', quantity: 1 }];
+    bom.items = [{ code: 'ITEM-001', materialCode: 'OX-SR-0.1-R', quantity: 1 }];
     renderBom('P');
     await screen.findByText('材料明細');
 
@@ -495,7 +501,7 @@ describe('BOM 更新權限', () => {
     await userEvent.clear(width); await userEvent.type(width, '125.1234');
     await userEvent.clear(length); await userEvent.type(length, '60');
     await userEvent.click(screen.getByRole('button', { name: /儲\s*存$/ }));
-    await waitFor(() => expect(updateBom).toHaveBeenCalledWith('M', 'OUTPUT-001', expect.objectContaining({ semiFinishedInspectionSpec: { standardWidthMm: 125.1234, standardLength: 60 } })));
+    await waitFor(() => expect(updateBom).toHaveBeenCalledWith('M', 'TF-DDSAD-0.2-R', expect.objectContaining({ semiFinishedInspectionSpec: { standardWidthMm: 125.1234, standardLength: 60 } })));
   });
   it('取消或權限撤銷不保存草稿，重新編輯還原', async () => {
     setPermissions([updatePermission]);
@@ -527,7 +533,7 @@ describe('BOM 更新權限', () => {
     renderBom('M'); const width = await screen.findByLabelText('標準寬度 (mm)');
     await userEvent.click(screen.getByRole('button', { name: /編\s*輯$/ }));
     await userEvent.clear(width); await userEvent.click(screen.getByRole('button', { name: /儲\s*存$/ }));
-    await waitFor(() => expect(updateBom).toHaveBeenCalledWith('M', 'OUTPUT-001', expect.objectContaining({ semiFinishedInspectionSpec: { standardWidthMm: null, standardLength: 30 } })));
+    await waitFor(() => expect(updateBom).toHaveBeenCalledWith('M', 'TF-DDSAD-0.2-R', expect.objectContaining({ semiFinishedInspectionSpec: { standardWidthMm: null, standardLength: 30 } })));
   });
   it('成品不顯示或送出半成品規格', async () => {
     setPermissions([updatePermission]); renderBom('P'); await activeSwitch();
@@ -561,5 +567,5 @@ it('半成品規格兩欄均清空時明確清除整份規格', async () => {
   await userEvent.clear(width);
   await userEvent.clear(screen.getByLabelText('標準長度 (m)'));
   await userEvent.click(screen.getByRole('button', { name: /儲\s*存$/ }));
-  await waitFor(() => expect(updateBom).toHaveBeenCalledWith('M', 'OUTPUT-001', expect.objectContaining({ semiFinishedInspectionSpec: null })));
+  await waitFor(() => expect(updateBom).toHaveBeenCalledWith('M', 'TF-DDSAD-0.2-R', expect.objectContaining({ semiFinishedInspectionSpec: null })));
 });

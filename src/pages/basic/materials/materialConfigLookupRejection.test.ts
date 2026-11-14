@@ -48,7 +48,7 @@ describe("best-effort lookup rejection boundaries", () => {
     const goodsCodeField = getItemFormConfig().find((field: any) => field.name === "goodsCode");
 
     const result = await goodsCodeField.onChange(
-      "MAT-001",
+      "OX-SR-0.1-R",
       { values: { purchaseOrderType: "Material" } },
       setValue,
     );

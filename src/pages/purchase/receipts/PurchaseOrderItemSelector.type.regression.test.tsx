@@ -23,7 +23,7 @@ async function select(order: object) {
   fireEvent.click(screen.getByRole('button', { name: /加入進貨明細/ }));
   return confirm;
 }
-const item = { lineNumber: '1', goodsCode: 'M1', goodsName: '測試品', quantity: 3, width: 500, length: 100, unit: 'pcs' };
+const item = { lineNumber: '1', goodsCode: 'OX-SR-0.1-R', goodsName: '測試品', quantity: 3, width: 500, length: 100, unit: 'pcs' };
 
 describe('採購類型來源', () => {
   it.each([undefined, null, 'Other'])('類型 %s 無法確定時阻止加入，即使有卷料型態', async type => {

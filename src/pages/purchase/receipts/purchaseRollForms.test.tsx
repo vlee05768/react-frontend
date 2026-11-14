@@ -28,8 +28,8 @@ describe('按卷採購表單與實際挑選器', () => {
   it.each([
     ['PO 卷料', orderFields, { purchaseOrderType: 'Material', materialForm: 'R' }, '每卷長度(m)'],
     ['PO 片料', orderFields, { purchaseOrderType: 'Material', materialForm: 'S' }, '片料長度(mm)'],
-    ['PO 明確卷料與片料舊資料衝突', orderFields, { purchaseOrderType: 'Material', materialForm: 'R', goodsCode: 'S-LEGACY', unit: 'pcs' }, '每卷長度(m)'],
-    ['PO 明確片料與卷料舊資料衝突', orderFields, { purchaseOrderType: 'Material', materialForm: 'S', goodsCode: 'R-LEGACY', unit: 'm2' }, '片料長度(mm)'],
+    ['PO 明確卷料與片料舊資料衝突', orderFields, { purchaseOrderType: 'Material', materialForm: 'R', goodsCode: 'OX-SS-0.1-S', unit: 'pcs' }, '每卷長度(m)'],
+    ['PO 明確片料與卷料舊資料衝突', orderFields, { purchaseOrderType: 'Material', materialForm: 'S', goodsCode: 'OX-SR-0.1-R', unit: 'm2' }, '片料長度(mm)'],
     ['進貨卷料', receiptFields, { isRoll: true }, '每卷長度(m)'],
     ['進貨片料', receiptFields, { isRoll: false }, '片料長度(mm)'],
   ] as const)('%s 的 DOM 標籤、placeholder 與驗證訊息使用相同語義', (_name, fields, values, label) => {
@@ -65,7 +65,7 @@ describe('按卷採購表單與實際挑選器', () => {
   });
   it('明確片料型態優先於舊料號或單位，長度不誤標為卷料公尺', () => {
     const columns = orderColumns(true, () => {}, () => {});
-    const record = { materialForm: 'S', goodsCode: 'R-LEGACY', unit: 'm2', purchaseOrderType: 'Material', width: 500, length: 600, unitPrice: 100 };
+    const record = { materialForm: 'S', goodsCode: 'OX-SR-0.1-R', unit: 'm2', purchaseOrderType: 'Material', width: 500, length: 600, unitPrice: 100 };
     const column = (name: string): any => columns.find(col => ('dataIndex' in col && col.dataIndex === name) || col.key === name);
     wrap(<>{column('length').render(600, record)}{column('unitPricePerSqm').render(null, record)}{column('quantity').render(3, record)}{column('receivedQuantity').render(2, record)}<span>{column('unit').render('m2', record)}</span></>);
     expect(screen.getByText('600 mm')).toBeInTheDocument();
@@ -83,6 +83,7 @@ describe('按卷採購表單與實際挑選器', () => {
     expect(rollFields.find(field => field.name === 'totalActualQty').label).toBe('到貨總長度');
     expect(getIqcFormFields({ ...context, isRollMaterial: false }).find(field => field.name === 'standardLength').label).toBe('標準長度 (mm)');
   });
+  // 此處保留無尾碼之舊料號代碼 R-UNKNOWN（帶有舊式 R- 前綴），用以嚴格驗證系統不會依舊前綴或單位 m2 誤推斷為卷料，確保型態未知防呆機制生效。
   it('未知原料型態不按料號或單位換算，主檔無法取得時禁止加入', async () => {
     getOrders.mockResolvedValue({ data: { data: { data: [{ code: 'PO-UNKNOWN', items: [{ lineNumber: '1', goodsCode: 'R-UNKNOWN', goodsName: '未知料', materialForm: null, purchaseOrderType: 'Material', unit: 'm2', quantity: 3, width: 500, length: 100 }] }] } } });
     const confirm = vi.fn();
@@ -95,6 +96,7 @@ describe('按卷採購表單與實際挑選器', () => {
     await screen.findByText(/無法確認原料型態/);
     expect(confirm).not.toHaveBeenCalled();
   });
+  // 此處保留無尾碼之舊料號代碼 R-LOOKUP，用以驗證採購明細缺少 materialForm 時，系統不會依料號字串臆斷，而是確實呼叫原料主檔 API 補查型態。
   it.each(['R', 'S'])('未知型態以主檔 %s 補查後才加入', async (form) => {
     getMaterial.mockResolvedValue({ data: { data: { materialForm: form } } });
     getOrders.mockResolvedValue({ data: { data: { data: [{ code: 'PO-LOOKUP', items: [{ lineNumber: '1', goodsCode: 'R-LOOKUP', goodsName: '補查料', purchaseOrderType: 'Material', unit: 'm2', quantity: 3, width: 500, length: 100 }] }] } } });
@@ -116,6 +118,7 @@ describe('按卷採購表單與實際挑選器', () => {
     await waitFor(() => expect(confirm).toHaveBeenCalledWith([expect.objectContaining({ isRoll: false, quantity: 3 })]));
     expect(getMaterial).not.toHaveBeenCalled();
   });
+  // 此處保留無尾碼舊料號代碼 R-UNKNOWN，驗證表格渲染時不會依舊式 R- 前綴或單位 m2 推斷型態。
   it('採購顯示未知型態不以料號或單位推斷', () => {
     const columns = orderColumns(true, () => {}, () => {});
     const record = { materialForm: null, goodsCode: 'R-UNKNOWN', unit: 'm2', purchaseOrderType: 'Material', width: 500, length: 100, unitPrice: 100 };
@@ -126,18 +129,18 @@ describe('按卷採購表單與實際挑選器', () => {
   });
   it('實際 PO selector 同時呈現卷料 m 與片料 mm，不混稱總長或每卷片料', async () => {
     getOrders.mockResolvedValue({ data: { data: { data: [{ code: 'PO-MIX', items: [
-      { lineNumber: '1', goodsCode: 'S-LEGACY', goodsName: '卷料', materialForm: 'R', purchaseOrderType: 'Material', unit: 'pcs', quantity: 3, receivedQuantity: 0, unitPrice: 1000, width: 500, length: 100 },
-      { lineNumber: '2', goodsCode: 'R-LEGACY', goodsName: '片料', materialForm: 'S', purchaseOrderType: 'Material', unit: 'm2', quantity: 3, receivedQuantity: 0, unitPrice: 20, width: 500, length: 600 },
+      { lineNumber: '1', goodsCode: 'OX-SS-0.1-S', goodsName: '卷料', materialForm: 'R', purchaseOrderType: 'Material', unit: 'pcs', quantity: 3, receivedQuantity: 0, unitPrice: 1000, width: 500, length: 100 },
+      { lineNumber: '2', goodsCode: 'OX-SR-0.1-R', goodsName: '片料', materialForm: 'S', purchaseOrderType: 'Material', unit: 'm2', quantity: 3, receivedQuantity: 0, unitPrice: 20, width: 500, length: 600 },
     ] }] } } });
     wrap(<PurchaseOrderItemSelector open onClose={() => {}} onConfirm={() => {}} businessPartnerCode="S1" excludedKeys={[]} />);
-    await screen.findByText('R-LEGACY');
+    await screen.findByText('OX-SR-0.1-R');
     expect(screen.getByRole('columnheader', { name: '每卷／片長' })).toBeInTheDocument();
     expect(screen.getByText('100 m')).toBeInTheDocument();
     expect(screen.getByText('600 mm')).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: '到貨總長 (M)' })).toBeInTheDocument();
   });
   it('同料不同幅寬分列；到貨卷數不同於 PO，仍以卷計款、以實際到貨規格計面積', async () => {
-    getOrders.mockResolvedValue({ data: { data: { data: [{ code: 'PO-1', items: [500, 800].map((width, i) => ({ lineNumber: String(i + 1), goodsCode: 'MAT-R', goodsName: '膠帶', materialForm: 'R', purchaseOrderType: 'Material', unit: 'SQM', quantity: 10, receivedQuantity: 2, unitPrice: 1000, width, length: 100 })) }] } } });
+    getOrders.mockResolvedValue({ data: { data: { data: [{ code: 'PO-1', items: [500, 800].map((width, i) => ({ lineNumber: String(i + 1), goodsCode: 'OX-SR-0.1-R', goodsName: '膠帶', materialForm: 'R', purchaseOrderType: 'Material', unit: 'SQM', quantity: 10, receivedQuantity: 2, unitPrice: 1000, width, length: 100 })) }] } } });
     const confirm = vi.fn();
     wrap(<PurchaseOrderItemSelector open onClose={() => {}} onConfirm={confirm} businessPartnerCode="S1" excludedKeys={[]} />);
     await screen.findAllByText('膠帶');
@@ -155,7 +158,7 @@ describe('按卷採購表單與實際挑選器', () => {
     ]);
   });
   it('超收按剩餘卷數封頂，保留每卷報價，不顯示重算單價', async () => {
-    getOrders.mockResolvedValue({ data: { data: { data: [{ code: 'PO-CAP', items: [{ lineNumber: '1', goodsCode: 'MAT-R', goodsName: '封頂料', materialForm: 'R', purchaseOrderType: 'Material', unit: '卷', quantity: 20, receivedQuantity: 10, unitPrice: 1000, width: 600, length: 100 }] }] } } });
+    getOrders.mockResolvedValue({ data: { data: { data: [{ code: 'PO-CAP', items: [{ lineNumber: '1', goodsCode: 'OX-SR-0.1-R', goodsName: '封頂料', materialForm: 'R', purchaseOrderType: 'Material', unit: '卷', quantity: 20, receivedQuantity: 10, unitPrice: 1000, width: 600, length: 100 }] }] } } });
     const confirm = vi.fn();
     wrap(<PurchaseOrderItemSelector open onClose={() => {}} onConfirm={confirm} businessPartnerCode="S1" excludedKeys={[]} />);
     await screen.findByText('封頂料');
@@ -168,7 +171,7 @@ describe('按卷採購表單與實際挑選器', () => {
   });
   it('實際進貨編輯儲存只 PUT 契約欄位，送出新面積而非舊 SQM', async () => {
     updateReceipt.mockResolvedValue({ data: { success: true } });
-    wrap(<PurchaseReceiptItemsTab purchaseReceiptData={{ documentNumber: 'PR-1', targetPlantCode: 'TW', status: 'UNCONFIRMED', items: [{ lineNumber: '1', materialCode: 'MAT-R', materialName: '膠帶', unit: '卷', isRoll: true, rollCount: 3, width: 500, length: 100, quantity: 150, totalLength: 999, amount: 3000, unitPrice: 1000, targetStorageCode: 'TW-QC-GEN', extraData: { width: 900, length: 999, rollCount: 9, isRoll: false, supplierLot: 'LOT-OLD' } }] }} isMasterViewMode onEditingChange={() => {}} />);
+    wrap(<PurchaseReceiptItemsTab purchaseReceiptData={{ documentNumber: 'PR-1', targetPlantCode: 'TW', status: 'UNCONFIRMED', items: [{ lineNumber: '1', materialCode: 'OX-SR-0.1-R', materialName: '膠帶', unit: '卷', isRoll: true, rollCount: 3, width: 500, length: 100, quantity: 150, totalLength: 999, amount: 3000, unitPrice: 1000, targetStorageCode: 'TW-QC-GEN', extraData: { width: 900, length: 999, rollCount: 9, isRoll: false, supplierLot: 'LOT-OLD' } }] }} isMasterViewMode onEditingChange={() => {}} />);
     fireEvent.click(screen.getByRole('img', { name: 'edit' }).closest('button')!);
     fireEvent.change(input('width'), { target: { value: '800' } });
     fireEvent.blur(input('width'));
@@ -212,16 +215,16 @@ describe('按卷採購表單與實際挑選器', () => {
     // 隔離主檔查詢網路；仍經 DynamicForm 的 context/setValue 與原始 onChange seam。
     const seamFields = fields.map(field => field.name === 'goodsCode' ? {
       ...field, componentType: 'Custom',
-      customRender: (_props: unknown, context: unknown, setValue: unknown) => <button type="button" onClick={() => goodsField.onChange('MAT-R', context, setValue, undefined, { originalData: { code: 'MAT-R', name: '膠帶', materialForm: 'R', width: 1000, length: 200 } })}>確認同料</button>,
+      customRender: (_props: unknown, context: unknown, setValue: unknown) => <button type="button" onClick={() => goodsField.onChange('OX-SR-0.1-R', context, setValue, undefined, { originalData: { code: 'OX-SR-0.1-R', name: '膠帶', materialForm: 'R', width: 1000, length: 200 } })}>確認同料</button>,
     } : field);
-    wrap(<DynamicForm fields={seamFields} defaultValues={{ purchaseOrderType: 'Material', materialForm: 'R', goodsCode: 'MAT-R', width: 800, length: 100, quantity: 3, unitPrice: 1000, subTotal: 3000 }} onSubmit={() => {}} />);
+    wrap(<DynamicForm fields={seamFields} defaultValues={{ purchaseOrderType: 'Material', materialForm: 'R', goodsCode: 'OX-SR-0.1-R', width: 800, length: 100, quantity: 3, unitPrice: 1000, subTotal: 3000 }} onSubmit={() => {}} />);
     fireEvent.click(screen.getByRole('button', { name: '確認同料' }));
     await waitFor(() => expect(input('width')).toHaveValue('800'));
     expect(input('length')).toHaveValue('100');
     expect(input('subTotal')).toHaveValue('3,000');
   });
   it('PO 幅寬為可編輯採購規格；改幅寬不改卷數、每卷價與貨款', async () => {
-    wrap(<DynamicForm fields={orderFields()} defaultValues={{ purchaseOrderType: 'Material', materialForm: 'R', goodsCode: 'MAT-R', width: 500, length: 100, quantity: 3, unitPrice: 1000, subTotal: 3000 }} onSubmit={() => {}} />);
+    wrap(<DynamicForm fields={orderFields()} defaultValues={{ purchaseOrderType: 'Material', materialForm: 'R', goodsCode: 'OX-SR-0.1-R', width: 500, length: 100, quantity: 3, unitPrice: 1000, subTotal: 3000 }} onSubmit={() => {}} />);
     expect(screen.getByText('採購幅寬 (mm)')).toBeInTheDocument();
     expect(input('width')).not.toBeDisabled();
     fireEvent.change(input('width'), { target: { value: '800' } });

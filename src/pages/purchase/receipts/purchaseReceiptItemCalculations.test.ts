@@ -32,9 +32,9 @@ describe("進貨明細規格與庫存換算", () => {
 
   it("更新僅送契約欄位，不送總長及其他唯讀回應欄位", () => {
     expect(buildPurchaseReceiptItemUpdatePayload({
-      materialCode: "MAT-1", rollCount: 2, width: 600, length: 100,
+      materialCode: "OX-SR-0.1-R", rollCount: 2, width: 600, length: 100,
       totalLength: 200, amount: 1234, serialNumber: "1",
-    })).toEqual({ materialCode: "MAT-1", rollCount: 2, width: 600, length: 100 });
+    })).toEqual({ materialCode: "OX-SR-0.1-R", rollCount: 2, width: 600, length: 100 });
   });
 
   it.each([false, true])("同步物件及 JSON 字串中的舊規格，保留未知擴充資料（字串：%s）", (asString) => {

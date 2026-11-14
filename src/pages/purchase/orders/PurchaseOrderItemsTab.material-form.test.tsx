@@ -14,8 +14,8 @@ const materials = {
     width: 500,
     length: 600,
   },
-  'OX-SS-0.1-R': {
-    code: 'OX-SS-0.1-R',
+  'OX-SR-0.1-R': {
+    code: 'OX-SR-0.1-R',
     name: '不鏽鋼卷料',
     materialForm: 'R',
     width: 500,
@@ -144,7 +144,7 @@ describe('PurchaseOrderItemsTab 採購明細卷片連動', () => {
     renderTab();
     fireEvent.click(screen.getByRole('button', { name: /新增明細項目/ }));
 
-    selectMaterial('OX-SS-0.1-R');
+    selectMaterial('OX-SR-0.1-R');
     await expectRollPresentation();
     changeNumber('unitPrice', '1200');
     changeNumber('quantity', '3');
@@ -154,7 +154,7 @@ describe('PurchaseOrderItemsTab 採購明細卷片連動', () => {
     await expectSheetPresentation();
     expect(input('subTotal')).toHaveValue('3,600');
 
-    selectMaterial('OX-SS-0.1-R');
+    selectMaterial('OX-SR-0.1-R');
     await expectRollPresentation();
     expect(input('subTotal')).toHaveValue('3,600');
   });
@@ -181,7 +181,7 @@ describe('PurchaseOrderItemsTab 採購明細卷片連動', () => {
     expect(input('quantity')).toHaveValue('4');
     expect(input('subTotal')).toHaveValue('100');
 
-    selectMaterial('OX-SS-0.1-R');
+    selectMaterial('OX-SR-0.1-R');
     await expectRollPresentation();
     expect(input('unitPrice')).toHaveValue('25');
     expect(input('quantity')).toHaveValue('4');

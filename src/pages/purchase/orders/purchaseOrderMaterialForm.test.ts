@@ -4,12 +4,12 @@ import { adaptPurchaseOrderItem } from './purchaseOrderMaterialForm';
 
 describe('purchase order response materialForm adapter', () => {
   it.each(['R', 'S', null] as const)('preserves the API value %s', (materialForm) => {
-    const dto: PurchaseOrderItemDto = { goodsCode: 'MAT', materialForm } as PurchaseOrderItemDto;
-    expect(adaptPurchaseOrderItem(dto)).toEqual({ goodsCode: 'MAT', materialForm });
+    const dto: PurchaseOrderItemDto = { goodsCode: 'OX-SR-0.1-R', materialForm } as PurchaseOrderItemDto;
+    expect(adaptPurchaseOrderItem(dto)).toEqual({ goodsCode: 'OX-SR-0.1-R', materialForm });
   });
 
   it('distinguishes an older response without the field from explicit null', () => {
-    expect(adaptPurchaseOrderItem({ goodsCode: 'MAT' }).materialForm).toBeUndefined();
+    expect(adaptPurchaseOrderItem({ goodsCode: 'OX-SR-0.1-R' }).materialForm).toBeUndefined();
     const dto = JSON.parse('{"materialForm":null}') as PurchaseOrderItemDto;
     expect(adaptPurchaseOrderItem(dto).materialForm).toBeNull();
   });

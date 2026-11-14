@@ -4,18 +4,20 @@ import { MaterialLogisticsCore } from './materialLogistics'
 describe('MaterialLogisticsCore', () => {
   describe('isRollMaterial', () => {
     it('應正確識別以 R 結尾或 R- 開頭的捲料代碼', () => {
-      expect(MaterialLogisticsCore.isRollMaterial('MAT001R', 'PCS')).toBe(true)
+      expect(MaterialLogisticsCore.isRollMaterial('OX-SR-0.1-R', 'PCS')).toBe(true)
+      // 保留舊式 R- 前綴代碼以驗證相容邏輯
       expect(MaterialLogisticsCore.isRollMaterial('R-NYLON-100', 'PCS')).toBe(true)
     })
 
     it('應正確識別單位為 SQM, M², M 的捲料', () => {
-      expect(MaterialLogisticsCore.isRollMaterial('MAT001', 'SQM')).toBe(true)
-      expect(MaterialLogisticsCore.isRollMaterial('MAT001', 'M²')).toBe(true)
-      expect(MaterialLogisticsCore.isRollMaterial('MAT001', 'M')).toBe(true)
+      expect(MaterialLogisticsCore.isRollMaterial('OX-SS-0.1-S', 'SQM')).toBe(true)
+      expect(MaterialLogisticsCore.isRollMaterial('OX-SS-0.1-S', 'M²')).toBe(true)
+      expect(MaterialLogisticsCore.isRollMaterial('OX-SS-0.1-S', 'M')).toBe(true)
     })
 
     it('非捲料應回傳 false', () => {
-      expect(MaterialLogisticsCore.isRollMaterial('MAT001S', 'PCS')).toBe(false)
+      expect(MaterialLogisticsCore.isRollMaterial('OX-SS-0.1-S', 'PCS')).toBe(false)
+      // 保留舊式 S- 前綴代碼以驗證相容邏輯
       expect(MaterialLogisticsCore.isRollMaterial('S-SHEET-01', 'PCS')).toBe(false)
     })
   })
