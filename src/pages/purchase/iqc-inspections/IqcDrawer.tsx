@@ -399,7 +399,60 @@ export default function IqcDrawer({
         supplierLotNo: "", isOk: null, inspectionItems: [],
         actualQtyAux: isRollMaterial ? detail.standardLength : 0,
       }] : detail.rolls;
-      const initialRolls = sourceRolls.map((r: any) => {
+
+      // 💡 優先從資料庫已存的 groups 中讀取原廠批號數量分配 (sheetLots)；若無則由 sourceRolls 還原
+      const initialLots: any[] = [];
+
+      if (detail.groups && detail.groups.length > 0) {
+        detail.groups.forEach((g: any, index: number) => {
+          initialLots.push({
+            id: g.id || `lot-${index + 1}`,
+            supplierLotNo: g.supplierLotNo || "",
+            qty: g.allocatedQty || 0,
+            sampleQty: g.sampleQty || 0
+          });
+        });
+      } else if (sourceRolls && sourceRolls.length > 0) {
+        const lotSampleMap = new Map();
+
+        sourceRolls.forEach((r: any) => {
+          const lotNo = (r.supplierLotNo || "").trim().toUpperCase() || "NO-LOT";
+          lotSampleMap.set(lotNo, (lotSampleMap.get(lotNo) || 0) + 1);
+        });
+
+        let idx = 1;
+        lotSampleMap.forEach((sampleQty, lotNo) => {
+          const groupRolls = sourceRolls.filter((r: any) =>
+            ((r.supplierLotNo || "").trim().toUpperCase() || "NO-LOT") === lotNo
+          );
+
+          const qty = isRollMaterial 
+            ? (detail.rollCount || groupRolls.length)
+            : groupRolls.reduce((sum: number, r: any) => sum + (r.actualQtyAux || 0), 0);
+
+          initialLots.push({ 
+            id: `lot-${idx++}`, 
+            supplierLotNo: lotNo === "NO-LOT" ? "" : lotNo,
+            qty,
+            sampleQty: (detail.inspectionStatus === "Pending" && isRollMaterial) ? 1 : sampleQty
+          });
+        });
+      }
+
+      if (initialLots.length === 0) {
+        initialLots.push({ 
+          id: "lot-1", 
+          supplierLotNo: "", 
+          qty: detail.rollCount || 0, 
+          sampleQty: 1
+        });
+      }
+
+      const effectiveSourceRolls = (isRollMaterial && detail.inspectionStatus === "Pending" && !detail.groups?.length && sourceRolls.every((r: any) => !r.sampleId) && initialLots.length === 1 && sourceRolls.length > (initialLots[0]?.sampleQty ?? 1))
+        ? sourceRolls.slice(0, initialLots[0].sampleQty)
+        : sourceRolls;
+
+      const initialRolls = effectiveSourceRolls.map((r: any) => {
         // 💡 實測外徑 (Do) 採用 measuredOuterDiaMm
         const outerDiaVal = r.measuredOuterDiaMm ?? null;
         // 💡 內管芯外徑 (Di) 採用 measuredCoreDiaMm
@@ -441,10 +494,39 @@ export default function IqcDrawer({
         const explicitGroups = groups.flatMap((g: any) => (g.samples || []).filter((s: any) => r.sampleId && s.sampleId === r.sampleId).map(() => g));
         const group = explicitGroups.length === 1 ? explicitGroups[0] : undefined;
 
+        let groupId: string | undefined;
+        let groupAmbiguous: boolean;
+
+        if (r.sampleId) {
+          // 既存持久化樣品：嚴格以 sampleId 匹配群組
+          groupId = group?.id || undefined;
+          groupAmbiguous = explicitGroups.length !== 1 || !group?.id;
+        } else if (blankInspection || initialLots.length === 1) {
+          // 全新檢驗單或單一分組：樣品明確關聯至該分組
+          groupId = initialLots[0]?.id || "lot-1";
+          groupAmbiguous = false;
+        } else {
+          // 多分組且無 sampleId：依批號匹配
+          const rLot = (r.supplierLotNo || "").trim().toUpperCase();
+          if (rLot !== "") {
+            const matchingLots = initialLots.filter(l => (l.supplierLotNo || "").trim().toUpperCase() === rLot);
+            groupId = matchingLots.length === 1 ? matchingLots[0].id : undefined;
+            groupAmbiguous = matchingLots.length !== 1;
+          } else {
+            const emptyLots = initialLots.filter(l => !(l.supplierLotNo || "").trim());
+            groupId = emptyLots.length === 1 ? emptyLots[0].id : undefined;
+            groupAmbiguous = emptyLots.length !== 1;
+          }
+        }
+
+        const assignedLot = initialLots.find(l => l.id === groupId);
+        const resolvedSupplierLotNo = r.supplierLotNo || (groupId && assignedLot?.supplierLotNo ? assignedLot.supplierLotNo : "");
+
         const rollObj = {
           ...r,
-          _groupId: blankInspection ? "lot-1" : group?.id || undefined,
-          _groupAmbiguous: blankInspection ? false : explicitGroups.length !== 1 || !group?.id,
+          supplierLotNo: resolvedSupplierLotNo,
+          _groupId: groupId,
+          _groupAmbiguous: groupAmbiguous,
           actualQtyAux: r.actualQtyAux,
           isOk: r.isOk,
           defectReason: r.defectReason ?? null,
@@ -462,57 +544,14 @@ export default function IqcDrawer({
 
         // 💡 開氣或重置品檢單時，立刻自動即時計算出實測長度並同步到 DTO 狀態
         const initialized = recalculateRollLengthForRoll(rollObj, detail.standardThickness, true);
-        return blankInspection ? markNewBlankSample(initialized) : initialized;
+        const isNewBlank = !r.sampleId && r.isOk == null;
+        return isNewBlank ? markNewBlankSample(initialized) : initialized;
       });
-      // 💡 優先從資料庫已存的 groups 中讀取原廠批號數量分配 (sheetLots)；若無則由 rolls 還原
-      const initialLots: any[] = [];
 
-      if (detail.groups && detail.groups.length > 0) {
-        detail.groups.forEach((g: any, index: number) => {
-          initialLots.push({
-            id: g.id || `lot-${index + 1}`,
-            supplierLotNo: g.supplierLotNo || "",
-            qty: g.allocatedQty || 0,
-            sampleQty: g.sampleQty || 0
-          });
-        });
-      } else if (detail.rolls && detail.rolls.length > 0) {
-        const lotSampleMap = new Map();
-
-        detail.rolls.forEach((r: any) => {
-          const lotNo = (r.supplierLotNo || "").trim().toUpperCase() || "NO-LOT";
-          lotSampleMap.set(lotNo, (lotSampleMap.get(lotNo) || 0) + 1);
-        });
-
-        let idx = 1;
-        lotSampleMap.forEach((sampleQty, lotNo) => {
-          const groupRolls = detail.rolls.filter((r: any) =>
-            ((r.supplierLotNo || "").trim().toUpperCase() || "NO-LOT") === lotNo
-          );
-
-          const qty = isRollMaterial 
-            ? groupRolls.length 
-            : groupRolls.reduce((sum: number, r: any) => sum + (r.actualQtyAux || 0), 0);
-
-          initialLots.push({ 
-            id: `lot-${idx++}`, 
-            supplierLotNo: lotNo === "NO-LOT" ? "" : lotNo,
-            qty,
-            sampleQty: (detail.inspectionStatus === "Pending" && isRollMaterial) ? 1 : sampleQty
-          });
-        });
-      }
-
-      if (initialLots.length === 0) {
-        initialLots.push({ 
-          id: "lot-1", 
-          supplierLotNo: "", 
-          qty: detail.rollCount || 0, 
-          sampleQty: 1
-        });
-      }
       setSheetLots(initialLots);
       setRolls(initialRolls);
+      const totalSampleCount = initialLots.reduce((sum, l) => sum + (l.sampleQty || 0), 0);
+      setSampleSize(totalSampleCount);
 
       const defaultInspector =
         detail.inspectorId === "PENDING" || !detail.inspectorId
@@ -1818,17 +1857,18 @@ export default function IqcDrawer({
             value: l.id,
           }));
           const currentLot = sheetLots.find(l => l.id === record._groupId);
+          const canAssignLot = !record.sampleId && (canRemoveBlankSamples([record]) || record._groupAmbiguous || !record._groupId);
 
           return (
             <Select
               size="small"
               showSearch
               optionFilterProp="label"
-              disabled={!canRemoveBlankSamples([record])}
+              disabled={!canAssignLot}
               value={currentLot?.id}
               placeholder="選擇分配原廠批"
               onChange={(selectedId) => {
-                if (!canRemoveBlankSamples([record])) return;
+                if (!canAssignLot) return;
                 const targetLot = sheetLots.find(l => l.id === selectedId);
                 if (!targetLot) return;
 
@@ -1836,11 +1876,17 @@ export default function IqcDrawer({
                   setSheetLots(prev => prev.map(l => l.id === record._groupId
                     ? { ...l, sampleQty: l.sampleQty - 1 }
                     : l.id === targetLot.id ? { ...l, sampleQty: l.sampleQty + 1 } : l));
+                } else if (!record._groupId || record._groupAmbiguous) {
+                  const currentInTarget = rolls.filter(r => r._groupId === targetLot.id && !r._groupAmbiguous).length;
+                  if (currentInTarget >= targetLot.sampleQty) {
+                    setSheetLots(prev => prev.map(l => l.id === targetLot.id ? { ...l, sampleQty: l.sampleQty + 1 } : l));
+                  }
                 }
                 setRolls((prevRolls) => prevRolls.map((r) => {
-                  if (r.rollNo !== record.rollNo || !canRemoveBlankSamples([r])) return r;
+                  if (r.rollNo !== record.rollNo) return r;
                   const { _blankSnapshot, ...sample } = r;
-                  return markNewBlankSample({ ...sample, _groupId: targetLot.id, _groupAmbiguous: false, supplierLotNo: targetLot.supplierLotNo });
+                  const nextSample = { ...sample, _groupId: targetLot.id, _groupAmbiguous: false, supplierLotNo: targetLot.supplierLotNo };
+                  return canRemoveBlankSamples([r]) ? markNewBlankSample(nextSample) : nextSample;
                 }));
               }}
               options={options}

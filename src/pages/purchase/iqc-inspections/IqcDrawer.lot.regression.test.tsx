@@ -171,3 +171,77 @@ it('批號更新後仍允許依草稿抽樣數移除已量測尾端新樣品', a
   await waitFor(() => expect(api.post).toHaveBeenCalled());
   expect(api.post.mock.calls[0][0].body.rolls).not.toContainEqual(expect.objectContaining({ rollNo: 'KEEP-R02' }));
 });
+
+it('全新進貨過帳卷料品檢單：自動關聯預設分組，輸入原廠批號後成功儲存草稿', async () => {
+  api.detail.mockResolvedValue({ data: { data: {
+    lotNo: 'IQC-20261121-0001', materialForm: 'R', revision: 1, inspectionStatus: 'Pending', inspectorId: 'EMP-1', rollCount: 1,
+    standardCoreDiaMm: 76.2, standardThickness: 0.05, standardWidth: 150, standardLength: 300,
+    groups: null,
+    rolls: [{ seq: 1, rollNo: 'IQC-20261121-0001-R01', supplierLotNo: '', actualQtyAux: 300, isOk: null, inspectionItems: [] }],
+  } } });
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  render(<QueryClientProvider client={qc}><App><IqcDrawer iqcRecordId="new-roll" open onClose={() => {}} onSuccess={() => {}} /></App></QueryClientProvider>);
+  await screen.findByText('1 卷');
+  fireEvent.click(screen.getByRole('button', { name: /編輯/ }));
+  const lotInput = await screen.findByPlaceholderText('請輸入或掃描原廠生產批號');
+  fireEvent.focus(lotInput);
+  fireEvent.change(lotInput, { target: { value: 'SUPPLIER-LOT-ROLL' } });
+  fireEvent.blur(lotInput);
+  fireEvent.change(screen.getByPlaceholderText('實測外徑'), { target: { value: '180.5' } });
+  fireEvent.click(screen.getByRole('button', { name: /儲存/ }));
+  await waitFor(() => expect(api.post).toHaveBeenCalled());
+  const body = api.post.mock.calls[0][0].body;
+  expect(body.rolls[0]).toMatchObject({ rollNo: 'IQC-20261121-0001-R01', supplierLotNo: 'SUPPLIER-LOT-ROLL', measuredOuterDiaMm: 180.5 });
+  expect(body.groups[0]).toMatchObject({ supplierLotNo: 'SUPPLIER-LOT-ROLL', allocatedQty: 1, sampleQty: 1 });
+  expect(body.groups[0].samples[0]).toMatchObject({ rollNo: 'IQC-20261121-0001-R01', supplierLotNo: 'SUPPLIER-LOT-ROLL', measuredOuterDiaMm: 180.5 });
+});
+
+it('全新進貨過帳片料品檢單：自動關聯預設分組，輸入原廠批號後成功儲存草稿', async () => {
+  api.detail.mockResolvedValue({ data: { data: {
+    lotNo: 'IQC-20261121-0002', materialForm: 'S', revision: 1, inspectionStatus: 'Pending', inspectorId: 'EMP-1', rollCount: 500,
+    standardCoreDiaMm: null, standardThickness: 0.05, standardWidth: 150, standardLength: 300,
+    groups: null,
+    rolls: [{ seq: 1, rollNo: 'IQC-20261121-0002-S01', supplierLotNo: '', actualQtyAux: 500, isOk: null, inspectionItems: [] }],
+  } } });
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  render(<QueryClientProvider client={qc}><App><IqcDrawer iqcRecordId="new-sheet" open onClose={() => {}} onSuccess={() => {}} /></App></QueryClientProvider>);
+  await screen.findByText('1 PCS');
+  fireEvent.click(screen.getByRole('button', { name: /編輯/ }));
+  const lotInput = await screen.findByPlaceholderText('請輸入或掃描原廠生產批號');
+  fireEvent.focus(lotInput);
+  fireEvent.change(lotInput, { target: { value: 'SUPPLIER-LOT-SHEET' } });
+  fireEvent.blur(lotInput);
+  fireEvent.click(screen.getByRole('button', { name: /儲存/ }));
+  await waitFor(() => expect(api.post).toHaveBeenCalled());
+  const body = api.post.mock.calls[0][0].body;
+  expect(body.rolls[0]).toMatchObject({ rollNo: 'IQC-20261121-0002-S01', supplierLotNo: 'SUPPLIER-LOT-SHEET', actualQtyAux: 500 });
+  expect(body.groups[0]).toMatchObject({ supplierLotNo: 'SUPPLIER-LOT-SHEET', allocatedQty: 500, sampleQty: 1 });
+  expect(body.groups[0].samples[0]).toMatchObject({ rollNo: 'IQC-20261121-0002-S01', supplierLotNo: 'SUPPLIER-LOT-SHEET', actualQtyAux: 500 });
+});
+
+it('樣品分組選擇器：未持久化之新樣品允許分配分組，已持久化樣品則鎖定', async () => {
+  api.detail.mockResolvedValue({ data: { data: {
+    lotNo: 'IQC-ASSIGN', materialForm: 'R', revision: 1, inspectionStatus: 'Pending', inspectorId: 'EMP-1', rollCount: 2,
+    standardCoreDiaMm: 76.2, standardThickness: 0.05, standardWidth: 150, standardLength: 300,
+    groups: [
+      { id: 'g1', supplierLotNo: 'LOT-A', allocatedQty: 1, sampleQty: 1, samples: [{ sampleId: 'persisted-1' }] },
+      { id: 'g2', supplierLotNo: 'LOT-B', allocatedQty: 1, sampleQty: 1, samples: [] },
+    ],
+    rolls: [
+      { sampleId: 'persisted-1', seq: 1, rollNo: 'R1', supplierLotNo: 'LOT-A', isOk: null, inspectionItems: [] },
+      { seq: 2, rollNo: 'R2', supplierLotNo: '', isOk: null, inspectionItems: [] },
+    ],
+  } } });
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  render(<QueryClientProvider client={qc}><App><IqcDrawer iqcRecordId="assign" open onClose={() => {}} onSuccess={() => {}} /></App></QueryClientProvider>);
+  await screen.findAllByText('LOT-A');
+  fireEvent.click(screen.getByRole('button', { name: /編輯/ }));
+  const selects = document.querySelectorAll('.ant-select');
+  // 查找包含「選擇分配原廠批」或已選批號之群組下拉選單
+  const groupSelects = Array.from(selects).filter(s => s.classList.contains('font-mono'));
+  expect(groupSelects.length).toBe(2);
+  // 第一個為持久化樣品 (persisted-1)，應被鎖定 (disabled)
+  expect(groupSelects[0].classList.contains('ant-select-disabled')).toBe(true);
+  // 第二個為新樣品 (無 sampleId)，不應被鎖定 (enabled)
+  expect(groupSelects[1].classList.contains('ant-select-disabled')).toBe(false);
+});
