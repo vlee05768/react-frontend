@@ -5,3 +5,16 @@ export const useUserQueryStore = createListQueryStore('user', {
 });
 
 export const useRoleQueryStore = createListQueryStore('role', {});
+
+export const useDeletionAuditQueryStore = createListQueryStore('deletionAudit', {
+  StartDate: undefined,
+  EndDate: undefined,
+  Actor: undefined,
+  ActorUserId: undefined,
+  EntityType: undefined,
+  EntityCode: undefined,
+  RelatedDocumentCode: undefined,
+  Outcome: undefined,
+  DeletionMode: undefined,
+  dateRange: undefined,
+});

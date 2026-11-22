@@ -17,7 +17,8 @@ import {
   HomeOutlined,
   BookOutlined,
   MenuFoldOutlined,
-  MenuUnfoldOutlined
+  MenuUnfoldOutlined,
+  AuditOutlined
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -38,6 +39,8 @@ const ICON_MAPPING: Record<string, React.ReactNode> = {
   'Sales': <ShoppingCartOutlined />,
   'Purchase': <ShoppingOutlined />,
   'System': <SettingOutlined />,
+  'System.Audit': <AuditOutlined />,
+  'System.DeletionAudits': <AuditOutlined />,
 };
 
 // 將後端權限 Key 映射到前端路由路徑
@@ -64,6 +67,8 @@ const ROUTE_MAPPING: Record<string, string> = {
   'System.Roles': '/system/roles',
   'System.GeneralTypes': '/system/general-types',
   'System.SystemMaintenance': '/system/maintenance',
+  'System.Audit': '/system/deletion-audits',
+  'System.DeletionAudits': '/system/deletion-audits',
 
   'Warehouse.Inventory': '/warehouse/inventory',
   'Warehouse.InventoryMovements': '/warehouse/inventory-movements',
@@ -91,6 +96,7 @@ const ROUTE_PERMISSION_MAP: Record<string, string> = {
   '/system/roles': 'System.Roles.View',
   '/system/general-types': 'System.GeneralTypes.View',
   '/system/maintenance': 'System.SystemMaintenance.View',
+  '/system/deletion-audits': 'audit:read',
   '/basic/storages': 'BasicData.Storages.View',
   '/warehouse/material-inventory': 'Warehouse.MaterialInventory.View',
   '/warehouse/quick-transfer': 'Warehouse.QuickTransfer.View',
@@ -301,6 +307,15 @@ export default function MainLayout() {
                 }
               }
             }
+            if (node.key === 'System' && hasPermission('audit:read')) {
+              if (!children.some(c => c.key === '/system/deletion-audits')) {
+                children.push({
+                  key: '/system/deletion-audits',
+                  icon: <AuditOutlined />,
+                  label: '刪除稽核查詢',
+                });
+              }
+            }
             // 如果該模組下沒有任何有權限的子頁面，就不顯示該模組
             if (children.length === 0) return null;
             return {
@@ -322,6 +337,16 @@ export default function MainLayout() {
                    label: '模具進貨單',
                 }
               ];
+            }
+            if (node.key === 'System.Audit' || node.key === 'System.DeletionAudits') {
+              if (!hasPermission('audit:read')) {
+                return null;
+              }
+              return {
+                key: '/system/deletion-audits',
+                icon: <AuditOutlined />,
+                label: '刪除稽核查詢',
+              };
             }
             const routePath = ROUTE_MAPPING[node.key] || node.key;
             return {

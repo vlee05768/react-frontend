@@ -37,6 +37,7 @@ const UserList = withSuspense(lazy(() => import('@/pages/system/UserList')));
 const RoleList = withSuspense(lazy(() => import('@/pages/system/RoleList')));
 const SystemMaintenance = withSuspense(lazy(() => import('@/pages/system/SystemMaintenance')));
 const GeneralTypeLayout = withSuspense(lazy(() => import('@/pages/system/general-types/GeneralTypeLayout')));
+const DeletionAuditList = withSuspense(lazy(() => import('@/pages/system/deletion-audits/DeletionAuditList')));
 const StorageList = withSuspense(lazy(() => import('@/pages/basic/storages/StorageList')));
 const StorageInventoryList = withSuspense(lazy(() => import('@/pages/warehouse/inventory/StorageInventoryList')));
 const MaterialInventoryList = withSuspense(lazy(() => import('@/pages/warehouse/material-inventory/MaterialInventoryList')));
@@ -119,6 +120,7 @@ export const router = createBrowserRouter([
       { path: 'system/roles/:viewId?', element: <RoleList /> },
       { path: 'system/maintenance', element: <SystemMaintenance /> },
       { path: 'system/general-types', element: <GeneralTypeLayout /> },
+      { path: 'system/deletion-audits', element: <DeletionAuditList /> },
       { path: 'basic/storages/:viewId?', element: <StorageList /> },
       { path: 'warehouse/inventory', element: <StorageInventoryList /> },
       { path: 'warehouse/material-inventory', element: <MaterialInventoryList /> },
