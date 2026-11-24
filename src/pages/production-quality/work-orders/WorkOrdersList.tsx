@@ -2,7 +2,7 @@
 import PageCard from '@/components/common/PageCard';
 import React, { useState } from "react";
 import { App, Space, Button, Modal, Divider } from 'antd';
-import { PlusOutlined, ClearOutlined, SearchOutlined } from "@ant-design/icons";
+import { PlusOutlined, ClearOutlined, SearchOutlined, CalculatorOutlined } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { 
@@ -147,6 +147,14 @@ export const WorkOrdersList: React.FC = () => {
     <div className="p-4 pb-0 flex flex-col h-[calc(100vh-64px)]">
       <PageCard title="製令管理" extra={
           <Space separator={<Divider orientation="vertical" />}>
+            <Button
+              type="default"
+              icon={<CalculatorOutlined />}
+              onClick={() => navigate('/production-quality/work-order-cost-settlement')}
+              className="font-medium"
+            >
+              製令成本結算
+            </Button>
             <Button
               type="default"
               icon={<SearchOutlined />}

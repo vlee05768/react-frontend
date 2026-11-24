@@ -75,6 +75,7 @@ const ROUTE_MAPPING: Record<string, string> = {
   'Warehouse.InventoryAdjustments': '/warehouse/inventory-adjustments',
 
   'ProductionQuality.WorkOrders': '/production-quality/work-orders',
+  'ProductionQuality.WorkOrderCostSettlement': '/production-quality/work-order-cost-settlement',
   'ProductionQuality.QcReceipts': '/production-quality/qc-receipts',
   'ProductionQuality.ProductionReceipts': '/production-quality/production-receipts',
 };
@@ -109,6 +110,7 @@ const ROUTE_PERMISSION_MAP: Record<string, string> = {
   '/basic/molds': 'BasicData.Molds.View',
   '/basic/machines': 'BasicData.Machines.View',
   '/production-quality/work-orders': 'ProductionQuality.WorkOrders.View',
+  '/production-quality/work-order-cost-settlement': 'ProductionQuality.WorkOrders.View',
   '/production-quality/qc-receipts': 'ProductionQuality.QcReceipts.View',
   '/production-quality/production-receipts': 'ProductionQuality.ProductionReceipts.View',
 };
@@ -313,6 +315,14 @@ export default function MainLayout() {
                   key: '/system/deletion-audits',
                   icon: <AuditOutlined />,
                   label: '刪除稽核查詢',
+                });
+              }
+            }
+            if (node.key === 'ProductionQuality' && hasPermission('ProductionQuality.WorkOrders.View')) {
+              if (!children.some(c => c.key === '/production-quality/work-order-cost-settlement')) {
+                children.push({
+                  key: '/production-quality/work-order-cost-settlement',
+                  label: '製令成本結算',
                 });
               }
             }

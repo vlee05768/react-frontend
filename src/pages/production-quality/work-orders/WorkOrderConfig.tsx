@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { PersonnelWorkingHoursField } from "./PersonnelWorkingHoursField";
-import { Tag } from "antd";
+import { SemiFinishedPackagesField } from "./SemiFinishedPackagesField";
+import { Switch, Tag } from "antd";
+import type {
+  SemiFinishedPackagePayload,
+  WorkOrderMaterialExtendedDto,
+} from "@/api/workOrderWorkflowApi";
 import {
   SyncOutlined,
 } from "@ant-design/icons";
@@ -96,6 +101,7 @@ export const searchConfig: SearchFieldConfig[] = [
       options: [
         { label: "已開工未入庫", value: "StartedUnwarehoused" },
         { label: "新單據", value: "Draft" },
+        { label: "用料規格確認", value: "MaterialSpecConfirmed" },
         { label: "備料中", value: "InPreparation" },
         { label: "備料確認", value: "PreparationCompleted" },
         { label: "生產中", value: "InProduction" },
@@ -336,6 +342,70 @@ export const tableColumns: TableColumnConfig[] = [
     align: "right",
     render: (val) => <span className="font-semibold" style={{color: 'var(--ant-color-success)'}}>{val != null ? Number(val).toLocaleString() : "-"}</span>,
   },
+  {
+    name: "actualMaterialCost",
+    label: "實際材料總成本",
+    width: 140,
+    align: "right",
+    render: (val) => (
+      <span
+        style={{
+          display: "inline-block",
+          lineHeight: "24px",
+          verticalAlign: "middle",
+          width: "100%",
+          textAlign: "right",
+        }}
+      >
+        {val != null && Number(val) > 0
+          ? `$${Number(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          : "-"}
+      </span>
+    ),
+  },
+  {
+    name: "unitMaterialCost",
+    label: "產出單位成本",
+    width: 150,
+    align: "right",
+    render: (val, record: any) => {
+      const hasScrappedAll =
+        Number(record?.goodQuantity ?? 0) === 0 &&
+        Number(record?.actualMaterialCost ?? 0) > 0 &&
+        Boolean(record?.productionCompleteDate || record?.warehousingCompleteDate);
+      if (hasScrappedAll) {
+        return (
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              height: "24px",
+              verticalAlign: "middle",
+              width: "100%",
+            }}
+          >
+            <Tag color="error" className="m-0">全數報廢</Tag>
+          </div>
+        );
+      }
+      return (
+        <span
+          style={{
+            display: "inline-block",
+            lineHeight: "24px",
+            verticalAlign: "middle",
+            width: "100%",
+            textAlign: "right",
+          }}
+        >
+          {val != null && Number(val) > 0
+            ? `$${Number(val).toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`
+            : "-"}
+        </span>
+      );
+    },
+  },
 
   {
     name: "machineCode",
@@ -365,13 +435,20 @@ import type { Dayjs } from "dayjs";
 
 export type WorkOrderFormValues = Omit<
   WorkOrderDto,
-  'inventoryType' | 'targetCode' | 'targetName' | 'productCode' | 'productName' | 'workOrderDate' | 'productionDate'
+  'inventoryType' | 'targetCode' | 'targetName' | 'productCode' | 'productName' | 'workOrderDate' | 'productionDate' | 'items'
 > & {
   outputType?: 'P' | 'M';
   outputCode?: string | null;
   outputName?: string | null;
   workOrderDate?: string | Dayjs;
   productionDate?: string | Dayjs | null;
+  materialSpecConfirmDate?: string | null;
+  materialSpecConfirmUser?: string | null;
+  isAllMaterialConsumed?: boolean;
+  actualMaterialCost?: number;
+  unitMaterialCost?: number;
+  semiFinishedPackages?: SemiFinishedPackagePayload[];
+  items?: WorkOrderMaterialExtendedDto[];
   _ui_editMode?: 'update' | 'prepare' | 'work' | null;
 };
 
@@ -407,6 +484,8 @@ const permissions: Record<string, FieldPermission> = {
   notes: { create: true, update: true, work: true, prepare: true },
   defectReason: { create: false, update: false, work: true, prepare: false },
   personnelWorkingHours: { create: false, update: false, work: true, prepare: false },
+  isAllMaterialConsumed: { create: false, update: false, work: true, prepare: false },
+  semiFinishedPackages: { create: false, update: false, work: true, prepare: false },
   storageCode: { create: false, update: false, work: false, prepare: false },
 };
 
@@ -716,6 +795,88 @@ export const formConfig: FormFieldConfig<WorkOrderFormValues>[] = [
     editable: "never",
     group: "生產資訊",
   },
+  {
+    name: "actualMaterialCost",
+    label: "實際材料總成本",
+    componentType: "InputNumber",
+    colSpan: 4,
+    editable: "never",
+    group: "生產資訊",
+    customRender: (props) => (
+      <span className="font-semibold">
+        {props.value != null && Number(props.value) > 0
+          ? `$${Number(props.value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          : "-"}
+      </span>
+    ),
+  },
+  {
+    name: "unitMaterialCost",
+    label: "產出單位成本",
+    componentType: "InputNumber",
+    colSpan: 4,
+    editable: "never",
+    group: "生產資訊",
+    customRender: (props, ctx) => {
+      const vals = ctx.values as WorkOrderFormValues;
+      const isAllScrapped =
+        Number(vals?.goodQuantity ?? 0) === 0 &&
+        Number(vals?.actualMaterialCost ?? 0) > 0 &&
+        Boolean(vals?.productionCompleteDate || vals?.warehousingCompleteDate);
+      if (isAllScrapped) {
+        return <Tag color="error" className="m-0">全數報廢（良品數為 0）</Tag>;
+      }
+      return (
+        <span className="font-semibold">
+          {props.value != null && Number(props.value) > 0
+            ? `$${Number(props.value).toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`
+            : "-"}
+        </span>
+      );
+    },
+  },
+  {
+    name: "isAllMaterialConsumed",
+    label: "全單耗盡（無餘料免打退料單）",
+    componentType: "Custom",
+    colSpan: 1,
+    editable: (ctx) => checkPermission(ctx, "isAllMaterialConsumed"),
+    group: "生產資訊",
+    customRender: (props, _ctx, setValue) => (
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <Switch
+            checked={Boolean(props.value)}
+            disabled={props.disabled}
+            aria-label="全單耗盡（無餘料免打退料單）"
+            onChange={(checked) => setValue("isAllMaterialConsumed", checked, { shouldDirty: true })}
+          />
+          <span style={{ color: 'var(--ant-color-text-secondary)', fontSize: '12px' }}>
+            {props.value ? "已勾選全單耗盡，免開立退料單" : "未勾選（有餘料時請由退料頁籤辦理退倉）"}
+          </span>
+        </div>
+        <span style={{ color: 'var(--ant-color-text-description)', fontSize: '12px' }}>
+          僅在整張製令完全無餘料且未開立退料單時勾選，系統將自動將所有有效 WIP 卷卡結轉為已耗盡。
+        </span>
+      </div>
+    ),
+  },
+  {
+    name: "semiFinishedPackages",
+    label: "半成品包裝實測資料",
+    componentType: "Custom",
+    colSpan: 1,
+    hidden: (ctx) => ctx.values?.outputType !== "M" || (ctx.values as any)?._ui_editMode !== "work",
+    editable: (ctx) => checkPermission(ctx, "semiFinishedPackages"),
+    group: "生產資訊",
+    customRender: (props, _ctx, setValue) => (
+      <SemiFinishedPackagesField
+        value={props.value}
+        disabled={props.disabled}
+        onChange={(val) => setValue("semiFinishedPackages", val, { shouldDirty: true, shouldValidate: true })}
+      />
+    ),
+  },
    {
     name: "pcsPerPackage",
     label: "單包包裝數",
@@ -942,7 +1103,11 @@ export const requisitionItemFormConfig = (materials: any[]): FormFieldConfig<any
     componentProps: {
       options: materials.map(m => {
         const isRoll = m.materialForm === 'R' || m.materialCode?.startsWith("R-") || m.materialCode?.endsWith("-R");
-        return { label: `${m.materialCode} (${isRoll ? '捲材' : '片材'})`, value: m.materialCode };
+        const widthSuffix = m.widthMm ? ` · ${m.widthMm}mm` : "";
+        return {
+          label: `${m.materialCode} (${isRoll ? '捲材' : '片材'}${widthSuffix})`,
+          value: m.specKey || m.materialCode,
+        };
       })
     },
     colSpan: 2,

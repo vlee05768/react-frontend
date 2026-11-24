@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Space, Button, App, Drawer, Spin, Empty } from "antd";
+import { Space, Button, App, Drawer, Spin, Empty, Tooltip } from "antd";
 import { CheckCircleOutlined, SyncOutlined, LockOutlined } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
@@ -10,7 +10,6 @@ import {
   postApiV1WorkOrderByWorkOrderNumberPreparationConfirmCancel,
   postApiV1WorkOrderByWorkOrderNumberLaminationConfirm,
   postApiV1WorkOrderByWorkOrderNumberLaminationConfirmCancel,
-  postApiV1WorkOrderByWorkOrderNumberProductionComplete,
   postApiV1WorkOrderByWorkOrderNumberProductionCompleteCancel,
   postApiV1WorkOrderByWorkOrderNumberWarehousingComplete,
   postApiV1WorkOrderByWorkOrderNumberWarehousingCompleteCancel,
@@ -19,6 +18,12 @@ import {
   getApiV1WorkOrderReturnByDocumentNumber,
   postApiV1WorkOrderReturnByDocumentNumberConfirm
 } from "@/api/generated/sdk.gen";
+import {
+  cancelWorkOrderMaterialSpec,
+  completeWorkOrderProduction,
+  confirmWorkOrderMaterialSpec,
+  type ProductionCompletePayload,
+} from "@/api/workOrderWorkflowApi";
 import { getApiErrorMessage } from "@/utils/apiError";
 import { parseBomShortageError } from "./workOrderError";
 import dayjs from "dayjs";
@@ -367,20 +372,61 @@ export function WorkOrderDrawer({
         return;
       }
 
+      const packages = values.semiFinishedPackages || [];
+      if (record?.outputType === 'M') {
+        const hasValidPackages =
+          packages.length > 0 &&
+          packages.every(
+            (pkg) =>
+              Boolean(pkg.packageSeq?.trim()) &&
+              (pkg.materialForm === 'R' || pkg.materialForm === 'S') &&
+              Number(pkg.measuredWidthMm) > 0 &&
+              Number(pkg.quantity) > 0 &&
+              (pkg.materialForm !== 'S' || Number(pkg.measuredLength) > 0),
+          );
+        if (!hasValidPackages) {
+          modal.error({
+            title: '驗證失敗',
+            content:
+              '半成品製令生產完成須至少填寫一筆有效的包裝實測資料（包裝序號、型態、實測寬度 > 0、片料實測長度 > 0、數量 > 0）。',
+            centered: true,
+          });
+          return;
+        }
+      }
+
       modal.confirm({
         title: '生產完成確認',
-        content: '確定要確認生產完成嗎？確認後將進入入庫程序。',
+        content: values.isAllMaterialConsumed
+          ? '確定要確認生產完成嗎？您已勾選「全單耗盡」，確認後將自動結轉所有 WIP 卷卡並免打退料單。'
+          : '確定要確認生產完成嗎？確認後將進入入庫程序。',
         centered: true,
-        width: 400,
+        width: 440,
         onOk: async () => {
           try {
-            const productDto = {
-              actualQuantity: values.actualQuantity,
-              defectReason: values.defectReason,
-              productionDate: formatDate(values.productionDate),
-              storageCode: values.storageCode,
-              notes: values.notes,
+            const productDto: ProductionCompletePayload = {
+              actualQuantity: Number(values.actualQuantity ?? 0),
+              defectReason: values.defectReason ?? null,
+              productionDate: formatDate(values.productionDate) ?? null,
+              storageCode: values.storageCode ?? null,
+              notes: values.notes ?? null,
               personnelWorkingHours: validWorkingMinutes,
+              isAllMaterialConsumed: Boolean(values.isAllMaterialConsumed),
+              semiFinishedPackages:
+                record?.outputType === 'M'
+                  ? packages.map((pkg) => ({
+                      packageSeq: pkg.packageSeq.trim(),
+                      materialForm: pkg.materialForm,
+                      measuredWidthMm: Number(pkg.measuredWidthMm),
+                      measuredLength:
+                        pkg.materialForm === 'S'
+                          ? Number(pkg.measuredLength)
+                          : pkg.measuredLength != null && Number(pkg.measuredLength) > 0
+                            ? Number(pkg.measuredLength)
+                            : null,
+                      quantity: Number(pkg.quantity),
+                    }))
+                  : null,
             };
             await productionCompleteMut.mutateAsync(productDto);
             setEditMode(null);
@@ -402,6 +448,19 @@ export function WorkOrderDrawer({
       setEditMode(null);
     }
   };
+
+  const materialSpecConfirmMut = useStatusMutation({
+    id,
+    mutationFn: () => confirmWorkOrderMaterialSpec(id!),
+    successMessage: "用料規格確認成功",
+    setActiveTab,
+  });
+  const materialSpecCancelMut = useStatusMutation({
+    id,
+    mutationFn: () => cancelWorkOrderMaterialSpec(id!),
+    successMessage: "取消用料規格確認成功",
+    setActiveTab,
+  });
 
   const preparationConfirmMut = useStatusMutation({
     id,
@@ -431,7 +490,7 @@ export function WorkOrderDrawer({
   
   const productionCompleteMut = useStatusMutation({
     id,
-    mutationFn: (bodyData: any) => postApiV1WorkOrderByWorkOrderNumberProductionComplete({ path: { workOrderNumber: id! }, body: bodyData }),
+    mutationFn: (bodyData: ProductionCompletePayload) => completeWorkOrderProduction(id!, bodyData),
     successMessage: "生產完成成功",
     setActiveTab,
   });
@@ -459,6 +518,9 @@ export function WorkOrderDrawer({
   });
 
   
+  const isSpecPending = record && !record.materialSpecConfirmDate;
+  const isSpecConfirmedAndUnprepared =
+    record && !!record.materialSpecConfirmDate && !record.preparationConfirmDate;
   const isDraft = record && !record.preparationConfirmDate;
   const isPrepCompleted = record && !!record.preparationConfirmDate && !record.laminationConfirmDate;
   const isInProduction = record && !!record.laminationConfirmDate && !record.productionCompleteDate;
@@ -551,31 +613,109 @@ export function WorkOrderDrawer({
             還料入庫
           </ActionButton>
         )}
-        {isDraft && (
-          <ActionButton 
-            key="prepare-confirm"
-            intent="success" 
-            icon={<CheckCircleOutlined />} 
-            disabled={isDetailEditing || !hasRequisition || isRequisitionConfirmed}
-            onClick={(e) => { 
-              e.preventDefault(); 
+        {isSpecPending && (
+          <ActionButton
+            key="material-spec-confirm"
+            intent="success"
+            icon={<CheckCircleOutlined />}
+            disabled={isDetailEditing}
+            loading={materialSpecConfirmMut.isPending}
+            onClick={(e) => {
+              e.preventDefault();
               modal.confirm({
-                title: '備料完成確認',
-                content: '確定要確認備料完成嗎？系統將自動對關聯的領料單進行確認過帳，並進入貼合。',
-                centered: true, 
-                width: 400,
+                title: '用料規格確認',
+                content: '確定要確認用料規格嗎？確認後將鎖定材料明細寬度與拆單，並開放建立領料單。',
+                centered: true,
+                width: 420,
                 onOk: async () => {
                   try {
-                    await preparationConfirmMut.mutateAsync({});
-                  } catch (e) {
+                    await materialSpecConfirmMut.mutateAsync({});
+                  } catch {
                     // Error is already shown by mutation onError
                   }
                 },
               });
             }}
           >
-            備料確認
+            用料規格確認
           </ActionButton>
+        )}
+        {isDraft && (
+          <Tooltip
+            title={
+              isSpecPending
+                ? '請先完成用料規格確認後，再建立領料單並執行備料確認'
+                : !hasRequisition
+                  ? '請先至「製令領料記錄」建立領料單'
+                  : isRequisitionConfirmed
+                    ? '領料單已確認'
+                    : undefined
+            }
+          >
+            <span>
+              <ActionButton
+                key="prepare-confirm"
+                intent="success"
+                icon={<CheckCircleOutlined />}
+                disabled={isDetailEditing || isSpecPending || !hasRequisition || isRequisitionConfirmed}
+                onClick={(e) => {
+                  e.preventDefault();
+                  modal.confirm({
+                    title: '備料完成確認',
+                    content: '確定要確認備料完成嗎？系統將自動對關聯的領料單進行確認過帳，並進入貼合。',
+                    centered: true,
+                    width: 400,
+                    onOk: async () => {
+                      try {
+                        await preparationConfirmMut.mutateAsync({});
+                      } catch (e) {
+                        // Error is already shown by mutation onError
+                      }
+                    },
+                  });
+                }}
+              >
+                備料確認
+              </ActionButton>
+            </span>
+          </Tooltip>
+        )}
+        {isSpecConfirmedAndUnprepared && (
+          <Tooltip
+            title={
+              hasRequisition
+                ? '已有未刪除領料單，請先刪除領料單後再取消用料規格確認'
+                : undefined
+            }
+          >
+            <span>
+              <ActionButton
+                key="cancel-material-spec-confirm"
+                intent="warning"
+                icon={<SyncOutlined />}
+                disabled={isDetailEditing || hasRequisition}
+                loading={materialSpecCancelMut.isPending}
+                onClick={(e) => {
+                  e.preventDefault();
+                  modal.confirm({
+                    title: '取消用料規格確認',
+                    content: '確定要取消用料規格確認嗎？取消後將回到草稿狀態，可重新調整寬度與拆單。',
+                    centered: true,
+                    width: 420,
+                    onOk: async () => {
+                      try {
+                        await materialSpecCancelMut.mutateAsync({});
+                      } catch {
+                        // Error is already shown by mutation onError
+                      }
+                    },
+                  });
+                }}
+              >
+                取消用料規格確認
+              </ActionButton>
+            </span>
+          </Tooltip>
         )}
 
         {isPrepCompleted && (
@@ -768,7 +908,7 @@ export function WorkOrderDrawer({
   );
 
 
-  let statusText = "草稿 / 備料中";
+  let statusText = "草稿 / 待規格確認";
   let statusColor = "bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
   if (record) {
     if (isWarehousingCompleted) {
@@ -783,6 +923,9 @@ export function WorkOrderDrawer({
     } else if (isPrepCompleted) {
       statusText = "待貼合";
       statusColor = "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800";
+    } else if (isSpecConfirmedAndUnprepared) {
+      statusText = "待備料";
+      statusColor = "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800";
     }
   }
   const statusTag = record ? <span className={`px-2 py-0.5 text-xs border rounded transition-colors ${statusColor}`}>{statusText}</span> : undefined;
@@ -792,9 +935,19 @@ export function WorkOrderDrawer({
     steps = [
       {
         title: 'Draft',
-        status: record.preparationConfirmDate ? 'finish' : 'process',
+        status: record.materialSpecConfirmDate ? 'finish' : 'process',
         date: record.createdAt,
         user: record.createdBy ? `建立: ${record.createdBy}` : null,
+      },
+      {
+        title: '用料規格確認',
+        status: !record.materialSpecConfirmDate
+          ? 'wait'
+          : record.preparationConfirmDate
+            ? 'finish'
+            : 'process',
+        date: record.materialSpecConfirmDate || null,
+        user: record.materialSpecConfirmUser ? `確認: ${record.materialSpecConfirmUser}` : null,
       },
       {
         title: '製令備料',
@@ -823,13 +976,23 @@ export function WorkOrderDrawer({
       },
       {
         title: '製令退料入庫',
-        status: !record.warehousingCompleteDate 
-          ? 'wait' 
-          : ((record.pendingWipRollsCount ?? 0) > 0 ? 'process' : 'finish'),
-        date: record.latestReturnDate || null,
-        user: record.warehousingCompleteDate && (record.pendingWipRollsCount ?? 0) > 0
-          ? `待清退 (${record.pendingWipRollsCount}卷)`
-          : record.latestReturnUser ? `退料: ${record.latestReturnUser}` : null,
+        status: !record.warehousingCompleteDate
+          ? 'wait'
+          : record.isAllMaterialConsumed
+            ? 'finish'
+            : (record.pendingWipRollsCount ?? 0) > 0
+              ? 'process'
+              : 'finish',
+        date: record.isAllMaterialConsumed
+          ? (record.productionCompleteDate || null)
+          : (record.latestReturnDate || null),
+        user: record.isAllMaterialConsumed
+          ? '全單耗盡（免退料）'
+          : record.warehousingCompleteDate && (record.pendingWipRollsCount ?? 0) > 0
+            ? `待清退 (${record.pendingWipRollsCount}卷)`
+            : record.latestReturnUser
+              ? `退料: ${record.latestReturnUser}`
+              : null,
       }
     ];
   }

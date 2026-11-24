@@ -238,6 +238,7 @@ export const DICTIONARY_REGISTRY = {
   WORK_ORDER_STATUS: {
     queryFn: async () => [
       { text: '新單據', val: 'Draft', color: 'default', icon: 'Sync' },
+      { text: '用料規格確認', val: 'MaterialSpecConfirmed', color: 'geekblue', icon: 'CheckCircle' },
       { text: '備料中', val: 'InPreparation', color: 'processing', icon: 'Sync' },
       { text: '備料確認', val: 'PreparationCompleted', color: 'cyan', icon: 'CheckCircle' },
       { text: '生產中', val: 'InProduction', color: 'purple', icon: 'PlayCircle' },

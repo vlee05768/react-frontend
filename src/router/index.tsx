@@ -76,6 +76,9 @@ const WorkOrdersList = withSuspense(
     }))
   )
 );
+const WorkOrderCostSettlementPage = withSuspense(
+  lazy(() => import('@/pages/production-quality/work-order-cost-settlement/WorkOrderCostSettlementPage'))
+);
 
 const QcReceiptsList = withSuspense(lazy(() => import('@/pages/production-quality/qc-receipts/QcReceiptsList')));
 const QcReceiptDrawer = withSuspense(lazy(() => import('@/pages/production-quality/qc-receipts/QcReceiptDrawer')));
@@ -137,6 +140,7 @@ export const router = createBrowserRouter([
       { path: 'basic/machines/:viewId?', element: <MachineList /> },
       { path: 'purchase/iqc-inspections', element: <IqcList /> },
       { path: 'production-quality/work-orders/:viewId?', element: <WorkOrdersList /> },
+      { path: 'production-quality/work-order-cost-settlement', element: <WorkOrderCostSettlementPage /> },
       { path: 'production-quality/qc-receipts', element: <QcReceiptsList /> },
       { path: 'production-quality/qc-receipts/:id', element: <><QcReceiptsList /><QcReceiptDrawer /></> },
       { path: 'production-quality/production-receipts', element: <ProductionReceiptsList /> },

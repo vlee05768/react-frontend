@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import {
+  Alert,
   Card,
   Tag,
   Space,
@@ -26,10 +27,12 @@ import {
   postApiV1WorkOrderRequisition,
   putApiV1WorkOrderRequisitionByDocumentNumber,
   deleteApiV1WorkOrderRequisitionByDocumentNumber,
-  getApiV1WorkOrderRequisitionSelectableRolls,
   getApiV1MaterialInventoryLogical,
-  getApiV1WorkOrderRequisitionFifo,
 } from "@/api/generated/sdk.gen";
+import {
+  getFifoAllocatedRolls,
+  getSelectableRolls,
+} from "@/api/workOrderWorkflowApi";
 import { getApiMutationErrorMessage } from "@/utils/apiErrorDisplay";
 import dayjs from "dayjs";
 import { DynamicForm } from "@/components/Form/DynamicForm";
@@ -89,16 +92,13 @@ export function WorkOrderRequisitionTab({
         const isRoll = m.materialForm === "R";
 
         if (isRoll) {
-          // 1. Roll (捲材) ➡️ FIFO 自動選配 rolls
-          const res = await getApiV1WorkOrderRequisitionFifo({
-            query: {
-              materialCode: m.materialCode,
-              requiredLength: m.requiredQuantity,
-              requiredWidth: m.widthMm || undefined,
-            } as any,
+          // 1. Roll (捲材) ➡️ FIFO 自動選配 rolls（精確寬度配對）
+          const allocatedRolls = await getFifoAllocatedRolls({
+            materialCode: m.materialCode,
+            requiredLength: m.requiredQuantity,
+            requiredWidth: m.widthMm || undefined,
+            workOrderNumber: masterData.workOrderNumber || undefined,
           });
-
-          const allocatedRolls = (res?.data as any)?.data || [];
           if (allocatedRolls.length > 0) {
             const totalLen = allocatedRolls.reduce(
               (sum: number, r: any) => sum + r.qtyAux,
@@ -142,7 +142,10 @@ export function WorkOrderRequisitionTab({
             } as any,
           });
 
-          const stockLines = (res?.data as any)?.list || [];
+          const allStockLines = (res?.data as any)?.list || [];
+          const stockLines = m.widthMm
+            ? allStockLines.filter((line: any) => Number(line.widthMm) === Number(m.widthMm))
+            : allStockLines;
           let accumulated = 0;
           const selectedSpecs: any[] = [];
           const initialQtys: Record<string, number> = {};
@@ -338,6 +341,10 @@ export function WorkOrderRequisitionTab({
   });
 
   const handleCreateNewClick = () => {
+    if (!masterData.materialSpecConfirmDate) {
+      message.warning("請先完成「用料規格確認」後再建立領料單");
+      return;
+    }
     setIsCreating(true);
     setDocDate(dayjs());
     setDocNotes("");
@@ -386,6 +393,7 @@ export function WorkOrderRequisitionTab({
   const handleAddNewItemClick = () => {
     setEditingItemIndex(null);
     setModalFormValues({
+      specKey: "",
       materialCode: "",
       sourceStorageCode: "",
       quantity: 0,
@@ -400,15 +408,20 @@ export function WorkOrderRequisitionTab({
   const handleEditItemClick = (index: number) => {
     const it = items[index];
     setEditingItemIndex(index);
-    const matched = materialsList.find(
-      (x) => x.materialCode === it.materialCode,
-    );
+    const itemWidth = Number(it.extra?.[0]?.widthMm ?? 0);
+    const matched =
+      materialsList.find(
+        (x) =>
+          x.materialCode === it.materialCode &&
+          (itemWidth > 0 ? Number(x.widthMm) === itemWidth : true),
+      ) || materialsList.find((x) => x.materialCode === it.materialCode);
     setModalFormValues({
+      specKey: matched?.specKey || `${it.materialCode}::${itemWidth}`,
       materialCode: it.materialCode,
       sourceStorageCode: it.sourceStorageCode,
       quantity: it.quantity,
       referenceQuantity1: it.referenceQuantity1,
-      bomRequiredWidth: matched?.widthMm || 0,
+      bomRequiredWidth: matched?.widthMm || itemWidth || 0,
     });
     setModalExtra(it.extra || []);
 
@@ -470,9 +483,16 @@ export function WorkOrderRequisitionTab({
       return;
     }
 
-    const matched = materialsList.find(
-      (x) => x.materialCode === modalFormValues.materialCode,
-    );
+    const matched =
+      materialsList.find(
+        (x) =>
+          x.specKey === modalFormValues.specKey ||
+          (x.materialCode === modalFormValues.materialCode &&
+            Number(x.widthMm || 0) === Number(modalFormValues.bomRequiredWidth || 0)),
+      ) ||
+      materialsList.find(
+        (x) => x.materialCode === modalFormValues.materialCode,
+      );
     const requiredQty = matched ? matched.requiredQuantity : 0;
     if (modalFormValues.quantity < requiredQty) {
       message.warning(
@@ -523,27 +543,71 @@ export function WorkOrderRequisitionTab({
     saveItemsDirectly(updated);
   };
 
-  const materialsList = Array.isArray(masterData.items)
-    ? masterData.items.map((x: any) => {
-        let form = x.materialForm;
-        if (!form || (form !== "R" && form !== "S")) {
-          if (x.materialCode?.startsWith("R-") || x.materialCode?.endsWith("-R")) form = "R";
-          else if (x.materialCode?.startsWith("S-") || x.materialCode?.endsWith("-S")) form = "S";
-        }
-        return {
-          materialCode: x.materialCode,
-          materialName: x.materialName,
-          materialForm: form,
-          widthMm: x.materialWidth,
-          requiredQuantity:
-            form === "R" ? x.totalLength || 0 : x.requiredAmount || 0,
-        };
-      })
-    : [];
+  const isSpecConfirmed = Boolean(masterData.materialSpecConfirmDate);
 
-  // 💡 判斷是否所有 BOM 原料都已經在領料明細中
+  const materialsList = (() => {
+    if (!Array.isArray(masterData.items)) return [];
+    const grouped = new Map<
+      string,
+      {
+        specKey: string;
+        materialCode: string;
+        materialName: string;
+        materialForm: string;
+        widthMm: number;
+        requiredQuantity: number;
+      }
+    >();
+    for (const x of masterData.items as any[]) {
+      let form = x.materialForm;
+      if (!form || (form !== "R" && form !== "S")) {
+        if (x.materialCode?.startsWith("R-") || x.materialCode?.endsWith("-R")) form = "R";
+        else if (x.materialCode?.startsWith("S-") || x.materialCode?.endsWith("-S")) form = "S";
+      }
+      const widthMm = Number(x.materialWidth || 0);
+      const specKey = `${x.materialCode}::${widthMm}`;
+      const qty = form === "R" ? Number(x.totalLength || 0) : Number(x.requiredAmount || 0);
+      const existing = grouped.get(specKey);
+      if (existing) {
+        existing.requiredQuantity += qty;
+      } else {
+        grouped.set(specKey, {
+          specKey,
+          materialCode: x.materialCode,
+          materialName: x.materialName || "",
+          materialForm: form,
+          widthMm,
+          requiredQuantity: qty,
+        });
+      }
+    }
+    return Array.from(grouped.values());
+  })();
+
+  const getItemWidthMm = (item: any): number =>
+    Number(item?.extra?.[0]?.widthMm ?? item?.materialWidth ?? 0);
+
+  const findMatchedSpec = (item: any) => {
+    const itemWidth = getItemWidthMm(item);
+    return (
+      materialsList.find(
+        (x) =>
+          x.materialCode === item.materialCode &&
+          (itemWidth > 0 ? Number(x.widthMm) === itemWidth : true),
+      ) || materialsList.find((x) => x.materialCode === item.materialCode)
+    );
+  };
+
+  // 💡 判斷是否所有 BOM 原料（依料號+寬度分組）都已經在領料明細中
   const availableBomMaterials = materialsList.filter(
-    (bm) => !items.some((item) => item.materialCode === bm.materialCode),
+    (bm) =>
+      !items.some((item) => {
+        const itemWidth = getItemWidthMm(item);
+        return (
+          item.materialCode === bm.materialCode &&
+          (itemWidth > 0 ? itemWidth === Number(bm.widthMm) : true)
+        );
+      }),
   );
   const isAllBomRequisitioned = availableBomMaterials.length === 0;
 
@@ -638,14 +702,52 @@ export function WorkOrderRequisitionTab({
     {
       title: "寬度規格 (mm)",
       key: "widthMm",
-      width: 120,
+      width: 130,
       render: (_: any, record: any) => {
-        const matched = materialsList.find(
-          (x) => x.materialCode === record.materialCode,
+        const matched = findMatchedSpec(record);
+        const widthVal = getItemWidthMm(record) || matched?.widthMm || 0;
+        return (
+          <span
+            style={{
+              display: "inline-block",
+              lineHeight: "24px",
+              verticalAlign: "middle",
+              width: "100%",
+              textAlign: "right",
+            }}
+          >
+            {widthVal
+              ? `${Number(widthVal).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} mm`
+              : "-"}
+          </span>
         );
-        return matched?.widthMm
-          ? `${matched.widthMm.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} mm`
-          : "-";
+      },
+    },
+    {
+      title: "寬度達標狀態",
+      key: "fulfillmentStatus",
+      width: 150,
+      align: "center" as const,
+      render: (_: any, record: any) => {
+        const matched = findMatchedSpec(record);
+        if (!matched) {
+          return (
+            <div style={{ display: "inline-flex", alignItems: "center", height: "24px", verticalAlign: "middle" }}>
+              <Tag className="m-0">未對應</Tag>
+            </div>
+          );
+        }
+        const qty = Number(record.quantity || 0);
+        const reqQty = Number(matched.requiredQuantity || 0);
+        const unit = matched.materialForm === "R" ? "M" : "PCS";
+        const ok = qty >= reqQty && reqQty > 0;
+        return (
+          <div style={{ display: "inline-flex", alignItems: "center", height: "24px", verticalAlign: "middle" }}>
+            <Tag color={ok ? "success" : "warning"} className="m-0">
+              {ok ? `達標 (${qty}/${reqQty} ${unit})` : `不足 (${qty}/${reqQty} ${unit})`}
+            </Tag>
+          </div>
+        );
       },
     },
     { title: "單位", dataIndex: "unit", key: "unit", width: 80 },
@@ -804,32 +906,37 @@ export function WorkOrderRequisitionTab({
     },
   ];
 
-  const matchedMaterial = materialsList.find(
-    (x) => x.materialCode === modalFormValues.materialCode,
-  );
+  const matchedMaterial =
+    materialsList.find(
+      (x) =>
+        x.specKey === modalFormValues.specKey ||
+        (x.materialCode === modalFormValues.materialCode &&
+          Number(x.widthMm || 0) === Number(modalFormValues.bomRequiredWidth || 0)),
+    ) ||
+    materialsList.find(
+      (x) => x.materialCode === modalFormValues.materialCode,
+    );
   const modalIsRoll = matchedMaterial
     ? matchedMaterial.materialForm === "R"
     : modalFormValues.unit === "M";
 
-  const { data: selectableRollsResponse, isLoading: selectableRollsLoading } =
+  const { data: selectableRollsList = [], isLoading: selectableRollsLoading } =
     useQuery({
       queryKey: [
         "selectable-rolls-modal",
+        masterData.workOrderNumber,
         modalFormValues.materialCode,
-        matchedMaterial?.widthMm,
+        modalFormValues.bomRequiredWidth || matchedMaterial?.widthMm,
       ],
       queryFn: () =>
-        getApiV1WorkOrderRequisitionSelectableRolls({
-          query: {
-            materialCode: modalFormValues.materialCode,
-            requiredWidth: matchedMaterial?.widthMm || undefined,
-          } as any,
+        getSelectableRolls({
+          materialCode: modalFormValues.materialCode,
+          requiredWidth:
+            modalFormValues.bomRequiredWidth || matchedMaterial?.widthMm || undefined,
+          workOrderNumber: masterData.workOrderNumber || undefined,
         }),
       enabled: itemModalOpen && modalIsRoll && !!modalFormValues.materialCode,
     });
-
-  const selectableRollsList =
-    (selectableRollsResponse?.data as any)?.data || [];
 
   const { data: logicalInventoryResponse, isLoading: logicalInventoryLoading } =
     useQuery({
@@ -844,17 +951,39 @@ export function WorkOrderRequisitionTab({
       enabled: itemModalOpen && !modalIsRoll && !!modalFormValues.materialCode,
     });
 
-  const logicalInventoryList =
+  const rawLogicalInventoryList =
     (logicalInventoryResponse?.data as any)?.data?.data ||
     (logicalInventoryResponse?.data as any)?.data ||
     (logicalInventoryResponse?.data as any)?.list || [];
+  const targetRequiredWidth = Number(
+    modalFormValues.bomRequiredWidth || matchedMaterial?.widthMm || 0,
+  );
+  const logicalInventoryList =
+    targetRequiredWidth > 0
+      ? rawLogicalInventoryList.filter(
+          (line: any) => Number(line.widthMm) === targetRequiredWidth,
+        )
+      : rawLogicalInventoryList;
 
   return (
     <div className="flex flex-col gap-4">
       <Spin spinning={listLoading || detailLoading}>
+        {!isSpecConfirmed && (
+          <Alert
+            type="warning"
+            showIcon
+            className="mb-3"
+            title="尚未完成用料規格確認"
+            description="依作業規範，請先於「材料明細」確認實際投入幅寬與拆單，並點擊上方「用料規格確認」按鈕後，方可建立製令領料單或執行備料確認。"
+          />
+        )}
         {!showHeaderForm ? (
           <Empty description="尚未建立領料表" className="mt-10">
-            <Button type="primary" onClick={handleCreateNewClick}>
+            <Button
+              type="primary"
+              onClick={handleCreateNewClick}
+              disabled={!isSpecConfirmed}
+            >
               產生領料單
             </Button>
           </Empty>
@@ -1006,7 +1135,9 @@ export function WorkOrderRequisitionTab({
                 columns={itemColumns}
                 pagination={false}
                 scroll={{ x: "max-content", y: 350 }}
-                rowKey="materialCode"
+                rowKey={(record: any, idx?: number) =>
+                  `${record.materialCode}-${getItemWidthMm(record)}-${idx ?? 0}`
+                }
                 locale={{
                   emptyText: !activeDocNo
                     ? "⚠️ 請先點擊右上方「儲存」保存表頭，即可開始新增領用物料明細。"
@@ -1053,12 +1184,7 @@ export function WorkOrderRequisitionTab({
                 requisitionItemFormConfig(
                   editingItemIndex !== null
                     ? materialsList
-                    : materialsList.filter(
-                        (m) =>
-                          !items.some(
-                            (item) => item.materialCode === m.materialCode,
-                          ),
-                      ),
+                    : availableBomMaterials,
                 ).map((f) => {
                   // 💡 Lock quantity from being manually typed for BOTH rolls and sheets!
                   if (f.name === "quantity") {
@@ -1068,22 +1194,24 @@ export function WorkOrderRequisitionTab({
                 }) as any
               }
               defaultValues={{
-                materialCode: modalFormValues.materialCode,
+                materialCode: modalFormValues.specKey || modalFormValues.materialCode,
                 quantity: modalFormValues.quantity,
                 referenceQuantity1: modalFormValues.referenceQuantity1,
                 bomRequiredWidth: modalFormValues.bomRequiredWidth,
               }}
               onSubmit={() => {}}
               onValuesChange={(values: any) => {
-                // 💡 僅需監聽手動選取的原料料號 (materialCode) 變化
+                // 💡 僅需監聽手動選取的原料料號規格 (specKey) 變化
                 // 唯讀欄位 (quantity / referenceQuantity1) 是由 Parent 狀態向下單向驅動同步的，不需重複向上反饋
-                if (values.materialCode !== modalFormValues.materialCode) {
-                  const matched = materialsList.find(
-                    (x) => x.materialCode === values.materialCode,
-                  );
+                const currentKey = modalFormValues.specKey || modalFormValues.materialCode;
+                if (values.materialCode && values.materialCode !== currentKey) {
+                  const matched =
+                    materialsList.find((x) => x.specKey === values.materialCode) ||
+                    materialsList.find((x) => x.materialCode === values.materialCode);
                   const updatedValues = {
                     ...modalFormValues,
-                    materialCode: values.materialCode,
+                    specKey: matched?.specKey || values.materialCode,
+                    materialCode: matched?.materialCode || values.materialCode,
                     quantity: 0,
                     referenceQuantity1: 0,
                     bomRequiredWidth: matched?.widthMm || 0,
@@ -1118,16 +1246,16 @@ export function WorkOrderRequisitionTab({
                         0,
                       );
                       try {
-                        const res = await getApiV1WorkOrderRequisitionFifo({
-                          query: {
-                            materialCode: modalFormValues.materialCode,
-                            requiredLength:
-                              matchedMaterial?.requiredQuantity || 0,
-                            requiredWidth:
-                              matchedMaterial?.widthMm || undefined,
-                          } as any,
+                        const allocatedRolls = await getFifoAllocatedRolls({
+                          materialCode: modalFormValues.materialCode,
+                          requiredLength:
+                            matchedMaterial?.requiredQuantity || 0,
+                          requiredWidth:
+                            modalFormValues.bomRequiredWidth ||
+                            matchedMaterial?.widthMm ||
+                            undefined,
+                          workOrderNumber: masterData.workOrderNumber || undefined,
                         });
-                        const allocatedRolls = (res?.data as any)?.data || [];
                         if (allocatedRolls.length > 0) {
                           const bomWidth = matchedMaterial?.widthMm || 0;
                           const mappedExtra = allocatedRolls.map((r: any) => {
@@ -1188,10 +1316,17 @@ export function WorkOrderRequisitionTab({
                   rowSelection={{
                     type: "checkbox",
                     selectedRowKeys: modalExtra.map((x: any) => x.rollNo),
-                    getCheckboxProps: (record: any) => ({
-                      disabled: record.matchStatus === "Narrower",
-                      name: record.rollNo,
-                    }),
+                    getCheckboxProps: (record: any) => {
+                      const reqWidth = Number(
+                        modalFormValues.bomRequiredWidth || matchedMaterial?.widthMm || 0,
+                      );
+                      const isWidthMismatch =
+                        isSpecConfirmed && reqWidth > 0 && Number(record.widthMm) !== reqWidth;
+                      return {
+                        disabled: record.matchStatus === "Narrower" || isWidthMismatch,
+                        name: record.rollNo,
+                      };
+                    },
                     onChange: (_, selectedRows: any[]) => {
                       const validKeys: React.Key[] = [];
                       const validRows: any[] = [];
