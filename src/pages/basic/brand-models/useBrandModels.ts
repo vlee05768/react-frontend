@@ -190,7 +190,9 @@ export function useBrandModels() {
         }
       }
     } catch (error: any) {
+      if (error?.errorFields) return;
       logger.error('brand-models.request.failed');
+      message.error(getApiMutationErrorMessage(error, editingBrand ? '廠牌更新失敗' : '廠牌新增失敗'));
     }
   };
 
@@ -276,7 +278,9 @@ export function useBrandModels() {
         }
       }
     } catch (error: any) {
+      if (error?.errorFields) return;
       logger.error('brand-models.request.failed');
+      message.error(getApiMutationErrorMessage(error, editingModel ? '型號更新失敗' : '型號新增失敗'));
     }
   };
 
