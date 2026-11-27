@@ -14,8 +14,8 @@ import { isProductionPostingPaused } from './productionPostingPolicy';
 const api = vi.hoisted(() => ({ detail: vi.fn(), post: vi.fn(), complete: vi.fn(), escalate: vi.fn() }));
 vi.mock('@/api/generated', () => ({ getApiV1IqcInspectionByIqcRecordId: api.detail, postApiV1IqcInspectionByIqcRecordIdEscalate: api.escalate, postApiV1IqcInspectionByIqcRecordIdComplete: api.complete, getApiV1IqcInspectionByIqcRecordIdPdf: vi.fn() }));
 vi.mock('@/api/generated/client.gen', () => ({ client: { post: api.post } }));
-const access = vi.hoisted(() => ({ allowed: true }));
-vi.mock('@/stores/useAuthStore', () => ({ useAuthStore: () => ({ user: null, hasPermission: (code: string) => code === 'Purchase.IqcInspections.View' && access.allowed }) }));
+const access = vi.hoisted(() => ({ permissions: ['Purchase.IqcInspections.View', 'Purchase.IqcInspections.ConcessionReview', 'Purchase.IqcInspections.CancelConfirm'] as string[] }));
+vi.mock('@/stores/useAuthStore', () => ({ useAuthStore: () => ({ user: null, hasPermission: (code: string) => access.permissions.includes(code) }) }));
 vi.mock('@/hooks/useFileDownload', () => ({ useFileDownload: () => ({ downloadFile: vi.fn(), isDownloading: false }) }));
 vi.mock('@/components/Form/DynamicForm', () => ({ DynamicForm: () => null }));
 vi.mock('@/components/Form/AsyncSelect', () => ({ AsyncSelect: () => null }));
@@ -23,7 +23,7 @@ vi.mock('@/components/common/ActionBar', () => ({ ActionBar: ({ actions }: any) 
 vi.mock('@/components/Table/ErpTable', () => ({ default: ({ dataSource, columns }: any) => <div>{dataSource.map((row: any, i: number) => <div key={row.id ?? row.rollNo}>{columns.map((col: any, j: number) => <div key={j}>{col.render ? col.render(row[col.dataIndex], row, i) : row[col.dataIndex]}</div>)}</div>)}</div> }));
 
 beforeEach(() => {
-  access.allowed = true;
+  access.permissions = ['Purchase.IqcInspections.View', 'Purchase.IqcInspections.ConcessionReview', 'Purchase.IqcInspections.CancelConfirm'];
   vi.mocked(isProductionPostingPaused).mockReset().mockReturnValue(false);
   vi.stubGlobal('matchMedia', () => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }));
   vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} });
@@ -36,7 +36,7 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 async function renderInspection(measuredValue: string, isOk: boolean | null, post = true, sampleIsOk: boolean | null = true, overrides: any = {}, dimensions: { thickness?: string; width?: string; length?: string } = {}) {
   api.complete.mockReset();
   api.detail.mockResolvedValue({ data: { data: {
-    ...overrides, lotNo: 'IQC-TEST', materialForm: overrides.materialForm ?? 'S', revision: 1, inspectionStatus: 'Pending', inspectorId: 'EMP-1', incomingStorageCode: 'ST-1', rollCount: overrides.rollCount ?? 1,
+    ...overrides, lotNo: 'IQC-TEST', materialForm: overrides.materialForm ?? 'S', revision: 1, inspectionStatus: overrides.inspectionStatus ?? 'Pending', inspectorId: 'EMP-1', incomingStorageCode: 'ST-1', rollCount: overrides.rollCount ?? 1,
     standardCoreDiaMm: overrides.standardCoreDiaMm === undefined ? 76.2 : overrides.standardCoreDiaMm, standardThickness: 0.05, standardWidth: 150, standardLength: 300,
     groups: [{ id: 'g1', supplierLotNo: 'LOT', allocatedQty: overrides.rollCount ?? 1, sampleQty: 1, samples: [{ sampleId: 'sample-1' }] }],
     rolls: [{ sampleId: 'sample-1', seq: 1, rollNo: 'S1', supplierLotNo: 'LOT', actualQtyAux: 1, measuredCoreDiaMm: 86, measuredOuterDiaMm: 160.5, measuredSampleThicknessMm: 0.05, appearance: overrides.appearance === undefined ? 'Pass' : overrides.appearance, isOk: sampleIsOk, defectReason: overrides.sampleDefectReason === undefined ? (sampleIsOk === false ? '外觀異常' : null) : overrides.sampleDefectReason, inspectionItems: [
@@ -70,7 +70,7 @@ it.each(['complete', 'escalate', 'concession'] as const)('採購已開判定視�
 it.each(['complete', 'escalate', 'concession'] as const)('採購呈現後撤回權限時 handler 阻擋 %s', async action => {
   await renderInspection('10', action === 'complete', true, action === 'complete', { inspectionType: 'Incoming', materialForm: action === 'complete' ? 'S' : 'R' });
   const button = await screen.findByRole('button', { name: action === 'complete' ? /確認過帳/ : action === 'escalate' ? '啟動 100% 全檢' : '直接提交特採申請' });
-  access.allowed = false;
+  access.permissions = [];
   fireEvent.click(button);
   expect(await screen.findByText('目前已無此品檢單的操作權限，請重新確認權限。')).toBeTruthy();
   await new Promise(resolve => setTimeout(resolve, 0));
@@ -82,7 +82,7 @@ it.each(['closed', 'permission'] as const)('直接特採二次確認開啟後重
   const qc = await renderInspection('10', false, true, false, { inspectionType: 'Incoming', materialForm: 'R', rollCount: 2 });
   fireEvent.click(await screen.findByRole('button', { name: '直接提交特採申請' }));
   const confirm = await screen.findByRole('button', { name: '確認直接提交特採' });
-  if (change === 'permission') access.allowed = false;
+  if (change === 'permission') access.permissions = [];
   else {
     const previous = (await api.detail()).data.data;
     api.detail.mockResolvedValue({ data: { data: { ...previous, inspectionStatus: 'Reject', revision: 2 } } });
@@ -323,6 +323,29 @@ it('未填表面外觀時草稿保留 null 且完成過帳予以阻擋', async (
   expect(await screen.findByText(/表面外觀/)).toBeTruthy();
   expect(screen.queryByRole('button', { name: /確認過帳/ })).toBeNull();
   expect(api.complete).not.toHaveBeenCalled();
+});
+
+it.each([
+  { role: 'QC', permissions: ['Purchase.IqcInspections.View', 'Purchase.IqcInspections.Confirm'], review: false, cancel: false },
+  { role: 'QC_MGR', permissions: ['Purchase.IqcInspections.View', 'Purchase.IqcInspections.ConcessionReview', 'Purchase.IqcInspections.CancelConfirm'], review: true, cancel: true },
+  { role: 'Admin', permissions: ['Purchase.IqcInspections.View', 'Purchase.IqcInspections.ConcessionReview', 'Purchase.IqcInspections.CancelConfirm'], review: true, cancel: true },
+])('$role 僅依特採核決與取消過帳權限顯示對應按鈕', async ({ permissions, review, cancel }) => {
+  access.permissions = permissions;
+  await renderInspection('10', true, false, true, { inspectionStatus: 'ConcessionPending' });
+  await screen.findAllByText('LOT');
+  expect(screen.queryByRole('button', { name: /進行特採會簽與過帳/ }) !== null).toBe(review);
+  cleanup();
+  await renderInspection('10', true, false, true, { inspectionStatus: 'AllPass' });
+  await screen.findAllByText('LOT');
+  expect(screen.queryByRole('button', { name: /取消過帳/ }) !== null).toBe(cancel);
+});
+
+it.each(['AllPass', 'Partial', 'Reject'])('Production %s 可由 CancelConfirm 權限取消過帳且原因可空白', async status => {
+  api.post.mockResolvedValue({ data: { data: true } });
+  await renderInspection('10', true, false, true, { inspectionType: 'Production', inspectionStatus: status });
+  fireEvent.click(await screen.findByRole('button', { name: /取消過帳/ }));
+  fireEvent.click(await screen.findByRole('button', { name: '確認取消過帳' }));
+  await waitFor(() => expect(api.post).toHaveBeenCalledWith(expect.objectContaining({ url: '/api/v1/IqcInspection/test/cancel', body: { notes: '' } })));
 });
 
 it('客供料存在異常樣品時預設整批退回且不開放特採選項', async () => {

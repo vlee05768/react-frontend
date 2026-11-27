@@ -23,11 +23,13 @@ import { useFileDownload } from '@/hooks/useFileDownload';
 import { WorkOrderDrawer } from "./WorkOrderDrawer";
 import { MODAL_BODY_MAX_HEIGHT, MODAL_WIDTH_SEARCH } from "@/constants";
 import { getApiMutationErrorMessage } from "@/utils/apiErrorDisplay";
+import { useAuthStore } from '@/stores/useAuthStore';
 
 export const WorkOrdersList: React.FC = () => {
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const canSettleCosts = useAuthStore(s => s.hasPermission('ProductionQuality.WorkOrders.CostSettlement'));
   const { viewId } = useParams();
 
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
@@ -147,14 +149,14 @@ export const WorkOrdersList: React.FC = () => {
     <div className="p-4 pb-0 flex flex-col h-[calc(100vh-64px)]">
       <PageCard title="製令管理" extra={
           <Space separator={<Divider orientation="vertical" />}>
-            <Button
+            {canSettleCosts && <Button
               type="default"
               icon={<CalculatorOutlined />}
               onClick={() => navigate('/production-quality/work-order-cost-settlement')}
               className="font-medium"
             >
               製令成本結算
-            </Button>
+            </Button>}
             <Button
               type="default"
               icon={<SearchOutlined />}

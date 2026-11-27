@@ -3,10 +3,8 @@ import PageCard from '@/components/common/PageCard';
 import { getApiMutationErrorMessage, getMaterialDeleteNotice } from "@/utils/apiErrorDisplay";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Spin, Button, Modal, Space, Divider, message, Drawer, App } from 'antd';
-import {
-  SearchOutlined, PlusOutlined, EditOutlined, ClearOutlined, SaveOutlined
-} from '@ant-design/icons';
+import { Spin, Button, Modal, Space, Divider, Drawer, App } from 'antd';
+import { SearchOutlined, PlusOutlined, EditOutlined, ClearOutlined, SaveOutlined, CalculatorOutlined } from '@ant-design/icons';
 import { TableActions } from '@/utils/tableActions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -33,9 +31,11 @@ import { ANIMATION_DELAY_MS, DRAWER_WIDTH_MAIN, MODAL_BODY_MAX_HEIGHT, MODAL_WID
 import { TABLE_ACTION_ICON_SIZE } from '@/constants/ui';
 import { ActionBar } from '@/components/common/ActionBar';
 import { logger } from '@/utils/logger';
+import { recalculateAllMaterialEstimatedCosts, recalculateMaterialEstimatedCost, getEstimatedCostRecalculationMessage } from './materialEstimatedCost';
+import { MaterialEstimatedCostRecalculationAction } from './MaterialEstimatedCostRecalculationAction';
 
 export default function MaterialList() {
-  const { modal } = App.useApp();
+  const { modal, message } = App.useApp();
   const queryClient = useQueryClient();
   const { viewId } = useParams<{ viewId: string }>();
   const navigate = useNavigate();
@@ -273,6 +273,28 @@ export default function MaterialList() {
     }
   };
 
+  const recalculateMutation = useMutation({
+    mutationFn: (code?: string) => code
+      ? recalculateMaterialEstimatedCost(code)
+      : recalculateAllMaterialEstimatedCosts(),
+    onSuccess: async (response) => {
+      const result = response.data?.data;
+      await queryClient.invalidateQueries({ queryKey: ['materialList'] });
+      await queryClient.invalidateQueries({ queryKey: ['materialDetail'] });
+      if (result) message.success(getEstimatedCostRecalculationMessage(result));
+      else message.success('原料估算成本重算完成，列表已更新。');
+    },
+    onError: (error: unknown) => message.error(getApiMutationErrorMessage(error, '原料估算成本重算失敗')),
+  });
+
+  const confirmRecalculation = (code?: string) => modal.confirm({
+    title: code ? '重算此原料估算成本' : '重算全部原料估算成本',
+    content: code ? `將依近 30 天已完成進貨資料重算「${code}」的估算成本。` : '將依近 30 天已完成進貨資料重算全部原料的估算成本。',
+    okText: '開始重算',
+    cancelText: '取消',
+    onOk: () => recalculateMutation.mutateAsync(code),
+  });
+
   const columns = buildTableColumns(
     mainTableColumns(),
     buildStandardActionColumn({
@@ -288,6 +310,13 @@ export default function MaterialList() {
     <div className="p-4 pb-0 flex flex-col h-[calc(100vh-64px)]">
       <PageCard title="原料管理" extra={
           <Space separator={<Divider orientation="vertical" />}>
+            <MaterialEstimatedCostRecalculationAction
+              hasPermission={hasPermission}
+              onClick={() => confirmRecalculation()}
+              loading={recalculateMutation.isPending}
+            >
+              重算全部估算成本
+            </MaterialEstimatedCostRecalculationAction>
             <Button
               type="default"
               icon={<SearchOutlined />}
@@ -387,6 +416,9 @@ export default function MaterialList() {
               <Space>
                 {(!isDrawerEditing && !isCreateDrawerOpen && hasPermission('BasicData.Materials.Update')) && (
                   <Button type="primary" icon={<EditOutlined style={{ fontSize: TABLE_ACTION_ICON_SIZE }} />} onClick={startEditMode}>編輯</Button>
+                )}
+                {viewId && !isDrawerEditing && !isCreateDrawerOpen && hasPermission('BasicData.Materials.Update') && (
+                  <Button icon={<CalculatorOutlined />} loading={recalculateMutation.isPending} onClick={() => confirmRecalculation(viewId)}>重算估算成本</Button>
                 )}
                 {(isDrawerEditing || isCreateDrawerOpen) && (
                   <>

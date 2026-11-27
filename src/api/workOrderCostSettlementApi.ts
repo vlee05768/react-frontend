@@ -8,6 +8,7 @@ export interface WorkOrderCostSettlementRequestDto {
   endDate?: string | null;
   outputType?: SettlementOutputType | null;
   outputCode?: string | null;
+  workOrderNumbers?: string[] | null;
 }
 
 export interface SettledWorkOrderCostItemDto {

@@ -213,6 +213,8 @@ export default function IqcDrawer({
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
   const { user, hasPermission } = useAuthStore();
+  const canReviewConcession = hasPermission?.("Purchase.IqcInspections.ConcessionReview") ?? false;
+  const canCancelConfirm = hasPermission?.("Purchase.IqcInspections.CancelConfirm") ?? false;
   const [rolls, setRolls] = useState<any[]>([]);
   const [overallResult, setOverallResult] = useState<
     "AllPass" | "Concession" | "Reject" | "Partial"
@@ -1084,7 +1086,7 @@ export default function IqcDrawer({
     },
     onError: (err: any) => {
       const errMsg = getApiMutationErrorMessage(err, "取消過帳失敗");
-      Modal.error({
+      modal.error({
         title: "撤銷過帳失敗 (ERP 剛性業務鎖定)",
         content: errMsg,
         okText: "確認",
@@ -1119,7 +1121,7 @@ export default function IqcDrawer({
           </p>
           <div className="mt-4">
             <span className="text-xs text-slate-600 block mb-1">
-              請輸入取消過帳原因/理由：
+              取消過帳原因（選填）：
             </span>
             <Input.TextArea
               placeholder="請輸入取消理由，如：輸入數據錯誤，需退回重新檢驗錄入..."
@@ -1229,7 +1231,7 @@ export default function IqcDrawer({
           </Button>
         )}
 
-        {detail?.inspectionStatus === "ConcessionPending" && (
+        {canReviewConcession && detail?.inspectionStatus === "ConcessionPending" && (
           <Button
             key="concession-post"
             type="primary"
@@ -1242,11 +1244,13 @@ export default function IqcDrawer({
           </Button>
         )}
 
-        {isReadOnly &&
+        {canCancelConfirm && isReadOnly &&
           (detail?.inspectionStatus === "AllPass" ||
+            detail?.inspectionStatus === "Partial" ||
             detail?.inspectionStatus === "Reject" ||
-            detail?.inspectionStatus === "ConcessionApproved" ||
-            detail?.inspectionStatus === "ConcessionPending") && (
+            (detail?.inspectionType !== "Production" &&
+              (detail?.inspectionStatus === "ConcessionApproved" ||
+                detail?.inspectionStatus === "ConcessionPending"))) && (
             <Button
               key="cancel-posting"
               danger

@@ -25,6 +25,8 @@ import { mainFormConfig, getStatusTag } from './PurchaseReceiptConfig';
 import PurchaseReceiptItemsTab from './PurchaseReceiptItemsTab';
 import { DocumentWatchButton } from '@/components/common/DocumentWatchButton';
 import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
+import PurchaseReceiptExtraFeeModal from './PurchaseReceiptExtraFeeModal';
+import type { PurchaseReceiptExtraFeeItemInputDto } from '@/api/generated/types.gen';
 
 export default function PurchaseReceiptDrawer() {
   const navigate = useNavigate();
@@ -41,6 +43,7 @@ export default function PurchaseReceiptDrawer() {
   const [isEditing, setIsEditing] = useState(isCreating);
   const [activeTab, setActiveTab] = useState('master_info');
   const [isDetailEditing, setIsDetailEditing] = useState(false);
+  const [extraFeeOpen, setExtraFeeOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['purchase-receipt', id],
@@ -190,6 +193,7 @@ export default function PurchaseReceiptDrawer() {
     const isUnconfirmed = statusUpper === 'UNCONFIRMED' || !purchaseReceiptData?.confirmDate;
     const canUpdate = hasPermission('Purchase.Receipts.Update') || true; // Fallback helper
     const canDelete = hasPermission('Purchase.Receipts.Delete') || true;
+    const canAdjustExtraFee = hasPermission('Purchase.Receipts.AdjustExtraFee');
     const hasItems = purchaseReceiptData?.items && purchaseReceiptData.items.length > 0;
 
     if (isCreating || isEditing) return null;
@@ -198,6 +202,9 @@ export default function PurchaseReceiptDrawer() {
     return (
       <Space>
         <DocumentWatchButton documentType="PurchaseReceipt" documentKey={purchaseReceiptData?.documentNumber} />
+        {!isMold && canAdjustExtraFee && !isUnconfirmed && !purchaseReceiptData?.closeDate && (
+          <Button key="extra-fee" onClick={() => setExtraFeeOpen(true)}>補登／調整附加費</Button>
+        )}
         {canUpdate && isUnconfirmed && (
           <ActionButton 
             key="confirm"
@@ -366,6 +373,7 @@ export default function PurchaseReceiptDrawer() {
       keyboard={isViewMode}
     >
       <Spin spinning={isLoading}>
+        {purchaseReceiptData && id && <PurchaseReceiptExtraFeeModal open={extraFeeOpen} code={id} onClose={() => setExtraFeeOpen(false)} initialItems={((purchaseReceiptData.items ?? []) as Array<Record<string, unknown>>).filter(item => item.inventoryType === 'O').map(item => ({ lineNumber: String(item.lineNumber ?? ''), materialCode: String(item.materialCode ?? ''), quantity: Number(item.quantity ?? 1), unitPrice: Number(item.unitPrice ?? 0), amount: item.amount == null ? null : Number(item.amount), notes: item.notes == null ? null : String(item.notes) })) as PurchaseReceiptExtraFeeItemInputDto[]} />}
         <ActionBar 
           createdBy={purchaseReceiptData?.createdBy || undefined}
           createdAt={purchaseReceiptData?.createdAt || undefined}

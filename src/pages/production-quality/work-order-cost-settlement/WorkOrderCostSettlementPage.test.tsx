@@ -30,6 +30,7 @@ if (typeof globalThis.ResizeObserver === 'undefined') {
 import { WorkOrderCostSettlementPage } from './WorkOrderCostSettlementPage';
 import * as settlementApi from '@/api/workOrderCostSettlementApi';
 import * as sdk from '@/api/generated/sdk.gen';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 vi.mock('@/api/workOrderCostSettlementApi', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/api/workOrderCostSettlementApi')>();
@@ -139,12 +140,21 @@ const mockPreviewResult: settlementApi.WorkOrderCostSettlementResultDto = {
 describe('WorkOrderCostSettlementPage 製令成本結算頁', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useAuthStore.setState({ user: { userName: 'cost-user', roles: [], permissions: ['ProductionQuality.WorkOrders.CostSettlement'] } });
     vi.mocked(sdk.getApiV1Product).mockResolvedValue({
       data: { data: { data: [{ code: 'PROD-001', name: '測試成品' }] } },
     } as any);
     vi.mocked(sdk.getApiV1Material).mockResolvedValue({
       data: { data: { data: [{ code: 'TF-8015-0.15-R', name: '測試半成品' }] } },
     } as any);
+  });
+
+  it('缺少結算權限時阻擋頁面且不呼叫預覽或重算', async () => {
+    useAuthStore.setState({ user: { userName: 'readonly', roles: [], permissions: [] } });
+    renderPage();
+    expect(await screen.findByText('無權限存取製令成本結算')).toBeTruthy();
+    expect(settlementApi.previewWorkOrderCostSettlement).not.toHaveBeenCalled();
+    expect(settlementApi.executeWorkOrderCostSettlement).not.toHaveBeenCalled();
   });
 
   it('期間與產出目標皆空時，點擊預覽檢核應阻擋並顯示警告提示', async () => {
@@ -186,6 +196,7 @@ describe('WorkOrderCostSettlementPage 製令成本結算頁', () => {
         endDate: null,
         outputType: 'P',
         outputCode: null,
+        workOrderNumbers: null,
       });
     });
 
@@ -214,6 +225,7 @@ describe('WorkOrderCostSettlementPage 製令成本結算頁', () => {
         endDate: null,
         outputType: 'P',
         outputCode: null,
+        workOrderNumbers: null,
       });
     });
     expect(await screen.findByText('已完成成本結算')).toBeTruthy();

@@ -23,7 +23,7 @@ import {
   EyeOutlined,
 } from '@ant-design/icons';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import PageCard from '@/components/common/PageCard';
 import { getApiV1Material, getApiV1Product } from '@/api/generated/sdk.gen';
@@ -39,6 +39,7 @@ import {
   type WorkOrderCostSettlementResultDto,
 } from '@/api/workOrderCostSettlementApi';
 import { getApiMutationErrorMessage } from '@/utils/apiErrorDisplay';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 const { RangePicker } = DatePicker;
 
@@ -90,6 +91,9 @@ const formatCurrency = (val: number | null | undefined, digits = 2) => {
 
 export const WorkOrderCostSettlementPage: React.FC = () => {
   const { message, modal } = App.useApp();
+  const location = useLocation();
+  const canSettle = useAuthStore(s => s.hasPermission('ProductionQuality.WorkOrders.CostSettlement'));
+  const requestedWorkOrderNumbers = (location.state as { workOrderNumbers?: string[] } | null)?.workOrderNumbers ?? [];
 
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
   const [outputType, setOutputType] = useState<SettlementOutputType | undefined>(undefined);
@@ -161,6 +165,7 @@ export const WorkOrderCostSettlementPage: React.FC = () => {
       endDate,
       outputType: outputType ?? null,
       outputCode: outputCode ?? null,
+      workOrderNumbers: requestedWorkOrderNumbers.length ? requestedWorkOrderNumbers : null,
     };
   };
 
@@ -494,7 +499,7 @@ export const WorkOrderCostSettlementPage: React.FC = () => {
 
   return (
     <div className="p-4 pb-0 flex flex-col h-[calc(100vh-64px)]">
-      <PageCard
+      {!canSettle ? <Alert type="error" showIcon title="無權限存取製令成本結算" description="需要 ProductionQuality.WorkOrders.CostSettlement 權限。" /> : <PageCard
         title="製令成本結算"
         extra={
           <Space separator={<Divider orientation="vertical" />}>
@@ -688,7 +693,7 @@ export const WorkOrderCostSettlementPage: React.FC = () => {
             </div>
           )}
         </div>
-      </PageCard>
+      </PageCard>}
     </div>
   );
 };
